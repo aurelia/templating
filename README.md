@@ -4,6 +4,12 @@ This library is part of the [Aurelia](http://www.aurelia.io/) platform and conta
 
 > To keep up to date on [Aurelia](http://www.aurelia.io/), please visit and subscribe to [the official blog](http://blog.durandal.io/). If you have questions, we invite you to join us on [our Gitter Channel](https://gitter.im/Aurelia/Discuss).
 
+## Polyfills
+
+* Depending on target browser(s), [es6-shim](https://github.com/paulmillr/es6-shim) is likely required for `Promise` support.
+
+* If targeting IE, [aurelia-html-template-element](https://github.com/aurelia/html-template-element) is required.
+
 ## Dependencies
 
 * [aurelia-metadata](https://github.com/aurelia/metadata)
