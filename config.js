@@ -7,7 +7,7 @@ System.config({
 
 System.config({
   "map": {
-    "aurelia-binding": "github:aurelia/binding@0.1.0",
+    "aurelia-binding": "github:aurelia/binding@0.1.1",
     "aurelia-dependency-injection": "github:aurelia/dependency-injection@0.1.0",
     "aurelia-html-template-element": "github:aurelia/html-template-element@0.1.0",
     "aurelia-loader": "github:aurelia/loader@0.1.1",
@@ -16,7 +16,7 @@ System.config({
     "aurelia-path": "github:aurelia/path@0.1.0",
     "aurelia-task-queue": "github:aurelia/task-queue@0.1.0",
     "es6-shim": "github:paulmillr/es6-shim@0.21.1",
-    "github:aurelia/binding@0.1.0": {
+    "github:aurelia/binding@0.1.1": {
       "aurelia-metadata": "github:aurelia/metadata@0.1.0",
       "aurelia-task-queue": "github:aurelia/task-queue@0.1.0"
     },
