@@ -46,13 +46,13 @@ var ViewEngine = (function () {
 
   ViewEngine.prototype.loadTemplateResources = function (templateUrl, template) {
     var _this2 = this;
-    var importIds, i, ii, j, jj, parts, dxImportAttribute = template.getAttribute("dx-import"), dxImportElements = template.content.querySelectorAll("dx-import");
+    var importIds, i, ii, j, jj, parts, dxImportElements = template.content.querySelectorAll("import");
 
-    if (dxImportAttribute) {
-      importIds = dxImportAttribute.split(importSplitter);
-    } else {
-      importIds = [];
+    if (dxImportElements.length === 0) {
+      return Promise.resolve(this.appResources);
     }
+
+    importIds = [];
 
     for (i = 0, ii = dxImportElements.length; i < ii; i++) {
       parts = dxImportElements[i].getAttribute("src").split(importSplitter);
@@ -62,7 +62,7 @@ var ViewEngine = (function () {
       }
     }
 
-    if (!importIds.length) {
+    if (importIds.length === 0) {
       return Promise.resolve(this.appResources);
     }
 

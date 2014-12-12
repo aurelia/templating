@@ -38,14 +38,13 @@ export class ViewEngine {
 
   loadTemplateResources(templateUrl, template){
     var importIds, i, ii, j, jj, parts,
-        dxImportAttribute = template.getAttribute('dx-import'),
-        dxImportElements = template.content.querySelectorAll('dx-import');
+        dxImportElements = template.content.querySelectorAll('import');
 
-    if(dxImportAttribute){
-      importIds = dxImportAttribute.split(importSplitter);
-    }else{
-      importIds = [];
+    if(dxImportElements.length === 0){
+      return Promise.resolve(this.appResources);
     }
+
+    importIds = [];
 
     for(i = 0, ii = dxImportElements.length; i < ii; i++){
       parts = dxImportElements[i]
@@ -56,7 +55,7 @@ export class ViewEngine {
       }
     }
 
-    if(!importIds.length){
+    if(importIds.length === 0){
       return Promise.resolve(this.appResources);
     }
 
