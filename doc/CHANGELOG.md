@@ -1,3 +1,11 @@
+## 0.3.0 (2014-12-17)
+
+
+#### Bug Fixes
+
+* **package:** updated dependencies to latest versions ([cdcfd6dd](http://github.com/aurelia/templating/commit/cdcfd6dd425f76e17689e645a5aad2f323a4fd40))
+
+
 ### 0.2.1 (2014-12-12)
 
 
