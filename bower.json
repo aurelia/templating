@@ -1,0 +1,30 @@
+{
+  "name": "aurelia-templating",
+  "version": "0.2.1",
+  "description": "An extensible HTML templating engine supporting databinding, custom elements, attached behaviors and more.",
+  "keywords": [
+    "aurelia",
+    "templating",
+    "html",
+    "custom element",
+    "databinding"
+  ],
+  "homepage": "http://aurelia.io",
+  "license": "MIT",
+  "authors": ["Rob Eisenberg <rob@bluespire.com> (http://robeisenberg.com/)"],
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/aurelia/templating"
+  },
+  "dependencies": {
+    "aurelia-binding": "0.1.1",
+    "aurelia-dependency-injection": "0.1.0",
+    "aurelia-html-template-element": "0.1.0",
+    "aurelia-loader": "0.1.1",
+    "aurelia-logging": "0.1.0",
+    "aurelia-metadata": "0.1.0",
+    "aurelia-path": "0.1.0",
+    "aurelia-task-queue": "0.1.0",
+    "es6-shim": "0.21.1"
+  }
+}

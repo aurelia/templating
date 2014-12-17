@@ -20,6 +20,13 @@ This library is part of the [Aurelia](http://www.aurelia.io/) platform and conta
 * [aurelia-logging](https://github.com/aurelia/logging)
 * [aurelia-path](https://github.com/aurelia/path)
 
+## Used By
+
+* [aurelia-framework](https://github.com/aurelia/framework)
+* [aurelia-templating-binding](https://github.com/aurelia/templating-binding)
+* [aurelia-templating-resources](https://github.com/aurelia/templating-resources)
+* [aurelia-templating-router](https://github.com/aurelia/templating-router)
+
 ## Platform Support
 
 This library can be used in the **browser** only.
