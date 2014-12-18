@@ -53,7 +53,7 @@ define(["exports", "./resource-registry", "./view-factory", "./binding-language"
         content.insertBefore(document.createComment("<view>"), content.firstChild);
         content.appendChild(document.createComment("</view>"));
 
-        return new ViewFactory(content, instructions);
+        return new ViewFactory(content, instructions, resources);
       })();
     };
 

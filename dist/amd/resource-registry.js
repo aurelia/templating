@@ -1,4 +1,4 @@
-define(["exports"], function (exports) {
+define(["exports", "aurelia-path"], function (exports, _aureliaPath) {
   "use strict";
 
   var _extends = function (child, parent) {
@@ -12,6 +12,9 @@ define(["exports"], function (exports) {
     });
     child.__proto__ = parent;
   };
+
+  var relativeToFile = _aureliaPath.relativeToFile;
+
 
   function register(lookup, name, resource, type) {
     if (!name) {
@@ -66,13 +69,18 @@ define(["exports"], function (exports) {
 
   exports.ResourceRegistry = ResourceRegistry;
   var ViewResources = (function (ResourceRegistry) {
-    var ViewResources = function ViewResources(parent) {
+    var ViewResources = function ViewResources(parent, viewUrl) {
       ResourceRegistry.call(this);
       this.parent = parent;
+      this.viewUrl = viewUrl;
       this.filterLookupFunction = this.getFilter.bind(this);
     };
 
     _extends(ViewResources, ResourceRegistry);
+
+    ViewResources.prototype.relativeToView = function (path) {
+      return relativeToFile(path, this.viewUrl);
+    };
 
     ViewResources.prototype.getElement = function (tagName) {
       return this.elements[tagName] || this.parent.getElement(tagName);

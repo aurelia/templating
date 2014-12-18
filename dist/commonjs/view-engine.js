@@ -3,7 +3,7 @@
 var LogManager = require('aurelia-logging');
 
 var Loader = require('aurelia-loader').Loader;
-var normalize = require('aurelia-path').normalize;
+var relativeToFile = require('aurelia-path').relativeToFile;
 var ViewCompiler = require('./view-compiler').ViewCompiler;
 var ResourceRegistry = require('./resource-registry').ResourceRegistry;
 var ViewResources = require('./resource-registry').ViewResources;
@@ -45,11 +45,10 @@ var ViewEngine = (function () {
   };
 
   ViewEngine.prototype.loadTemplateResources = function (templateUrl, template) {
-    var _this2 = this;
-    var importIds, i, ii, j, jj, parts, dxImportElements = template.content.querySelectorAll("import");
+    var importIds, i, ii, j, jj, parts, registry = new ViewResources(this.appResources, templateUrl), dxImportElements = template.content.querySelectorAll("import");
 
     if (dxImportElements.length === 0) {
-      return Promise.resolve(this.appResources);
+      return Promise.resolve(registry);
     }
 
     importIds = [];
@@ -63,16 +62,15 @@ var ViewEngine = (function () {
     }
 
     if (importIds.length === 0) {
-      return Promise.resolve(this.appResources);
+      return Promise.resolve(registry);
     }
 
     importIds = importIds.map(function (x) {
-      return normalize(x, templateUrl);
+      return relativeToFile(x, templateUrl);
     });
     logger.debug("importing resources for " + templateUrl, importIds);
 
     return this.resourceCoordinator.importResourcesFromModuleIds(importIds).then(function (toRegister) {
-      var registry = new ViewResources(_this2.appResources);
       toRegister.forEach(function (x) {
         return x.register(registry);
       });

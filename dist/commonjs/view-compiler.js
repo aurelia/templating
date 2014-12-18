@@ -52,7 +52,7 @@ var ViewCompiler = (function () {
       content.insertBefore(document.createComment("<view>"), content.firstChild);
       content.appendChild(document.createComment("</view>"));
 
-      return new ViewFactory(content, instructions);
+      return new ViewFactory(content, instructions, resources);
     })();
   };
 

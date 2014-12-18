@@ -1,6 +1,6 @@
 import * as LogManager from 'aurelia-logging';
 import {Loader} from 'aurelia-loader';
-import {normalize} from 'aurelia-path';
+import {relativeToFile} from 'aurelia-path';
 import {ViewCompiler} from './view-compiler';
 import {ResourceRegistry, ViewResources} from './resource-registry';
 
@@ -38,10 +38,11 @@ export class ViewEngine {
 
   loadTemplateResources(templateUrl, template){
     var importIds, i, ii, j, jj, parts,
+        registry = new ViewResources(this.appResources, templateUrl),
         dxImportElements = template.content.querySelectorAll('import');
 
     if(dxImportElements.length === 0){
-      return Promise.resolve(this.appResources);
+      return Promise.resolve(registry);
     }
 
     importIds = [];
@@ -56,14 +57,13 @@ export class ViewEngine {
     }
 
     if(importIds.length === 0){
-      return Promise.resolve(this.appResources);
+      return Promise.resolve(registry);
     }
 
-    importIds = importIds.map(x => normalize(x, templateUrl));
+    importIds = importIds.map(x => relativeToFile(x, templateUrl));
     logger.debug(`importing resources for ${templateUrl}`, importIds);
 
     return this.resourceCoordinator.importResourcesFromModuleIds(importIds).then(toRegister => {
-      var registry = new ViewResources(this.appResources);
       toRegister.forEach(x => x.register(registry));
       return registry;
     });

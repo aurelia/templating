@@ -1,3 +1,17 @@
+### 0.3.1 (2014-12-18)
+
+
+#### Bug Fixes
+
+* **package:** update path to the latest version ([a173b15c](http://github.com/aurelia/templating/commit/a173b15cf1d50677dfafb3143bc19d0e6b6720b8))
+* **view-engine:** update to use path.relativeToFile ([fa05b092](http://github.com/aurelia/templating/commit/fa05b092b350bbb47e44001322f2e58a7b868165))
+
+
+#### Features
+
+* **ViewResources:** enable DI of ViewResources ([f5b37e10](http://github.com/aurelia/templating/commit/f5b37e10bada8063a78c02e1b53ab1357ba9668e))
+
+
 ## 0.3.0 (2014-12-17)
 
 

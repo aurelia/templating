@@ -16,6 +16,7 @@ var Container = require('aurelia-dependency-injection').Container;
 var View = require('./view').View;
 var ViewSlot = require('./view-slot').ViewSlot;
 var ContentSelector = require('./content-selector').ContentSelector;
+var ViewResources = require('./resource-registry').ViewResources;
 var BehaviorContainer = (function (Container) {
   var BehaviorContainer = function BehaviorContainer() {
     Container.apply(this, arguments);
@@ -41,13 +42,17 @@ var BehaviorContainer = (function (Container) {
       return this.viewSlot;
     }
 
+    if (key === ViewResources) {
+      return this.viewResources;
+    }
+
     return Container.prototype.get.call(this, key);
   };
 
   return BehaviorContainer;
 })(Container);
 
-function applyInstructions(containers, executionContext, element, instruction, behaviors, bindings, children, contentSelectors) {
+function applyInstructions(containers, executionContext, element, instruction, behaviors, bindings, children, contentSelectors, resources) {
   var behaviorInstructions = instruction.behaviorInstructions, elementContainer;
 
   if (instruction.contentExpression) {
@@ -68,6 +73,7 @@ function applyInstructions(containers, executionContext, element, instruction, b
     elementContainer.instruction = instruction;
     elementContainer.executionContext = executionContext;
     elementContainer.children = children;
+    elementContainer.viewResources = resources;
     elementContainer.autoRegisterAll(instruction.providers);
 
     behaviorInstructions.forEach(function (behaviorInstruction) {
@@ -114,19 +120,20 @@ var defaultFactoryOptions = {
 };
 
 var ViewFactory = (function () {
-  var ViewFactory = function ViewFactory(template, instructions) {
+  var ViewFactory = function ViewFactory(template, instructions, resources) {
     this.template = template;
     this.instructions = instructions;
+    this.resources = resources;
   };
 
   ViewFactory.prototype.create = function (container, executionContext, options) {
     var _this = this;
     if (options === undefined) options = defaultFactoryOptions;
     return (function () {
-      var fragment = _this.template.cloneNode(true), instructables = fragment.querySelectorAll(".ai-target"), instructions = _this.instructions, behaviors = [], bindings = [], children = [], contentSelectors = [], containers = { root: container };
+      var fragment = _this.template.cloneNode(true), instructables = fragment.querySelectorAll(".ai-target"), instructions = _this.instructions, resources = _this.resources, behaviors = [], bindings = [], children = [], contentSelectors = [], containers = { root: container };
 
       for (var i = 0, ii = instructables.length; i < ii; i++) {
-        applyInstructions(containers, executionContext, instructables[i], instructions[i], behaviors, bindings, children, contentSelectors);
+        applyInstructions(containers, executionContext, instructables[i], instructions[i], behaviors, bindings, children, contentSelectors, resources);
       }
 
       var view = new View(fragment, behaviors, bindings, children, options.systemControlled, contentSelectors);

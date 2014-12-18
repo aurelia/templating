@@ -12,6 +12,9 @@ var _extends = function (child, parent) {
   child.__proto__ = parent;
 };
 
+var relativeToFile = require('aurelia-path').relativeToFile;
+
+
 function register(lookup, name, resource, type) {
   if (!name) {
     return;
@@ -65,13 +68,18 @@ var ResourceRegistry = (function () {
 
 exports.ResourceRegistry = ResourceRegistry;
 var ViewResources = (function (ResourceRegistry) {
-  var ViewResources = function ViewResources(parent) {
+  var ViewResources = function ViewResources(parent, viewUrl) {
     ResourceRegistry.call(this);
     this.parent = parent;
+    this.viewUrl = viewUrl;
     this.filterLookupFunction = this.getFilter.bind(this);
   };
 
   _extends(ViewResources, ResourceRegistry);
+
+  ViewResources.prototype.relativeToView = function (path) {
+    return relativeToFile(path, this.viewUrl);
+  };
 
   ViewResources.prototype.getElement = function (tagName) {
     return this.elements[tagName] || this.parent.getElement(tagName);
