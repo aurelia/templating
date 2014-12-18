@@ -32,7 +32,7 @@
       "aurelia-loader": "^0.2.0",
       "aurelia-logging": "^0.1.1",
       "aurelia-metadata": "^0.1.1",
-      "aurelia-path": "^0.2.2",
+      "aurelia-path": "^0.3.0",
       "aurelia-task-queue": "^0.1.1",
       "es6-shim": "github:paulmillr/es6-shim@^0.21.1"
     }

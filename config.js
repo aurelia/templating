@@ -13,7 +13,7 @@ System.config({
     "aurelia-loader": "github:aurelia/loader@0.2.0",
     "aurelia-logging": "github:aurelia/logging@0.1.1",
     "aurelia-metadata": "github:aurelia/metadata@0.1.1",
-    "aurelia-path": "github:aurelia/path@0.2.2",
+    "aurelia-path": "github:aurelia/path@0.3.0",
     "aurelia-task-queue": "github:aurelia/task-queue@0.1.1",
     "es6-shim": "github:paulmillr/es6-shim@0.21.1",
     "github:aurelia/binding@0.1.2": {
