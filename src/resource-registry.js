@@ -1,3 +1,5 @@
+import {relativeToFile} from 'aurelia-path';
+
 function register(lookup, name, resource, type){
   if(!name){
     return;
@@ -48,11 +50,16 @@ export class ResourceRegistry {
 }
 
 export class ViewResources extends ResourceRegistry {
-	constructor(parent){
+	constructor(parent, viewUrl){
 		super();
 		this.parent = parent;
+    this.viewUrl = viewUrl;
     this.filterLookupFunction = this.getFilter.bind(this);
 	}
+
+  relativeToView(path){
+    return relativeToFile(path, this.viewUrl);
+  }
 
   getElement(tagName){
     return this.elements[tagName] || this.parent.getElement(tagName);

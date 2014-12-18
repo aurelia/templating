@@ -2,6 +2,7 @@ import {Container} from 'aurelia-dependency-injection';
 import {View} from './view';
 import {ViewSlot} from './view-slot';
 import {ContentSelector} from './content-selector';
+import {ViewResources} from './resource-registry';
 
 class BehaviorContainer extends Container {
   get(key){
@@ -22,12 +23,16 @@ class BehaviorContainer extends Container {
       return this.viewSlot;
     }
 
+    if(key === ViewResources){
+      return this.viewResources;
+    }
+
     return super.get(key);
   }
 }
 
 function applyInstructions(containers, executionContext, element, instruction, 
-  behaviors, bindings, children, contentSelectors){
+  behaviors, bindings, children, contentSelectors, resources){
   var behaviorInstructions = instruction.behaviorInstructions,
       elementContainer;
 
@@ -49,6 +54,7 @@ function applyInstructions(containers, executionContext, element, instruction,
     elementContainer.instruction = instruction;
     elementContainer.executionContext = executionContext;
     elementContainer.children = children;
+    elementContainer.viewResources = resources;
     elementContainer.autoRegisterAll(instruction.providers);
 
     behaviorInstructions.forEach(behaviorInstruction => {
@@ -89,15 +95,17 @@ var defaultFactoryOptions = {
 };
 
 export class ViewFactory{
-  constructor(template, instructions){
+  constructor(template, instructions, resources){
     this.template = template;
     this.instructions = instructions;
+    this.resources = resources;
   }
 
   create(container, executionContext, options=defaultFactoryOptions){
     var fragment = this.template.cloneNode(true), 
         instructables = fragment.querySelectorAll('.ai-target'),
         instructions = this.instructions,
+        resources = this.resources,
         behaviors = [],
         bindings = [],
         children = [],
@@ -106,7 +114,7 @@ export class ViewFactory{
 
     for(var i = 0, ii = instructables.length; i < ii; i++){
       applyInstructions(containers, executionContext, instructables[i], 
-        instructions[i], behaviors, bindings, children, contentSelectors);
+        instructions[i], behaviors, bindings, children, contentSelectors, resources);
     }
 
     var view = new View(fragment, behaviors, bindings, children, options.systemControlled, contentSelectors);
