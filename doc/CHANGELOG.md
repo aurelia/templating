@@ -1,3 +1,11 @@
+### 0.3.2 (2014-12-18)
+
+
+#### Bug Fixes
+
+* **resource-registry:** symbol was not correctly exported ([bb395edf](http://github.com/aurelia/templating/commit/bb395edf701d58dc814859975f219739174c4a39))
+
+
 ### 0.3.1 (2014-12-18)
 
 

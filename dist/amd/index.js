@@ -6,7 +6,7 @@ define(["exports", "./attached-behavior", "./behavior", "./resource-coordinator"
   exports.Behavior = _behavior.Behavior;
   exports.ResourceCoordinator = _resourceCoordinator.ResourceCoordinator;
   exports.ResourceRegistry = _resourceRegistry.ResourceRegistry;
-  exports.ViewRegistry = _resourceRegistry.ViewRegistry;
+  exports.ViewResources = _resourceRegistry.ViewResources;
   exports.Children = _children.Children;
   exports.CustomElement = _customElement.CustomElement;
   exports.UseShadowDOM = _customElement.UseShadowDOM;

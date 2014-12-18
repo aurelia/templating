@@ -1,7 +1,7 @@
 export {AttachedBehavior} from './attached-behavior';
 export {Property, Behavior} from './behavior';
 export {ResourceCoordinator} from './resource-coordinator';
-export {ResourceRegistry, ViewRegistry} from './resource-registry';
+export {ResourceRegistry, ViewResources} from './resource-registry';
 export {Children} from './children';
 export {CustomElement, UseShadowDOM} from './custom-element';
 export {ElementConfig} from './element-config';
