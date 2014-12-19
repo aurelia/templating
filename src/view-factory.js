@@ -103,7 +103,7 @@ export class ViewFactory{
 
   create(container, executionContext, options=defaultFactoryOptions){
     var fragment = this.template.cloneNode(true), 
-        instructables = fragment.querySelectorAll('.ai-target'),
+        instructables = fragment.querySelectorAll('.au-target'),
         instructions = this.instructions,
         resources = this.resources,
         behaviors = [],

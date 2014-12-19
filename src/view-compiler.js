@@ -25,6 +25,11 @@ function configureProperties(instruction){
   }
 }
 
+function makeIntoInstructionTarget(element){
+  var value = element.getAttribute('class');
+  element.setAttribute('class', (value ? value += ' au-target' : 'au-target'));
+}
+
 export class ViewCompiler {
   static inject() { return [BindingLanguage]; }
   constructor(bindingLanguage){
@@ -59,8 +64,8 @@ export class ViewCompiler {
       case 3: //text node
         var expression =  this.bindingLanguage.parseText(resources, node.textContent);
         if(expression){
-          var marker = document.createElement('ai-marker');
-          marker.className = 'ai-target';
+          var marker = document.createElement('au-marker');
+          marker.className = 'au-target';
           node.parentNode.insertBefore(marker, node);
           node.textContent = ' ';
           instructions.push({ contentExpression:expression });
@@ -95,7 +100,7 @@ export class ViewCompiler {
           selector:node.getAttribute('select'),
           suppressBind: true 
         });
-        node.setAttribute('class', node.getAttribute('class') + ' ' + 'ai-target');
+        makeIntoInstructionTarget(node);
       }
       return node.nextSibling;
     } else if(tagName === 'template'){
@@ -160,7 +165,7 @@ export class ViewCompiler {
     if(liftingInstruction){
       liftingInstruction.viewFactory = viewFactory;
       node = liftingInstruction.type.compile(this, resources, node, liftingInstruction, parentNode);
-      node.setAttribute('class', node.getAttribute('class') + ' ' + 'ai-target');
+      makeIntoInstructionTarget(node);
       instructions.push({
         anchorIsContainer: false,
         parentInjectorId: parentInjectorId,
@@ -179,7 +184,7 @@ export class ViewCompiler {
       var injectorId = behaviorInstructions.length ? getNextInjectorId() : false;
 
       if(expressions.length || behaviorInstructions.length){
-        node.setAttribute('class', node.getAttribute('class') + ' ' + 'ai-target');
+        makeIntoInstructionTarget(node);
         instructions.push({
           anchorIsContainer: true,
           injectorId: injectorId,
