@@ -6,7 +6,6 @@ import {CustomElement} from './custom-element';
 import {AttachedBehavior} from './attached-behavior';
 import {TemplateController} from './template-controller';
 import {ViewEngine} from './view-engine';
-import {UseView} from './use-view';
 
 export class ResourceCoordinator {
   static inject(){ return [Loader, Container, ViewEngine]; }
@@ -15,18 +14,25 @@ export class ResourceCoordinator {
 		this.container = container;
 		this.viewEngine = viewEngine;
 		this.importedModules = {};
+    this.importedAnonymous = {};
 		viewEngine.resourceCoordinator = this;
 	}
 
-  _loadAndAnalyzeElementModule(moduleImport, moduleMember, persistAnalysis){
+  _loadAndAnalyzeModule(moduleImport, moduleMember, cache){
+    var existing = cache[moduleImport];
+
+    if(existing){
+      return Promise.resolve(existing.element);
+    }
+
     return this.loader.loadModule(moduleImport).then(elementModule => {
       var analysis = analyzeModule(elementModule, moduleMember),
           resources = analysis.resources,
           container = this.container,
           loads = [], type, current, i , ii;
 
-      if(!analysis.component){
-        throw new Error(`No component found in module "${moduleImport}".`);
+      if(!analysis.element){
+        throw new Error(`No element found in module "${moduleImport}".`);
       }
 
       for(i = 0, ii = resources.length; i < ii; ++i){
@@ -39,35 +45,25 @@ export class ResourceCoordinator {
         }
       }
 
-      if(persistAnalysis){
-        this.importedModules[moduleImport] = analysis;
-      }
+      cache[moduleImport] = analysis;
 
-      return Promise.all(loads).then(() => analysis.component);
+      return Promise.all(loads).then(() => analysis.element);
     });
   }
 
-  loadAnonymousElement(moduleImport, moduleMember, viewUrl){
-    return this._loadAndAnalyzeElementModule(moduleImport, moduleMember).then(info => {
-      var useView;
+  loadViewModelType(moduleImport, moduleMember){
+    return this._loadAndAnalyzeModule(moduleImport, moduleMember, this.importedAnonymous).then(info => info.value);
+  }
 
-      if(viewUrl){
-        useView = new UseView(viewUrl);
-      }
-
-      return CustomElement.anonymous(this.container, info.value, useView);
+  loadAnonymousElement(moduleImport, moduleMember, viewStategy){
+    return this.loadViewModelType(moduleImport, moduleMember).then(viewModelType => {
+      return CustomElement.anonymous(this.container, viewModelType, viewStategy);
     });
   }
 
-  loadElement(moduleImport, moduleMember, viewUrl){
-    var existing = this.importedModules[moduleImport];
-
-    if(existing){
-      return Promise.resolve(existing.component.type);
-    }
-
-    return this._loadAndAnalyzeElementModule(moduleImport, moduleMember, true).then(info => {
-      var type = info.type, useView;
+  loadElement(moduleImport, moduleMember, viewStategy){
+    return this._loadAndAnalyzeModule(moduleImport, moduleMember, this.importedModules).then(info => {
+      var type = info.type;
 
       if(type.isLoaded){
         return type;
@@ -75,11 +71,7 @@ export class ResourceCoordinator {
 
       type.isLoaded = true;
 
-      if(viewUrl){
-      	useView = new UseView(viewUrl);
-	    }
-
-	    return type.load(this.container, info.value, useView);
+	    return type.load(this.container, info.value, viewStategy);
     });
   }
 
@@ -132,12 +124,12 @@ export class ResourceCoordinator {
         }
       }
 
-      if(analysis.component){
-        type = analysis.component.type;
+      if(analysis.element){
+        type = analysis.element.type;
 
         if(!type.isLoaded){
           type.isLoaded = true;
-          loads.push(type.load(this.container, analysis.component.value));
+          loads.push(type.load(this.container, analysis.element.value));
         } else{
           loads.push(type);
         }
@@ -167,8 +159,8 @@ export class ResourceCoordinator {
           ready.push(resources[j].type);
         }
 
-        if(analysis.component){
-          ready.push(analysis.component.type);
+        if(analysis.element){
+          ready.push(analysis.element.type);
         }
       }
     }
@@ -185,40 +177,25 @@ export class ResourceCoordinator {
 	}
 }
 
-//TODO: I think we can remove this if we have the es6shim
-if (!String.prototype.endsWith) {
-  Object.defineProperty(String.prototype, 'endsWith', {
-    value: function(searchString, position) {
-      var subjectString = this.toString();
-      if (position === undefined || position > subjectString.length) {
-        position = subjectString.length;
-      }
-      position -= searchString.length;
-      var lastIndex = subjectString.indexOf(searchString, position);
-      return lastIndex !== -1 && lastIndex === position;
-    }
-  });
-}
-
-function analyzeModule(moduleInstance, componentMember){
-  var behavior, component, fallback, annotation, key,
+function analyzeModule(moduleInstance, viewModelMember){
+  var viewModelType, fallback, annotation, key,
       exportedValue, resources = [], name, conventional;
 
-  if(componentMember){
-    behavior = moduleInstance[componentMember];
+  if(viewModelMember){
+    viewModelType = moduleInstance[viewModelMember];
   }
 
   for(key in moduleInstance){
     exportedValue = moduleInstance[key];
 
-    if(key === componentMember || typeof exportedValue !== 'function'){
+    if(key === viewModelMember || typeof exportedValue !== 'function'){
       continue;
     }
 
     annotation = getAnnotation(exportedValue, ResourceType);
     if(annotation){
-      if(!behavior && annotation instanceof CustomElement){
-        behavior = exportedValue;
+      if(!viewModelType && annotation instanceof CustomElement){
+        viewModelType = exportedValue;
       }else{
         resources.push({type:annotation,value:exportedValue});
       }
@@ -226,9 +203,9 @@ function analyzeModule(moduleInstance, componentMember){
       name = exportedValue.name;
 
       if(conventional = CustomElement.convention(name)){
-        if(!behavior){
+        if(!viewModelType){
           addAnnotation(exportedValue, conventional);
-          behavior = exportedValue;
+          viewModelType = exportedValue;
         }else{
           resources.push({type:conventional,value:exportedValue});
         }
@@ -244,13 +221,13 @@ function analyzeModule(moduleInstance, componentMember){
     }
   }
 
-  behavior = behavior || fallback;
+  viewModelType = viewModelType || fallback;
 
   return {
     source:moduleInstance,
-    component: behavior ? {
-      value: behavior,
-      type: getAnnotation(behavior, CustomElement) || new CustomElement()
+    element: viewModelType ? {
+      value: viewModelType,
+      type: getAnnotation(viewModelType, CustomElement) || new CustomElement()
     } : null,
     resources:resources
   };

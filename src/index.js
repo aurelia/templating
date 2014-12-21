@@ -6,7 +6,7 @@ export {Children} from './children';
 export {CustomElement, UseShadowDOM} from './custom-element';
 export {ElementConfig} from './element-config';
 export {TemplateController} from './template-controller';
-export {UseView, ConventionalView, NoView} from './use-view';
+export {ViewStrategy, UseView, ConventionalView, NoView} from './view-strategy';
 export {ViewCompiler} from './view-compiler';
 export {ViewEngine} from './view-engine';
 export {ViewFactory, BoundViewFactory} from './view-factory';
