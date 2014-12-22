@@ -18,8 +18,7 @@ var Behavior = require('./behavior').Behavior;
 var hyphenate = require('./behavior').hyphenate;
 var ContentSelector = require('./content-selector').ContentSelector;
 var ViewEngine = require('./view-engine').ViewEngine;
-var UseView = require('./use-view').UseView;
-var ConventionalView = require('./use-view').ConventionalView;
+var ViewStrategy = require('./view-strategy').ViewStrategy;
 
 
 var defaultInstruction = { suppressBind: false }, contentSelectorFactoryOptions = { suppressBind: true }, dynamicElementTag = "aurelia-dynamic-element", hasShadowDOM = !!HTMLElement.prototype.createShadowRoot;
@@ -35,12 +34,12 @@ var CustomElement = (function (Behavior) {
 
   _extends(CustomElement, Behavior);
 
-  CustomElement.anonymous = function (container, target, useView) {
+  CustomElement.anonymous = function (container, target, viewStrategy) {
     if (typeof target !== "function") {
       target = target.constructor;
     }
 
-    return new CustomElement(dynamicElementTag).load(container, target, useView);
+    return new CustomElement(dynamicElementTag).load(container, target, viewStrategy);
   };
 
   CustomElement.convention = function (name) {
@@ -49,7 +48,7 @@ var CustomElement = (function (Behavior) {
     }
   };
 
-  CustomElement.prototype.load = function (container, target, useView) {
+  CustomElement.prototype.load = function (container, target, viewStrategy) {
     var _this = this;
     var annotation, options;
 
@@ -62,17 +61,14 @@ var CustomElement = (function (Behavior) {
       this.tagName = hyphenate(target.name);
     }
 
-    if (!useView) {
-      useView = getAnnotation(target, UseView);
-      if (!useView) {
-        annotation = Origin.get(target);
-        useView = new ConventionalView(annotation.moduleId);
-      }
+    if (typeof viewStategy === "string") {
+      viewStategy = new UseView(viewStategy);
     }
 
+    viewStrategy = viewStrategy || ViewStrategy.getDefault(target);
     options = { targetShadowDOM: this.targetShadowDOM };
 
-    return useView.loadViewFactory(container.get(ViewEngine), options).then(function (viewFactory) {
+    return viewStrategy.loadViewFactory(container.get(ViewEngine), options).then(function (viewFactory) {
       _this.viewFactory = viewFactory;
       return _this;
     });

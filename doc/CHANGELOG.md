@@ -1,3 +1,11 @@
+## 0.4.0 (2014-12-22)
+
+
+#### Bug Fixes
+
+* **view-compiler:** instruction target null class fixed ([655a8938](http://github.com/aurelia/templating/commit/655a8938a80f3bcda0bb13ff006a0bcb106d088f))
+
+
 ### 0.3.2 (2014-12-18)
 
 

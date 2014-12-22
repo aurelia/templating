@@ -25,6 +25,11 @@ define(["exports", "./resource-registry", "./view-factory", "./binding-language"
     }
   }
 
+  function makeIntoInstructionTarget(element) {
+    var value = element.getAttribute("class");
+    element.setAttribute("class", (value ? value += " au-target" : "au-target"));
+  }
+
   var ViewCompiler = (function () {
     var ViewCompiler = function ViewCompiler(bindingLanguage) {
       this.bindingLanguage = bindingLanguage;
@@ -64,8 +69,8 @@ define(["exports", "./resource-registry", "./view-factory", "./binding-language"
         case 3:
           var expression = this.bindingLanguage.parseText(resources, node.textContent);
           if (expression) {
-            var marker = document.createElement("ai-marker");
-            marker.className = "ai-target";
+            var marker = document.createElement("au-marker");
+            marker.className = "au-target";
             node.parentNode.insertBefore(marker, node);
             node.textContent = " ";
             instructions.push({ contentExpression: expression });
@@ -93,7 +98,7 @@ define(["exports", "./resource-registry", "./view-factory", "./binding-language"
             selector: node.getAttribute("select"),
             suppressBind: true
           });
-          node.setAttribute("class", node.getAttribute("class") + " " + "ai-target");
+          makeIntoInstructionTarget(node);
         }
         return node.nextSibling;
       } else if (tagName === "template") {
@@ -156,7 +161,7 @@ define(["exports", "./resource-registry", "./view-factory", "./binding-language"
       if (liftingInstruction) {
         liftingInstruction.viewFactory = viewFactory;
         node = liftingInstruction.type.compile(this, resources, node, liftingInstruction, parentNode);
-        node.setAttribute("class", node.getAttribute("class") + " " + "ai-target");
+        makeIntoInstructionTarget(node);
         instructions.push({
           anchorIsContainer: false,
           parentInjectorId: parentInjectorId,
@@ -175,7 +180,7 @@ define(["exports", "./resource-registry", "./view-factory", "./binding-language"
         var injectorId = behaviorInstructions.length ? getNextInjectorId() : false;
 
         if (expressions.length || behaviorInstructions.length) {
-          node.setAttribute("class", node.getAttribute("class") + " " + "ai-target");
+          makeIntoInstructionTarget(node);
           instructions.push({
             anchorIsContainer: true,
             injectorId: injectorId,

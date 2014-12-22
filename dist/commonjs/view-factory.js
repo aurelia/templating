@@ -130,7 +130,7 @@ var ViewFactory = (function () {
     var _this = this;
     if (options === undefined) options = defaultFactoryOptions;
     return (function () {
-      var fragment = _this.template.cloneNode(true), instructables = fragment.querySelectorAll(".ai-target"), instructions = _this.instructions, resources = _this.resources, behaviors = [], bindings = [], children = [], contentSelectors = [], containers = { root: container };
+      var fragment = _this.template.cloneNode(true), instructables = fragment.querySelectorAll(".au-target"), instructions = _this.instructions, resources = _this.resources, behaviors = [], bindings = [], children = [], contentSelectors = [], containers = { root: container };
 
       for (var i = 0, ii = instructables.length; i < ii; i++) {
         applyInstructions(containers, executionContext, instructables[i], instructions[i], behaviors, bindings, children, contentSelectors, resources);

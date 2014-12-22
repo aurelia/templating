@@ -2,7 +2,7 @@ import {getAnnotation, Origin} from 'aurelia-metadata';
 import {Behavior, hyphenate} from './behavior';
 import {ContentSelector} from './content-selector';
 import {ViewEngine} from './view-engine';
-import {UseView, ConventionalView} from './use-view';
+import {ViewStrategy} from './view-strategy';
 
 var defaultInstruction = { suppressBind:false },
     contentSelectorFactoryOptions = { suppressBind:true },
@@ -17,12 +17,12 @@ export class CustomElement extends Behavior {
     this.tagName = tagName;
   }
 
-  static anonymous(container, target, useView) {
+  static anonymous(container, target, viewStrategy) {
     if(typeof target !== 'function'){
       target = target.constructor;
     }
 
-    return new CustomElement(dynamicElementTag).load(container, target, useView);
+    return new CustomElement(dynamicElementTag).load(container, target, viewStrategy);
   }
 
   static convention(name){
@@ -31,7 +31,7 @@ export class CustomElement extends Behavior {
     }
   }
 
-  load(container, target, useView){
+  load(container, target, viewStrategy){
     var annotation, options;
 
     this.setTarget(container, target);
@@ -43,17 +43,14 @@ export class CustomElement extends Behavior {
       this.tagName = hyphenate(target.name);
     }
 
-    if(!useView){
-      useView = getAnnotation(target, UseView);
-      if(!useView){
-        annotation = Origin.get(target);
-        useView = new ConventionalView(annotation.moduleId);
-      }
+    if(typeof viewStategy === 'string'){
+      viewStategy = new UseView(viewStategy);
     }
 
+    viewStrategy = viewStrategy || ViewStrategy.getDefault(target);
     options = { targetShadowDOM:this.targetShadowDOM };
 
-    return useView.loadViewFactory(container.get(ViewEngine), options).then(viewFactory => {
+    return viewStrategy.loadViewFactory(container.get(ViewEngine), options).then(viewFactory => {
       this.viewFactory = viewFactory;
       return this;
     });

@@ -1,4 +1,4 @@
-define(["exports", "aurelia-metadata", "./behavior", "./content-selector", "./view-engine", "./use-view"], function (exports, _aureliaMetadata, _behavior, _contentSelector, _viewEngine, _useView) {
+define(["exports", "aurelia-metadata", "./behavior", "./content-selector", "./view-engine", "./view-strategy"], function (exports, _aureliaMetadata, _behavior, _contentSelector, _viewEngine, _viewStrategy) {
   "use strict";
 
   var _extends = function (child, parent) {
@@ -19,8 +19,7 @@ define(["exports", "aurelia-metadata", "./behavior", "./content-selector", "./vi
   var hyphenate = _behavior.hyphenate;
   var ContentSelector = _contentSelector.ContentSelector;
   var ViewEngine = _viewEngine.ViewEngine;
-  var UseView = _useView.UseView;
-  var ConventionalView = _useView.ConventionalView;
+  var ViewStrategy = _viewStrategy.ViewStrategy;
 
 
   var defaultInstruction = { suppressBind: false }, contentSelectorFactoryOptions = { suppressBind: true }, dynamicElementTag = "aurelia-dynamic-element", hasShadowDOM = !!HTMLElement.prototype.createShadowRoot;
@@ -36,12 +35,12 @@ define(["exports", "aurelia-metadata", "./behavior", "./content-selector", "./vi
 
     _extends(CustomElement, Behavior);
 
-    CustomElement.anonymous = function (container, target, useView) {
+    CustomElement.anonymous = function (container, target, viewStrategy) {
       if (typeof target !== "function") {
         target = target.constructor;
       }
 
-      return new CustomElement(dynamicElementTag).load(container, target, useView);
+      return new CustomElement(dynamicElementTag).load(container, target, viewStrategy);
     };
 
     CustomElement.convention = function (name) {
@@ -50,7 +49,7 @@ define(["exports", "aurelia-metadata", "./behavior", "./content-selector", "./vi
       }
     };
 
-    CustomElement.prototype.load = function (container, target, useView) {
+    CustomElement.prototype.load = function (container, target, viewStrategy) {
       var _this = this;
       var annotation, options;
 
@@ -63,17 +62,14 @@ define(["exports", "aurelia-metadata", "./behavior", "./content-selector", "./vi
         this.tagName = hyphenate(target.name);
       }
 
-      if (!useView) {
-        useView = getAnnotation(target, UseView);
-        if (!useView) {
-          annotation = Origin.get(target);
-          useView = new ConventionalView(annotation.moduleId);
-        }
+      if (typeof viewStategy === "string") {
+        viewStategy = new UseView(viewStategy);
       }
 
+      viewStrategy = viewStrategy || ViewStrategy.getDefault(target);
       options = { targetShadowDOM: this.targetShadowDOM };
 
-      return useView.loadViewFactory(container.get(ViewEngine), options).then(function (viewFactory) {
+      return viewStrategy.loadViewFactory(container.get(ViewEngine), options).then(function (viewFactory) {
         _this.viewFactory = viewFactory;
         return _this;
       });

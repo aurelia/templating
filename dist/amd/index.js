@@ -1,4 +1,4 @@
-define(["exports", "./attached-behavior", "./behavior", "./resource-coordinator", "./resource-registry", "./children", "./custom-element", "./element-config", "./template-controller", "./use-view", "./view-compiler", "./view-engine", "./view-factory", "./view-slot", "./binding-language"], function (exports, _attachedBehavior, _behavior, _resourceCoordinator, _resourceRegistry, _children, _customElement, _elementConfig, _templateController, _useView, _viewCompiler, _viewEngine, _viewFactory, _viewSlot, _bindingLanguage) {
+define(["exports", "./attached-behavior", "./behavior", "./resource-coordinator", "./resource-registry", "./children", "./custom-element", "./element-config", "./template-controller", "./view-strategy", "./view-compiler", "./view-engine", "./view-factory", "./view-slot", "./binding-language"], function (exports, _attachedBehavior, _behavior, _resourceCoordinator, _resourceRegistry, _children, _customElement, _elementConfig, _templateController, _viewStrategy, _viewCompiler, _viewEngine, _viewFactory, _viewSlot, _bindingLanguage) {
   "use strict";
 
   exports.AttachedBehavior = _attachedBehavior.AttachedBehavior;
@@ -12,9 +12,10 @@ define(["exports", "./attached-behavior", "./behavior", "./resource-coordinator"
   exports.UseShadowDOM = _customElement.UseShadowDOM;
   exports.ElementConfig = _elementConfig.ElementConfig;
   exports.TemplateController = _templateController.TemplateController;
-  exports.UseView = _useView.UseView;
-  exports.ConventionalView = _useView.ConventionalView;
-  exports.NoView = _useView.NoView;
+  exports.ViewStrategy = _viewStrategy.ViewStrategy;
+  exports.UseView = _viewStrategy.UseView;
+  exports.ConventionalView = _viewStrategy.ConventionalView;
+  exports.NoView = _viewStrategy.NoView;
   exports.ViewCompiler = _viewCompiler.ViewCompiler;
   exports.ViewEngine = _viewEngine.ViewEngine;
   exports.ViewFactory = _viewFactory.ViewFactory;
