@@ -28,7 +28,7 @@ export class TemplateController extends Behavior {
   }
 
   register(registry, name){
-    registry.registerAttribute(name || this.attribute, this);
+    registry.registerAttribute(name || this.attribute, this, this.attribute);
   }
 
   compile(compiler, resources, node, instruction, parentNode){

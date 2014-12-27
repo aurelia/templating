@@ -22,6 +22,7 @@ export class ResourceRegistry {
 		this.attributes = {};
     this.elements = {};
     this.filters = {};
+    this.attributeMap = {};
 	}
 
 	registerElement(tagName, behavior){
@@ -32,7 +33,8 @@ export class ResourceRegistry {
     return this.elements[tagName];
   }
 
-  registerAttribute(attribute, behavior){
+  registerAttribute(attribute, behavior, knownAttribute){
+    this.attributeMap[attribute] = knownAttribute;
     register(this.attributes, attribute, behavior, 'attribute');
   }
 

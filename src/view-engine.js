@@ -37,7 +37,7 @@ export class ViewEngine {
   }
 
   loadTemplateResources(templateUrl, template){
-    var importIds, i, ii, j, jj, parts,
+    var importIds, names, i, ii, j, jj, parts, src, srcParts,
         registry = new ViewResources(this.appResources, templateUrl),
         dxImportElements = template.content.querySelectorAll('import');
 
@@ -46,13 +46,21 @@ export class ViewEngine {
     }
 
     importIds = [];
+    names = [];
 
-    for(i = 0, ii = dxImportElements.length; i < ii; i++){
-      parts = dxImportElements[i]
-        .getAttribute('src').split(importSplitter);
+    for(i = 0, ii = dxImportElements.length; i < ii; ++i){
+      src = dxImportElements[i].getAttribute('src');
 
-      for(j = 0, jj = parts.length; j < jj; j++){
-        importIds.push(parts[j]);
+      if(!src){
+        throw new Error(`Import element in ${templateUrl} has no src attribute.`);
+      }
+
+      parts = src.split(importSplitter);
+
+      for(j = 0, jj = parts.length; j < jj; ++j){
+        srcParts = parts[j].split(' as ');
+        importIds.push(srcParts[0]);
+        names.push(srcParts.length == 2 ? srcParts[1] : null);
       }
     }
 
@@ -64,7 +72,9 @@ export class ViewEngine {
     logger.debug(`importing resources for ${templateUrl}`, importIds);
 
     return this.resourceCoordinator.importResourcesFromModuleIds(importIds).then(toRegister => {
-      toRegister.forEach(x => x.register(registry));
+      for(i = 0, ii = toRegister.length; i < ii; ++i){
+        toRegister[i].register(registry, names[i]);
+      }
       return registry;
     });
   }
