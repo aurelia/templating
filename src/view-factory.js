@@ -76,7 +76,7 @@ function applyInstructions(containers, executionContext, element, instruction,
     }
   }
 
-  for(i = 0, i = expressions.length; i < ii; ++i){
+  for(i = 0, ii = expressions.length; i < ii; ++i){
     bindings.push(expressions[i].createBinding(element));
   }
 }
