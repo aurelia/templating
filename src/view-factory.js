@@ -34,7 +34,8 @@ class BehaviorContainer extends Container {
 function applyInstructions(containers, executionContext, element, instruction, 
   behaviors, bindings, children, contentSelectors, resources){
   var behaviorInstructions = instruction.behaviorInstructions,
-      elementContainer;
+      expressions = instruction.expressions,
+      elementContainer, i, ii, providers, current, instance;
 
   if(instruction.contentExpression){
     bindings.push(instruction.contentExpression.createBinding(element.nextSibling));
@@ -55,20 +56,29 @@ function applyInstructions(containers, executionContext, element, instruction,
     elementContainer.executionContext = executionContext;
     elementContainer.children = children;
     elementContainer.viewResources = resources;
-    elementContainer.autoRegisterAll(instruction.providers);
 
-    behaviorInstructions.forEach(behaviorInstruction => {
-      var instance = behaviorInstruction.type.create(elementContainer, behaviorInstruction, element, bindings);
+    providers = instruction.providers;
+    i = providers.length;
+
+    while(i--) {
+      elementContainer.registerSingleton(providers[i]);
+    }
+
+    for(i = 0, ii = behaviorInstructions.length; i < ii; ++i){
+      current = behaviorInstructions[i];
+      instance = current.type.create(elementContainer, current, element, bindings);
       
       if(instance.contentView){
         children.push(instance.contentView);
       }
 
       behaviors.push(instance);
-    });
+    }
   }
 
-  instruction.expressions.forEach(exp => bindings.push(exp.createBinding(element)));
+  for(i = 0, i = expressions.length; i < ii; ++i){
+    bindings.push(expressions[i].createBinding(element));
+  }
 }
 
 export class BoundViewFactory {
@@ -110,15 +120,15 @@ export class ViewFactory{
         bindings = [],
         children = [],
         contentSelectors = [],
-        containers = { root:container };
+        containers = { root:container },
+        i, ii, view;
 
-    for(var i = 0, ii = instructables.length; i < ii; i++){
+    for(i = 0, ii = instructables.length; i < ii; ++i){
       applyInstructions(containers, executionContext, instructables[i], 
         instructions[i], behaviors, bindings, children, contentSelectors, resources);
     }
 
-    var view = new View(fragment, behaviors, bindings, children, options.systemControlled, contentSelectors);
-
+    view = new View(fragment, behaviors, bindings, children, options.systemControlled, contentSelectors);
     view.created(executionContext);
 
     if(!options.suppressBind){
