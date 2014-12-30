@@ -8,7 +8,7 @@ function register(lookup, name, resource, type){
   var existing = lookup[name];
   if(existing){
     if(existing != resource) {
-      throw new Error(`Attempted to register an ${type} when one with the same name already exists. Name: ${name}.`);
+      throw new Error(`Attempted to register ${type} when one with the same name already exists. Name: ${name}.`);
     }
 
     return;
@@ -21,12 +21,12 @@ export class ResourceRegistry {
 	constructor(){
 		this.attributes = {};
     this.elements = {};
-    this.filters = {};
+    this.valueConverters = {};
     this.attributeMap = {};
 	}
 
 	registerElement(tagName, behavior){
-    register(this.elements, tagName, behavior, 'element');
+    register(this.elements, tagName, behavior, 'an Element');
   }
 
   getElement(tagName){
@@ -35,19 +35,19 @@ export class ResourceRegistry {
 
   registerAttribute(attribute, behavior, knownAttribute){
     this.attributeMap[attribute] = knownAttribute;
-    register(this.attributes, attribute, behavior, 'attribute');
+    register(this.attributes, attribute, behavior, 'an Attribute');
   }
 
   getAttribute(attribute){
     return this.attributes[attribute];
   }
 
-  registerFilter(name, filter){
-  	register(this.filters, name, filter, 'filter');
+  registerValueConverter(name, valueConverter){
+  	register(this.valueConverters, name, valueConverter, 'a ValueConverter');
   }
 
-  getFilter(name){
-    return this.filters[name];
+  getValueConverter(name){
+    return this.valueConverters[name];
   }
 }
 
@@ -56,7 +56,7 @@ export class ViewResources extends ResourceRegistry {
 		super();
 		this.parent = parent;
     this.viewUrl = viewUrl;
-    this.filterLookupFunction = this.getFilter.bind(this);
+    this.valueConverterLookupFunction = this.getValueConverter.bind(this);
 	}
 
   relativeToView(path){
@@ -71,7 +71,7 @@ export class ViewResources extends ResourceRegistry {
     return this.attributes[attribute] || this.parent.getAttribute(attribute);
   }
 
-  getFilter(name){
-    return this.filterLookup[name] ||  this.parent.getFilter(name);
+  getValueConverter(name){
+    return this.valueConverters[name] ||  this.parent.getValueConverter(name);
   }
 }

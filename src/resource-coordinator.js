@@ -1,7 +1,7 @@
 import {Loader} from 'aurelia-loader';
 import {Container} from 'aurelia-dependency-injection';
 import {getAnnotation, addAnnotation, ResourceType, Origin} from 'aurelia-metadata';
-import {Filter} from 'aurelia-binding';
+import {ValueConverter} from 'aurelia-binding';
 import {CustomElement} from './custom-element';
 import {AttachedBehavior} from './attached-behavior';
 import {TemplateController} from './template-controller';
@@ -230,7 +230,7 @@ function analyzeModule(moduleInstance, viewModelMember){
         resources.push({type:conventional,value:exportedValue});
       } else if(conventional = TemplateController.convention(name)){
         resources.push({type:conventional,value:exportedValue});
-      } else if(conventional = Filter.convention(name)) {
+      } else if(conventional = ValueConverter.convention(name)) {
         resources.push({type:conventional,value:exportedValue});
       } else if(!fallback){
         fallback = exportedValue;
