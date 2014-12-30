@@ -30,7 +30,8 @@ export class Behavior extends ResourceType {
   }
 
   setTarget(container, target){
-    var proto = target.prototype;
+    var proto = target.prototype,
+        i, ii, properties;
 
     this.target = target;
     this.taskQueue = container.get(TaskQueue);
@@ -42,8 +43,11 @@ export class Behavior extends ResourceType {
     this.handlesAttached = ('attached' in proto);
     this.handlesDetached = ('detached' in proto);
 
-    getAllAnnotations(target, Property)
-      .forEach(property => this.configureProperty(property));
+    properties = getAllAnnotations(target, Property);
+
+    for(i = 0, ii = properties.length; i < ii; ++i){
+      this.configureProperty(properties[i]);
+    }
 
     this.childExpression = getAnnotation(target, Children);
   }

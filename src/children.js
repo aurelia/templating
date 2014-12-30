@@ -61,7 +61,7 @@ export class ChildBinder {
 					prev = record.previousSibling,
           i, ii, primary, index, node;
 
-			for(i = 0, ii = removed.length; i < ii; i++){
+			for(i = 0, ii = removed.length; i < ii; ++i){
 				node = removed[i];
 				if(node.nodeType === 1 && node.matches(selector)){
 					primary = node.primaryBehavior ? node.primaryBehavior.executionContext : node;
@@ -72,7 +72,7 @@ export class ChildBinder {
 				}
 			}
 
-			for(i = 0, ii = added.length; i < ii; i++){
+			for(i = 0, ii = added.length; i < ii; ++i){
 				node = added[i];
 				if(node.nodeType === 1 && node.matches(selector)){
 					primary = node.primaryBehavior ? node.primaryBehavior.executionContext : node;

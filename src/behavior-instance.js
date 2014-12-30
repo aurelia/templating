@@ -4,33 +4,35 @@ export class BehaviorInstance {
 		this.executionContext = executionContext;
 
 		var lookup = observerLocator.getObserversLookup(executionContext),
-        skipSelfSubscriber = this.behaviorType.handlesBind,
+        skipSelfSubscriber = behaviorType.handlesBind,
         attributes = instruction.attributes,
-        boundProperties = this.boundProperties = [];
+        boundProperties = this.boundProperties = [],
+        properties = behaviorType.properties,
+        i, ii, prop, selfSubscriber, observer, info, attribute;
 
-		behaviorType.properties.forEach(prop => {
-			var selfSubscriber;
+    for(i = 0, ii = properties.length; i < ii; ++i){
+      prop = properties[i];
 
-			if(prop.changeHandler){
-				selfSubscriber = (newValue, oldValue) => executionContext[prop.changeHandler](newValue, oldValue);
+      if(prop.changeHandler){
+        selfSubscriber = (newValue, oldValue) => executionContext[prop.changeHandler](newValue, oldValue);
       }
 
-			var observer = lookup[prop.name] = new BehaviorPropertyObserver(
-				taskQueue, 
-				executionContext, 
-				prop.name,
-				selfSubscriber
-				);
+      observer = lookup[prop.name] = new BehaviorPropertyObserver(
+        taskQueue, 
+        executionContext, 
+        prop.name,
+        selfSubscriber
+        );
 
-	    Object.defineProperty(executionContext, prop.name, {
+      Object.defineProperty(executionContext, prop.name, {
         configurable: true,
         enumerable: true,
         get: observer.getValue.bind(observer),
         set: observer.setValue.bind(observer)
-	    });
+      });
 
-      var info = { observer:observer };
-      var attribute = attributes[prop.attribute];
+      info = { observer:observer };
+      attribute = attributes[prop.attribute];
 
       if(skipSelfSubscriber){
         observer.selfSubscriber = null;
@@ -49,7 +51,7 @@ export class BehaviorInstance {
 
       observer.publishing = true;
       observer.selfSubscriber = selfSubscriber;
-    });
+    }
 	}
 
   created(context){
@@ -59,24 +61,26 @@ export class BehaviorInstance {
   }
 
 	bind(context){
-		var skipSelfSubscriber = this.behaviorType.handlesBind;
+		var skipSelfSubscriber = this.behaviorType.handlesBind,
+        boundProperties = this.boundProperties,
+        i, ii, x, observer, selfSubscriber;
 
-    this.boundProperties.forEach(x => {
-    	var observer = x.observer,
-    			selfSubscriber = observer.selfSubscriber;
+    for(i = 0, ii = boundProperties.length; i < ii; ++i){
+      x = boundProperties[i];
+      observer = x.observer;
+      selfSubscriber = observer.selfSubscriber;
+      observer.publishing = false;
 
-    	observer.publishing = false;
+      if(skipSelfSubscriber){
+        observer.selfSubscriber = null;
+      }
 
-    	if(skipSelfSubscriber){
-    		observer.selfSubscriber = null;
-    	}
+      x.binding.bind(context);
+      observer.call();
 
-    	x.binding.bind(context);
-    	observer.call();
-
-    	observer.publishing = true;
-    	observer.selfSubscriber = selfSubscriber;
-    });
+      observer.publishing = true;
+      observer.selfSubscriber = selfSubscriber;
+    }
 
     if(skipSelfSubscriber){
       this.executionContext.bind(context);
@@ -88,6 +92,9 @@ export class BehaviorInstance {
 	}
 
 	unbind(){
+    var boundProperties = this.boundProperties,
+        i, ii;
+
     if(this.view){
       this.view.unbind();
     }
@@ -96,7 +103,9 @@ export class BehaviorInstance {
       this.executionContext.unbind();
     }
 
-		this.boundProperties.forEach(x => x.binding.unbind());
+    for(i = 0, ii = boundProperties.length; i < ii; ++i){
+      boundProperties[i].binding.unbind();
+    }
 	}
 
   attached(){

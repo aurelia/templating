@@ -10,7 +10,7 @@ import {ViewEngine} from './view-engine';
 var id = 0;
 
 function nextId(){
-  return (++id).toString();
+  return ++id;
 }
 
 export class ResourceCoordinator {

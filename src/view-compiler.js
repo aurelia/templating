@@ -7,7 +7,7 @@ var nextInjectorId = 0,
     hasShadowDOM = !!HTMLElement.prototype.createShadowRoot;
 
 function getNextInjectorId(){
-  return (++nextInjectorId).toString();
+  return ++nextInjectorId;
 }
 
 function configureProperties(instruction, resources){
