@@ -5,6 +5,18 @@ export class ViewStrategy {
     throw new Error('A ViewStrategy must implement loadViewFactory(viewEngine, options).');
   }
 
+  static normalize(value, viewResources){
+    if(typeof value === 'string'){
+      value = new UseView(viewResources ? viewResources.relativeToView(value) : value);
+    }
+
+    if(value && !(value instanceof ViewStrategy)){
+      throw new Error('The view must be a string or an instance of ViewStrategy.');
+    }
+
+    return value;
+  }
+
   static getDefault(target){
     var strategy, annotation;
 
@@ -42,12 +54,16 @@ export class UseView extends ViewStrategy {
 export class ConventionalView extends ViewStrategy {
 	constructor(moduleId){
 		this.moduleId = moduleId;
-    this.viewUrl = moduleId + '.html';
+    this.viewUrl = ConventionalView.convertModuleIdToViewUrl(moduleId);
 	}
 
 	loadViewFactory(viewEngine, options){
 		return viewEngine.loadViewFactory(this.viewUrl, options, this.moduleId);
 	}
+
+  static convertModuleIdToViewUrl(moduleId){
+    return moduleId + '.html';
+  }
 }
 
 export class NoView extends ViewStrategy {

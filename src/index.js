@@ -12,3 +12,4 @@ export {ViewEngine} from './view-engine';
 export {ViewFactory, BoundViewFactory} from './view-factory';
 export {ViewSlot} from './view-slot';
 export {BindingLanguage} from './binding-language';
+export {CompositionEngine} from './composition-engine';
