@@ -12,16 +12,17 @@ export class ViewStrategy {
       target = target.constructor;
     }
 
+    annotation = Origin.get(target);
     strategy = getAnnotation(target, ViewStrategy);
     
     if(!strategy){
-      annotation = Origin.get(target);
-
       if(!annotation){
         throw new Error('Cannot determinte default view strategy for object.', target);
       }
 
       strategy = new ConventionalView(annotation.moduleId);
+    }else if(annotation){
+      strategy.moduleId = annotation.moduleId;
     }
 
     return strategy;
@@ -34,26 +35,22 @@ export class UseView extends ViewStrategy {
 	}
 
 	loadViewFactory(viewEngine, options){
-		return viewEngine.loadViewFactory(this.path, options);
+		return viewEngine.loadViewFactory(this.path, options, this.moduleId);
 	}
 }
 
 export class ConventionalView extends ViewStrategy {
 	constructor(moduleId){
-		super();
 		this.moduleId = moduleId;
+    this.viewUrl = moduleId + '.html';
 	}
 
 	loadViewFactory(viewEngine, options){
-		return viewEngine.loadViewFactoryForModuleId(this.moduleId, options);
+		return viewEngine.loadViewFactory(this.viewUrl, options, this.moduleId);
 	}
 }
 
 export class NoView extends ViewStrategy {
-	constructor(){
-		super();
-	}
-
 	loadViewFactory(){
 		return Promise.resolve(null);
 	}

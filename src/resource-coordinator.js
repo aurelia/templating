@@ -24,6 +24,10 @@ export class ResourceCoordinator {
 		viewEngine.resourceCoordinator = this;
 	}
 
+  getExistingModuleAnalysis(id){
+    return this.importedModules[id] || this.importedAnonymous[id];
+  }
+
   loadViewModelType(moduleImport, moduleMember){
     return this._loadAndAnalyzeModuleForElement(moduleImport, moduleMember, this.importedAnonymous).then(info => info.value);
   }
@@ -75,7 +79,7 @@ export class ResourceCoordinator {
         }
       }
 
-      cache[moduleImport] = analysis;
+      cache[analysis.id] = analysis;
 
       return Promise.all(loads).then(() => analysis.element);
     });
@@ -144,7 +148,7 @@ export class ResourceCoordinator {
       }
 
       analysis = analyzeModule(imports[i]);
-      existing[importIds[i]] = analysis;
+      existing[analysis.id] = analysis;
       allAnalysis[i] = analysis;
       resources = analysis.resources;
 
@@ -174,9 +178,17 @@ export class ResourceCoordinator {
 
 class ResourceModule {
   constructor(source, element, resources){
+    var i, ii;
+
     this.source = source;
     this.element = element;
     this.resources = resources;
+
+    if(element){
+      this.id = Origin.get(element.value).moduleId;
+    }else if(resources.length){
+      this.id = Origin.get(resources[0].value).moduleId;
+    }
   }
 
   register(registry, name){

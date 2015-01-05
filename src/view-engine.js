@@ -16,32 +16,28 @@ export class ViewEngine {
     this.importedViews = {};
 	}
 
-	loadViewFactoryForModuleId(moduleId, options){
-		var url = moduleId + '.html';
-		return this.loadViewFactory(url, options);
-	}
-
-	loadViewFactory(url, options){
+	loadViewFactory(url, compileOptions, associatedModuleId){
     var existing = this.importedViews[url];
     if(existing){
       return Promise.resolve(existing);
     }
 
     return this.loader.loadTemplate(url).then(template => {
-      return this.loadTemplateResources(url, template).then(resources => {
-        var viewFactory = this.viewCompiler.compile(template, resources, options);
+      return this.loadTemplateResources(url, template, associatedModuleId).then(resources => {
+        var viewFactory = this.viewCompiler.compile(template, resources, compileOptions);
         this.importedViews[url] = viewFactory;
         return viewFactory;
       });
     });
   }
 
-  loadTemplateResources(templateUrl, template){
+  loadTemplateResources(templateUrl, template, associatedModuleId){
     var importIds, names, i, ii, j, jj, parts, src, srcParts,
         registry = new ViewResources(this.appResources, templateUrl),
-        dxImportElements = template.content.querySelectorAll('import');
+        dxImportElements = template.content.querySelectorAll('import'),
+        associatedModule;
 
-    if(dxImportElements.length === 0){
+    if(dxImportElements.length === 0 && !associatedModuleId){
       return Promise.resolve(registry);
     }
 
@@ -64,10 +60,6 @@ export class ViewEngine {
       }
     }
 
-    if(importIds.length === 0){
-      return Promise.resolve(registry);
-    }
-
     importIds = importIds.map(x => relativeToFile(x, templateUrl));
     logger.debug(`importing resources for ${templateUrl}`, importIds);
 
@@ -75,6 +67,15 @@ export class ViewEngine {
       for(i = 0, ii = toRegister.length; i < ii; ++i){
         toRegister[i].register(registry, names[i]);
       }
+
+      if(associatedModuleId){
+        associatedModule = this.resourceCoordinator.getExistingModuleAnalysis(associatedModuleId);
+
+        if(associatedModule){
+          associatedModule.register(registry);
+        }
+      }
+
       return registry;
     });
   }

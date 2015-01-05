@@ -43,8 +43,12 @@ export class CustomElement extends Behavior {
       this.tagName = hyphenate(target.name);
     }
 
-    if(typeof viewStategy === 'string'){
-      viewStategy = new UseView(viewStategy);
+    if(typeof viewStrategy === 'string'){
+      viewStrategy = new UseView(viewStrategy);
+    }
+
+    if(viewStrategy){
+      viewStrategy.moduleId = Origin.get(target).moduleId;
     }
 
     viewStrategy = viewStrategy || ViewStrategy.getDefault(target);
