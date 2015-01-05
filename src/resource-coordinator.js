@@ -28,14 +28,8 @@ export class ResourceCoordinator {
     return this.importedModules[id] || this.importedAnonymous[id];
   }
 
-  loadViewModelType(moduleImport, moduleMember){
-    return this._loadAndAnalyzeModuleForElement(moduleImport, moduleMember, this.importedAnonymous).then(info => info.value);
-  }
-
-  loadAnonymousElement(moduleImport, moduleMember, viewStategy){
-    return this.loadViewModelType(moduleImport, moduleMember).then(viewModelType => {
-      return CustomElement.anonymous(this.container, viewModelType, viewStategy);
-    });
+  loadViewModelInfo(moduleImport, moduleMember){
+    return this._loadAndAnalyzeModuleForElement(moduleImport, moduleMember, this.importedAnonymous);
   }
 
   loadElement(moduleImport, moduleMember, viewStategy){

@@ -6,7 +6,6 @@ import {ViewStrategy} from './view-strategy';
 
 var defaultInstruction = { suppressBind:false },
     contentSelectorFactoryOptions = { suppressBind:true },
-    dynamicElementTag = 'aurelia-dynamic-element',
     hasShadowDOM = !!HTMLElement.prototype.createShadowRoot;
 
 export class UseShadowDOM {}
@@ -15,14 +14,6 @@ export class CustomElement extends Behavior {
   constructor(tagName){
     super();
     this.tagName = tagName;
-  }
-
-  static anonymous(container, target, viewStrategy) {
-    if(typeof target !== 'function'){
-      target = target.constructor;
-    }
-
-    return new CustomElement(dynamicElementTag).load(container, target, viewStrategy);
   }
 
   static convention(name){
