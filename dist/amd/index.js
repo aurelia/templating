@@ -1,4 +1,4 @@
-define(["exports", "./attached-behavior", "./behavior", "./resource-coordinator", "./resource-registry", "./children", "./custom-element", "./element-config", "./template-controller", "./view-strategy", "./view-compiler", "./view-engine", "./view-factory", "./view-slot", "./binding-language"], function (exports, _attachedBehavior, _behavior, _resourceCoordinator, _resourceRegistry, _children, _customElement, _elementConfig, _templateController, _viewStrategy, _viewCompiler, _viewEngine, _viewFactory, _viewSlot, _bindingLanguage) {
+define(["exports", "./attached-behavior", "./behavior", "./resource-coordinator", "./resource-registry", "./children", "./custom-element", "./element-config", "./template-controller", "./view-strategy", "./view-compiler", "./view-engine", "./view-factory", "./view-slot", "./binding-language", "./composition-engine"], function (exports, _attachedBehavior, _behavior, _resourceCoordinator, _resourceRegistry, _children, _customElement, _elementConfig, _templateController, _viewStrategy, _viewCompiler, _viewEngine, _viewFactory, _viewSlot, _bindingLanguage, _compositionEngine) {
   "use strict";
 
   exports.AttachedBehavior = _attachedBehavior.AttachedBehavior;
@@ -22,4 +22,5 @@ define(["exports", "./attached-behavior", "./behavior", "./resource-coordinator"
   exports.BoundViewFactory = _viewFactory.BoundViewFactory;
   exports.ViewSlot = _viewSlot.ViewSlot;
   exports.BindingLanguage = _bindingLanguage.BindingLanguage;
+  exports.CompositionEngine = _compositionEngine.CompositionEngine;
 });

@@ -1,7 +1,10 @@
 "use strict";
 
-var _extends = function (child, parent) {
-  child.prototype = Object.create(parent.prototype, {
+var _inherits = function (child, parent) {
+  if (typeof parent !== "function" && parent !== null) {
+    throw new TypeError("Super expression must either be null or a function, not " + typeof parent);
+  }
+  child.prototype = Object.create(parent && parent.prototype, {
     constructor: {
       value: child,
       enumerable: false,
@@ -9,38 +12,31 @@ var _extends = function (child, parent) {
       configurable: true
     }
   });
-  child.__proto__ = parent;
+  if (parent) child.__proto__ = parent;
 };
 
-var getAnnotation = require('aurelia-metadata').getAnnotation;
-var Origin = require('aurelia-metadata').Origin;
-var Behavior = require('./behavior').Behavior;
-var hyphenate = require('./behavior').hyphenate;
-var ContentSelector = require('./content-selector').ContentSelector;
-var ViewEngine = require('./view-engine').ViewEngine;
-var ViewStrategy = require('./view-strategy').ViewStrategy;
+var getAnnotation = require("aurelia-metadata").getAnnotation;
+var Origin = require("aurelia-metadata").Origin;
+var Behavior = require("./behavior").Behavior;
+var hyphenate = require("./behavior").hyphenate;
+var ContentSelector = require("./content-selector").ContentSelector;
+var ViewEngine = require("./view-engine").ViewEngine;
+var ViewStrategy = require("./view-strategy").ViewStrategy;
 
 
-var defaultInstruction = { suppressBind: false }, contentSelectorFactoryOptions = { suppressBind: true }, dynamicElementTag = "aurelia-dynamic-element", hasShadowDOM = !!HTMLElement.prototype.createShadowRoot;
+var defaultInstruction = { suppressBind: false }, contentSelectorFactoryOptions = { suppressBind: true }, hasShadowDOM = !!HTMLElement.prototype.createShadowRoot;
 
 var UseShadowDOM = function UseShadowDOM() {};
 
 exports.UseShadowDOM = UseShadowDOM;
-var CustomElement = (function (Behavior) {
+var CustomElement = (function () {
+  var _Behavior = Behavior;
   var CustomElement = function CustomElement(tagName) {
-    Behavior.call(this);
+    _Behavior.call(this);
     this.tagName = tagName;
   };
 
-  _extends(CustomElement, Behavior);
-
-  CustomElement.anonymous = function (container, target, viewStrategy) {
-    if (typeof target !== "function") {
-      target = target.constructor;
-    }
-
-    return new CustomElement(dynamicElementTag).load(container, target, viewStrategy);
-  };
+  _inherits(CustomElement, _Behavior);
 
   CustomElement.convention = function (name) {
     if (name.endsWith("CustomElement")) {
@@ -61,8 +57,12 @@ var CustomElement = (function (Behavior) {
       this.tagName = hyphenate(target.name);
     }
 
-    if (typeof viewStategy === "string") {
-      viewStategy = new UseView(viewStategy);
+    if (typeof viewStrategy === "string") {
+      viewStrategy = new UseView(viewStrategy);
+    }
+
+    if (viewStrategy) {
+      viewStrategy.moduleId = Origin.get(target).moduleId;
     }
 
     viewStrategy = viewStrategy || ViewStrategy.getDefault(target);
@@ -96,12 +96,12 @@ var CustomElement = (function (Behavior) {
     return node;
   };
 
-  CustomElement.prototype.create = function (container, instruction, element) {
+  CustomElement.prototype.create = function (container) {
     var _this2 = this;
-    if (instruction === undefined) instruction = defaultInstruction;
-    if (element === undefined) element = null;
+    var instruction = arguments[1] === undefined ? defaultInstruction : arguments[1];
+    var element = arguments[2] === undefined ? null : arguments[2];
     return (function () {
-      var behaviorInstance = Behavior.prototype.create.call(_this2, container, instruction), host;
+      var behaviorInstance = _Behavior.prototype.create.call(_this2, container, instruction), host;
 
       if (_this2.viewFactory) {
         behaviorInstance.view = _this2.viewFactory.create(container, behaviorInstance.executionContext, instruction);
@@ -143,6 +143,6 @@ var CustomElement = (function (Behavior) {
   };
 
   return CustomElement;
-})(Behavior);
+})();
 
 exports.CustomElement = CustomElement;

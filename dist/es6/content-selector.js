@@ -49,7 +49,7 @@ export class ContentSelector {
       currentChild = nextSibling;
     }
 
-    for(i = 0, ii = contentSelectors.length; i < ii; i++){
+    for(i = 0, ii = contentSelectors.length; i < ii; ++i){
     	contentSelector = contentSelectors[i];
     	callback(contentSelector, contentMap.get(contentSelector) || placeholder);
     }
@@ -73,9 +73,10 @@ export class ContentSelector {
 
 	add(group){
 		var anchor = this.anchor,
-				parent = anchor.parentNode;
+				parent = anchor.parentNode,
+        i, ii;
 
-		for(var i = 0, ii = group.length; i < ii; i++){
+		for(i = 0, ii = group.length; i < ii; ++i){
 			parent.insertBefore(group[i], anchor); 
 		}
 
@@ -85,9 +86,10 @@ export class ContentSelector {
 	insert(index, group){
 		if(group.length){
 			var anchor = findInsertionPoint(this.groups, index) || this.anchor,
-					parent = anchor.parentNode;
+					parent = anchor.parentNode,
+          i, ii;
 
-			for(var i = 0, ii = group.length; i < ii; i++){
+			for(i = 0, ii = group.length; i < ii; ++i){
 				parent.insertBefore(group[i], anchor); 
 			}
 		}
@@ -96,9 +98,10 @@ export class ContentSelector {
 	}
 
 	removeAt(index, fragment){
-		var group = this.groups[index];
+		var group = this.groups[index],
+        i, ii;
 
-		for(var i = 0, ii = group.length; i < ii; i++){
+		for(i = 0, ii = group.length; i < ii; ++i){
 			fragment.appendChild(group[i]);
 		}
 

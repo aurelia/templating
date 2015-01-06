@@ -27,7 +27,7 @@ export class AttachedBehavior extends Behavior {
   }
 
   register(registry, name){
-    registry.registerAttribute(name || this.attribute, this);
+    registry.registerAttribute(name || this.attribute, this, this.attribute);
   }
 
   create(container, instruction, element, bindings){

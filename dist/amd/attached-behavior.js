@@ -1,8 +1,11 @@
 define(["exports", "./behavior"], function (exports, _behavior) {
   "use strict";
 
-  var _extends = function (child, parent) {
-    child.prototype = Object.create(parent.prototype, {
+  var _inherits = function (child, parent) {
+    if (typeof parent !== "function" && parent !== null) {
+      throw new TypeError("Super expression must either be null or a function, not " + typeof parent);
+    }
+    child.prototype = Object.create(parent && parent.prototype, {
       constructor: {
         value: child,
         enumerable: false,
@@ -10,19 +13,20 @@ define(["exports", "./behavior"], function (exports, _behavior) {
         configurable: true
       }
     });
-    child.__proto__ = parent;
+    if (parent) child.__proto__ = parent;
   };
 
   var Behavior = _behavior.Behavior;
   var Property = _behavior.Property;
   var hyphenate = _behavior.hyphenate;
-  var AttachedBehavior = (function (Behavior) {
+  var AttachedBehavior = (function () {
+    var _Behavior = Behavior;
     var AttachedBehavior = function AttachedBehavior(attribute) {
-      Behavior.call(this);
+      _Behavior.call(this);
       this.attribute = attribute;
     };
 
-    _extends(AttachedBehavior, Behavior);
+    _inherits(AttachedBehavior, _Behavior);
 
     AttachedBehavior.convention = function (name) {
       if (name.endsWith("AttachedBehavior")) {
@@ -45,11 +49,11 @@ define(["exports", "./behavior"], function (exports, _behavior) {
     };
 
     AttachedBehavior.prototype.register = function (registry, name) {
-      registry.registerAttribute(name || this.attribute, this);
+      registry.registerAttribute(name || this.attribute, this, this.attribute);
     };
 
     AttachedBehavior.prototype.create = function (container, instruction, element, bindings) {
-      var behaviorInstance = Behavior.prototype.create.call(this, container, instruction);
+      var behaviorInstance = _Behavior.prototype.create.call(this, container, instruction);
 
       if (this.childExpression) {
         bindings.push(this.childExpression.createBinding(element, behaviorInstance.executionContext));
@@ -59,7 +63,7 @@ define(["exports", "./behavior"], function (exports, _behavior) {
     };
 
     return AttachedBehavior;
-  })(Behavior);
+  })();
 
   exports.AttachedBehavior = AttachedBehavior;
 });

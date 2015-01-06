@@ -7,13 +7,20 @@ var nextInjectorId = 0,
     hasShadowDOM = !!HTMLElement.prototype.createShadowRoot;
 
 function getNextInjectorId(){
-  return (++nextInjectorId).toString();
+  return ++nextInjectorId;
 }
 
-function configureProperties(instruction){
+function configureProperties(instruction, resources){
   var type = instruction.type,
+      attrName = instruction.attrName,
       attributes = instruction.attributes,
       property, key, value;
+
+  var knownAttribute = resources.attributeMap[attrName];
+  if(knownAttribute && attrName in attributes && knownAttribute !== attrName){
+    attributes[knownAttribute] = attributes[attrName];
+    delete attributes[attrName];
+  }
 
   for(key in attributes){
     value = attributes[key];
@@ -127,7 +134,7 @@ export class ViewCompiler {
 
           if(type){ //templator or attached behavior found
             instruction.type = type;
-            configureProperties(instruction);
+            configureProperties(instruction, resources);
 
             if(type.liftsContent){ //template controller
               liftingInstruction = instruction;
@@ -146,7 +153,7 @@ export class ViewCompiler {
         type = resources.getAttribute(attrName);
         if(type){ //templator or attached behavior found
           instruction = { attrName:attrName, type:type, attributes:{} };
-          instruction.attributes[attrName] = attrValue;
+          instruction.attributes[resources.attributeMap[attrName]] = attrValue;
 
           if(type.liftsContent){ //template controller
             liftingInstruction = instruction;

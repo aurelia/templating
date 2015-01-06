@@ -1,8 +1,11 @@
 define(["exports", "aurelia-metadata", "aurelia-binding"], function (exports, _aureliaMetadata, _aureliaBinding) {
   "use strict";
 
-  var _extends = function (child, parent) {
-    child.prototype = Object.create(parent.prototype, {
+  var _inherits = function (child, parent) {
+    if (typeof parent !== "function" && parent !== null) {
+      throw new TypeError("Super expression must either be null or a function, not " + typeof parent);
+    }
+    child.prototype = Object.create(parent && parent.prototype, {
       constructor: {
         value: child,
         enumerable: false,
@@ -10,17 +13,18 @@ define(["exports", "aurelia-metadata", "aurelia-binding"], function (exports, _a
         configurable: true
       }
     });
-    child.__proto__ = parent;
+    if (parent) child.__proto__ = parent;
   };
 
   var ResourceType = _aureliaMetadata.ResourceType;
   var EventManager = _aureliaBinding.EventManager;
-  var ElementConfig = (function (ResourceType) {
+  var ElementConfig = (function () {
+    var _ResourceType = ResourceType;
     var ElementConfig = function ElementConfig(tagName) {
       this.tagName = tagName;
     };
 
-    _extends(ElementConfig, ResourceType);
+    _inherits(ElementConfig, _ResourceType);
 
     ElementConfig.prototype.load = function (container, target) {
       var config = target(), eventManager = container.get(EventManager);
@@ -31,7 +35,7 @@ define(["exports", "aurelia-metadata", "aurelia-binding"], function (exports, _a
     ElementConfig.prototype.register = function () {};
 
     return ElementConfig;
-  })(ResourceType);
+  })();
 
   exports.ElementConfig = ElementConfig;
 });

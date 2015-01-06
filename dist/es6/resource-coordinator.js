@@ -1,11 +1,17 @@
 import {Loader} from 'aurelia-loader';
 import {Container} from 'aurelia-dependency-injection';
 import {getAnnotation, addAnnotation, ResourceType, Origin} from 'aurelia-metadata';
-import {Filter} from 'aurelia-binding';
+import {ValueConverter} from 'aurelia-binding';
 import {CustomElement} from './custom-element';
 import {AttachedBehavior} from './attached-behavior';
 import {TemplateController} from './template-controller';
 import {ViewEngine} from './view-engine';
+
+var id = 0;
+
+function nextId(){
+  return ++id;
+}
 
 export class ResourceCoordinator {
   static inject(){ return [Loader, Container, ViewEngine]; }
@@ -18,7 +24,29 @@ export class ResourceCoordinator {
 		viewEngine.resourceCoordinator = this;
 	}
 
-  _loadAndAnalyzeModule(moduleImport, moduleMember, cache){
+  getExistingModuleAnalysis(id){
+    return this.importedModules[id] || this.importedAnonymous[id];
+  }
+
+  loadViewModelInfo(moduleImport, moduleMember){
+    return this._loadAndAnalyzeModuleForElement(moduleImport, moduleMember, this.importedAnonymous);
+  }
+
+  loadElement(moduleImport, moduleMember, viewStategy){
+    return this._loadAndAnalyzeModuleForElement(moduleImport, moduleMember, this.importedModules).then(info => {
+      var type = info.type;
+
+      if(type.isLoaded){
+        return type;
+      }
+
+      type.isLoaded = true;
+
+      return type.load(this.container, info.value, viewStategy);
+    });
+  }
+
+  _loadAndAnalyzeModuleForElement(moduleImport, moduleMember, cache){
     var existing = cache[moduleImport];
 
     if(existing){
@@ -45,50 +73,48 @@ export class ResourceCoordinator {
         }
       }
 
-      cache[moduleImport] = analysis;
+      cache[analysis.id] = analysis;
 
       return Promise.all(loads).then(() => analysis.element);
     });
   }
 
-  loadViewModelType(moduleImport, moduleMember){
-    return this._loadAndAnalyzeModule(moduleImport, moduleMember, this.importedAnonymous).then(info => info.value);
-  }
-
-  loadAnonymousElement(moduleImport, moduleMember, viewStategy){
-    return this.loadViewModelType(moduleImport, moduleMember).then(viewModelType => {
-      return CustomElement.anonymous(this.container, viewModelType, viewStategy);
-    });
-  }
-
-  loadElement(moduleImport, moduleMember, viewStategy){
-    return this._loadAndAnalyzeModule(moduleImport, moduleMember, this.importedModules).then(info => {
-      var type = info.type;
-
-      if(type.isLoaded){
-        return type;
-      }
-
-      type.isLoaded = true;
-
-	    return type.load(this.container, info.value, viewStategy);
-    });
-  }
-
-  importResources(imports, importIds){
-    var i, ii;
+  importResources(imports){
+    var i, ii, current, annotation, existing, 
+        lookup = {},
+        finalModules = [],
+        importIds = [];
 
     for(i = 0, ii = imports.length; i < ii; ++i){
-      imports[i] = { 'default':imports[i] };
+      current = imports[i];
+      annotation = Origin.get(current);
+      existing = lookup[annotation.moduleId];
+
+      if(!existing){
+        existing = {};
+        importIds.push(annotation.moduleId);
+        finalModules.push(existing);
+        lookup[annotation.moduleId] = existing;
+      }
+
+      existing[nextId()] = current;
     }
 
-    return this.importResourcesFromModules(imports, importIds);
+    return this.importResourcesFromModules(finalModules, importIds);
+  }
+
+  importResourcesFromModuleIds(importIds){
+    return this.loader.loadAllModules(importIds).then(imports => {
+      return this.importResourcesFromModules(imports, importIds);
+    });
   }
 
   importResourcesFromModules(imports, importIds){
     var loads = [], i, ii, analysis, type, key, annotation,
                 j, jj, resources, current,
-                existing = this.importedModules;
+                existing = this.importedModules,
+                container = this.container,
+                allAnalysis = new Array(imports.length);
 
     if(!importIds){
       importIds = new Array(imports.length);
@@ -108,8 +134,16 @@ export class ResourceCoordinator {
     }
 
     for(i = 0, ii = imports.length; i < ii; ++i){
+      analysis = existing[importIds[i]];
+
+      if(analysis){
+        allAnalysis[i] = analysis;
+        continue;
+      }
+
       analysis = analyzeModule(imports[i]);
-      existing[importIds[i]] = analysis;
+      existing[analysis.id] = analysis;
+      allAnalysis[i] = analysis;
       resources = analysis.resources;
 
       for(j = 0, jj = resources.length; j < jj; ++j){
@@ -118,9 +152,7 @@ export class ResourceCoordinator {
 
         if(!type.isLoaded){
           type.isLoaded = true;
-          loads.push(type.load(this.container, current.value));
-        } else{
-          loads.push(type);
+          loads.push(type.load(container, current.value));
         }
       }
 
@@ -129,52 +161,43 @@ export class ResourceCoordinator {
 
         if(!type.isLoaded){
           type.isLoaded = true;
-          loads.push(type.load(this.container, analysis.element.value));
-        } else{
-          loads.push(type);
+          loads.push(type.load(container, analysis.element.value));
         }
       }
     }
 
-    return Promise.all(loads);
+    return Promise.all(loads).then(() => allAnalysis);
+  }
+}
+
+class ResourceModule {
+  constructor(source, element, resources){
+    var i, ii;
+
+    this.source = source;
+    this.element = element;
+    this.resources = resources;
+
+    if(element){
+      this.id = Origin.get(element.value).moduleId;
+    }else if(resources.length){
+      this.id = Origin.get(resources[0].value).moduleId;
+    }
   }
 
-	importResourcesFromModuleIds(importIds){
-		var existing = this.importedModules, analysis, resources,
-        toLoad = [], toLoadIds = [],
-        ready = [],
-        i, ii, j, jj, current;
+  register(registry, name){
+    var i, ii, resources = this.resources;
 
-    for(i = 0, ii = importIds.length; i < ii; ++i){
-      current = importIds[i];
-      analysis = existing[current];
-
-      if(!analysis){
-        toLoadIds.push(current);
-        toLoad.push(current);
-      }else{
-        resources = analysis.resources;
-
-        for(j = 0, jj = resources.length; j < jj; ++j){
-          ready.push(resources[j].type);
-        }
-
-        if(analysis.element){
-          ready.push(analysis.element.type);
-        }
-      }
+    if(this.element){
+      this.element.type.register(registry, name);
+      name = null;
     }
 
-    if(toLoad.length === 0){
-      return Promise.resolve(ready);
+    for(i = 0, ii = resources.length; i < ii; ++i){
+      resources[i].type.register(registry, name);
+      name = null;
     }
-
-    return this.loader.loadAllModules(toLoad).then(imports => {
-      return this.importResourcesFromModules(imports, toLoadIds).then(resources => {
-        return ready.concat(resources);
-      });
-    });
-	}
+  }
 }
 
 function analyzeModule(moduleInstance, viewModelMember){
@@ -213,7 +236,7 @@ function analyzeModule(moduleInstance, viewModelMember){
         resources.push({type:conventional,value:exportedValue});
       } else if(conventional = TemplateController.convention(name)){
         resources.push({type:conventional,value:exportedValue});
-      } else if(conventional = Filter.convention(name)) {
+      } else if(conventional = ValueConverter.convention(name)) {
         resources.push({type:conventional,value:exportedValue});
       } else if(!fallback){
         fallback = exportedValue;
@@ -223,12 +246,12 @@ function analyzeModule(moduleInstance, viewModelMember){
 
   viewModelType = viewModelType || fallback;
 
-  return {
-    source:moduleInstance,
-    element: viewModelType ? {
-      value: viewModelType,
-      type: getAnnotation(viewModelType, CustomElement) || new CustomElement()
-    } : null,
-    resources:resources
-  };
+  return new ResourceModule(
+    moduleInstance,
+    viewModelType ? {
+        value: viewModelType,
+        type: getAnnotation(viewModelType, CustomElement) || new CustomElement()
+      } : null,
+    resources
+    );
 }

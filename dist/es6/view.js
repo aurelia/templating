@@ -16,11 +16,14 @@ export class View {
   }
 
   created(executionContext){
-    this.behaviors.forEach(x => x.created(executionContext));
+    var i, ii, behaviors = this.behaviors;
+    for(i = 0, ii = behaviors.length; i < ii; ++i){
+      behaviors[i].created(executionContext);
+    }
   }
 
   bind(executionContext, systemUpdate){
-    var context;
+    var context, behaviors, bindings, children, i, ii;
 
     if(systemUpdate && !this.systemControlled){
       context = this.executionContext || executionContext;
@@ -43,9 +46,20 @@ export class View {
       this.owner.bind(context);
     }
 
-    this.behaviors.forEach(x => x.bind(context));
-    this.bindings.forEach(x => x.bind(context));
-    this.children.forEach(x => x.bind(context, true));
+    behaviors = this.behaviors;
+    for(i = 0, ii = behaviors.length; i < ii; ++i){
+      behaviors[i].bind(context);
+    }
+
+    bindings = this.bindings;
+    for(i = 0, ii = bindings.length; i < ii; ++i){
+      bindings[i].bind(context);
+    }
+
+    children = this.children;
+    for(i = 0, ii = children.length; i < ii; ++i){
+      children[i].bind(context, true);
+    }
   }
 
   addBinding(binding){
@@ -57,6 +71,8 @@ export class View {
   }
 
   unbind(){
+    var behaviors, bindings, children, i, ii;
+
     if(this.isBound){
       this.isBound = false;
 
@@ -64,9 +80,20 @@ export class View {
         this.owner.unbind();
       }
 
-      this.behaviors.forEach(x => x.unbind());
-      this.bindings.forEach(x => x.unbind());
-      this.children.forEach(x => x.unbind());
+      behaviors = this.behaviors;
+      for(i = 0, ii = behaviors.length; i < ii; ++i){
+        behaviors[i].unbind();
+      }
+
+      bindings = this.bindings;
+      for(i = 0, ii = bindings.length; i < ii; ++i){
+        bindings[i].unbind();
+      }
+
+      children = this.children;
+      for(i = 0, ii = children.length; i < ii; ++i){
+        children[i].unbind();
+      }
     }
   }
 
@@ -101,6 +128,8 @@ export class View {
   }
 
   attached(){
+    var behaviors, children, i, ii;
+
     if(this.isAttached){
       return;
     }
@@ -111,11 +140,20 @@ export class View {
       this.owner.attached();
     }
 
-    this.behaviors.forEach(x => x.attached());
-    this.children.forEach(x => x.attached());
+    behaviors = this.behaviors;
+    for(i = 0, ii = behaviors.length; i < ii; ++i){
+      behaviors[i].attached();
+    }
+
+    children = this.children;
+    for(i = 0, ii = children.length; i < ii; ++i){
+      children[i].attached();
+    }
   }
 
   detached(){
+    var behaviors, children, i, ii;
+
     if(this.isAttached){
       this.isAttached = false;
 
@@ -123,8 +161,15 @@ export class View {
         this.owner.detached();
       }
 
-      this.behaviors.forEach(x => x.detached());
-      this.children.forEach(x => x.detached());    
+      behaviors = this.behaviors;
+      for(i = 0, ii = behaviors.length; i < ii; ++i){
+        behaviors[i].detached();
+      }
+
+      children = this.children;
+      for(i = 0, ii = children.length; i < ii; ++i){
+        children[i].detached();
+      }   
     }
   }
 }

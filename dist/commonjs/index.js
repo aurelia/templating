@@ -21,3 +21,4 @@ exports.ViewFactory = require("./view-factory").ViewFactory;
 exports.BoundViewFactory = require("./view-factory").BoundViewFactory;
 exports.ViewSlot = require("./view-slot").ViewSlot;
 exports.BindingLanguage = require("./binding-language").BindingLanguage;
+exports.CompositionEngine = require("./composition-engine").CompositionEngine;

@@ -1,8 +1,11 @@
 define(["exports", "aurelia-metadata", "aurelia-task-queue", "aurelia-binding", "./behavior-instance", "./children"], function (exports, _aureliaMetadata, _aureliaTaskQueue, _aureliaBinding, _behaviorInstance, _children) {
   "use strict";
 
-  var _extends = function (child, parent) {
-    child.prototype = Object.create(parent.prototype, {
+  var _inherits = function (child, parent) {
+    if (typeof parent !== "function" && parent !== null) {
+      throw new TypeError("Super expression must either be null or a function, not " + typeof parent);
+    }
+    child.prototype = Object.create(parent && parent.prototype, {
       constructor: {
         value: child,
         enumerable: false,
@@ -10,7 +13,7 @@ define(["exports", "aurelia-metadata", "aurelia-task-queue", "aurelia-binding", 
         configurable: true
       }
     });
-    child.__proto__ = parent;
+    if (parent) child.__proto__ = parent;
   };
 
   exports.hyphenate = hyphenate;
@@ -41,31 +44,33 @@ define(["exports", "aurelia-metadata", "aurelia-task-queue", "aurelia-binding", 
   };
 
   exports.Property = Property;
-  var Behavior = (function (ResourceType) {
+  var Behavior = (function () {
+    var _ResourceType = ResourceType;
     var Behavior = function Behavior() {
       this.properties = [];
       this.propertyLookupByAttribute = {};
     };
 
-    _extends(Behavior, ResourceType);
+    _inherits(Behavior, _ResourceType);
 
     Behavior.prototype.setTarget = function (container, target) {
-      var _this = this;
-      var proto = target.prototype;
+      var proto = target.prototype, i, ii, properties;
 
       this.target = target;
       this.taskQueue = container.get(TaskQueue);
       this.observerLocator = container.get(ObserverLocator);
 
-      this.handlesCreated = ("created" in proto);
-      this.handlesBind = ("bind" in proto);
-      this.handlesUnbind = ("unbind" in proto);
-      this.handlesAttached = ("attached" in proto);
-      this.handlesDetached = ("detached" in proto);
+      this.handlesCreated = "created" in proto;
+      this.handlesBind = "bind" in proto;
+      this.handlesUnbind = "unbind" in proto;
+      this.handlesAttached = "attached" in proto;
+      this.handlesDetached = "detached" in proto;
 
-      getAllAnnotations(target, Property).forEach(function (property) {
-        return _this.configureProperty(property);
-      });
+      properties = getAllAnnotations(target, Property);
+
+      for (i = 0, ii = properties.length; i < ii; ++i) {
+        this.configureProperty(properties[i]);
+      }
 
       this.childExpression = getAnnotation(target, Children);
     };
@@ -97,7 +102,7 @@ define(["exports", "aurelia-metadata", "aurelia-task-queue", "aurelia-binding", 
     };
 
     return Behavior;
-  })(ResourceType);
+  })();
 
   exports.Behavior = Behavior;
 });

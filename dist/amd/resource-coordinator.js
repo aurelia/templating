@@ -7,188 +7,202 @@ define(["exports", "aurelia-loader", "aurelia-dependency-injection", "aurelia-me
   var addAnnotation = _aureliaMetadata.addAnnotation;
   var ResourceType = _aureliaMetadata.ResourceType;
   var Origin = _aureliaMetadata.Origin;
-  var Filter = _aureliaBinding.Filter;
+  var ValueConverter = _aureliaBinding.ValueConverter;
   var CustomElement = _customElement.CustomElement;
   var AttachedBehavior = _attachedBehavior.AttachedBehavior;
   var TemplateController = _templateController.TemplateController;
   var ViewEngine = _viewEngine.ViewEngine;
-  var ResourceCoordinator = (function () {
-    var ResourceCoordinator = function ResourceCoordinator(loader, container, viewEngine) {
-      this.loader = loader;
-      this.container = container;
-      this.viewEngine = viewEngine;
-      this.importedModules = {};
-      this.importedAnonymous = {};
-      viewEngine.resourceCoordinator = this;
-    };
 
-    ResourceCoordinator.inject = function () {
-      return [Loader, Container, ViewEngine];
-    };
 
-    ResourceCoordinator.prototype._loadAndAnalyzeModule = function (moduleImport, moduleMember, cache) {
-      var _this = this;
-      var existing = cache[moduleImport];
+  var id = 0;
 
-      if (existing) {
-        return Promise.resolve(existing.element);
+  function nextId() {
+    return ++id;
+  }
+
+  var ResourceCoordinator = function ResourceCoordinator(loader, container, viewEngine) {
+    this.loader = loader;
+    this.container = container;
+    this.viewEngine = viewEngine;
+    this.importedModules = {};
+    this.importedAnonymous = {};
+    viewEngine.resourceCoordinator = this;
+  };
+
+  ResourceCoordinator.inject = function () {
+    return [Loader, Container, ViewEngine];
+  };
+
+  ResourceCoordinator.prototype.getExistingModuleAnalysis = function (id) {
+    return this.importedModules[id] || this.importedAnonymous[id];
+  };
+
+  ResourceCoordinator.prototype.loadViewModelInfo = function (moduleImport, moduleMember) {
+    return this._loadAndAnalyzeModuleForElement(moduleImport, moduleMember, this.importedAnonymous);
+  };
+
+  ResourceCoordinator.prototype.loadElement = function (moduleImport, moduleMember, viewStategy) {
+    var _this = this;
+    return this._loadAndAnalyzeModuleForElement(moduleImport, moduleMember, this.importedModules).then(function (info) {
+      var type = info.type;
+
+      if (type.isLoaded) {
+        return type;
       }
 
-      return this.loader.loadModule(moduleImport).then(function (elementModule) {
-        var analysis = analyzeModule(elementModule, moduleMember), resources = analysis.resources, container = _this.container, loads = [], type, current, i, ii;
+      type.isLoaded = true;
 
-        if (!analysis.element) {
-          throw new Error("No element found in module \"" + moduleImport + "\".");
+      return type.load(_this.container, info.value, viewStategy);
+    });
+  };
+
+  ResourceCoordinator.prototype._loadAndAnalyzeModuleForElement = function (moduleImport, moduleMember, cache) {
+    var _this2 = this;
+    var existing = cache[moduleImport];
+
+    if (existing) {
+      return Promise.resolve(existing.element);
+    }
+
+    return this.loader.loadModule(moduleImport).then(function (elementModule) {
+      var analysis = analyzeModule(elementModule, moduleMember), resources = analysis.resources, container = _this2.container, loads = [], type, current, i, ii;
+
+      if (!analysis.element) {
+        throw new Error("No element found in module \"" + moduleImport + "\".");
+      }
+
+      for (i = 0, ii = resources.length; i < ii; ++i) {
+        current = resources[i];
+        type = current.type;
+
+        if (!type.isLoaded) {
+          type.isLoaded = true;
+          loads.push(type.load(container, current.value));
         }
+      }
 
-        for (i = 0, ii = resources.length; i < ii; ++i) {
-          current = resources[i];
-          type = current.type;
+      cache[analysis.id] = analysis;
 
-          if (!type.isLoaded) {
-            type.isLoaded = true;
-            loads.push(type.load(container, current.value));
-          }
-        }
-
-        cache[moduleImport] = analysis;
-
-        return Promise.all(loads).then(function () {
-          return analysis.element;
-        });
+      return Promise.all(loads).then(function () {
+        return analysis.element;
       });
-    };
+    });
+  };
 
-    ResourceCoordinator.prototype.loadViewModelType = function (moduleImport, moduleMember) {
-      return this._loadAndAnalyzeModule(moduleImport, moduleMember, this.importedAnonymous).then(function (info) {
-        return info.value;
-      });
-    };
+  ResourceCoordinator.prototype.importResources = function (imports) {
+    var i, ii, current, annotation, existing, lookup = {}, finalModules = [], importIds = [];
 
-    ResourceCoordinator.prototype.loadAnonymousElement = function (moduleImport, moduleMember, viewStategy) {
-      var _this2 = this;
-      return this.loadViewModelType(moduleImport, moduleMember).then(function (viewModelType) {
-        return CustomElement.anonymous(_this2.container, viewModelType, viewStategy);
-      });
-    };
+    for (i = 0, ii = imports.length; i < ii; ++i) {
+      current = imports[i];
+      annotation = Origin.get(current);
+      existing = lookup[annotation.moduleId];
 
-    ResourceCoordinator.prototype.loadElement = function (moduleImport, moduleMember, viewStategy) {
-      var _this3 = this;
-      return this._loadAndAnalyzeModule(moduleImport, moduleMember, this.importedModules).then(function (info) {
-        var type = info.type;
+      if (!existing) {
+        existing = {};
+        importIds.push(annotation.moduleId);
+        finalModules.push(existing);
+        lookup[annotation.moduleId] = existing;
+      }
 
-        if (type.isLoaded) {
-          return type;
-        }
+      existing[nextId()] = current;
+    }
 
-        type.isLoaded = true;
+    return this.importResourcesFromModules(finalModules, importIds);
+  };
 
-        return type.load(_this3.container, info.value, viewStategy);
-      });
-    };
+  ResourceCoordinator.prototype.importResourcesFromModuleIds = function (importIds) {
+    var _this3 = this;
+    return this.loader.loadAllModules(importIds).then(function (imports) {
+      return _this3.importResourcesFromModules(imports, importIds);
+    });
+  };
 
-    ResourceCoordinator.prototype.importResources = function (imports, importIds) {
-      var i, ii;
+  ResourceCoordinator.prototype.importResourcesFromModules = function (imports, importIds) {
+    var loads = [], i, ii, analysis, type, key, annotation, j, jj, resources, current, existing = this.importedModules, container = this.container, allAnalysis = new Array(imports.length);
+
+    if (!importIds) {
+      importIds = new Array(imports.length);
 
       for (i = 0, ii = imports.length; i < ii; ++i) {
-        imports[i] = { "default": imports[i] };
-      }
+        current = imports[i];
 
-      return this.importResourcesFromModules(imports, importIds);
-    };
-
-    ResourceCoordinator.prototype.importResourcesFromModules = function (imports, importIds) {
-      var loads = [], i, ii, analysis, type, key, annotation, j, jj, resources, current, existing = this.importedModules;
-
-      if (!importIds) {
-        importIds = new Array(imports.length);
-
-        for (i = 0, ii = imports.length; i < ii; ++i) {
-          current = imports[i];
-
-          for (key in current) {
-            type = current[key];
-            annotation = Origin.get(type);
-            if (annotation) {
-              importIds[i] = annotation.moduleId;
-              break;
-            }
+        for (key in current) {
+          type = current[key];
+          annotation = Origin.get(type);
+          if (annotation) {
+            importIds[i] = annotation.moduleId;
+            break;
           }
         }
       }
+    }
 
-      for (i = 0, ii = imports.length; i < ii; ++i) {
-        analysis = analyzeModule(imports[i]);
-        existing[importIds[i]] = analysis;
-        resources = analysis.resources;
+    for (i = 0, ii = imports.length; i < ii; ++i) {
+      analysis = existing[importIds[i]];
 
-        for (j = 0, jj = resources.length; j < jj; ++j) {
-          current = resources[j];
-          type = current.type;
+      if (analysis) {
+        allAnalysis[i] = analysis;
+        continue;
+      }
 
-          if (!type.isLoaded) {
-            type.isLoaded = true;
-            loads.push(type.load(this.container, current.value));
-          } else {
-            loads.push(type);
-          }
-        }
+      analysis = analyzeModule(imports[i]);
+      existing[analysis.id] = analysis;
+      allAnalysis[i] = analysis;
+      resources = analysis.resources;
 
-        if (analysis.element) {
-          type = analysis.element.type;
+      for (j = 0, jj = resources.length; j < jj; ++j) {
+        current = resources[j];
+        type = current.type;
 
-          if (!type.isLoaded) {
-            type.isLoaded = true;
-            loads.push(type.load(this.container, analysis.element.value));
-          } else {
-            loads.push(type);
-          }
+        if (!type.isLoaded) {
+          type.isLoaded = true;
+          loads.push(type.load(container, current.value));
         }
       }
 
-      return Promise.all(loads);
-    };
+      if (analysis.element) {
+        type = analysis.element.type;
 
-    ResourceCoordinator.prototype.importResourcesFromModuleIds = function (importIds) {
-      var _this4 = this;
-      var existing = this.importedModules, analysis, resources, toLoad = [], toLoadIds = [], ready = [], i, ii, j, jj, current;
-
-      for (i = 0, ii = importIds.length; i < ii; ++i) {
-        current = importIds[i];
-        analysis = existing[current];
-
-        if (!analysis) {
-          toLoadIds.push(current);
-          toLoad.push(current);
-        } else {
-          resources = analysis.resources;
-
-          for (j = 0, jj = resources.length; j < jj; ++j) {
-            ready.push(resources[j].type);
-          }
-
-          if (analysis.element) {
-            ready.push(analysis.element.type);
-          }
+        if (!type.isLoaded) {
+          type.isLoaded = true;
+          loads.push(type.load(container, analysis.element.value));
         }
       }
+    }
 
-      if (toLoad.length === 0) {
-        return Promise.resolve(ready);
-      }
-
-      return this.loader.loadAllModules(toLoad).then(function (imports) {
-        return _this4.importResourcesFromModules(imports, toLoadIds).then(function (resources) {
-          return ready.concat(resources);
-        });
-      });
-    };
-
-    return ResourceCoordinator;
-  })();
+    return Promise.all(loads).then(function () {
+      return allAnalysis;
+    });
+  };
 
   exports.ResourceCoordinator = ResourceCoordinator;
+  var ResourceModule = function ResourceModule(source, element, resources) {
+    var i, ii;
 
+    this.source = source;
+    this.element = element;
+    this.resources = resources;
+
+    if (element) {
+      this.id = Origin.get(element.value).moduleId;
+    } else if (resources.length) {
+      this.id = Origin.get(resources[0].value).moduleId;
+    }
+  };
+
+  ResourceModule.prototype.register = function (registry, name) {
+    var i, ii, resources = this.resources;
+
+    if (this.element) {
+      this.element.type.register(registry, name);
+      name = null;
+    }
+
+    for (i = 0, ii = resources.length; i < ii; ++i) {
+      resources[i].type.register(registry, name);
+      name = null;
+    }
+  };
 
   function analyzeModule(moduleInstance, viewModelMember) {
     var viewModelType, fallback, annotation, key, exportedValue, resources = [], name, conventional;
@@ -225,7 +239,7 @@ define(["exports", "aurelia-loader", "aurelia-dependency-injection", "aurelia-me
           resources.push({ type: conventional, value: exportedValue });
         } else if (conventional = TemplateController.convention(name)) {
           resources.push({ type: conventional, value: exportedValue });
-        } else if (conventional = Filter.convention(name)) {
+        } else if (conventional = ValueConverter.convention(name)) {
           resources.push({ type: conventional, value: exportedValue });
         } else if (!fallback) {
           fallback = exportedValue;
@@ -235,13 +249,9 @@ define(["exports", "aurelia-loader", "aurelia-dependency-injection", "aurelia-me
 
     viewModelType = viewModelType || fallback;
 
-    return {
-      source: moduleInstance,
-      element: viewModelType ? {
-        value: viewModelType,
-        type: getAnnotation(viewModelType, CustomElement) || new CustomElement()
-      } : null,
-      resources: resources
-    };
+    return new ResourceModule(moduleInstance, viewModelType ? {
+      value: viewModelType,
+      type: getAnnotation(viewModelType, CustomElement) || new CustomElement()
+    } : null, resources);
   }
 });

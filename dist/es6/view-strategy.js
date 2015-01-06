@@ -5,6 +5,18 @@ export class ViewStrategy {
     throw new Error('A ViewStrategy must implement loadViewFactory(viewEngine, options).');
   }
 
+  static normalize(value, viewResources){
+    if(typeof value === 'string'){
+      value = new UseView(viewResources ? viewResources.relativeToView(value) : value);
+    }
+
+    if(value && !(value instanceof ViewStrategy)){
+      throw new Error('The view must be a string or an instance of ViewStrategy.');
+    }
+
+    return value;
+  }
+
   static getDefault(target){
     var strategy, annotation;
 
@@ -12,16 +24,17 @@ export class ViewStrategy {
       target = target.constructor;
     }
 
+    annotation = Origin.get(target);
     strategy = getAnnotation(target, ViewStrategy);
     
     if(!strategy){
-      annotation = Origin.get(target);
-
       if(!annotation){
         throw new Error('Cannot determinte default view strategy for object.', target);
       }
 
       strategy = new ConventionalView(annotation.moduleId);
+    }else if(annotation){
+      strategy.moduleId = annotation.moduleId;
     }
 
     return strategy;
@@ -34,26 +47,26 @@ export class UseView extends ViewStrategy {
 	}
 
 	loadViewFactory(viewEngine, options){
-		return viewEngine.loadViewFactory(this.path, options);
+		return viewEngine.loadViewFactory(this.path, options, this.moduleId);
 	}
 }
 
 export class ConventionalView extends ViewStrategy {
 	constructor(moduleId){
-		super();
 		this.moduleId = moduleId;
+    this.viewUrl = ConventionalView.convertModuleIdToViewUrl(moduleId);
 	}
 
 	loadViewFactory(viewEngine, options){
-		return viewEngine.loadViewFactoryForModuleId(this.moduleId, options);
+		return viewEngine.loadViewFactory(this.viewUrl, options, this.moduleId);
 	}
+
+  static convertModuleIdToViewUrl(moduleId){
+    return moduleId + '.html';
+  }
 }
 
 export class NoView extends ViewStrategy {
-	constructor(){
-		super();
-	}
-
 	loadViewFactory(){
 		return Promise.resolve(null);
 	}

@@ -1,7 +1,10 @@
 "use strict";
 
-var _extends = function (child, parent) {
-  child.prototype = Object.create(parent.prototype, {
+var _inherits = function (child, parent) {
+  if (typeof parent !== "function" && parent !== null) {
+    throw new TypeError("Super expression must either be null or a function, not " + typeof parent);
+  }
+  child.prototype = Object.create(parent && parent.prototype, {
     constructor: {
       value: child,
       enumerable: false,
@@ -9,10 +12,10 @@ var _extends = function (child, parent) {
       configurable: true
     }
   });
-  child.__proto__ = parent;
+  if (parent) child.__proto__ = parent;
 };
 
-var relativeToFile = require('aurelia-path').relativeToFile;
+var relativeToFile = require("aurelia-path").relativeToFile;
 
 
 function register(lookup, name, resource, type) {
@@ -23,7 +26,7 @@ function register(lookup, name, resource, type) {
   var existing = lookup[name];
   if (existing) {
     if (existing != resource) {
-      throw new Error("Attempted to register an " + type + " when one with the same name already exists. Name: " + name + ".");
+      throw new Error("Attempted to register " + type + " when one with the same name already exists. Name: " + name + ".");
     }
 
     return;
@@ -32,50 +35,49 @@ function register(lookup, name, resource, type) {
   lookup[name] = resource;
 }
 
-var ResourceRegistry = (function () {
-  var ResourceRegistry = function ResourceRegistry() {
-    this.attributes = {};
-    this.elements = {};
-    this.filters = {};
-  };
+var ResourceRegistry = function ResourceRegistry() {
+  this.attributes = {};
+  this.elements = {};
+  this.valueConverters = {};
+  this.attributeMap = {};
+};
 
-  ResourceRegistry.prototype.registerElement = function (tagName, behavior) {
-    register(this.elements, tagName, behavior, "element");
-  };
+ResourceRegistry.prototype.registerElement = function (tagName, behavior) {
+  register(this.elements, tagName, behavior, "an Element");
+};
 
-  ResourceRegistry.prototype.getElement = function (tagName) {
-    return this.elements[tagName];
-  };
+ResourceRegistry.prototype.getElement = function (tagName) {
+  return this.elements[tagName];
+};
 
-  ResourceRegistry.prototype.registerAttribute = function (attribute, behavior) {
-    register(this.attributes, attribute, behavior, "attribute");
-  };
+ResourceRegistry.prototype.registerAttribute = function (attribute, behavior, knownAttribute) {
+  this.attributeMap[attribute] = knownAttribute;
+  register(this.attributes, attribute, behavior, "an Attribute");
+};
 
-  ResourceRegistry.prototype.getAttribute = function (attribute) {
-    return this.attributes[attribute];
-  };
+ResourceRegistry.prototype.getAttribute = function (attribute) {
+  return this.attributes[attribute];
+};
 
-  ResourceRegistry.prototype.registerFilter = function (name, filter) {
-    register(this.filters, name, filter, "filter");
-  };
+ResourceRegistry.prototype.registerValueConverter = function (name, valueConverter) {
+  register(this.valueConverters, name, valueConverter, "a ValueConverter");
+};
 
-  ResourceRegistry.prototype.getFilter = function (name) {
-    return this.filters[name];
-  };
-
-  return ResourceRegistry;
-})();
+ResourceRegistry.prototype.getValueConverter = function (name) {
+  return this.valueConverters[name];
+};
 
 exports.ResourceRegistry = ResourceRegistry;
-var ViewResources = (function (ResourceRegistry) {
+var ViewResources = (function () {
+  var _ResourceRegistry = ResourceRegistry;
   var ViewResources = function ViewResources(parent, viewUrl) {
-    ResourceRegistry.call(this);
+    _ResourceRegistry.call(this);
     this.parent = parent;
     this.viewUrl = viewUrl;
-    this.filterLookupFunction = this.getFilter.bind(this);
+    this.valueConverterLookupFunction = this.getValueConverter.bind(this);
   };
 
-  _extends(ViewResources, ResourceRegistry);
+  _inherits(ViewResources, _ResourceRegistry);
 
   ViewResources.prototype.relativeToView = function (path) {
     return relativeToFile(path, this.viewUrl);
@@ -89,11 +91,11 @@ var ViewResources = (function (ResourceRegistry) {
     return this.attributes[attribute] || this.parent.getAttribute(attribute);
   };
 
-  ViewResources.prototype.getFilter = function (name) {
-    return this.filterLookup[name] || this.parent.getFilter(name);
+  ViewResources.prototype.getValueConverter = function (name) {
+    return this.valueConverters[name] || this.parent.getValueConverter(name);
   };
 
   return ViewResources;
-})(ResourceRegistry);
+})();
 
 exports.ViewResources = ViewResources;

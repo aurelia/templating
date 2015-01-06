@@ -13,6 +13,8 @@ export class ViewSlot {
   }
 
   bind(executionContext){
+    var i, ii, children;
+
     if(this.isBound){
       if(this.executionContext === executionContext){
         return;
@@ -23,12 +25,20 @@ export class ViewSlot {
 
     this.isBound = true;
     this.executionContext = executionContext = executionContext || this.executionContext;
-    this.children.forEach(x => x.bind(executionContext, true));
+
+    children = this.children;
+    for(i = 0, ii = children.length; i < ii; ++i){
+      children[i].bind(executionContext, true);
+    }
   }
 
   unbind(){
+    var i, ii, children = this.children;
     this.isBound = false;
-    this.children.forEach(x => x.unbind());
+
+    for(i = 0, ii = children.length; i < ii; ++i){
+      children[i].unbind();
+    }
   }
 
   add(view){
@@ -80,12 +90,12 @@ export class ViewSlot {
         ii = children.length,
         i;
 
-    for(i = 0; i < ii; i++){
+    for(i = 0; i < ii; ++i){
       children[i].removeNodes();
     }
 
     if(this.isAttached){
-      for(i = 0; i < ii; i++){
+      for(i = 0; i < ii; ++i){
         children[i].detached();
       }
     }
@@ -99,18 +109,29 @@ export class ViewSlot {
   }
 
   attached(){
+    var i, ii, children;
+
     if(this.isAttached){
       return;
     }
 
     this.isAttached = true;
-    this.children.forEach(x => x.attached());
+
+    children = this.children;
+    for(i = 0, ii = children.length; i < ii; ++i){
+      children[i].attached();
+    }
   }
 
   detached(){
+    var i, ii, children;
+
     if(this.isAttached){
       this.isAttached = false;
-      this.children.forEach(x => x.detached());
+      children = this.children;
+      for(i = 0, ii = children.length; i < ii; ++i){
+        children[i].detached();
+      }
     }
   }
 
@@ -157,9 +178,10 @@ export class ViewSlot {
 
   contentSelectorRemove(view){
     var index = this.children.indexOf(view),
-        contentSelectors = this.contentSelectors;
+        contentSelectors = this.contentSelectors,
+        i, ii;
     
-    for(var i = 0, ii = contentSelectors.length; i < ii; i++){
+    for(i = 0, ii = contentSelectors.length; i < ii; ++i){
       contentSelectors[i].removeAt(index, view.fragment);
     }
 
@@ -172,9 +194,10 @@ export class ViewSlot {
 
   contentSelectorRemoveAt(index){
     var view = this.children[index],
-        contentSelectors = this.contentSelectors;
+        contentSelectors = this.contentSelectors,
+        i, ii;
 
-    for(var i = 0, ii = contentSelectors.length; i < ii; i++){
+    for(i = 0, ii = contentSelectors.length; i < ii; ++i){
       contentSelectors[i].removeAt(index, view.fragment);
     }
 
@@ -194,16 +217,16 @@ export class ViewSlot {
         jj = contentSelectors.length,
         i, j, view;
 
-    for(i = 0; i < ii; i++){
+    for(i = 0; i < ii; ++i){
       view = children[i];
 
-      for(j = 0; j < jj; j++){
+      for(j = 0; j < jj; ++j){
         contentSelectors[j].removeAt(i, view.fragment);
       }
     }
 
     if(this.isAttached){
-      for(i = 0; i < ii; i++){
+      for(i = 0; i < ii; ++i){
         children[i].detached();
       }
     }

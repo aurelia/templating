@@ -1,8 +1,11 @@
 define(["exports", "./behavior"], function (exports, _behavior) {
   "use strict";
 
-  var _extends = function (child, parent) {
-    child.prototype = Object.create(parent.prototype, {
+  var _inherits = function (child, parent) {
+    if (typeof parent !== "function" && parent !== null) {
+      throw new TypeError("Super expression must either be null or a function, not " + typeof parent);
+    }
+    child.prototype = Object.create(parent && parent.prototype, {
       constructor: {
         value: child,
         enumerable: false,
@@ -10,20 +13,21 @@ define(["exports", "./behavior"], function (exports, _behavior) {
         configurable: true
       }
     });
-    child.__proto__ = parent;
+    if (parent) child.__proto__ = parent;
   };
 
   var Behavior = _behavior.Behavior;
   var Property = _behavior.Property;
   var hyphenate = _behavior.hyphenate;
-  var TemplateController = (function (Behavior) {
+  var TemplateController = (function () {
+    var _Behavior = Behavior;
     var TemplateController = function TemplateController(attribute) {
-      Behavior.call(this);
+      _Behavior.call(this);
       this.attribute = attribute;
       this.liftsContent = true;
     };
 
-    _extends(TemplateController, Behavior);
+    _inherits(TemplateController, _Behavior);
 
     TemplateController.convention = function (name) {
       if (name.endsWith("TemplateController")) {
@@ -46,7 +50,7 @@ define(["exports", "./behavior"], function (exports, _behavior) {
     };
 
     TemplateController.prototype.register = function (registry, name) {
-      registry.registerAttribute(name || this.attribute, this);
+      registry.registerAttribute(name || this.attribute, this, this.attribute);
     };
 
     TemplateController.prototype.compile = function (compiler, resources, node, instruction, parentNode) {
@@ -75,13 +79,13 @@ define(["exports", "./behavior"], function (exports, _behavior) {
     };
 
     TemplateController.prototype.create = function (container, instruction, element) {
-      var behaviorInstance = Behavior.prototype.create.call(this, container, instruction, element);
+      var behaviorInstance = _Behavior.prototype.create.call(this, container, instruction, element);
       element.primaryBehavior = behaviorInstance;
       return behaviorInstance;
     };
 
     return TemplateController;
-  })(Behavior);
+  })();
 
   exports.TemplateController = TemplateController;
 });
