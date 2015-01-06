@@ -6,7 +6,7 @@ This library is part of the [Aurelia](http://www.aurelia.io/) platform and conta
 
 ## Polyfills
 
-* Depending on target browser(s), [es6-shim](https://github.com/paulmillr/es6-shim) is likely required for `Promise` support.
+* Depending on target browser(s), [core-js](https://github.com/zloirock/core-js) is likely required for `Promise` support.
 
 * If targeting IE, [aurelia-html-template-element](https://github.com/aurelia/html-template-element) is required.
 
