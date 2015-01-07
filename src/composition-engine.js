@@ -56,7 +56,9 @@ export class CompositionEngine {
     instruction.view = ViewStrategy.normalize(instruction.view);
 
     if(typeof instruction.viewModel === 'string'){
-      instruction.viewModel = instruction.viewResources.relativeToView(instruction.viewModel);
+      instruction.viewModel = instruction.viewResources 
+        ? instruction.viewResources.relativeToView(instruction.viewModel)
+        : instruction.viewModel;
       
       return this.resourceCoordinator.loadViewModelInfo(instruction.viewModel).then(viewModelInfo => {
         childContainer = instruction.container.createChild();
