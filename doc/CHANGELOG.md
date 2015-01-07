@@ -1,3 +1,18 @@
+## 0.6.0 (2015-01-07)
+
+
+#### Bug Fixes
+
+* **composition-engine:**
+  * more consistent api ([ab419d1a](http://github.com/aurelia/templating/commit/ab419d1a32f0329be5c50f5049d40e66b6db3ad1))
+  * do not require view resources ([82bbbdad](http://github.com/aurelia/templating/commit/82bbbdad07fc8a1470cf4331129571380cc99dd2))
+
+
+#### Features
+
+* **view-strategy:** allow strategies to be made relative via compose ([53f25495](http://github.com/aurelia/templating/commit/53f2549589091dcc5a7a54297d080184d7f2c8be))
+
+
 ## 0.5.0 (2015-01-06)
 
 

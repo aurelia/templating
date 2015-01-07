@@ -1,4 +1,4 @@
-define(["exports", "aurelia-metadata"], function (exports, _aureliaMetadata) {
+define(["exports", "aurelia-metadata", "aurelia-path"], function (exports, _aureliaMetadata, _aureliaPath) {
   "use strict";
 
   var _inherits = function (child, parent) {
@@ -18,15 +18,18 @@ define(["exports", "aurelia-metadata"], function (exports, _aureliaMetadata) {
 
   var getAnnotation = _aureliaMetadata.getAnnotation;
   var Origin = _aureliaMetadata.Origin;
+  var relativeToFile = _aureliaPath.relativeToFile;
   var ViewStrategy = function ViewStrategy() {};
+
+  ViewStrategy.prototype.makeRelativeTo = function (baseUrl) {};
 
   ViewStrategy.prototype.loadViewFactory = function (viewEngine, options) {
     throw new Error("A ViewStrategy must implement loadViewFactory(viewEngine, options).");
   };
 
-  ViewStrategy.normalize = function (value, viewResources) {
+  ViewStrategy.normalize = function (value) {
     if (typeof value === "string") {
-      value = new UseView(viewResources ? viewResources.relativeToView(value) : value);
+      value = new UseView(value);
     }
 
     if (value && !(value instanceof ViewStrategy)) {
@@ -69,7 +72,11 @@ define(["exports", "aurelia-metadata"], function (exports, _aureliaMetadata) {
     _inherits(UseView, _ViewStrategy);
 
     UseView.prototype.loadViewFactory = function (viewEngine, options) {
-      return viewEngine.loadViewFactory(this.path, options, this.moduleId);
+      return viewEngine.loadViewFactory(this.absolutePath || this.path, options, this.moduleId);
+    };
+
+    UseView.prototype.makeRelativeTo = function (file) {
+      this.absolutePath = relativeToFile(this.path, file);
     };
 
     return UseView;

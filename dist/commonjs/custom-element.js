@@ -57,16 +57,12 @@ var CustomElement = (function () {
       this.tagName = hyphenate(target.name);
     }
 
-    if (typeof viewStrategy === "string") {
-      viewStrategy = new UseView(viewStrategy);
-    }
-
-    if (viewStrategy) {
-      viewStrategy.moduleId = Origin.get(target).moduleId;
-    }
-
     viewStrategy = viewStrategy || ViewStrategy.getDefault(target);
     options = { targetShadowDOM: this.targetShadowDOM };
+
+    if (!viewStrategy.moduleId) {
+      viewStrategy.moduleId = Origin.get(target).moduleId;
+    }
 
     return viewStrategy.loadViewFactory(container.get(ViewEngine), options).then(function (viewFactory) {
       _this.viewFactory = viewFactory;

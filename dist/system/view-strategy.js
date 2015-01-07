@@ -1,11 +1,13 @@
-System.register(["aurelia-metadata"], function (_export) {
+System.register(["aurelia-metadata", "aurelia-path"], function (_export) {
   "use strict";
 
-  var getAnnotation, Origin, _inherits, ViewStrategy, UseView, ConventionalView, NoView;
+  var getAnnotation, Origin, relativeToFile, _inherits, ViewStrategy, UseView, ConventionalView, NoView;
   return {
     setters: [function (_aureliaMetadata) {
       getAnnotation = _aureliaMetadata.getAnnotation;
       Origin = _aureliaMetadata.Origin;
+    }, function (_aureliaPath) {
+      relativeToFile = _aureliaPath.relativeToFile;
     }],
     execute: function () {
       _inherits = function (child, parent) {
@@ -25,13 +27,15 @@ System.register(["aurelia-metadata"], function (_export) {
 
       ViewStrategy = function ViewStrategy() {};
 
+      ViewStrategy.prototype.makeRelativeTo = function (baseUrl) {};
+
       ViewStrategy.prototype.loadViewFactory = function (viewEngine, options) {
         throw new Error("A ViewStrategy must implement loadViewFactory(viewEngine, options).");
       };
 
-      ViewStrategy.normalize = function (value, viewResources) {
+      ViewStrategy.normalize = function (value) {
         if (typeof value === "string") {
-          value = new UseView(viewResources ? viewResources.relativeToView(value) : value);
+          value = new UseView(value);
         }
 
         if (value && !(value instanceof ViewStrategy)) {
@@ -75,7 +79,11 @@ System.register(["aurelia-metadata"], function (_export) {
         _inherits(UseView, _ViewStrategy);
 
         UseView.prototype.loadViewFactory = function (viewEngine, options) {
-          return viewEngine.loadViewFactory(this.path, options, this.moduleId);
+          return viewEngine.loadViewFactory(this.absolutePath || this.path, options, this.moduleId);
+        };
+
+        UseView.prototype.makeRelativeTo = function (file) {
+          this.absolutePath = relativeToFile(this.path, file);
         };
 
         return UseView;

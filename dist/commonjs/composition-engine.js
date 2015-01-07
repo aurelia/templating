@@ -14,72 +14,87 @@ CompositionEngine.inject = function () {
   return [ResourceCoordinator, ViewEngine];
 };
 
-CompositionEngine.prototype.bindAndSwap = function (viewSlot, next, current) {
-  next.bind(next.executionContext);
-  viewSlot.swap(next.view);
-
-  if (current) {
-    current.unbind();
-  }
-
-  return next;
-};
-
-CompositionEngine.prototype.activateViewModel = function (viewModel, model) {
-  if (typeof viewModel.activate === "function") {
-    return viewModel.activate(model) || Promise.resolve();
-  } else {
+CompositionEngine.prototype.activate = function (instruction) {
+  if (instruction.skipActivation || typeof instruction.viewModel.activate !== "function") {
     return Promise.resolve();
   }
+
+  return instruction.viewModel.activate(instruction.model) || Promise.resolve();
 };
 
-CompositionEngine.prototype.createBehavior = function (instruction, container, viewModelInfo) {
-  var _this = this;
-  return this.activateViewModel(instruction.viewModel, instruction.model).then(function () {
+CompositionEngine.prototype.createBehaviorAndSwap = function (instruction) {
+  return this.createBehavior(instruction).then(function (behavior) {
+    instruction.viewSlot.swap(behavior.view);
+
+    if (instruction.currentBehavior) {
+      instruction.currentBehavior.unbind();
+    }
+
+    return behavior;
+  });
+};
+
+CompositionEngine.prototype.createBehavior = function (instruction) {
+  var childContainer = instruction.childContainer, viewModelInfo = instruction.viewModelInfo, viewModel = instruction.viewModel;
+
+  return this.activate(instruction).then(function () {
     var doneLoading;
 
-    if ("getViewStrategy" in instruction.viewModel && !instruction.view) {
-      instruction.view = ViewStrategy.normalize(instruction.viewModel.getViewStrategy());
+    if ("getViewStrategy" in viewModel && !instruction.view) {
+      instruction.view = ViewStrategy.normalize(viewModel.getViewStrategy());
+    }
+
+    if (instruction.view && instruction.viewResources) {
+      instruction.view.makeRelativeTo(instruction.viewResources.viewUrl);
     }
 
     if (viewModelInfo) {
-      doneLoading = viewModelInfo.type.load(container, viewModelInfo.value, instruction.view);
+      doneLoading = viewModelInfo.type.load(childContainer, viewModelInfo.value, instruction.view);
     } else {
-      doneLoading = new CustomElement().load(container, instruction.viewModel.constructor, instruction.view);
+      doneLoading = new CustomElement().load(childContainer, viewModel.constructor, instruction.view);
     }
 
     return doneLoading.then(function (behaviorType) {
-      var behavior = behaviorType.create(container, { executionContext: instruction.viewModel, suppressBind: true });
-      return _this.bindAndSwap(instruction.viewSlot, behavior, instruction.currentBehavior);
+      return behaviorType.create(childContainer, { executionContext: viewModel });
     });
   });
 };
 
-CompositionEngine.prototype.compose = function (instruction) {
-  var _this2 = this;
-  var childContainer;
+CompositionEngine.prototype.createViewModel = function (instruction) {
+  var childContainer = instruction.childContainer || instruction.container.createChild();
 
+  instruction.viewModel = instruction.viewResources ? instruction.viewResources.relativeToView(instruction.viewModel) : instruction.viewModel;
+
+  return this.resourceCoordinator.loadViewModelInfo(instruction.viewModel).then(function (viewModelInfo) {
+    childContainer.autoRegister(viewModelInfo.value);
+    instruction.viewModel = childContainer.viewModel = childContainer.get(viewModelInfo.value);
+    instruction.viewModelInfo = viewModelInfo;
+    return instruction;
+  });
+};
+
+CompositionEngine.prototype.compose = function (instruction) {
+  var _this = this;
+  instruction.childContainer = instruction.childContainer || instruction.container.createChild();
   instruction.view = ViewStrategy.normalize(instruction.view);
 
-  if (typeof instruction.viewModel === "string") {
-    instruction.viewModel = instruction.viewResources.relativeToView(instruction.viewModel);
-
-    return this.resourceCoordinator.loadViewModelInfo(instruction.viewModel).then(function (viewModelInfo) {
-      childContainer = instruction.container.createChild();
-      childContainer.autoRegister(viewModelInfo.value);
-      instruction.viewModel = childContainer.get(viewModelInfo.value);
-      return _this2.createBehavior(instruction, childContainer, viewModelInfo);
-    });
-  } else {
-    if (instruction.viewModel) {
-      return this.createBehavior(instruction, instruction.container.createChild());
-    } else if (instruction.view) {
-      return instruction.view.loadViewFactory(this.viewEngine).then(function (viewFactory) {
-        childContainer = instruction.container.createChild();
-        result = viewFactory.create(childContainer, instruction.executionContext);
-        instruction.viewSlot.swap(result);
+  if (instruction.viewModel) {
+    if (typeof instruction.viewModel === "string") {
+      return this.createViewModel(instruction).then(function (instruction) {
+        return _this.createBehaviorAndSwap(instruction);
       });
+    } else {
+      return this.createBehaviorAndSwap(instruction);
     }
+  } else if (instruction.view) {
+    return instruction.view.loadViewFactory(this.viewEngine).then(function (viewFactory) {
+      result = viewFactory.create(childContainer, instruction.executionContext);
+      instruction.viewSlot.swap(result);
+      return result;
+    });
+  } else if (instruction.viewSlot) {
+    instruction.viewSlot.removeAll();
+    return Promise.resolve(null);
   }
 };
 

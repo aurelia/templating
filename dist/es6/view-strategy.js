@@ -1,13 +1,16 @@
 import {getAnnotation, Origin} from 'aurelia-metadata';
+import {relativeToFile} from 'aurelia-path';
 
 export class ViewStrategy {
+  makeRelativeTo(baseUrl){}
+  
   loadViewFactory(viewEngine, options){
     throw new Error('A ViewStrategy must implement loadViewFactory(viewEngine, options).');
   }
 
-  static normalize(value, viewResources){
+  static normalize(value){
     if(typeof value === 'string'){
-      value = new UseView(viewResources ? viewResources.relativeToView(value) : value);
+      value = new UseView(value);
     }
 
     if(value && !(value instanceof ViewStrategy)){
@@ -47,8 +50,12 @@ export class UseView extends ViewStrategy {
 	}
 
 	loadViewFactory(viewEngine, options){
-		return viewEngine.loadViewFactory(this.path, options, this.moduleId);
+		return viewEngine.loadViewFactory(this.absolutePath || this.path, options, this.moduleId);
 	}
+
+  makeRelativeTo(file){
+    this.absolutePath = relativeToFile(this.path, file);
+  }
 }
 
 export class ConventionalView extends ViewStrategy {

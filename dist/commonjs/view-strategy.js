@@ -17,15 +17,18 @@ var _inherits = function (child, parent) {
 
 var getAnnotation = require("aurelia-metadata").getAnnotation;
 var Origin = require("aurelia-metadata").Origin;
+var relativeToFile = require("aurelia-path").relativeToFile;
 var ViewStrategy = function ViewStrategy() {};
+
+ViewStrategy.prototype.makeRelativeTo = function (baseUrl) {};
 
 ViewStrategy.prototype.loadViewFactory = function (viewEngine, options) {
   throw new Error("A ViewStrategy must implement loadViewFactory(viewEngine, options).");
 };
 
-ViewStrategy.normalize = function (value, viewResources) {
+ViewStrategy.normalize = function (value) {
   if (typeof value === "string") {
-    value = new UseView(viewResources ? viewResources.relativeToView(value) : value);
+    value = new UseView(value);
   }
 
   if (value && !(value instanceof ViewStrategy)) {
@@ -68,7 +71,11 @@ var UseView = (function () {
   _inherits(UseView, _ViewStrategy);
 
   UseView.prototype.loadViewFactory = function (viewEngine, options) {
-    return viewEngine.loadViewFactory(this.path, options, this.moduleId);
+    return viewEngine.loadViewFactory(this.absolutePath || this.path, options, this.moduleId);
+  };
+
+  UseView.prototype.makeRelativeTo = function (file) {
+    this.absolutePath = relativeToFile(this.path, file);
   };
 
   return UseView;
