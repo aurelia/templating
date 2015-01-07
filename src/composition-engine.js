@@ -10,72 +10,86 @@ export class CompositionEngine {
     this.viewEngine = viewEngine;
   }
 
-  bindAndSwap(viewSlot, next, current){
-    next.bind(next.executionContext);
-    viewSlot.swap(next.view);
-
-    if(current){
-      current.unbind();
+  activate(instruction){
+    if(instruction.skipActivation || typeof instruction.viewModel.activate !== 'function'){
+      return Promise.resolve(); 
     }
 
-    return next;
+    return instruction.viewModel.activate(instruction.model) || Promise.resolve();
   }
 
-  activateViewModel(viewModel, model){
-    if(typeof viewModel.activate === 'function') {
-      return viewModel.activate(model) || Promise.resolve();
-    }else{
-      return Promise.resolve();
-    }
+  createBehaviorAndSwap(instruction){
+    return this.createBehavior(instruction).then(behavior => {
+      instruction.viewSlot.swap(behavior.view);
+
+      if(instruction.currentBehavior){
+        instruction.currentBehavior.unbind();
+      }
+
+      return behavior;
+    });
   }
 
-  createBehavior(instruction, container, viewModelInfo){
-    return this.activateViewModel(instruction.viewModel, instruction.model).then(() => {
+  createBehavior(instruction){
+    var childContainer = instruction.childContainer,
+        viewModelInfo = instruction.viewModelInfo,
+        viewModel = instruction.viewModel;
+
+    return this.activate(instruction).then(() => {
       var doneLoading;
 
-      if('getViewStrategy' in instruction.viewModel && !instruction.view){
-        instruction.view = ViewStrategy.normalize(instruction.viewModel.getViewStrategy());
+      if('getViewStrategy' in viewModel && !instruction.view){
+        instruction.view = ViewStrategy.normalize(viewModel.getViewStrategy());
       }
 
       if(viewModelInfo){
-        doneLoading = viewModelInfo.type.load(container, viewModelInfo.value, instruction.view);
+        doneLoading = viewModelInfo.type.load(childContainer, viewModelInfo.value, instruction.view);
       }else{
-        doneLoading = new CustomElement().load(container, instruction.viewModel.constructor, instruction.view);
+        doneLoading = new CustomElement().load(childContainer, viewModel.constructor, instruction.view);
       }
 
       return doneLoading.then(behaviorType => {
-        var behavior = behaviorType.create(container, {executionContext:instruction.viewModel, suppressBind:true});
-        return this.bindAndSwap(instruction.viewSlot, behavior, instruction.currentBehavior);
+        return behaviorType.create(childContainer, {executionContext:viewModel});
       });
     });
   }
 
-  compose(instruction){
-    var childContainer;
-    
-    instruction.view = ViewStrategy.normalize(instruction.view);
+  createViewModel(instruction){
+    var childContainer = instruction.childContainer || instruction.container.createChild();
 
-    if(typeof instruction.viewModel === 'string'){
-      instruction.viewModel = instruction.viewResources 
+    instruction.viewModel = instruction.viewResources 
         ? instruction.viewResources.relativeToView(instruction.viewModel)
         : instruction.viewModel;
       
-      return this.resourceCoordinator.loadViewModelInfo(instruction.viewModel).then(viewModelInfo => {
-        childContainer = instruction.container.createChild();
-        childContainer.autoRegister(viewModelInfo.value);
-        instruction.viewModel = childContainer.get(viewModelInfo.value);
-        return this.createBehavior(instruction, childContainer, viewModelInfo);
-      });
-    }else{
-      if(instruction.viewModel){
-        return this.createBehavior(instruction, instruction.container.createChild());
-      } else if (instruction.view){
-        return instruction.view.loadViewFactory(this.viewEngine).then(viewFactory => {
-          childContainer = instruction.container.createChild();
-          result = viewFactory.create(childContainer, instruction.executionContext);
-          instruction.viewSlot.swap(result);
+    return this.resourceCoordinator.loadViewModelInfo(instruction.viewModel).then(viewModelInfo => {
+      childContainer.autoRegister(viewModelInfo.value);
+      instruction.viewModel = childContainer.get(viewModelInfo.value);
+      instruction.viewModelInfo = viewModelInfo;
+      return instruction;
+    });
+  }
+
+  compose(instruction){
+    instruction.childContainer = instruction.childContainer || instruction.container.createChild();
+    instruction.view = ViewStrategy.normalize(instruction.view);
+
+    if(instruction.viewModel){
+      if(typeof instruction.viewModel === 'string'){
+        return this.createViewModel(instruction).then(instruction => {
+          return this.createBehaviorAndSwap(instruction);
         });
+      }else{
+        return this.createBehaviorAndSwap(instruction);
       }
+    }else if(instruction.view){
+      return instruction.view.loadViewFactory(this.viewEngine).then(viewFactory => {
+        result = viewFactory.create(childContainer, instruction.executionContext);
+        instruction.viewSlot.swap(result);
+        return result;
+      });
+    }else if(instruction.viewSlot){
+      instruction.viewSlot.removeAll();
+      return Promise.resolve(null);
     }
   }
 }
