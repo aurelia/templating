@@ -42,6 +42,10 @@ export class CompositionEngine {
         instruction.view = ViewStrategy.normalize(viewModel.getViewStrategy());
       }
 
+      if(instruction.view && instruction.viewResources){
+        instruction.view.makeRelativeTo(instruction.viewResources.viewUrl);
+      }
+
       if(viewModelInfo){
         doneLoading = viewModelInfo.type.load(childContainer, viewModelInfo.value, instruction.view);
       }else{
@@ -63,7 +67,7 @@ export class CompositionEngine {
       
     return this.resourceCoordinator.loadViewModelInfo(instruction.viewModel).then(viewModelInfo => {
       childContainer.autoRegister(viewModelInfo.value);
-      instruction.viewModel = childContainer.get(viewModelInfo.value);
+      instruction.viewModel = childContainer.viewModel = childContainer.get(viewModelInfo.value);
       instruction.viewModelInfo = viewModelInfo;
       return instruction;
     });
