@@ -4,10 +4,10 @@ var BehaviorInstance = function BehaviorInstance(taskQueue, observerLocator, beh
   this.behaviorType = behaviorType;
   this.executionContext = executionContext;
 
-  var lookup = observerLocator.getObserversLookup(executionContext), skipSelfSubscriber = behaviorType.handlesBind, attributes = instruction.attributes, boundProperties = this.boundProperties = [], properties = behaviorType.properties, i, ii, prop, selfSubscriber, observer, info, attribute;
+  var lookup = observerLocator.getObserversLookup(executionContext), skipSelfSubscriber = behaviorType.handlesBind, attributes = instruction.attributes, boundProperties = this.boundProperties = [], properties = behaviorType.properties;
 
-  for (i = 0, ii = properties.length; i < ii; ++i) {
-    prop = properties[i];
+  properties.forEach(function (prop) {
+    var selfSubscriber, observer, info, attribute;
 
     if (prop.changeHandler) {
       selfSubscriber = function (newValue, oldValue) {
@@ -44,7 +44,7 @@ var BehaviorInstance = function BehaviorInstance(taskQueue, observerLocator, beh
 
     observer.publishing = true;
     observer.selfSubscriber = selfSubscriber;
-  }
+  });
 };
 
 BehaviorInstance.prototype.created = function (context) {

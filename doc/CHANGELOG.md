@@ -1,3 +1,11 @@
+### 0.6.1 (2015-01-08)
+
+
+#### Bug Fixes
+
+* **behavior-instance:** classic loop, function var bug ([359749a4](http://github.com/aurelia/templating/commit/359749a43b8cdfc669f4f7c7a9796db3a31d67cd))
+
+
 ## 0.6.0 (2015-01-07)
 
 
