@@ -7,12 +7,11 @@ export class BehaviorInstance {
         skipSelfSubscriber = behaviorType.handlesBind,
         attributes = instruction.attributes,
         boundProperties = this.boundProperties = [],
-        properties = behaviorType.properties,
-        i, ii, prop, selfSubscriber, observer, info, attribute;
+        properties = behaviorType.properties;
 
-    for(i = 0, ii = properties.length; i < ii; ++i){
-      prop = properties[i];
-
+    properties.forEach(prop => {
+      var selfSubscriber, observer, info, attribute;
+      
       if(prop.changeHandler){
         selfSubscriber = (newValue, oldValue) => executionContext[prop.changeHandler](newValue, oldValue);
       }
@@ -51,7 +50,7 @@ export class BehaviorInstance {
 
       observer.publishing = true;
       observer.selfSubscriber = selfSubscriber;
-    }
+    });
 	}
 
   created(context){
