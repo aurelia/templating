@@ -1,5 +1,10 @@
 "use strict";
 
+var _prototypeProperties = function (child, staticProps, instanceProps) {
+  if (staticProps) Object.defineProperties(child, staticProps);
+  if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
+};
+
 var _inherits = function (child, parent) {
   if (typeof parent !== "function" && parent !== null) {
     throw new TypeError("Super expression must either be null or a function, not " + typeof parent);
@@ -15,75 +20,99 @@ var _inherits = function (child, parent) {
   if (parent) child.__proto__ = parent;
 };
 
-var Behavior = require("./behavior").Behavior;
-var Property = require("./behavior").Property;
-var hyphenate = require("./behavior").hyphenate;
-var TemplateController = (function () {
-  var _Behavior = Behavior;
+var ResourceType = require("aurelia-metadata").ResourceType;
+var BehaviorInstance = require("./behavior-instance").BehaviorInstance;
+var configureBehavior = require("./behaviors").configureBehavior;
+var Property = require("./property").Property;
+var hyphenate = require("./util").hyphenate;
+var TemplateController = (function (ResourceType) {
   var TemplateController = function TemplateController(attribute) {
-    _Behavior.call(this);
-    this.attribute = attribute;
+    this.name = attribute;
+    this.properties = [];
+    this.attributes = {};
     this.liftsContent = true;
   };
 
-  _inherits(TemplateController, _Behavior);
+  _inherits(TemplateController, ResourceType);
 
-  TemplateController.convention = function (name) {
-    if (name.endsWith("TemplateController")) {
-      return new TemplateController(hyphenate(name.substring(0, name.length - 18)));
+  _prototypeProperties(TemplateController, {
+    convention: {
+      value: function (name) {
+        if (name.endsWith("TemplateController")) {
+          return new TemplateController(hyphenate(name.substring(0, name.length - 18)));
+        }
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
     }
-  };
+  }, {
+    load: {
+      value: function (container, target) {
+        configureBehavior(this, container, target);
 
-  TemplateController.prototype.load = function (container, target) {
-    this.setTarget(container, target);
+        if (this.properties.length === 0 && "valueChanged" in target.prototype) {
+          new Property("value", "valueChanged", this.name).configureBehavior(this);
+        }
 
-    if (!this.attribute) {
-      this.attribute = hyphenate(target.name);
+        return Promise.resolve(this);
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    register: {
+      value: function (registry, name) {
+        registry.registerAttribute(name || this.name, this, this.name);
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    compile: {
+      value: function (compiler, resources, node, instruction, parentNode) {
+        if (!instruction.viewFactory) {
+          var template = document.createElement("template"),
+              fragment = document.createDocumentFragment();
+
+          node.removeAttribute(instruction.originalAttrName);
+
+          if (node.parentNode) {
+            node.parentNode.replaceChild(template, node);
+          } else if (window.ShadowDOMPolyfill) {
+            ShadowDOMPolyfill.unwrap(parentNode).replaceChild(ShadowDOMPolyfill.unwrap(template), ShadowDOMPolyfill.unwrap(node));
+          } else {
+            parentNode.replaceChild(template, node);
+          }
+
+          fragment.appendChild(node);
+
+          instruction.viewFactory = compiler.compile(fragment, resources);
+          node = template;
+        }
+
+        instruction.suppressBind = true;
+
+        return node;
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    create: {
+      value: function (container, instruction, element) {
+        var executionContext = instruction.executionContext || container.get(this.target),
+            behaviorInstance = new BehaviorInstance(this.taskQueue, this.observerLocator, this, executionContext, instruction);
+        element.primaryBehavior = behaviorInstance;
+        return behaviorInstance;
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
     }
-
-    if (this.properties.length === 0 && "valueChanged" in target.prototype) {
-      this.configureProperty(new Property("value", "valueChanged", this.attribute));
-    }
-
-    return Promise.resolve(this);
-  };
-
-  TemplateController.prototype.register = function (registry, name) {
-    registry.registerAttribute(name || this.attribute, this, this.attribute);
-  };
-
-  TemplateController.prototype.compile = function (compiler, resources, node, instruction, parentNode) {
-    if (!instruction.viewFactory) {
-      var template = document.createElement("template"), fragment = document.createDocumentFragment();
-
-      node.removeAttribute(instruction.originalAttrName);
-
-      if (node.parentNode) {
-        node.parentNode.replaceChild(template, node);
-      } else if (window.ShadowDOMPolyfill) {
-        ShadowDOMPolyfill.unwrap(parentNode).replaceChild(ShadowDOMPolyfill.unwrap(template), ShadowDOMPolyfill.unwrap(node));
-      } else {
-        parentNode.replaceChild(template, node);
-      }
-
-      fragment.appendChild(node);
-
-      instruction.viewFactory = compiler.compile(fragment, resources);
-      node = template;
-    }
-
-    instruction.suppressBind = true;
-
-    return node;
-  };
-
-  TemplateController.prototype.create = function (container, instruction, element) {
-    var behaviorInstance = _Behavior.prototype.create.call(this, container, instruction, element);
-    element.primaryBehavior = behaviorInstance;
-    return behaviorInstance;
-  };
+  });
 
   return TemplateController;
-})();
+})(ResourceType);
 
 exports.TemplateController = TemplateController;

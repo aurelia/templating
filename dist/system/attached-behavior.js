@@ -1,14 +1,25 @@
-System.register(["./behavior"], function (_export) {
+System.register(["aurelia-metadata", "./behavior-instance", "./behaviors", "./property", "./util"], function (_export) {
   "use strict";
 
-  var Behavior, Property, hyphenate, _inherits, AttachedBehavior;
+  var ResourceType, BehaviorInstance, configureBehavior, Property, hyphenate, _prototypeProperties, _inherits, AttachedBehavior;
   return {
-    setters: [function (_behavior) {
-      Behavior = _behavior.Behavior;
-      Property = _behavior.Property;
-      hyphenate = _behavior.hyphenate;
+    setters: [function (_aureliaMetadata) {
+      ResourceType = _aureliaMetadata.ResourceType;
+    }, function (_behaviorInstance) {
+      BehaviorInstance = _behaviorInstance.BehaviorInstance;
+    }, function (_behaviors) {
+      configureBehavior = _behaviors.configureBehavior;
+    }, function (_property) {
+      Property = _property.Property;
+    }, function (_util) {
+      hyphenate = _util.hyphenate;
     }],
     execute: function () {
+      _prototypeProperties = function (child, staticProps, instanceProps) {
+        if (staticProps) Object.defineProperties(child, staticProps);
+        if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
+      };
+
       _inherits = function (child, parent) {
         if (typeof parent !== "function" && parent !== null) {
           throw new TypeError("Super expression must either be null or a function, not " + typeof parent);
@@ -24,51 +35,77 @@ System.register(["./behavior"], function (_export) {
         if (parent) child.__proto__ = parent;
       };
 
-      AttachedBehavior = (function () {
-        var _Behavior = Behavior;
+      AttachedBehavior = (function (ResourceType) {
         var AttachedBehavior = function AttachedBehavior(attribute) {
-          _Behavior.call(this);
-          this.attribute = attribute;
+          this.name = attribute;
+          this.properties = [];
+          this.attributes = {};
         };
 
-        _inherits(AttachedBehavior, _Behavior);
+        _inherits(AttachedBehavior, ResourceType);
 
-        AttachedBehavior.convention = function (name) {
-          if (name.endsWith("AttachedBehavior")) {
-            return new AttachedBehavior(hyphenate(name.substring(0, name.length - 16)));
+        _prototypeProperties(AttachedBehavior, {
+          convention: {
+            value: function (name) {
+              if (name.endsWith("AttachedBehavior")) {
+                return new AttachedBehavior(hyphenate(name.substring(0, name.length - 16)));
+              }
+            },
+            writable: true,
+            enumerable: true,
+            configurable: true
           }
-        };
+        }, {
+          load: {
+            value: function (container, target) {
+              configureBehavior(this, container, target);
 
-        AttachedBehavior.prototype.load = function (container, target) {
-          this.setTarget(container, target);
+              if (this.properties.length === 0 && "valueChanged" in target.prototype) {
+                new Property("value", "valueChanged", this.name).configureBehavior(this);
+              }
 
-          if (!this.attribute) {
-            this.attribute = hyphenate(target.name);
+              return Promise.resolve(this);
+            },
+            writable: true,
+            enumerable: true,
+            configurable: true
+          },
+          register: {
+            value: function (registry, name) {
+              registry.registerAttribute(name || this.name, this, this.name);
+            },
+            writable: true,
+            enumerable: true,
+            configurable: true
+          },
+          compile: {
+            value: function (compiler, resources, node, instruction) {
+              instruction.suppressBind = true;
+              return node;
+            },
+            writable: true,
+            enumerable: true,
+            configurable: true
+          },
+          create: {
+            value: function (container, instruction, element, bindings) {
+              var executionContext = instruction.executionContext || container.get(this.target),
+                  behaviorInstance = new BehaviorInstance(this.taskQueue, this.observerLocator, this, executionContext, instruction);
+
+              if (this.childExpression) {
+                bindings.push(this.childExpression.createBinding(element, behaviorInstance.executionContext));
+              }
+
+              return behaviorInstance;
+            },
+            writable: true,
+            enumerable: true,
+            configurable: true
           }
-
-          if (this.properties.length === 0 && "valueChanged" in target.prototype) {
-            this.configureProperty(new Property("value", "valueChanged", this.attribute));
-          }
-
-          return Promise.resolve(this);
-        };
-
-        AttachedBehavior.prototype.register = function (registry, name) {
-          registry.registerAttribute(name || this.attribute, this, this.attribute);
-        };
-
-        AttachedBehavior.prototype.create = function (container, instruction, element, bindings) {
-          var behaviorInstance = _Behavior.prototype.create.call(this, container, instruction);
-
-          if (this.childExpression) {
-            bindings.push(this.childExpression.createBinding(element, behaviorInstance.executionContext));
-          }
-
-          return behaviorInstance;
-        };
+        });
 
         return AttachedBehavior;
-      })();
+      })(ResourceType);
       _export("AttachedBehavior", AttachedBehavior);
     }
   };

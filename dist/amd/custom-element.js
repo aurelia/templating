@@ -1,5 +1,10 @@
-define(["exports", "aurelia-metadata", "./behavior", "./content-selector", "./view-engine", "./view-strategy"], function (exports, _aureliaMetadata, _behavior, _contentSelector, _viewEngine, _viewStrategy) {
+define(["exports", "aurelia-metadata", "./behavior-instance", "./behaviors", "./content-selector", "./view-engine", "./view-strategy", "./util"], function (exports, _aureliaMetadata, _behaviorInstance, _behaviors, _contentSelector, _viewEngine, _viewStrategy, _util) {
   "use strict";
+
+  var _prototypeProperties = function (child, staticProps, instanceProps) {
+    if (staticProps) Object.defineProperties(child, staticProps);
+    if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
+  };
 
   var _inherits = function (child, parent) {
     if (typeof parent !== "function" && parent !== null) {
@@ -18,129 +23,157 @@ define(["exports", "aurelia-metadata", "./behavior", "./content-selector", "./vi
 
   var getAnnotation = _aureliaMetadata.getAnnotation;
   var Origin = _aureliaMetadata.Origin;
-  var Behavior = _behavior.Behavior;
-  var hyphenate = _behavior.hyphenate;
+  var ResourceType = _aureliaMetadata.ResourceType;
+  var BehaviorInstance = _behaviorInstance.BehaviorInstance;
+  var configureBehavior = _behaviors.configureBehavior;
   var ContentSelector = _contentSelector.ContentSelector;
   var ViewEngine = _viewEngine.ViewEngine;
   var ViewStrategy = _viewStrategy.ViewStrategy;
+  var hyphenate = _util.hyphenate;
 
 
-  var defaultInstruction = { suppressBind: false }, contentSelectorFactoryOptions = { suppressBind: true }, hasShadowDOM = !!HTMLElement.prototype.createShadowRoot;
+  var defaultInstruction = { suppressBind: false },
+      contentSelectorFactoryOptions = { suppressBind: true },
+      hasShadowDOM = !!HTMLElement.prototype.createShadowRoot;
 
   var UseShadowDOM = function UseShadowDOM() {};
 
   exports.UseShadowDOM = UseShadowDOM;
-  var CustomElement = (function () {
-    var _Behavior = Behavior;
+  var CustomElement = (function (ResourceType) {
     var CustomElement = function CustomElement(tagName) {
-      _Behavior.call(this);
-      this.tagName = tagName;
+      this.name = tagName;
+      this.properties = [];
+      this.attributes = {};
     };
 
-    _inherits(CustomElement, _Behavior);
+    _inherits(CustomElement, ResourceType);
 
-    CustomElement.convention = function (name) {
-      if (name.endsWith("CustomElement")) {
-        return new CustomElement(hyphenate(name.substring(0, name.length - 13)));
-      }
-    };
-
-    CustomElement.prototype.load = function (container, target, viewStrategy) {
-      var _this = this;
-      var annotation, options;
-
-      this.setTarget(container, target);
-
-      this.targetShadowDOM = getAnnotation(target, UseShadowDOM) !== null;
-      this.usesShadowDOM = this.targetShadowDOM && hasShadowDOM;
-
-      if (!this.tagName) {
-        this.tagName = hyphenate(target.name);
-      }
-
-      viewStrategy = viewStrategy || ViewStrategy.getDefault(target);
-      options = { targetShadowDOM: this.targetShadowDOM };
-
-      if (!viewStrategy.moduleId) {
-        viewStrategy.moduleId = Origin.get(target).moduleId;
-      }
-
-      return viewStrategy.loadViewFactory(container.get(ViewEngine), options).then(function (viewFactory) {
-        _this.viewFactory = viewFactory;
-        return _this;
-      });
-    };
-
-    CustomElement.prototype.register = function (registry, name) {
-      registry.registerElement(name || this.tagName, this);
-    };
-
-    CustomElement.prototype.compile = function (compiler, resources, node, instruction) {
-      if (!this.usesShadowDOM && node.hasChildNodes()) {
-        var fragment = document.createDocumentFragment(), currentChild = node.firstChild, nextSibling;
-
-        while (currentChild) {
-          nextSibling = currentChild.nextSibling;
-          fragment.appendChild(currentChild);
-          currentChild = nextSibling;
-        }
-
-        instruction.contentFactory = compiler.compile(fragment, resources);
-      }
-
-      instruction.suppressBind = true;
-
-      return node;
-    };
-
-    CustomElement.prototype.create = function (container) {
-      var _this2 = this;
-      var instruction = arguments[1] === undefined ? defaultInstruction : arguments[1];
-      var element = arguments[2] === undefined ? null : arguments[2];
-      return (function () {
-        var behaviorInstance = _Behavior.prototype.create.call(_this2, container, instruction), host;
-
-        if (_this2.viewFactory) {
-          behaviorInstance.view = _this2.viewFactory.create(container, behaviorInstance.executionContext, instruction);
-        }
-
-        if (element) {
-          element.elementBehavior = behaviorInstance;
-          element.primaryBehavior = behaviorInstance;
-
-          if (behaviorInstance.view) {
-            if (_this2.usesShadowDOM) {
-              host = element.createShadowRoot();
-            } else {
-              host = element;
-
-              if (instruction.contentFactory) {
-                var contentView = instruction.contentFactory.create(container, null, contentSelectorFactoryOptions);
-
-                ContentSelector.applySelectors(contentView, behaviorInstance.view.contentSelectors, function (contentSelector, group) {
-                  return contentSelector.add(group);
-                });
-
-                behaviorInstance.contentView = contentView;
-              }
-            }
-
-            if (_this2.childExpression) {
-              behaviorInstance.view.addBinding(_this2.childExpression.createBinding(host, behaviorInstance.executionContext));
-            }
-
-            behaviorInstance.view.appendNodesTo(host);
+    _prototypeProperties(CustomElement, {
+      convention: {
+        value: function (name) {
+          if (name.endsWith("CustomElement")) {
+            return new CustomElement(hyphenate(name.substring(0, name.length - 13)));
           }
-        } else if (behaviorInstance.view) {
-          behaviorInstance.view.owner = behaviorInstance;
-        }
+        },
+        writable: true,
+        enumerable: true,
+        configurable: true
+      }
+    }, {
+      load: {
+        value: function (container, target, viewStrategy) {
+          var _this = this;
+          var annotation, options;
 
-        return behaviorInstance;
-      })();
-    };
+          configureBehavior(this, container, target);
+
+          this.targetShadowDOM = getAnnotation(target, UseShadowDOM) !== null;
+          this.usesShadowDOM = this.targetShadowDOM && hasShadowDOM;
+
+          viewStrategy = viewStrategy || ViewStrategy.getDefault(target);
+          options = { targetShadowDOM: this.targetShadowDOM };
+
+          if (!viewStrategy.moduleId) {
+            viewStrategy.moduleId = Origin.get(target).moduleId;
+          }
+
+          return viewStrategy.loadViewFactory(container.get(ViewEngine), options).then(function (viewFactory) {
+            _this.viewFactory = viewFactory;
+            return _this;
+          });
+        },
+        writable: true,
+        enumerable: true,
+        configurable: true
+      },
+      register: {
+        value: function (registry, name) {
+          registry.registerElement(name || this.name, this);
+        },
+        writable: true,
+        enumerable: true,
+        configurable: true
+      },
+      compile: {
+        value: function (compiler, resources, node, instruction) {
+          if (!this.usesShadowDOM && node.hasChildNodes()) {
+            var fragment = document.createDocumentFragment(),
+                currentChild = node.firstChild,
+                nextSibling;
+
+            while (currentChild) {
+              nextSibling = currentChild.nextSibling;
+              fragment.appendChild(currentChild);
+              currentChild = nextSibling;
+            }
+
+            instruction.contentFactory = compiler.compile(fragment, resources);
+          }
+
+          instruction.suppressBind = true;
+
+          return node;
+        },
+        writable: true,
+        enumerable: true,
+        configurable: true
+      },
+      create: {
+        value: function (container) {
+          var _this2 = this;
+          var instruction = arguments[1] === undefined ? defaultInstruction : arguments[1];
+          var element = arguments[2] === undefined ? null : arguments[2];
+          return (function () {
+            var executionContext = instruction.executionContext || container.get(_this2.target),
+                behaviorInstance = new BehaviorInstance(_this2.taskQueue, _this2.observerLocator, _this2, executionContext, instruction),
+                host;
+
+            if (_this2.viewFactory) {
+              behaviorInstance.view = _this2.viewFactory.create(container, behaviorInstance.executionContext, instruction);
+            }
+
+            if (element) {
+              element.elementBehavior = behaviorInstance;
+              element.primaryBehavior = behaviorInstance;
+
+              if (behaviorInstance.view) {
+                if (_this2.usesShadowDOM) {
+                  host = element.createShadowRoot();
+                } else {
+                  host = element;
+
+                  if (instruction.contentFactory) {
+                    var contentView = instruction.contentFactory.create(container, null, contentSelectorFactoryOptions);
+
+                    ContentSelector.applySelectors(contentView, behaviorInstance.view.contentSelectors, function (contentSelector, group) {
+                      return contentSelector.add(group);
+                    });
+
+                    behaviorInstance.contentView = contentView;
+                  }
+                }
+
+                if (_this2.childExpression) {
+                  behaviorInstance.view.addBinding(_this2.childExpression.createBinding(host, behaviorInstance.executionContext));
+                }
+
+                behaviorInstance.view.appendNodesTo(host);
+              }
+            } else if (behaviorInstance.view) {
+              behaviorInstance.view.owner = behaviorInstance;
+            }
+
+            return behaviorInstance;
+          })();
+        },
+        writable: true,
+        enumerable: true,
+        configurable: true
+      }
+    });
 
     return CustomElement;
-  })();
+  })(ResourceType);
 
   exports.CustomElement = CustomElement;
 });

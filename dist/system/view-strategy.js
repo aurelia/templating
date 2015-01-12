@@ -1,7 +1,7 @@
 System.register(["aurelia-metadata", "aurelia-path"], function (_export) {
   "use strict";
 
-  var getAnnotation, Origin, relativeToFile, _inherits, ViewStrategy, UseView, ConventionalView, NoView;
+  var getAnnotation, Origin, relativeToFile, _inherits, _prototypeProperties, ViewStrategy, UseView, ConventionalView, NoView;
   return {
     setters: [function (_aureliaMetadata) {
       getAnnotation = _aureliaMetadata.getAnnotation;
@@ -25,108 +25,163 @@ System.register(["aurelia-metadata", "aurelia-path"], function (_export) {
         if (parent) child.__proto__ = parent;
       };
 
-      ViewStrategy = function ViewStrategy() {};
-
-      ViewStrategy.prototype.makeRelativeTo = function (baseUrl) {};
-
-      ViewStrategy.prototype.loadViewFactory = function (viewEngine, options) {
-        throw new Error("A ViewStrategy must implement loadViewFactory(viewEngine, options).");
+      _prototypeProperties = function (child, staticProps, instanceProps) {
+        if (staticProps) Object.defineProperties(child, staticProps);
+        if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
       };
 
-      ViewStrategy.normalize = function (value) {
-        if (typeof value === "string") {
-          value = new UseView(value);
-        }
+      ViewStrategy = (function () {
+        var ViewStrategy = function ViewStrategy() {};
 
-        if (value && !(value instanceof ViewStrategy)) {
-          throw new Error("The view must be a string or an instance of ViewStrategy.");
-        }
+        _prototypeProperties(ViewStrategy, {
+          normalize: {
+            value: function (value) {
+              if (typeof value === "string") {
+                value = new UseView(value);
+              }
 
-        return value;
-      };
+              if (value && !(value instanceof ViewStrategy)) {
+                throw new Error("The view must be a string or an instance of ViewStrategy.");
+              }
 
-      ViewStrategy.getDefault = function (target) {
-        var strategy, annotation;
+              return value;
+            },
+            writable: true,
+            enumerable: true,
+            configurable: true
+          },
+          getDefault: {
+            value: function (target) {
+              var strategy, annotation;
 
-        if (typeof target !== "function") {
-          target = target.constructor;
-        }
+              if (typeof target !== "function") {
+                target = target.constructor;
+              }
 
-        annotation = Origin.get(target);
-        strategy = getAnnotation(target, ViewStrategy);
+              annotation = Origin.get(target);
+              strategy = getAnnotation(target, ViewStrategy);
 
-        if (!strategy) {
-          if (!annotation) {
-            throw new Error("Cannot determinte default view strategy for object.", target);
+              if (!strategy) {
+                if (!annotation) {
+                  throw new Error("Cannot determinte default view strategy for object.", target);
+                }
+
+                strategy = new ConventionalView(annotation.moduleId);
+              } else if (annotation) {
+                strategy.moduleId = annotation.moduleId;
+              }
+
+              return strategy;
+            },
+            writable: true,
+            enumerable: true,
+            configurable: true
           }
+        }, {
+          makeRelativeTo: {
+            value: function (baseUrl) {},
+            writable: true,
+            enumerable: true,
+            configurable: true
+          },
+          loadViewFactory: {
+            value: function (viewEngine, options) {
+              throw new Error("A ViewStrategy must implement loadViewFactory(viewEngine, options).");
+            },
+            writable: true,
+            enumerable: true,
+            configurable: true
+          }
+        });
 
-          strategy = new ConventionalView(annotation.moduleId);
-        } else if (annotation) {
-          strategy.moduleId = annotation.moduleId;
-        }
-
-        return strategy;
-      };
-
+        return ViewStrategy;
+      })();
       _export("ViewStrategy", ViewStrategy);
 
-      UseView = (function () {
-        var _ViewStrategy = ViewStrategy;
+      UseView = (function (ViewStrategy) {
         var UseView = function UseView(path) {
           this.path = path;
         };
 
-        _inherits(UseView, _ViewStrategy);
+        _inherits(UseView, ViewStrategy);
 
-        UseView.prototype.loadViewFactory = function (viewEngine, options) {
-          return viewEngine.loadViewFactory(this.absolutePath || this.path, options, this.moduleId);
-        };
-
-        UseView.prototype.makeRelativeTo = function (file) {
-          this.absolutePath = relativeToFile(this.path, file);
-        };
+        _prototypeProperties(UseView, null, {
+          loadViewFactory: {
+            value: function (viewEngine, options) {
+              return viewEngine.loadViewFactory(this.absolutePath || this.path, options, this.moduleId);
+            },
+            writable: true,
+            enumerable: true,
+            configurable: true
+          },
+          makeRelativeTo: {
+            value: function (file) {
+              this.absolutePath = relativeToFile(this.path, file);
+            },
+            writable: true,
+            enumerable: true,
+            configurable: true
+          }
+        });
 
         return UseView;
-      })();
+      })(ViewStrategy);
       _export("UseView", UseView);
 
-      ConventionalView = (function () {
-        var _ViewStrategy2 = ViewStrategy;
+      ConventionalView = (function (ViewStrategy) {
         var ConventionalView = function ConventionalView(moduleId) {
           this.moduleId = moduleId;
           this.viewUrl = ConventionalView.convertModuleIdToViewUrl(moduleId);
         };
 
-        _inherits(ConventionalView, _ViewStrategy2);
+        _inherits(ConventionalView, ViewStrategy);
 
-        ConventionalView.prototype.loadViewFactory = function (viewEngine, options) {
-          return viewEngine.loadViewFactory(this.viewUrl, options, this.moduleId);
-        };
-
-        ConventionalView.convertModuleIdToViewUrl = function (moduleId) {
-          return moduleId + ".html";
-        };
+        _prototypeProperties(ConventionalView, {
+          convertModuleIdToViewUrl: {
+            value: function (moduleId) {
+              return moduleId + ".html";
+            },
+            writable: true,
+            enumerable: true,
+            configurable: true
+          }
+        }, {
+          loadViewFactory: {
+            value: function (viewEngine, options) {
+              return viewEngine.loadViewFactory(this.viewUrl, options, this.moduleId);
+            },
+            writable: true,
+            enumerable: true,
+            configurable: true
+          }
+        });
 
         return ConventionalView;
-      })();
+      })(ViewStrategy);
       _export("ConventionalView", ConventionalView);
 
-      NoView = (function () {
-        var _ViewStrategy3 = ViewStrategy;
+      NoView = (function (ViewStrategy) {
         var NoView = function NoView() {
-          if (_ViewStrategy3 !== null) {
-            _ViewStrategy3.apply(this, arguments);
+          if (Object.getPrototypeOf(NoView) !== null) {
+            Object.getPrototypeOf(NoView).apply(this, arguments);
           }
         };
 
-        _inherits(NoView, _ViewStrategy3);
+        _inherits(NoView, ViewStrategy);
 
-        NoView.prototype.loadViewFactory = function () {
-          return Promise.resolve(null);
-        };
+        _prototypeProperties(NoView, null, {
+          loadViewFactory: {
+            value: function () {
+              return Promise.resolve(null);
+            },
+            writable: true,
+            enumerable: true,
+            configurable: true
+          }
+        });
 
         return NoView;
-      })();
+      })(ViewStrategy);
       _export("NoView", NoView);
     }
   };

@@ -26,7 +26,12 @@ function configureProperties(instruction, resources){
     value = attributes[key];
 
     if(typeof value !== 'string'){
-      property = type.getPropertyForAttribute(key);
+      property = type.attributes[key];
+
+      if(!property){
+        throw new Error(`Attempted to set attribute "${key}" which does not exist on ${type.target.name}.`);
+      }
+
       value.targetProperty = property.name;
     }
   }
@@ -97,7 +102,8 @@ export class ViewCompiler {
         providers = [],
         bindingLanguage = this.bindingLanguage,
         liftingInstruction, viewFactory, type, elementInstruction, 
-        elementProperty, i, ii, attr, attrName, attrValue, instruction;
+        elementProperty, i, ii, attr, attrName, attrValue, instruction, info, 
+        property, knownAttribute;
 
     if(tagName === 'content'){
       if(targetLightDOM){
@@ -124,25 +130,35 @@ export class ViewCompiler {
       attr = attributes[i]; 
       attrName = attr.name;
       attrValue = attr.value;
-      instruction = bindingLanguage.parseAttribute(resources, node, attrName, attrValue);
+      info = bindingLanguage.inspectAttribute(resources, attrName, attrValue);
+      type = resources.getAttribute(info.attrName);
+
+      if(type && !info.command && !info.expression){
+        knownAttribute = resources.attributeMap[info.attrName];
+        if(knownAttribute){
+          property = type.attributes[knownAttribute];
+          info.command = (property && property.hasOptions) ? 'options' : null;
+        }
+      }
+
+      instruction = bindingLanguage.createAttributeInstruction(resources, node, info);
 
       if(instruction){ //HAS BINDINGS
         if(instruction.discrete){ //ref binding or listener binding
           expressions.push(instruction);
         }else{ //attribute bindings
-          type = resources.getAttribute(instruction.attrName);
-
           if(type){ //templator or attached behavior found
             instruction.type = type;
             configureProperties(instruction, resources);
 
             if(type.liftsContent){ //template controller
+              instruction.originalAttrName = attrName;
               liftingInstruction = instruction;
               break;
             }else{ //attached behavior
               behaviorInstructions.push(instruction);
             }
-          }else if(elementInstruction && (elementProperty = elementInstruction.type.getPropertyForAttribute(instruction.attrName))) { //custom element attribute
+          }else if(elementInstruction && (elementProperty = elementInstruction.type.attributes[instruction.attrName])) { //custom element attribute
             elementInstruction.attributes[instruction.attrName] = instruction.attributes[instruction.attrName];
             elementInstruction.attributes[instruction.attrName].targetProperty = elementProperty.name;
           } else{ //standard attribute binding
@@ -150,22 +166,22 @@ export class ViewCompiler {
           }
         }
       }else{ //NO BINDINGS
-        type = resources.getAttribute(attrName);
         if(type){ //templator or attached behavior found
           instruction = { attrName:attrName, type:type, attributes:{} };
           instruction.attributes[resources.attributeMap[attrName]] = attrValue;
 
           if(type.liftsContent){ //template controller
+            instruction.originalAttrName = attrName;
             liftingInstruction = instruction;
             break;
           }else{ //attached behavior
             behaviorInstructions.push(instruction);
           }
-        }else if(elementInstruction && elementInstruction.type.getPropertyForAttribute(attrName)){ //custom element attribute
+        }else if(elementInstruction && elementInstruction.type.attributes[attrName]){ //custom element attribute
           elementInstruction.attributes[attrName] = attrValue;
-        }else{ //normal attribute
-          //do nothing
         }
+
+        //else; normal attribute; do nothing
       }
     }
 

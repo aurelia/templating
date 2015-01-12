@@ -46,14 +46,14 @@ export class View {
       this.owner.bind(context);
     }
 
-    behaviors = this.behaviors;
-    for(i = 0, ii = behaviors.length; i < ii; ++i){
-      behaviors[i].bind(context);
-    }
-
     bindings = this.bindings;
     for(i = 0, ii = bindings.length; i < ii; ++i){
       bindings[i].bind(context);
+    }
+
+    behaviors = this.behaviors;
+    for(i = 0, ii = behaviors.length; i < ii; ++i){
+      behaviors[i].bind(context);
     }
 
     children = this.children;
@@ -80,14 +80,14 @@ export class View {
         this.owner.unbind();
       }
 
-      behaviors = this.behaviors;
-      for(i = 0, ii = behaviors.length; i < ii; ++i){
-        behaviors[i].unbind();
-      }
-
       bindings = this.bindings;
       for(i = 0, ii = bindings.length; i < ii; ++i){
         bindings[i].unbind();
+      }
+
+      behaviors = this.behaviors;
+      for(i = 0, ii = behaviors.length; i < ii; ++i){
+        behaviors[i].unbind();
       }
 
       children = this.children;

@@ -1,13 +1,13 @@
-System.register(["./attached-behavior", "./behavior", "./resource-coordinator", "./resource-registry", "./children", "./custom-element", "./element-config", "./template-controller", "./view-strategy", "./view-compiler", "./view-engine", "./view-factory", "./view-slot", "./binding-language", "./composition-engine"], function (_export) {
+System.register(["./attached-behavior", "./property", "./resource-coordinator", "./resource-registry", "./children", "./custom-element", "./element-config", "./template-controller", "./view-strategy", "./view-compiler", "./view-engine", "./view-factory", "./view-slot", "./binding-language", "./composition-engine"], function (_export) {
   "use strict";
 
   return {
     setters: [function (_attachedBehavior) {
       _export("AttachedBehavior", _attachedBehavior.AttachedBehavior);
-    }, function (_behavior) {
-      _export("Property", _behavior.Property);
+    }, function (_property) {
+      _export("Property", _property.Property);
 
-      _export("Behavior", _behavior.Behavior);
+      _export("OptionsProperty", _property.OptionsProperty);
     }, function (_resourceCoordinator) {
       _export("ResourceCoordinator", _resourceCoordinator.ResourceCoordinator);
     }, function (_resourceRegistry) {

@@ -4,38 +4,60 @@ import {ViewSlot} from './view-slot';
 import {ContentSelector} from './content-selector';
 import {ViewResources} from './resource-registry';
 
-class BehaviorContainer extends Container {
-  get(key){
-    if(key === Element){
-      return this.element;
-    }
-
-    if(key === BoundViewFactory){
-      return this.boundViewFactory || (this.boundViewFactory = new BoundViewFactory(this, this.instruction.viewFactory, this.executionContext));
-    }
-
-    if(key === ViewSlot){
-      if(this.viewSlot === undefined){
-        this.viewSlot = new ViewSlot(this.element, this.instruction.anchorIsContainer, this.executionContext);
-        this.children.push(this.viewSlot);
-      }
-
-      return this.viewSlot;
-    }
-
-    if(key === ViewResources){
-      return this.viewResources;
-    }
-
-    return super.get(key);
+function elementContainerGet(key){
+  if(key === Element){
+    return this.element;
   }
+
+  if(key === BoundViewFactory){
+    return this.boundViewFactory || (this.boundViewFactory = new BoundViewFactory(this, this.instruction.viewFactory, this.executionContext));
+  }
+
+  if(key === ViewSlot){
+    if(this.viewSlot === undefined){
+      this.viewSlot = new ViewSlot(this.element, this.instruction.anchorIsContainer, this.executionContext);
+      this.children.push(this.viewSlot);
+    }
+
+    return this.viewSlot;
+  }
+
+  if(key === ViewResources){
+    return this.viewResources;
+  }
+
+  return this.superGet(key);
+}
+
+function createElementContainer(parent, element, instruction, executionContext, children, resources){
+  var container = parent.createChild(), 
+                  providers, 
+                  i;
+
+  container.element = element;
+  container.instruction = instruction;
+  container.executionContext = executionContext;
+  container.children = children;
+  container.viewResources = resources;
+
+  providers = instruction.providers;
+  i = providers.length;
+
+  while(i--) {
+    container.registerSingleton(providers[i]);
+  }
+
+  container.superGet = container.get;
+  container.get = elementContainerGet;
+
+  return container;
 }
 
 function applyInstructions(containers, executionContext, element, instruction, 
   behaviors, bindings, children, contentSelectors, resources){
   var behaviorInstructions = instruction.behaviorInstructions,
       expressions = instruction.expressions,
-      elementContainer, i, ii, providers, current, instance;
+      elementContainer, i, ii, current, instance;
 
   if(instruction.contentExpression){
     bindings.push(instruction.contentExpression.createBinding(element.nextSibling));
@@ -49,20 +71,15 @@ function applyInstructions(containers, executionContext, element, instruction,
   }
 
   if(behaviorInstructions.length){
-    containers[instruction.injectorId] = elementContainer = containers[instruction.parentInjectorId].createTypedChild(BehaviorContainer);
-    
-    elementContainer.element = element;
-    elementContainer.instruction = instruction;
-    elementContainer.executionContext = executionContext;
-    elementContainer.children = children;
-    elementContainer.viewResources = resources;
-
-    providers = instruction.providers;
-    i = providers.length;
-
-    while(i--) {
-      elementContainer.registerSingleton(providers[i]);
-    }
+    containers[instruction.injectorId] = elementContainer =
+      createElementContainer(
+        containers[instruction.parentInjectorId],
+        element,
+        instruction,
+        executionContext,
+        children,
+        resources
+        );
 
     for(i = 0, ii = behaviorInstructions.length; i < ii; ++i){
       current = behaviorInstructions[i];

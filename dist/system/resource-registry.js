@@ -1,7 +1,7 @@
 System.register(["aurelia-path"], function (_export) {
   "use strict";
 
-  var relativeToFile, _inherits, ResourceRegistry, ViewResources;
+  var relativeToFile, _get, _inherits, _prototypeProperties, ResourceRegistry, ViewResources;
 
 
   function register(lookup, name, resource, type) {
@@ -26,6 +26,28 @@ System.register(["aurelia-path"], function (_export) {
       relativeToFile = _aureliaPath.relativeToFile;
     }],
     execute: function () {
+      _get = function get(object, property, receiver) {
+        var desc = Object.getOwnPropertyDescriptor(object, property);
+
+        if (desc === undefined) {
+          var parent = Object.getPrototypeOf(object);
+
+          if (parent === null) {
+            return undefined;
+          } else {
+            return get(parent, property, receiver);
+          }
+        } else if ("value" in desc && desc.writable) {
+          return desc.value;
+        } else {
+          var getter = desc.get;
+          if (getter === undefined) {
+            return undefined;
+          }
+          return getter.call(receiver);
+        }
+      };
+
       _inherits = function (child, parent) {
         if (typeof parent !== "function" && parent !== null) {
           throw new TypeError("Super expression must either be null or a function, not " + typeof parent);
@@ -41,69 +63,122 @@ System.register(["aurelia-path"], function (_export) {
         if (parent) child.__proto__ = parent;
       };
 
-      ResourceRegistry = function ResourceRegistry() {
-        this.attributes = {};
-        this.elements = {};
-        this.valueConverters = {};
-        this.attributeMap = {};
+      _prototypeProperties = function (child, staticProps, instanceProps) {
+        if (staticProps) Object.defineProperties(child, staticProps);
+        if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
       };
 
-      ResourceRegistry.prototype.registerElement = function (tagName, behavior) {
-        register(this.elements, tagName, behavior, "an Element");
-      };
+      ResourceRegistry = (function () {
+        var ResourceRegistry = function ResourceRegistry() {
+          this.attributes = {};
+          this.elements = {};
+          this.valueConverters = {};
+          this.attributeMap = {};
+        };
 
-      ResourceRegistry.prototype.getElement = function (tagName) {
-        return this.elements[tagName];
-      };
+        _prototypeProperties(ResourceRegistry, null, {
+          registerElement: {
+            value: function (tagName, behavior) {
+              register(this.elements, tagName, behavior, "an Element");
+            },
+            writable: true,
+            enumerable: true,
+            configurable: true
+          },
+          getElement: {
+            value: function (tagName) {
+              return this.elements[tagName];
+            },
+            writable: true,
+            enumerable: true,
+            configurable: true
+          },
+          registerAttribute: {
+            value: function (attribute, behavior, knownAttribute) {
+              this.attributeMap[attribute] = knownAttribute;
+              register(this.attributes, attribute, behavior, "an Attribute");
+            },
+            writable: true,
+            enumerable: true,
+            configurable: true
+          },
+          getAttribute: {
+            value: function (attribute) {
+              return this.attributes[attribute];
+            },
+            writable: true,
+            enumerable: true,
+            configurable: true
+          },
+          registerValueConverter: {
+            value: function (name, valueConverter) {
+              register(this.valueConverters, name, valueConverter, "a ValueConverter");
+            },
+            writable: true,
+            enumerable: true,
+            configurable: true
+          },
+          getValueConverter: {
+            value: function (name) {
+              return this.valueConverters[name];
+            },
+            writable: true,
+            enumerable: true,
+            configurable: true
+          }
+        });
 
-      ResourceRegistry.prototype.registerAttribute = function (attribute, behavior, knownAttribute) {
-        this.attributeMap[attribute] = knownAttribute;
-        register(this.attributes, attribute, behavior, "an Attribute");
-      };
-
-      ResourceRegistry.prototype.getAttribute = function (attribute) {
-        return this.attributes[attribute];
-      };
-
-      ResourceRegistry.prototype.registerValueConverter = function (name, valueConverter) {
-        register(this.valueConverters, name, valueConverter, "a ValueConverter");
-      };
-
-      ResourceRegistry.prototype.getValueConverter = function (name) {
-        return this.valueConverters[name];
-      };
-
+        return ResourceRegistry;
+      })();
       _export("ResourceRegistry", ResourceRegistry);
 
-      ViewResources = (function () {
-        var _ResourceRegistry = ResourceRegistry;
+      ViewResources = (function (ResourceRegistry) {
         var ViewResources = function ViewResources(parent, viewUrl) {
-          _ResourceRegistry.call(this);
+          _get(Object.getPrototypeOf(ViewResources.prototype), "constructor", this).call(this);
           this.parent = parent;
           this.viewUrl = viewUrl;
           this.valueConverterLookupFunction = this.getValueConverter.bind(this);
         };
 
-        _inherits(ViewResources, _ResourceRegistry);
+        _inherits(ViewResources, ResourceRegistry);
 
-        ViewResources.prototype.relativeToView = function (path) {
-          return relativeToFile(path, this.viewUrl);
-        };
-
-        ViewResources.prototype.getElement = function (tagName) {
-          return this.elements[tagName] || this.parent.getElement(tagName);
-        };
-
-        ViewResources.prototype.getAttribute = function (attribute) {
-          return this.attributes[attribute] || this.parent.getAttribute(attribute);
-        };
-
-        ViewResources.prototype.getValueConverter = function (name) {
-          return this.valueConverters[name] || this.parent.getValueConverter(name);
-        };
+        _prototypeProperties(ViewResources, null, {
+          relativeToView: {
+            value: function (path) {
+              return relativeToFile(path, this.viewUrl);
+            },
+            writable: true,
+            enumerable: true,
+            configurable: true
+          },
+          getElement: {
+            value: function (tagName) {
+              return this.elements[tagName] || this.parent.getElement(tagName);
+            },
+            writable: true,
+            enumerable: true,
+            configurable: true
+          },
+          getAttribute: {
+            value: function (attribute) {
+              return this.attributes[attribute] || this.parent.getAttribute(attribute);
+            },
+            writable: true,
+            enumerable: true,
+            configurable: true
+          },
+          getValueConverter: {
+            value: function (name) {
+              return this.valueConverters[name] || this.parent.getValueConverter(name);
+            },
+            writable: true,
+            enumerable: true,
+            configurable: true
+          }
+        });
 
         return ViewResources;
-      })();
+      })(ResourceRegistry);
       _export("ViewResources", ViewResources);
     }
   };

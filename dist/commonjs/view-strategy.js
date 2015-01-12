@@ -15,109 +15,165 @@ var _inherits = function (child, parent) {
   if (parent) child.__proto__ = parent;
 };
 
+var _prototypeProperties = function (child, staticProps, instanceProps) {
+  if (staticProps) Object.defineProperties(child, staticProps);
+  if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
+};
+
 var getAnnotation = require("aurelia-metadata").getAnnotation;
 var Origin = require("aurelia-metadata").Origin;
 var relativeToFile = require("aurelia-path").relativeToFile;
-var ViewStrategy = function ViewStrategy() {};
+var ViewStrategy = (function () {
+  var ViewStrategy = function ViewStrategy() {};
 
-ViewStrategy.prototype.makeRelativeTo = function (baseUrl) {};
+  _prototypeProperties(ViewStrategy, {
+    normalize: {
+      value: function (value) {
+        if (typeof value === "string") {
+          value = new UseView(value);
+        }
 
-ViewStrategy.prototype.loadViewFactory = function (viewEngine, options) {
-  throw new Error("A ViewStrategy must implement loadViewFactory(viewEngine, options).");
-};
+        if (value && !(value instanceof ViewStrategy)) {
+          throw new Error("The view must be a string or an instance of ViewStrategy.");
+        }
 
-ViewStrategy.normalize = function (value) {
-  if (typeof value === "string") {
-    value = new UseView(value);
-  }
+        return value;
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    getDefault: {
+      value: function (target) {
+        var strategy, annotation;
 
-  if (value && !(value instanceof ViewStrategy)) {
-    throw new Error("The view must be a string or an instance of ViewStrategy.");
-  }
+        if (typeof target !== "function") {
+          target = target.constructor;
+        }
 
-  return value;
-};
+        annotation = Origin.get(target);
+        strategy = getAnnotation(target, ViewStrategy);
 
-ViewStrategy.getDefault = function (target) {
-  var strategy, annotation;
+        if (!strategy) {
+          if (!annotation) {
+            throw new Error("Cannot determinte default view strategy for object.", target);
+          }
 
-  if (typeof target !== "function") {
-    target = target.constructor;
-  }
+          strategy = new ConventionalView(annotation.moduleId);
+        } else if (annotation) {
+          strategy.moduleId = annotation.moduleId;
+        }
 
-  annotation = Origin.get(target);
-  strategy = getAnnotation(target, ViewStrategy);
-
-  if (!strategy) {
-    if (!annotation) {
-      throw new Error("Cannot determinte default view strategy for object.", target);
+        return strategy;
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
     }
+  }, {
+    makeRelativeTo: {
+      value: function (baseUrl) {},
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    loadViewFactory: {
+      value: function (viewEngine, options) {
+        throw new Error("A ViewStrategy must implement loadViewFactory(viewEngine, options).");
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    }
+  });
 
-    strategy = new ConventionalView(annotation.moduleId);
-  } else if (annotation) {
-    strategy.moduleId = annotation.moduleId;
-  }
-
-  return strategy;
-};
+  return ViewStrategy;
+})();
 
 exports.ViewStrategy = ViewStrategy;
-var UseView = (function () {
-  var _ViewStrategy = ViewStrategy;
+var UseView = (function (ViewStrategy) {
   var UseView = function UseView(path) {
     this.path = path;
   };
 
-  _inherits(UseView, _ViewStrategy);
+  _inherits(UseView, ViewStrategy);
 
-  UseView.prototype.loadViewFactory = function (viewEngine, options) {
-    return viewEngine.loadViewFactory(this.absolutePath || this.path, options, this.moduleId);
-  };
-
-  UseView.prototype.makeRelativeTo = function (file) {
-    this.absolutePath = relativeToFile(this.path, file);
-  };
+  _prototypeProperties(UseView, null, {
+    loadViewFactory: {
+      value: function (viewEngine, options) {
+        return viewEngine.loadViewFactory(this.absolutePath || this.path, options, this.moduleId);
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    makeRelativeTo: {
+      value: function (file) {
+        this.absolutePath = relativeToFile(this.path, file);
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    }
+  });
 
   return UseView;
-})();
+})(ViewStrategy);
 
 exports.UseView = UseView;
-var ConventionalView = (function () {
-  var _ViewStrategy2 = ViewStrategy;
+var ConventionalView = (function (ViewStrategy) {
   var ConventionalView = function ConventionalView(moduleId) {
     this.moduleId = moduleId;
     this.viewUrl = ConventionalView.convertModuleIdToViewUrl(moduleId);
   };
 
-  _inherits(ConventionalView, _ViewStrategy2);
+  _inherits(ConventionalView, ViewStrategy);
 
-  ConventionalView.prototype.loadViewFactory = function (viewEngine, options) {
-    return viewEngine.loadViewFactory(this.viewUrl, options, this.moduleId);
-  };
-
-  ConventionalView.convertModuleIdToViewUrl = function (moduleId) {
-    return moduleId + ".html";
-  };
+  _prototypeProperties(ConventionalView, {
+    convertModuleIdToViewUrl: {
+      value: function (moduleId) {
+        return moduleId + ".html";
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    }
+  }, {
+    loadViewFactory: {
+      value: function (viewEngine, options) {
+        return viewEngine.loadViewFactory(this.viewUrl, options, this.moduleId);
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    }
+  });
 
   return ConventionalView;
-})();
+})(ViewStrategy);
 
 exports.ConventionalView = ConventionalView;
-var NoView = (function () {
-  var _ViewStrategy3 = ViewStrategy;
+var NoView = (function (ViewStrategy) {
   var NoView = function NoView() {
-    if (_ViewStrategy3 !== null) {
-      _ViewStrategy3.apply(this, arguments);
+    if (Object.getPrototypeOf(NoView) !== null) {
+      Object.getPrototypeOf(NoView).apply(this, arguments);
     }
   };
 
-  _inherits(NoView, _ViewStrategy3);
+  _inherits(NoView, ViewStrategy);
 
-  NoView.prototype.loadViewFactory = function () {
-    return Promise.resolve(null);
-  };
+  _prototypeProperties(NoView, null, {
+    loadViewFactory: {
+      value: function () {
+        return Promise.resolve(null);
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    }
+  });
 
   return NoView;
-})();
+})(ViewStrategy);
 
 exports.NoView = NoView;

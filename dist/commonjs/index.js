@@ -1,8 +1,8 @@
 "use strict";
 
 exports.AttachedBehavior = require("./attached-behavior").AttachedBehavior;
-exports.Property = require("./behavior").Property;
-exports.Behavior = require("./behavior").Behavior;
+exports.Property = require("./property").Property;
+exports.OptionsProperty = require("./property").OptionsProperty;
 exports.ResourceCoordinator = require("./resource-coordinator").ResourceCoordinator;
 exports.ResourceRegistry = require("./resource-registry").ResourceRegistry;
 exports.ViewResources = require("./resource-registry").ViewResources;

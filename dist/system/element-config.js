@@ -1,7 +1,7 @@
 System.register(["aurelia-metadata", "aurelia-binding"], function (_export) {
   "use strict";
 
-  var ResourceType, EventManager, _inherits, ElementConfig;
+  var ResourceType, EventManager, _prototypeProperties, _inherits, ElementConfig;
   return {
     setters: [function (_aureliaMetadata) {
       ResourceType = _aureliaMetadata.ResourceType;
@@ -9,6 +9,11 @@ System.register(["aurelia-metadata", "aurelia-binding"], function (_export) {
       EventManager = _aureliaBinding.EventManager;
     }],
     execute: function () {
+      _prototypeProperties = function (child, staticProps, instanceProps) {
+        if (staticProps) Object.defineProperties(child, staticProps);
+        if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
+      };
+
       _inherits = function (child, parent) {
         if (typeof parent !== "function" && parent !== null) {
           throw new TypeError("Super expression must either be null or a function, not " + typeof parent);
@@ -24,24 +29,35 @@ System.register(["aurelia-metadata", "aurelia-binding"], function (_export) {
         if (parent) child.__proto__ = parent;
       };
 
-      ElementConfig = (function () {
-        var _ResourceType = ResourceType;
+      ElementConfig = (function (ResourceType) {
         var ElementConfig = function ElementConfig(tagName) {
           this.tagName = tagName;
         };
 
-        _inherits(ElementConfig, _ResourceType);
+        _inherits(ElementConfig, ResourceType);
 
-        ElementConfig.prototype.load = function (container, target) {
-          var config = target(), eventManager = container.get(EventManager);
+        _prototypeProperties(ElementConfig, null, {
+          load: {
+            value: function (container, target) {
+              var config = target(),
+                  eventManager = container.get(EventManager);
 
-          eventManager.registerElementConfig(this.tagName, config);
-        };
-
-        ElementConfig.prototype.register = function () {};
+              eventManager.registerElementConfig(this.tagName, config);
+            },
+            writable: true,
+            enumerable: true,
+            configurable: true
+          },
+          register: {
+            value: function () {},
+            writable: true,
+            enumerable: true,
+            configurable: true
+          }
+        });
 
         return ElementConfig;
-      })();
+      })(ResourceType);
       _export("ElementConfig", ElementConfig);
     }
   };
