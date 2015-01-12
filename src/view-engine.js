@@ -24,6 +24,11 @@ export class ViewEngine {
 
     return this.loader.loadTemplate(url).then(template => {
       return this.loadTemplateResources(url, template, associatedModuleId).then(resources => {
+        existing = this.importedViews[url];
+        if(existing){
+          return existing;
+        }
+
         var viewFactory = this.viewCompiler.compile(template, resources, compileOptions);
         this.importedViews[url] = viewFactory;
         return viewFactory;
