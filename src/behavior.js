@@ -26,7 +26,7 @@ export class Property {
 export class Behavior extends ResourceType {
   constructor(){
     this.properties = [];
-    this.propertyLookupByAttribute = {};
+    this.attributes = {};
   }
 
   setTarget(container, target){
@@ -52,10 +52,6 @@ export class Behavior extends ResourceType {
     this.childExpression = getAnnotation(target, Children);
   }
 
-  getPropertyForAttribute(attribute){
-    return this.propertyLookupByAttribute[attribute];
-  }
-
   configureProperty(property){
     if(!property.changeHandler){
       var handlerName = property.name + 'Changed';
@@ -65,7 +61,7 @@ export class Behavior extends ResourceType {
     }
 
     this.properties.push(property);
-    this.propertyLookupByAttribute[property.attribute] = property;
+    this.attributes[property.attribute] = property;
   }
 
   compile(compiler, resources, node, instruction){

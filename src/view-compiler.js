@@ -26,7 +26,12 @@ function configureProperties(instruction, resources){
     value = attributes[key];
 
     if(typeof value !== 'string'){
-      property = type.getPropertyForAttribute(key);
+      property = type.attributes[key];
+
+      if(!property){
+        throw new Error(`Attempted to set attribute "${key}" which does not exist on ${type.target.name}.`);
+      }
+
       value.targetProperty = property.name;
     }
   }
@@ -142,7 +147,7 @@ export class ViewCompiler {
             }else{ //attached behavior
               behaviorInstructions.push(instruction);
             }
-          }else if(elementInstruction && (elementProperty = elementInstruction.type.getPropertyForAttribute(instruction.attrName))) { //custom element attribute
+          }else if(elementInstruction && (elementProperty = elementInstruction.type.attributes[instruction.attrName])) { //custom element attribute
             elementInstruction.attributes[instruction.attrName] = instruction.attributes[instruction.attrName];
             elementInstruction.attributes[instruction.attrName].targetProperty = elementProperty.name;
           } else{ //standard attribute binding
@@ -161,7 +166,7 @@ export class ViewCompiler {
           }else{ //attached behavior
             behaviorInstructions.push(instruction);
           }
-        }else if(elementInstruction && elementInstruction.type.getPropertyForAttribute(attrName)){ //custom element attribute
+        }else if(elementInstruction && elementInstruction.type.attributes[attrName]){ //custom element attribute
           elementInstruction.attributes[attrName] = attrValue;
         }else{ //normal attribute
           //do nothing
