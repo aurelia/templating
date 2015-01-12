@@ -20,7 +20,7 @@ export class AttachedBehavior extends Behavior {
     }
 
     if(this.properties.length === 0 && 'valueChanged' in target.prototype){
-      this.configureProperty(new Property('value', 'valueChanged', this.attribute));
+      new Property('value', 'valueChanged', this.attribute).load(this);
     }
 
     return Promise.resolve(this);

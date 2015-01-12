@@ -21,6 +21,18 @@ export class Property {
     this.attribute = attribute || hyphenate(name);
     this.defaultValue = defaultValue;
   }
+
+  load(behavior){
+    if(!this.changeHandler){
+      var handlerName = this.name + 'Changed';
+      if(handlerName in behavior.target.prototype){
+        this.changeHandler = handlerName;
+      }
+    }
+
+    behavior.properties.push(this);
+    behavior.attributes[this.attribute] = this;
+  }
 }
 
 export class Behavior extends ResourceType {
@@ -46,22 +58,10 @@ export class Behavior extends ResourceType {
     properties = getAllAnnotations(target, Property);
 
     for(i = 0, ii = properties.length; i < ii; ++i){
-      this.configureProperty(properties[i]);
+      properties[i].load(this);
     }
 
     this.childExpression = getAnnotation(target, Children);
-  }
-
-  configureProperty(property){
-    if(!property.changeHandler){
-      var handlerName = property.name + 'Changed';
-      if(handlerName in this.target.prototype){
-        property.changeHandler = handlerName;
-      }
-    }
-
-    this.properties.push(property);
-    this.attributes[property.attribute] = property;
   }
 
   compile(compiler, resources, node, instruction){
