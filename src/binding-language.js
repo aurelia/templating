@@ -1,6 +1,10 @@
 export class BindingLanguage {
-  parseAttribute(resources, element, attrName, attrValue, existingInstruction){
-    throw new Error('A BindingLanguage must implement parseAttribute(...)');
+  inspectAttribute(resources, attrName, attrValue){
+    throw new Error('A BindingLanguage must implement inspectAttribute(...)');
+  }
+
+  createAttributeInstruction(resources, element, info, existingInstruction){
+    throw new Error('A BindingLanguage must implement createAttributeInstruction(...)');
   }
 
   parseText(resources, value){

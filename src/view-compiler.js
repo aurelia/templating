@@ -102,7 +102,7 @@ export class ViewCompiler {
         providers = [],
         bindingLanguage = this.bindingLanguage,
         liftingInstruction, viewFactory, type, elementInstruction, 
-        elementProperty, i, ii, attr, attrName, attrValue, instruction;
+        elementProperty, i, ii, attr, attrName, attrValue, instruction, info;
 
     if(tagName === 'content'){
       if(targetLightDOM){
@@ -129,19 +129,20 @@ export class ViewCompiler {
       attr = attributes[i]; 
       attrName = attr.name;
       attrValue = attr.value;
-      instruction = bindingLanguage.parseAttribute(resources, node, attrName, attrValue);
+      info = bindingLanguage.inspectAttribute(resources, attrName, attrValue);
+      type = resources.getAttribute(info.attrName);
+      instruction = bindingLanguage.createAttributeInstruction(resources, node, info);
 
       if(instruction){ //HAS BINDINGS
         if(instruction.discrete){ //ref binding or listener binding
           expressions.push(instruction);
         }else{ //attribute bindings
-          type = resources.getAttribute(instruction.attrName);
-
           if(type){ //templator or attached behavior found
             instruction.type = type;
             configureProperties(instruction, resources);
 
             if(type.liftsContent){ //template controller
+              instruction.originalAttrName = attrName;
               liftingInstruction = instruction;
               break;
             }else{ //attached behavior
@@ -155,12 +156,12 @@ export class ViewCompiler {
           }
         }
       }else{ //NO BINDINGS
-        type = resources.getAttribute(attrName);
         if(type){ //templator or attached behavior found
           instruction = { attrName:attrName, type:type, attributes:{} };
           instruction.attributes[resources.attributeMap[attrName]] = attrValue;
 
           if(type.liftsContent){ //template controller
+            instruction.originalAttrName = attrName;
             liftingInstruction = instruction;
             break;
           }else{ //attached behavior
@@ -168,9 +169,9 @@ export class ViewCompiler {
           }
         }else if(elementInstruction && elementInstruction.type.attributes[attrName]){ //custom element attribute
           elementInstruction.attributes[attrName] = attrValue;
-        }else{ //normal attribute
-          //do nothing
         }
+
+        //else; normal attribute; do nothing
       }
     }
 
