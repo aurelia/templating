@@ -1,4 +1,6 @@
-import {Behavior, Property, hyphenate} from './behavior';
+import {Behavior} from './behavior';
+import {Property} from './property';
+import {hyphenate} from './util';
 
 export class AttachedBehavior extends Behavior {
   constructor(attribute){

@@ -1,8 +1,9 @@
 import {getAnnotation, Origin} from 'aurelia-metadata';
-import {Behavior, hyphenate} from './behavior';
+import {Behavior} from './behavior';
 import {ContentSelector} from './content-selector';
 import {ViewEngine} from './view-engine';
 import {ViewStrategy} from './view-strategy';
+import {hyphenate} from './util';
 
 var defaultInstruction = { suppressBind:false },
     contentSelectorFactoryOptions = { suppressBind:true },
