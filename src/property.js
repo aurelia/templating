@@ -63,6 +63,34 @@ export class Property {
   }
 }
 
+export class OptionsProperty extends Property{
+  constructor(attribute, ...rest){
+    if(typeof attribute === 'string'){
+      this.attribute = attribute;
+    }else{
+      rest.unshift(attribute);
+    }
+
+    this.properties = rest;
+    this.hasOptions = true;
+  }
+
+  configureBehavior(behavior){
+    var i, ii, properties = this.properties;
+
+    this.attribute = this.attribute || behavior.name;
+
+    behavior.properties.push(this);
+    behavior.attributes[this.attribute] = this;
+
+    for(i = 0, ii = properties.length; i < ii; ++i){
+      properties[i].configureBehavior(behavior);
+    }
+  }
+
+  create(){}
+}
+
 class BehaviorPropertyObserver {
   constructor(taskQueue, obj, propertyName, selfSubscriber){
     this.taskQueue = taskQueue;

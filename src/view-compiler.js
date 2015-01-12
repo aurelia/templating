@@ -102,7 +102,8 @@ export class ViewCompiler {
         providers = [],
         bindingLanguage = this.bindingLanguage,
         liftingInstruction, viewFactory, type, elementInstruction, 
-        elementProperty, i, ii, attr, attrName, attrValue, instruction, info;
+        elementProperty, i, ii, attr, attrName, attrValue, instruction, info, 
+        property, knownAttribute;
 
     if(tagName === 'content'){
       if(targetLightDOM){
@@ -131,6 +132,15 @@ export class ViewCompiler {
       attrValue = attr.value;
       info = bindingLanguage.inspectAttribute(resources, attrName, attrValue);
       type = resources.getAttribute(info.attrName);
+
+      if(type && !info.command && !info.expression){
+        knownAttribute = resources.attributeMap[info.attrName];
+        if(knownAttribute){
+          property = type.attributes[knownAttribute];
+          info.command = (property && property.hasOptions) ? 'options' : null;
+        }
+      }
+
       instruction = bindingLanguage.createAttributeInstruction(resources, node, info);
 
       if(instruction){ //HAS BINDINGS
