@@ -45,6 +45,11 @@ define(["exports", "aurelia-logging", "aurelia-loader", "aurelia-path", "./view-
 
           return this.loader.loadTemplate(url).then(function (template) {
             return _this.loadTemplateResources(url, template, associatedModuleId).then(function (resources) {
+              existing = _this.importedViews[url];
+              if (existing) {
+                return existing;
+              }
+
               var viewFactory = _this.viewCompiler.compile(template, resources, compileOptions);
               _this.importedViews[url] = viewFactory;
               return viewFactory;

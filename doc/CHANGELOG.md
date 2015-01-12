@@ -1,3 +1,11 @@
+### 0.7.1 (2015-01-12)
+
+
+#### Bug Fixes
+
+* **view-engine:** double check existing on async load ([e257198b](http://github.com/aurelia/templating/commit/e257198b36c4423d5db6cf1f2ac71dc10abe53c0))
+
+
 ## 0.7.0 (2015-01-12)
 
 
