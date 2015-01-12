@@ -1,5 +1,4 @@
 export {AttachedBehavior} from './attached-behavior';
-export {Behavior} from './behavior';
 export {Property} from './property';
 export {ResourceCoordinator} from './resource-coordinator';
 export {ResourceRegistry, ViewResources} from './resource-registry';

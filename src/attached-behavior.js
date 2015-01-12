@@ -1,11 +1,14 @@
-import {Behavior} from './behavior';
+import {ResourceType} from 'aurelia-metadata';
+import {BehaviorInstance} from './behavior-instance';
+import {configureBehavior} from './behaviors';
 import {Property} from './property';
 import {hyphenate} from './util';
 
-export class AttachedBehavior extends Behavior {
+export class AttachedBehavior extends ResourceType {
   constructor(attribute){
-    super();
-    this.attribute = attribute;
+    this.name = attribute;
+    this.properties = [];
+    this.attributes = {};
   }
 
   static convention(name){
@@ -15,25 +18,27 @@ export class AttachedBehavior extends Behavior {
   }
 
   load(container, target){
-    this.setTarget(container, target);
-
-    if(!this.attribute){
-      this.attribute = hyphenate(target.name);
-    }
+    configureBehavior(this, container, target);
 
     if(this.properties.length === 0 && 'valueChanged' in target.prototype){
-      new Property('value', 'valueChanged', this.attribute).load(this);
+      new Property('value', 'valueChanged', this.name).configureBehavior(this);
     }
 
     return Promise.resolve(this);
   }
 
   register(registry, name){
-    registry.registerAttribute(name || this.attribute, this, this.attribute);
+    registry.registerAttribute(name || this.name, this, this.name);
+  }
+
+  compile(compiler, resources, node, instruction){
+    instruction.suppressBind = true;
+    return node;
   }
 
   create(container, instruction, element, bindings){
-    var behaviorInstance = super.create(container, instruction);
+    var executionContext = instruction.executionContext || container.get(this.target),
+        behaviorInstance = new BehaviorInstance(this.taskQueue, this.observerLocator, this, executionContext, instruction);
 
     if(this.childExpression){
       bindings.push(this.childExpression.createBinding(element, behaviorInstance.executionContext));

@@ -1,5 +1,6 @@
-import {getAnnotation, Origin} from 'aurelia-metadata';
-import {Behavior} from './behavior';
+import {getAnnotation, Origin, ResourceType} from 'aurelia-metadata';
+import {BehaviorInstance} from './behavior-instance';
+import {configureBehavior} from './behaviors';
 import {ContentSelector} from './content-selector';
 import {ViewEngine} from './view-engine';
 import {ViewStrategy} from './view-strategy';
@@ -11,10 +12,11 @@ var defaultInstruction = { suppressBind:false },
 
 export class UseShadowDOM {}
 
-export class CustomElement extends Behavior {
+export class CustomElement extends ResourceType {
   constructor(tagName){
-    super();
-    this.tagName = tagName;
+    this.name = tagName;
+    this.properties = [];
+    this.attributes = {};
   }
 
   static convention(name){
@@ -26,14 +28,10 @@ export class CustomElement extends Behavior {
   load(container, target, viewStrategy){
     var annotation, options;
 
-    this.setTarget(container, target);
+    configureBehavior(this, container, target);
 
     this.targetShadowDOM = getAnnotation(target, UseShadowDOM) !== null;
     this.usesShadowDOM = this.targetShadowDOM && hasShadowDOM;
-
-    if(!this.tagName){
-      this.tagName = hyphenate(target.name);
-    }
 
     viewStrategy = viewStrategy || ViewStrategy.getDefault(target);
     options = { targetShadowDOM:this.targetShadowDOM };
@@ -49,7 +47,7 @@ export class CustomElement extends Behavior {
   }
 
   register(registry, name){
-    registry.registerElement(name || this.tagName, this);
+    registry.registerElement(name || this.name, this);
   }
 
   compile(compiler, resources, node, instruction){
@@ -73,7 +71,8 @@ export class CustomElement extends Behavior {
   }
 
   create(container, instruction=defaultInstruction, element=null){
-    var behaviorInstance = super.create(container, instruction),
+    var executionContext = instruction.executionContext || container.get(this.target),
+        behaviorInstance = new BehaviorInstance(this.taskQueue, this.observerLocator, this, executionContext, instruction),
         host;
 
     if(this.viewFactory){

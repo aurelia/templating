@@ -8,7 +8,7 @@ export class Property {
     this.defaultValue = defaultValue;
   }
 
-  load(behavior){
+  configureBehavior(behavior){
     if(!this.changeHandler){
       var handlerName = this.name + 'Changed';
       if(handlerName in behavior.target.prototype){

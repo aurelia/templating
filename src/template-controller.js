@@ -1,11 +1,14 @@
-import {Behavior} from './behavior';
+import {ResourceType} from 'aurelia-metadata';
+import {BehaviorInstance} from './behavior-instance';
+import {configureBehavior} from './behaviors';
 import {Property} from './property';
 import {hyphenate} from './util';
 
-export class TemplateController extends Behavior {
+export class TemplateController extends ResourceType {
   constructor(attribute){
-    super();
-    this.attribute = attribute;
+    this.name = attribute;
+    this.properties = [];
+    this.attributes = {};
     this.liftsContent = true;
   }
 
@@ -16,21 +19,17 @@ export class TemplateController extends Behavior {
   }
 
   load(container, target){
-    this.setTarget(container, target);
-
-    if(!this.attribute){
-      this.attribute = hyphenate(target.name);
-    }
+    configureBehavior(this, container, target);
 
     if(this.properties.length === 0 && 'valueChanged' in target.prototype){
-      new Property('value', 'valueChanged', this.attribute).load(this);
+      new Property('value', 'valueChanged', this.name).configureBehavior(this);
     }
 
     return Promise.resolve(this);
   }
 
   register(registry, name){
-    registry.registerAttribute(name || this.attribute, this, this.attribute);
+    registry.registerAttribute(name || this.name, this, this.name);
   }
 
   compile(compiler, resources, node, instruction, parentNode){
@@ -63,7 +62,8 @@ export class TemplateController extends Behavior {
   }
 
   create(container, instruction, element){
-    var behaviorInstance = super.create(container, instruction, element);
+    var executionContext = instruction.executionContext || container.get(this.target),
+        behaviorInstance = new BehaviorInstance(this.taskQueue, this.observerLocator, this, executionContext, instruction);
     element.primaryBehavior = behaviorInstance;
     return behaviorInstance;
   }
