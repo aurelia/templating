@@ -5,6 +5,7 @@ var _prototypeProperties = function (child, staticProps, instanceProps) {
   if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
 };
 
+var Origin = require("aurelia-metadata").Origin;
 var ViewStrategy = require("./view-strategy").ViewStrategy;
 var UseView = require("./view-strategy").UseView;
 var ResourceCoordinator = require("./resource-coordinator").ResourceCoordinator;
@@ -61,14 +62,22 @@ var CompositionEngine = (function () {
             viewModel = instruction.viewModel;
 
         return this.activate(instruction).then(function () {
-          var doneLoading;
+          var doneLoading, viewStrategyFromViewModel, origin;
 
           if ("getViewStrategy" in viewModel && !instruction.view) {
+            viewStrategyFromViewModel = true;
             instruction.view = ViewStrategy.normalize(viewModel.getViewStrategy());
           }
 
-          if (instruction.view && instruction.viewResources) {
-            instruction.view.makeRelativeTo(instruction.viewResources.viewUrl);
+          if (instruction.view) {
+            if (viewStrategyFromViewModel) {
+              origin = Origin.get(viewModel.constructor);
+              if (origin) {
+                instruction.view.makeRelativeTo(origin.moduleId);
+              }
+            } else if (instruction.viewResources) {
+              instruction.view.makeRelativeTo(instruction.viewResources.viewUrl);
+            }
           }
 
           if (viewModelInfo) {
@@ -118,6 +127,10 @@ var CompositionEngine = (function () {
             return this.createBehaviorAndSwap(instruction);
           }
         } else if (instruction.view) {
+          if (instruction.viewResources) {
+            instruction.view.makeRelativeTo(instruction.viewResources.viewUrl);
+          }
+
           return instruction.view.loadViewFactory(this.viewEngine).then(function (viewFactory) {
             result = viewFactory.create(childContainer, instruction.executionContext);
             instruction.viewSlot.swap(result);

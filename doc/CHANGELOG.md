@@ -1,3 +1,11 @@
+### 0.7.2 (2015-01-13)
+
+
+#### Bug Fixes
+
+* **view-strategy:** dynamic strategy hook results should be relative to view-model ([ae6cf40c](http://github.com/aurelia/templating/commit/ae6cf40cbaffc7504867100e10e709a780231d82))
+
+
 ### 0.7.1 (2015-01-12)
 
 

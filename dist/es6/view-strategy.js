@@ -50,6 +50,10 @@ export class UseView extends ViewStrategy {
 	}
 
 	loadViewFactory(viewEngine, options){
+    if(!this.absolutePath && this.moduleId){
+      this.absolutePath = relativeToFile(this.path, this.moduleId);
+    }
+
 		return viewEngine.loadViewFactory(this.absolutePath || this.path, options, this.moduleId);
 	}
 
