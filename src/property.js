@@ -37,7 +37,7 @@ export class Property {
     behavior.attributes[this.attribute] = this;
   }
 
-  create(taskQueue, executionContext, observerLookup, attributes, behaviorHandlesBind){
+  create(taskQueue, executionContext, observerLookup, attributes, behaviorHandlesBind, boundProperties){
     var selfSubscriber, observer, attribute, info;
       
     if(this.changeHandler){
@@ -69,6 +69,7 @@ export class Property {
       observer.call();
     }else if(attribute){
       info = {observer:observer, binding:attribute.createBinding(executionContext)};
+      boundProperties.push(info);
     }else if(this.defaultValue){
       executionContext[this.name] = this.defaultValue;
       observer.call();
@@ -76,7 +77,6 @@ export class Property {
 
     observer.publishing = true;
     observer.selfSubscriber = selfSubscriber;
-    return info;
   }
 }
 
@@ -84,12 +84,17 @@ export class OptionsProperty extends Property{
   constructor(attribute, ...rest){
     if(typeof attribute === 'string'){
       this.attribute = attribute;
-    }else{
+    }else if(attribute){
       rest.unshift(attribute);
     }
 
     this.properties = rest;
     this.hasOptions = true;
+  }
+
+  dynamic(){
+    this.isDynamic = true;
+    return this;
   }
 
   configureBehavior(behavior){
@@ -105,7 +110,55 @@ export class OptionsProperty extends Property{
     }
   }
 
-  create(){}
+  create(taskQueue, executionContext, observerLookup, attributes, behaviorHandlesBind, boundProperties){
+    var value, key, info;
+
+    if(!this.isDynamic){
+      return;
+    }
+
+    for(key in attributes){
+      this.createDynamicProperty(taskQueue, executionContext, observerLookup, behaviorHandlesBind, key, attributes[key], boundProperties);
+    }
+  }
+
+  createDynamicProperty(taskQueue, executionContext, observerLookup, behaviorHandlesBind, name, attribute, boundProperties){
+    var changeHandlerName = name + 'Changed',
+        selfSubscriber, observer, info;
+
+    if(changeHandlerName in executionContext){
+      selfSubscriber = (newValue, oldValue) => executionContext[changeHandlerName](newValue, oldValue);
+    }
+
+    observer = observerLookup[name] = new BehaviorPropertyObserver(
+        taskQueue, 
+        executionContext, 
+        name,
+        selfSubscriber
+        );
+
+    Object.defineProperty(executionContext, name, {
+        configurable: true,
+        enumerable: true,
+        get: observer.getValue.bind(observer),
+        set: observer.setValue.bind(observer)
+      });
+
+    if(behaviorHandlesBind){
+      observer.selfSubscriber = null;
+    }
+
+    if(typeof attribute === 'string'){
+      executionContext[name] = attribute;
+      observer.call();
+    }else if(attribute){
+      info = {observer:observer, binding:attribute.createBinding(executionContext)};
+      boundProperties.push(info);
+    }
+
+    observer.publishing = true;
+    observer.selfSubscriber = selfSubscriber;
+  }
 }
 
 class BehaviorPropertyObserver {

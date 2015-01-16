@@ -165,6 +165,10 @@ export class ViewCompiler {
       }
 
       if(instruction){ //HAS BINDINGS
+        if(instruction.alteredAttr){
+          type = resources.getAttribute(instruction.attrName);
+        }
+
         if(instruction.discrete){ //ref binding or listener binding
           expressions.push(instruction);
         }else{ //attribute bindings
