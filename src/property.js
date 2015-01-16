@@ -7,7 +7,7 @@ export class Property {
     this.changeHandler = changeHandler;
     this.attribute = attribute || hyphenate(name);
     this.defaultValue = defaultValue;
-    this.defaultBindingMode = defaultBindingMode;
+    this.defaultBindingMode = defaultBindingMode || ONE_WAY;
   }
 
   defaultBindingIsTwoWay(){
