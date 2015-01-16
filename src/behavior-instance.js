@@ -11,10 +11,7 @@ export class BehaviorInstance {
         i, ii, info;
 
     for(i = 0, ii = properties.length; i < ii; ++i){
-      info = properties[i].create(taskQueue, executionContext, observerLookup, attributes, handlesBind);
-      if(info !== undefined){
-        boundProperties.push(info);
-      }
+      properties[i].create(taskQueue, executionContext, observerLookup, attributes, handlesBind, boundProperties);
     }
 	}
 
