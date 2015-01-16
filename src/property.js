@@ -1,11 +1,28 @@
 import {hyphenate} from './util';
+import {ONE_WAY,TWO_WAY,ONE_TIME} from 'aurelia-binding';
 
 export class Property {
-  constructor(name, changeHandler, attribute, defaultValue){
+  constructor(name, changeHandler, attribute, defaultValue, defaultBindingMode){
     this.name = name;
     this.changeHandler = changeHandler;
     this.attribute = attribute || hyphenate(name);
     this.defaultValue = defaultValue;
+    this.defaultBindingMode = defaultBindingMode;
+  }
+
+  defaultBindingIsTwoWay(){
+    this.defaultBindingMode = TWO_WAY;
+    return this;
+  }
+
+  defaultBindingIsOneWay(){
+    this.defaultBindingMode = ONE_WAY;
+    return this;
+  }
+
+  defaultBindingIsOneTime(){
+    this.defaultBindingMode = ONE_TIME;
+    return this;
   }
 
   configureBehavior(behavior){
