@@ -23,6 +23,7 @@ export class ResourceRegistry {
     this.elements = {};
     this.valueConverters = {};
     this.attributeMap = {};
+    this.baseResourceUrl = '';
 	}
 
 	registerElement(tagName, behavior){

@@ -1,4 +1,5 @@
 import {Loader} from 'aurelia-loader';
+import {relativeToFile, join} from 'aurelia-path';
 import {Container} from 'aurelia-dependency-injection';
 import {getAnnotation, addAnnotation, ResourceType, Origin} from 'aurelia-metadata';
 import {ValueConverter} from 'aurelia-binding';
@@ -6,6 +7,7 @@ import {CustomElement} from './custom-element';
 import {AttachedBehavior} from './attached-behavior';
 import {TemplateController} from './template-controller';
 import {ViewEngine} from './view-engine';
+import {ResourceRegistry} from './resource-registry';
 
 var id = 0;
 
@@ -14,13 +16,14 @@ function nextId(){
 }
 
 export class ResourceCoordinator {
-  static inject(){ return [Loader, Container, ViewEngine]; }
-	constructor(loader, container, viewEngine){
+  static inject(){ return [Loader, Container, ViewEngine, ResourceRegistry]; }
+	constructor(loader, container, viewEngine, appResources){
 		this.loader = loader;
 		this.container = container;
 		this.viewEngine = viewEngine;
 		this.importedModules = {};
     this.importedAnonymous = {};
+    this.appResources = appResources;
 		viewEngine.resourceCoordinator = this;
 	}
 
@@ -79,15 +82,29 @@ export class ResourceCoordinator {
     });
   }
 
-  importResources(imports){
+  importResources(imports, resourceManifestUrl){
     var i, ii, current, annotation, existing, 
         lookup = {},
         finalModules = [],
-        importIds = [];
+        importIds = [], analysis, type;
 
     for(i = 0, ii = imports.length; i < ii; ++i){
       current = imports[i];
       annotation = Origin.get(current);
+
+      if(!annotation){ 
+        analysis = analyzeModule({'default':current});
+        type = (analysis.element || analysis.resources[0]).type;
+
+        if(resourceManifestUrl){
+          annotation = new Origin(relativeToFile("./" + type.name, resourceManifestUrl));
+        }else{
+          annotation = new Origin(join(this.appResources.baseResourceUrl, type.name));
+        }
+        
+        Origin.set(current, annotation);
+      }
+
       existing = lookup[annotation.moduleId];
 
       if(!existing){
@@ -172,16 +189,20 @@ export class ResourceCoordinator {
 
 class ResourceModule {
   constructor(source, element, resources){
-    var i, ii;
+    var i, ii, org;
 
     this.source = source;
     this.element = element;
     this.resources = resources;
 
     if(element){
-      this.id = Origin.get(element.value).moduleId;
+      org = Origin.get(element.value);
     }else if(resources.length){
-      this.id = Origin.get(resources[0].value).moduleId;
+      org = Origin.get(resources[0].value);
+    }
+
+    if(org){
+      this.id = org.id;
     }
   }
 
