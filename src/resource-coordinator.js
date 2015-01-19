@@ -225,6 +225,10 @@ function analyzeModule(moduleInstance, viewModelMember){
   var viewModelType, fallback, annotation, key,
       exportedValue, resources = [], name, conventional;
 
+  if(typeof moduleInstance === 'function'){
+    moduleInstance = {'default': moduleInstance};
+  }
+      
   if(viewModelMember){
     viewModelType = moduleInstance[viewModelMember];
   }
