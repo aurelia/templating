@@ -1,4 +1,4 @@
-import {getAllAnnotations, getAnnotation, ResourceType} from 'aurelia-metadata';
+import {getAllFunctionMetadata, getFunctionMetadata, ResourceType} from 'aurelia-metadata';
 import {TaskQueue} from 'aurelia-task-queue';
 import {ObserverLocator} from 'aurelia-binding';
 import {Children} from './children';
@@ -23,11 +23,11 @@ export function configureBehavior(behavior, container, target) {
   behavior.handlesAttached = ('attached' in proto);
   behavior.handlesDetached = ('detached' in proto);
 
-  properties = getAllAnnotations(target, Property);
+  properties = getAllFunctionMetadata(target, Property);
 
   for(i = 0, ii = properties.length; i < ii; ++i){
     properties[i].configureBehavior(behavior);
   }
 
-  behavior.childExpression = getAnnotation(target, Children);
+  behavior.childExpression = getFunctionMetadata(target, Children);
 }

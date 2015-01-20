@@ -1,4 +1,4 @@
-import {getAnnotation, Origin, ResourceType} from 'aurelia-metadata';
+import {getFunctionMetadata, Origin, ResourceType} from 'aurelia-metadata';
 import {BehaviorInstance} from './behavior-instance';
 import {configureBehavior} from './behaviors';
 import {ContentSelector} from './content-selector';
@@ -30,7 +30,7 @@ export class CustomElement extends ResourceType {
 
     configureBehavior(this, container, target);
 
-    this.targetShadowDOM = getAnnotation(target, UseShadowDOM) !== null;
+    this.targetShadowDOM = getFunctionMetadata(target, UseShadowDOM) !== null;
     this.usesShadowDOM = this.targetShadowDOM && hasShadowDOM;
 
     viewStrategy = viewStrategy || ViewStrategy.getDefault(target);

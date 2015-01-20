@@ -1,7 +1,7 @@
 import {Loader} from 'aurelia-loader';
 import {relativeToFile, join} from 'aurelia-path';
 import {Container} from 'aurelia-dependency-injection';
-import {getAnnotation, addAnnotation, ResourceType, Origin} from 'aurelia-metadata';
+import {getFunctionMetadata, addFunctionMetadata, ResourceType, Origin} from 'aurelia-metadata';
 import {ValueConverter} from 'aurelia-binding';
 import {CustomElement} from './custom-element';
 import {AttachedBehavior} from './attached-behavior';
@@ -240,7 +240,7 @@ function analyzeModule(moduleInstance, viewModelMember){
       continue;
     }
 
-    annotation = getAnnotation(exportedValue, ResourceType);
+    annotation = getFunctionMetadata(exportedValue, ResourceType);
     if(annotation){
       if(!viewModelType && annotation instanceof CustomElement){
         viewModelType = exportedValue;
@@ -252,7 +252,7 @@ function analyzeModule(moduleInstance, viewModelMember){
 
       if(conventional = CustomElement.convention(name)){
         if(!viewModelType){
-          addAnnotation(exportedValue, conventional);
+          addFunctionMetadata(exportedValue, conventional);
           viewModelType = exportedValue;
         }else{
           resources.push({type:conventional,value:exportedValue});
@@ -275,7 +275,7 @@ function analyzeModule(moduleInstance, viewModelMember){
     moduleInstance,
     viewModelType ? {
         value: viewModelType,
-        type: getAnnotation(viewModelType, CustomElement) || new CustomElement()
+        type: getFunctionMetadata(viewModelType, CustomElement) || new CustomElement()
       } : null,
     resources
     );
