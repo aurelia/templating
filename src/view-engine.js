@@ -37,7 +37,7 @@ export class ViewEngine {
   }
 
   loadTemplateResources(templateUrl, template, associatedModuleId){
-    var importIds, names, i, ii, j, jj, parts, src, srcParts,
+    var importIds, names, i, ii, src, rename, current,
         registry = new ViewResources(this.appResources, templateUrl),
         dxImportElements = template.content.querySelectorAll('import'),
         associatedModule;
@@ -46,23 +46,20 @@ export class ViewEngine {
       return Promise.resolve(registry);
     }
 
-    importIds = [];
-    names = [];
+    importIds = new Array(dxImportElements.length);
+    names = new Array(dxImportElements.length);
 
     for(i = 0, ii = dxImportElements.length; i < ii; ++i){
-      src = dxImportElements[i].getAttribute('src');
+      current = dxImportElements[i];
+      src = current.getAttribute('from');
+      rename = current.getAttribute('as');
 
       if(!src){
-        throw new Error(`Import element in ${templateUrl} has no src attribute.`);
+        throw new Error(`Import element in ${templateUrl} has no "from" attribute.`);
       }
 
-      parts = src.split(importSplitter);
-
-      for(j = 0, jj = parts.length; j < jj; ++j){
-        srcParts = parts[j].split(' as ');
-        importIds.push(srcParts[0]);
-        names.push(srcParts.length == 2 ? srcParts[1] : null);
-      }
+      importIds.push(src);
+      names.push(rename);
     }
 
     importIds = importIds.map(x => relativeToFile(x, templateUrl));
