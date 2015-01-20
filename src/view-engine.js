@@ -37,7 +37,7 @@ export class ViewEngine {
   }
 
   loadTemplateResources(templateUrl, template, associatedModuleId){
-    var importIds, names, i, ii, src, rename, current,
+    var importIds, names, i, ii, src, current,
         registry = new ViewResources(this.appResources, templateUrl),
         dxImportElements = template.content.querySelectorAll('import'),
         associatedModule;
@@ -52,14 +52,13 @@ export class ViewEngine {
     for(i = 0, ii = dxImportElements.length; i < ii; ++i){
       current = dxImportElements[i];
       src = current.getAttribute('from');
-      rename = current.getAttribute('as');
 
       if(!src){
         throw new Error(`Import element in ${templateUrl} has no "from" attribute.`);
       }
 
-      importIds.push(src);
-      names.push(rename);
+      importIds[i] = src;
+      names[i] = current.getAttribute('as');
     }
 
     importIds = importIds.map(x => relativeToFile(x, templateUrl));
