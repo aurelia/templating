@@ -59,6 +59,10 @@ export class ViewEngine {
 
       importIds[i] = src;
       names[i] = current.getAttribute('as');
+
+      if(current.parentNode){
+        current.parentNode.removeChild(current);
+      }
     }
 
     importIds = importIds.map(x => relativeToFile(x, templateUrl));
