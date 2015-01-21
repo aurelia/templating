@@ -28,11 +28,11 @@ function configureProperties(instruction, resources){
     if(typeof value !== 'string'){
       property = type.attributes[key];
 
-      if(!property){
-        throw new Error(`Attempted to set attribute "${key}" which does not exist on ${type.target.name}.`);
+      if(property !== undefined){
+        value.targetProperty = property.name;
+      }else{
+        value.targetProperty = key;
       }
-
-      value.targetProperty = property.name;
     }
   }
 }

@@ -19,12 +19,7 @@ export class TemplateController extends ResourceType {
   }
 
   load(container, target){
-    configureBehavior(this, container, target);
-
-    if(this.properties.length === 0 && 'valueChanged' in target.prototype){
-      new Property('value', 'valueChanged', this.name).configureBehavior(this);
-    }
-
+    configureBehavior(container, this, target);
     return Promise.resolve(this);
   }
 
@@ -63,7 +58,7 @@ export class TemplateController extends ResourceType {
 
   create(container, instruction, element){
     var executionContext = instruction.executionContext || container.get(this.target),
-        behaviorInstance = new BehaviorInstance(this.taskQueue, this.observerLocator, this, executionContext, instruction);
+        behaviorInstance = new BehaviorInstance(this, executionContext, instruction);
     element.primaryBehavior = behaviorInstance;
     return behaviorInstance;
   }

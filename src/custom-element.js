@@ -8,7 +8,8 @@ import {hyphenate} from './util';
 
 var defaultInstruction = { suppressBind:false },
     contentSelectorFactoryOptions = { suppressBind:true },
-    hasShadowDOM = !!HTMLElement.prototype.createShadowRoot;
+    hasShadowDOM = !!HTMLElement.prototype.createShadowRoot,
+    valuePropertyName = 'value';
 
 export class UseShadowDOM {}
 
@@ -28,7 +29,7 @@ export class CustomElement extends ResourceType {
   load(container, target, viewStrategy){
     var annotation, options;
 
-    configureBehavior(this, container, target);
+    configureBehavior(container, this, target, valuePropertyName);
 
     this.targetShadowDOM = getFunctionMetadata(target, UseShadowDOM) !== null;
     this.usesShadowDOM = this.targetShadowDOM && hasShadowDOM;
@@ -72,7 +73,7 @@ export class CustomElement extends ResourceType {
 
   create(container, instruction=defaultInstruction, element=null){
     var executionContext = instruction.executionContext || container.get(this.target),
-        behaviorInstance = new BehaviorInstance(this.taskQueue, this.observerLocator, this, executionContext, instruction),
+        behaviorInstance = new BehaviorInstance(this, executionContext, instruction),
         host;
 
     if(this.viewFactory){

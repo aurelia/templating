@@ -1,28 +1,28 @@
 export class BehaviorInstance {
-	constructor(taskQueue, observerLocator, behaviorType, executionContext, instruction){
-		this.behaviorType = behaviorType;
+	constructor(behavior, executionContext, instruction){
+		this.behavior = behavior;
 		this.executionContext = executionContext;
 
-		var observerLookup = observerLocator.getObserversLookup(executionContext),
-        handlesBind = behaviorType.handlesBind,
+		var observerLookup = behavior.observerLocator.getObserversLookup(executionContext),
+        handlesBind = behavior.handlesBind,
         attributes = instruction.attributes,
         boundProperties = this.boundProperties = [],
-        properties = behaviorType.properties,
-        i, ii, info;
+        properties = behavior.properties,
+        i, ii;
 
     for(i = 0, ii = properties.length; i < ii; ++i){
-      properties[i].create(taskQueue, executionContext, observerLookup, attributes, handlesBind, boundProperties);
+      properties[i].initialize(executionContext, observerLookup, attributes, handlesBind, boundProperties);
     }
 	}
 
   created(context){
-    if(this.behaviorType.handlesCreated){
+    if(this.behavior.handlesCreated){
       this.executionContext.created(context);
     }
   }
 
 	bind(context){
-		var skipSelfSubscriber = this.behaviorType.handlesBind,
+		var skipSelfSubscriber = this.behavior.handlesBind,
         boundProperties = this.boundProperties,
         i, ii, x, observer, selfSubscriber;
 
@@ -60,7 +60,7 @@ export class BehaviorInstance {
       this.view.unbind();
     }
 
-    if(this.behaviorType.handlesUnbind){
+    if(this.behavior.handlesUnbind){
       this.executionContext.unbind();
     }
 
@@ -70,13 +70,13 @@ export class BehaviorInstance {
 	}
 
   attached(){
-    if(this.behaviorType.handlesAttached){
+    if(this.behavior.handlesAttached){
       this.executionContext.attached();
     }
   }
 
   detached(){
-    if(this.behaviorType.handlesDetached){
+    if(this.behavior.handlesDetached){
       this.executionContext.detached();
     }
   }
