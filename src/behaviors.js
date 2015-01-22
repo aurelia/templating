@@ -1,13 +1,14 @@
-import {getAllFunctionMetadata, getFunctionMetadata, ResourceType} from 'aurelia-metadata';
+import {Metadata} from 'aurelia-metadata';
 import {TaskQueue} from 'aurelia-task-queue';
 import {ObserverLocator} from 'aurelia-binding';
-import {Children} from './children';
-import {Property} from './property';
+import {ChildObserver} from './children';
+import {BehaviorProperty} from './property';
 import {hyphenate} from './util';
 
 export function configureBehavior(container, behavior, target, valuePropertyName) {
   var proto = target.prototype,
       taskQueue = container.get(TaskQueue),
+      meta = Metadata.on(target),
       observerLocator = container.get(ObserverLocator),
       i, ii, properties;
 
@@ -23,7 +24,7 @@ export function configureBehavior(container, behavior, target, valuePropertyName
   behavior.handlesAttached = ('attached' in proto);
   behavior.handlesDetached = ('detached' in proto);
 
-  properties = getAllFunctionMetadata(target, Property);
+  properties = meta.all(BehaviorProperty);
 
   for(i = 0, ii = properties.length; i < ii; ++i){
     properties[i].define(taskQueue, behavior);
@@ -32,7 +33,7 @@ export function configureBehavior(container, behavior, target, valuePropertyName
   properties = behavior.properties;
 
   if(properties.length === 0 && 'valueChanged' in target.prototype){
-    new Property('value', 'valueChanged', valuePropertyName || behavior.name).define(taskQueue, behavior);
+    new BehaviorProperty('value', 'valueChanged', valuePropertyName || behavior.name).define(taskQueue, behavior);
   }
 
   if(properties.length !== 0){
@@ -50,5 +51,5 @@ export function configureBehavior(container, behavior, target, valuePropertyName
     };
   }
 
-  behavior.childExpression = getFunctionMetadata(target, Children);
+  behavior.childExpression = meta.first(ChildObserver);
 }

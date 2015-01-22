@@ -1,6 +1,6 @@
 var noMutations = [];
 
-export class Children {
+export class ChildObserver {
 	constructor(property, changeHandler, selector){
     this.selector = selector;
     this.changeHandler = changeHandler;
@@ -8,11 +8,11 @@ export class Children {
   }
 
   createBinding(target, behavior){
-    return new ChildBinder(this.selector, target, this.property, behavior, this.changeHandler);
+    return new ChildObserverBinder(this.selector, target, this.property, behavior, this.changeHandler);
   }
 }
 
-export class ChildBinder {
+export class ChildObserverBinder {
 	constructor(selector, target, property, behavior, changeHandler){
 		this.selector = selector;
 		this.target = target;

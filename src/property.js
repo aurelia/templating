@@ -1,7 +1,7 @@
 import {hyphenate} from './util';
 import {ONE_WAY,TWO_WAY,ONE_TIME} from 'aurelia-binding';
 
-export class Property {
+export class BehaviorProperty {
   constructor(name, changeHandler, attribute, defaultValue, defaultBindingMode){
     this.name = name;
     this.changeHandler = changeHandler;
@@ -89,7 +89,7 @@ export class Property {
   }
 }
 
-export class OptionsProperty extends Property {
+export class OptionsProperty extends BehaviorProperty {
   constructor(attribute, ...rest){
     if(typeof attribute === 'string'){
       this.attribute = attribute;

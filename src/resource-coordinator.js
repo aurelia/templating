@@ -1,7 +1,7 @@
 import {Loader} from 'aurelia-loader';
 import {relativeToFile, join} from 'aurelia-path';
 import {Container} from 'aurelia-dependency-injection';
-import {getFunctionMetadata, addFunctionMetadata, ResourceType, Origin} from 'aurelia-metadata';
+import {Metadata, ResourceType, Origin} from 'aurelia-metadata';
 import {ValueConverter} from 'aurelia-binding';
 import {CustomElement} from './custom-element';
 import {AttachedBehavior} from './attached-behavior';
@@ -222,7 +222,7 @@ class ResourceModule {
 }
 
 function analyzeModule(moduleInstance, viewModelMember){
-  var viewModelType, fallback, annotation, key,
+  var viewModelType, fallback, annotation, key, meta,
       exportedValue, resources = [], name, conventional;
 
   if(typeof moduleInstance === 'function'){
@@ -240,7 +240,9 @@ function analyzeModule(moduleInstance, viewModelMember){
       continue;
     }
 
-    annotation = getFunctionMetadata(exportedValue, ResourceType);
+    meta = Metadata.on(exportedValue);
+    annotation = meta.first(ResourceType);
+
     if(annotation){
       if(!viewModelType && annotation instanceof CustomElement){
         viewModelType = exportedValue;
@@ -252,7 +254,7 @@ function analyzeModule(moduleInstance, viewModelMember){
 
       if(conventional = CustomElement.convention(name)){
         if(!viewModelType){
-          addFunctionMetadata(exportedValue, conventional);
+          meta.add(conventional);
           viewModelType = exportedValue;
         }else{
           resources.push({type:conventional,value:exportedValue});
@@ -275,7 +277,7 @@ function analyzeModule(moduleInstance, viewModelMember){
     moduleInstance,
     viewModelType ? {
         value: viewModelType,
-        type: getFunctionMetadata(viewModelType, CustomElement) || new CustomElement()
+        type: Metadata.on(viewModelType).first(CustomElement) || new CustomElement()
       } : null,
     resources
     );
