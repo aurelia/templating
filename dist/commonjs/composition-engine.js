@@ -12,14 +12,14 @@ var ResourceCoordinator = require("./resource-coordinator").ResourceCoordinator;
 var ViewEngine = require("./view-engine").ViewEngine;
 var CustomElement = require("./custom-element").CustomElement;
 var CompositionEngine = (function () {
-  var CompositionEngine = function CompositionEngine(resourceCoordinator, viewEngine) {
+  function CompositionEngine(resourceCoordinator, viewEngine) {
     this.resourceCoordinator = resourceCoordinator;
     this.viewEngine = viewEngine;
-  };
+  }
 
   _prototypeProperties(CompositionEngine, {
     inject: {
-      value: function () {
+      value: function inject() {
         return [ResourceCoordinator, ViewEngine];
       },
       writable: true,
@@ -28,7 +28,7 @@ var CompositionEngine = (function () {
     }
   }, {
     activate: {
-      value: function (instruction) {
+      value: function activate(instruction) {
         if (instruction.skipActivation || typeof instruction.viewModel.activate !== "function") {
           return Promise.resolve();
         }
@@ -40,7 +40,7 @@ var CompositionEngine = (function () {
       configurable: true
     },
     createBehaviorAndSwap: {
-      value: function (instruction) {
+      value: function createBehaviorAndSwap(instruction) {
         return this.createBehavior(instruction).then(function (behavior) {
           instruction.viewSlot.swap(behavior.view);
 
@@ -56,7 +56,7 @@ var CompositionEngine = (function () {
       configurable: true
     },
     createBehavior: {
-      value: function (instruction) {
+      value: function createBehavior(instruction) {
         var childContainer = instruction.childContainer,
             viewModelInfo = instruction.viewModelInfo,
             viewModel = instruction.viewModel;
@@ -96,7 +96,7 @@ var CompositionEngine = (function () {
       configurable: true
     },
     createViewModel: {
-      value: function (instruction) {
+      value: function createViewModel(instruction) {
         var childContainer = instruction.childContainer || instruction.container.createChild();
 
         instruction.viewModel = instruction.viewResources ? instruction.viewResources.relativeToView(instruction.viewModel) : instruction.viewModel;
@@ -113,7 +113,7 @@ var CompositionEngine = (function () {
       configurable: true
     },
     compose: {
-      value: function (instruction) {
+      value: function compose(instruction) {
         var _this = this;
         instruction.childContainer = instruction.childContainer || instruction.container.createChild();
         instruction.view = ViewStrategy.normalize(instruction.view);

@@ -6,22 +6,22 @@ define(["exports", "aurelia-metadata", "./behavior-instance", "./behaviors", "./
     if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
   };
 
-  var _inherits = function (child, parent) {
-    if (typeof parent !== "function" && parent !== null) {
-      throw new TypeError("Super expression must either be null or a function, not " + typeof parent);
+  var _inherits = function (subClass, superClass) {
+    if (typeof superClass !== "function" && superClass !== null) {
+      throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
     }
-    child.prototype = Object.create(parent && parent.prototype, {
+    subClass.prototype = Object.create(superClass && superClass.prototype, {
       constructor: {
-        value: child,
+        value: subClass,
         enumerable: false,
         writable: true,
         configurable: true
       }
     });
-    if (parent) child.__proto__ = parent;
+    if (superClass) subClass.__proto__ = superClass;
   };
 
-  var getAnnotation = _aureliaMetadata.getAnnotation;
+  var Metadata = _aureliaMetadata.Metadata;
   var Origin = _aureliaMetadata.Origin;
   var ResourceType = _aureliaMetadata.ResourceType;
   var BehaviorInstance = _behaviorInstance.BehaviorInstance;
@@ -34,23 +34,24 @@ define(["exports", "aurelia-metadata", "./behavior-instance", "./behaviors", "./
 
   var defaultInstruction = { suppressBind: false },
       contentSelectorFactoryOptions = { suppressBind: true },
-      hasShadowDOM = !!HTMLElement.prototype.createShadowRoot;
+      hasShadowDOM = !!HTMLElement.prototype.createShadowRoot,
+      valuePropertyName = "value";
 
   var UseShadowDOM = function UseShadowDOM() {};
 
   exports.UseShadowDOM = UseShadowDOM;
   var CustomElement = (function (ResourceType) {
-    var CustomElement = function CustomElement(tagName) {
+    function CustomElement(tagName) {
       this.name = tagName;
       this.properties = [];
       this.attributes = {};
-    };
+    }
 
     _inherits(CustomElement, ResourceType);
 
     _prototypeProperties(CustomElement, {
       convention: {
-        value: function (name) {
+        value: function convention(name) {
           if (name.endsWith("CustomElement")) {
             return new CustomElement(hyphenate(name.substring(0, name.length - 13)));
           }
@@ -61,13 +62,13 @@ define(["exports", "aurelia-metadata", "./behavior-instance", "./behaviors", "./
       }
     }, {
       load: {
-        value: function (container, target, viewStrategy) {
+        value: function load(container, target, viewStrategy) {
           var _this = this;
           var annotation, options;
 
-          configureBehavior(this, container, target);
+          configureBehavior(container, this, target, valuePropertyName);
 
-          this.targetShadowDOM = getAnnotation(target, UseShadowDOM) !== null;
+          this.targetShadowDOM = Metadata.on(target).has(UseShadowDOM);
           this.usesShadowDOM = this.targetShadowDOM && hasShadowDOM;
 
           viewStrategy = viewStrategy || ViewStrategy.getDefault(target);
@@ -87,7 +88,7 @@ define(["exports", "aurelia-metadata", "./behavior-instance", "./behaviors", "./
         configurable: true
       },
       register: {
-        value: function (registry, name) {
+        value: function register(registry, name) {
           registry.registerElement(name || this.name, this);
         },
         writable: true,
@@ -95,7 +96,7 @@ define(["exports", "aurelia-metadata", "./behavior-instance", "./behaviors", "./
         configurable: true
       },
       compile: {
-        value: function (compiler, resources, node, instruction) {
+        value: function compile(compiler, resources, node, instruction) {
           if (!this.usesShadowDOM && node.hasChildNodes()) {
             var fragment = document.createDocumentFragment(),
                 currentChild = node.firstChild,
@@ -119,13 +120,13 @@ define(["exports", "aurelia-metadata", "./behavior-instance", "./behaviors", "./
         configurable: true
       },
       create: {
-        value: function (container) {
+        value: function create(container) {
           var _this2 = this;
           var instruction = arguments[1] === undefined ? defaultInstruction : arguments[1];
           var element = arguments[2] === undefined ? null : arguments[2];
           return (function () {
             var executionContext = instruction.executionContext || container.get(_this2.target),
-                behaviorInstance = new BehaviorInstance(_this2.taskQueue, _this2.observerLocator, _this2, executionContext, instruction),
+                behaviorInstance = new BehaviorInstance(_this2, executionContext, instruction),
                 host;
 
             if (_this2.viewFactory) {

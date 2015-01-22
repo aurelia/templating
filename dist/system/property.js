@@ -1,25 +1,29 @@
-System.register(["./util"], function (_export) {
+System.register(["./util", "aurelia-binding"], function (_export) {
   "use strict";
 
-  var hyphenate, _inherits, _prototypeProperties, Property, OptionsProperty, BehaviorPropertyObserver;
+  var hyphenate, ONE_WAY, TWO_WAY, ONE_TIME, _inherits, _prototypeProperties, BehaviorProperty, OptionsProperty, BehaviorPropertyObserver;
   return {
     setters: [function (_util) {
       hyphenate = _util.hyphenate;
+    }, function (_aureliaBinding) {
+      ONE_WAY = _aureliaBinding.ONE_WAY;
+      TWO_WAY = _aureliaBinding.TWO_WAY;
+      ONE_TIME = _aureliaBinding.ONE_TIME;
     }],
     execute: function () {
-      _inherits = function (child, parent) {
-        if (typeof parent !== "function" && parent !== null) {
-          throw new TypeError("Super expression must either be null or a function, not " + typeof parent);
+      _inherits = function (subClass, superClass) {
+        if (typeof superClass !== "function" && superClass !== null) {
+          throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
         }
-        child.prototype = Object.create(parent && parent.prototype, {
+        subClass.prototype = Object.create(superClass && superClass.prototype, {
           constructor: {
-            value: child,
+            value: subClass,
             enumerable: false,
             writable: true,
             configurable: true
           }
         });
-        if (parent) child.__proto__ = parent;
+        if (superClass) subClass.__proto__ = superClass;
       };
 
       _prototypeProperties = function (child, staticProps, instanceProps) {
@@ -27,19 +31,52 @@ System.register(["./util"], function (_export) {
         if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
       };
 
-      Property = (function () {
-        var Property = function Property(name, changeHandler, attribute, defaultValue) {
+      BehaviorProperty = (function () {
+        function BehaviorProperty(name, changeHandler, attribute, defaultValue, defaultBindingMode) {
           this.name = name;
           this.changeHandler = changeHandler;
           this.attribute = attribute || hyphenate(name);
           this.defaultValue = defaultValue;
-        };
+          this.defaultBindingMode = defaultBindingMode || ONE_WAY;
+        }
 
-        _prototypeProperties(Property, null, {
-          configureBehavior: {
-            value: function (behavior) {
+        _prototypeProperties(BehaviorProperty, null, {
+          bindingIsTwoWay: {
+            value: function bindingIsTwoWay() {
+              this.defaultBindingMode = TWO_WAY;
+              return this;
+            },
+            writable: true,
+            enumerable: true,
+            configurable: true
+          },
+          bindingIsOneWay: {
+            value: function bindingIsOneWay() {
+              this.defaultBindingMode = ONE_WAY;
+              return this;
+            },
+            writable: true,
+            enumerable: true,
+            configurable: true
+          },
+          bindingIsOneTime: {
+            value: function bindingIsOneTime() {
+              this.defaultBindingMode = ONE_TIME;
+              return this;
+            },
+            writable: true,
+            enumerable: true,
+            configurable: true
+          },
+          define: {
+            value: function define(taskQueue, behavior) {
+              var that = this,
+                  handlerName;
+
+              this.taskQueue = taskQueue;
+
               if (!this.changeHandler) {
-                var handlerName = this.name + "Changed";
+                handlerName = this.name + "Changed";
                 if (handlerName in behavior.target.prototype) {
                   this.changeHandler = handlerName;
                 }
@@ -47,15 +84,26 @@ System.register(["./util"], function (_export) {
 
               behavior.properties.push(this);
               behavior.attributes[this.attribute] = this;
+
+              Object.defineProperty(behavior.target.prototype, this.name, {
+                configurable: true,
+                enumerable: true,
+                get: function () {
+                  return this.__observers__[that.name].getValue();
+                },
+                set: function (value) {
+                  this.__observers__[that.name].setValue(value);
+                }
+              });
             },
             writable: true,
             enumerable: true,
             configurable: true
           },
-          create: {
-            value: function (taskQueue, executionContext, observerLookup, attributes, behaviorHandlesBind) {
+          createObserver: {
+            value: function createObserver(executionContext) {
               var _this = this;
-              var selfSubscriber, observer, attribute, info;
+              var selfSubscriber = null;
 
               if (this.changeHandler) {
                 selfSubscriber = function (newValue, oldValue) {
@@ -63,15 +111,18 @@ System.register(["./util"], function (_export) {
                 };
               }
 
-              observer = observerLookup[this.name] = new BehaviorPropertyObserver(taskQueue, executionContext, this.name, selfSubscriber);
+              return new BehaviorPropertyObserver(this.taskQueue, executionContext, this.name, selfSubscriber);
+            },
+            writable: true,
+            enumerable: true,
+            configurable: true
+          },
+          initialize: {
+            value: function initialize(executionContext, observerLookup, attributes, behaviorHandlesBind, boundProperties) {
+              var selfSubscriber, observer, attribute;
 
-              Object.defineProperty(executionContext, this.name, {
-                configurable: true,
-                enumerable: true,
-                get: observer.getValue.bind(observer),
-                set: observer.setValue.bind(observer)
-              });
-
+              observer = observerLookup[this.name];
+              selfSubscriber = observer.selfSubscriber;
               attribute = attributes[this.attribute];
 
               if (behaviorHandlesBind) {
@@ -82,7 +133,7 @@ System.register(["./util"], function (_export) {
                 executionContext[this.name] = attribute;
                 observer.call();
               } else if (attribute) {
-                info = { observer: observer, binding: attribute.createBinding(executionContext) };
+                boundProperties.push({ observer: observer, binding: attribute.createBinding(executionContext) });
               } else if (this.defaultValue) {
                 executionContext[this.name] = this.defaultValue;
                 observer.call();
@@ -90,7 +141,6 @@ System.register(["./util"], function (_export) {
 
               observer.publishing = true;
               observer.selfSubscriber = selfSubscriber;
-              return info;
             },
             writable: true,
             enumerable: true,
@@ -98,34 +148,43 @@ System.register(["./util"], function (_export) {
           }
         });
 
-        return Property;
+        return BehaviorProperty;
       })();
-      _export("Property", Property);
+      _export("BehaviorProperty", BehaviorProperty);
 
-      OptionsProperty = (function (Property) {
-        var OptionsProperty = function OptionsProperty(attribute) {
-          var rest = [];
-
-          for (var _key = 1; _key < arguments.length; _key++) {
+      OptionsProperty = (function (BehaviorProperty) {
+        function OptionsProperty(attribute) {
+          for (var _len = arguments.length, rest = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
             rest[_key - 1] = arguments[_key];
           }
 
           if (typeof attribute === "string") {
             this.attribute = attribute;
-          } else {
+          } else if (attribute) {
             rest.unshift(attribute);
           }
 
           this.properties = rest;
           this.hasOptions = true;
-        };
+        }
 
-        _inherits(OptionsProperty, Property);
+        _inherits(OptionsProperty, BehaviorProperty);
 
         _prototypeProperties(OptionsProperty, null, {
-          configureBehavior: {
-            value: function (behavior) {
-              var i, ii, properties = this.properties;
+          dynamic: {
+            value: function dynamic() {
+              this.isDynamic = true;
+              return this;
+            },
+            writable: true,
+            enumerable: true,
+            configurable: true
+          },
+          define: {
+            value: function define(taskQueue, behavior) {
+              var i,
+                  ii,
+                  properties = this.properties;
 
               this.attribute = this.attribute || behavior.name;
 
@@ -133,15 +192,72 @@ System.register(["./util"], function (_export) {
               behavior.attributes[this.attribute] = this;
 
               for (i = 0, ii = properties.length; i < ii; ++i) {
-                properties[i].configureBehavior(behavior);
+                properties[i].define(taskQueue, behavior);
               }
             },
             writable: true,
             enumerable: true,
             configurable: true
           },
-          create: {
-            value: function () {},
+          createObserver: {
+            value: function createObserver(executionContext) {},
+            writable: true,
+            enumerable: true,
+            configurable: true
+          },
+          initialize: {
+            value: function initialize(executionContext, observerLookup, attributes, behaviorHandlesBind, boundProperties) {
+              var value, key, info;
+
+              if (!this.isDynamic) {
+                return;
+              }
+
+              for (key in attributes) {
+                this.createDynamicProperty(executionContext, observerLookup, behaviorHandlesBind, key, attributes[key], boundProperties);
+              }
+            },
+            writable: true,
+            enumerable: true,
+            configurable: true
+          },
+          createDynamicProperty: {
+            value: function createDynamicProperty(executionContext, observerLookup, behaviorHandlesBind, name, attribute, boundProperties) {
+              var changeHandlerName = name + "Changed",
+                  selfSubscriber = null,
+                  observer,
+                  info;
+
+              if (changeHandlerName in executionContext) {
+                selfSubscriber = function (newValue, oldValue) {
+                  return executionContext[changeHandlerName](newValue, oldValue);
+                };
+              }
+
+              observer = observerLookup[name] = new BehaviorPropertyObserver(this.taskQueue, executionContext, name, selfSubscriber);
+
+              Object.defineProperty(executionContext, name, {
+                configurable: true,
+                enumerable: true,
+                get: observer.getValue.bind(observer),
+                set: observer.setValue.bind(observer)
+              });
+
+              if (behaviorHandlesBind) {
+                observer.selfSubscriber = null;
+              }
+
+              if (typeof attribute === "string") {
+                executionContext[name] = attribute;
+                observer.call();
+              } else if (attribute) {
+                info = { observer: observer, binding: attribute.createBinding(executionContext) };
+                boundProperties.push(info);
+              }
+
+              observer.publishing = true;
+              observer.selfSubscriber = selfSubscriber;
+            },
             writable: true,
             enumerable: true,
             configurable: true
@@ -149,24 +265,23 @@ System.register(["./util"], function (_export) {
         });
 
         return OptionsProperty;
-      })(Property);
+      })(BehaviorProperty);
       _export("OptionsProperty", OptionsProperty);
 
       BehaviorPropertyObserver = (function () {
-        var BehaviorPropertyObserver = function BehaviorPropertyObserver(taskQueue, obj, propertyName, selfSubscriber) {
+        function BehaviorPropertyObserver(taskQueue, obj, propertyName, selfSubscriber) {
           this.taskQueue = taskQueue;
           this.obj = obj;
           this.propertyName = propertyName;
-          this.currentValue = obj[propertyName];
           this.callbacks = [];
           this.notqueued = true;
           this.publishing = false;
           this.selfSubscriber = selfSubscriber;
-        };
+        }
 
         _prototypeProperties(BehaviorPropertyObserver, null, {
           getValue: {
-            value: function () {
+            value: function getValue() {
               return this.currentValue;
             },
             writable: true,
@@ -174,7 +289,7 @@ System.register(["./util"], function (_export) {
             configurable: true
           },
           setValue: {
-            value: function (newValue) {
+            value: function setValue(newValue) {
               var oldValue = this.currentValue;
 
               if (oldValue != newValue) {
@@ -192,7 +307,7 @@ System.register(["./util"], function (_export) {
             configurable: true
           },
           call: {
-            value: function () {
+            value: function call() {
               var callbacks = this.callbacks,
                   i = callbacks.length,
                   oldValue = this.oldValue,
@@ -201,7 +316,7 @@ System.register(["./util"], function (_export) {
               this.notqueued = true;
 
               if (newValue != oldValue) {
-                if (this.selfSubscriber) {
+                if (this.selfSubscriber !== null) {
                   this.selfSubscriber(newValue, oldValue);
                 }
 
@@ -217,7 +332,7 @@ System.register(["./util"], function (_export) {
             configurable: true
           },
           subscribe: {
-            value: function (callback) {
+            value: function subscribe(callback) {
               var callbacks = this.callbacks;
               callbacks.push(callback);
               return function () {

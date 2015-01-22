@@ -6,9 +6,10 @@ var _prototypeProperties = function (child, staticProps, instanceProps) {
 };
 
 var Loader = require("aurelia-loader").Loader;
+var relativeToFile = require("aurelia-path").relativeToFile;
+var join = require("aurelia-path").join;
 var Container = require("aurelia-dependency-injection").Container;
-var getAnnotation = require("aurelia-metadata").getAnnotation;
-var addAnnotation = require("aurelia-metadata").addAnnotation;
+var Metadata = require("aurelia-metadata").Metadata;
 var ResourceType = require("aurelia-metadata").ResourceType;
 var Origin = require("aurelia-metadata").Origin;
 var ValueConverter = require("aurelia-binding").ValueConverter;
@@ -16,6 +17,7 @@ var CustomElement = require("./custom-element").CustomElement;
 var AttachedBehavior = require("./attached-behavior").AttachedBehavior;
 var TemplateController = require("./template-controller").TemplateController;
 var ViewEngine = require("./view-engine").ViewEngine;
+var ResourceRegistry = require("./resource-registry").ResourceRegistry;
 
 
 var id = 0;
@@ -25,19 +27,20 @@ function nextId() {
 }
 
 var ResourceCoordinator = (function () {
-  var ResourceCoordinator = function ResourceCoordinator(loader, container, viewEngine) {
+  function ResourceCoordinator(loader, container, viewEngine, appResources) {
     this.loader = loader;
     this.container = container;
     this.viewEngine = viewEngine;
     this.importedModules = {};
     this.importedAnonymous = {};
+    this.appResources = appResources;
     viewEngine.resourceCoordinator = this;
-  };
+  }
 
   _prototypeProperties(ResourceCoordinator, {
     inject: {
-      value: function () {
-        return [Loader, Container, ViewEngine];
+      value: function inject() {
+        return [Loader, Container, ViewEngine, ResourceRegistry];
       },
       writable: true,
       enumerable: true,
@@ -45,7 +48,7 @@ var ResourceCoordinator = (function () {
     }
   }, {
     getExistingModuleAnalysis: {
-      value: function (id) {
+      value: function getExistingModuleAnalysis(id) {
         return this.importedModules[id] || this.importedAnonymous[id];
       },
       writable: true,
@@ -53,7 +56,7 @@ var ResourceCoordinator = (function () {
       configurable: true
     },
     loadViewModelInfo: {
-      value: function (moduleImport, moduleMember) {
+      value: function loadViewModelInfo(moduleImport, moduleMember) {
         return this._loadAndAnalyzeModuleForElement(moduleImport, moduleMember, this.importedAnonymous);
       },
       writable: true,
@@ -61,7 +64,7 @@ var ResourceCoordinator = (function () {
       configurable: true
     },
     loadElement: {
-      value: function (moduleImport, moduleMember, viewStategy) {
+      value: function loadElement(moduleImport, moduleMember, viewStategy) {
         var _this = this;
         return this._loadAndAnalyzeModuleForElement(moduleImport, moduleMember, this.importedModules).then(function (info) {
           var type = info.type;
@@ -80,7 +83,7 @@ var ResourceCoordinator = (function () {
       configurable: true
     },
     _loadAndAnalyzeModuleForElement: {
-      value: function (moduleImport, moduleMember, cache) {
+      value: function LoadAndAnalyzeModuleForElement(moduleImport, moduleMember, cache) {
         var _this2 = this;
         var existing = cache[moduleImport];
 
@@ -89,7 +92,14 @@ var ResourceCoordinator = (function () {
         }
 
         return this.loader.loadModule(moduleImport).then(function (elementModule) {
-          var analysis = analyzeModule(elementModule, moduleMember), resources = analysis.resources, container = _this2.container, loads = [], type, current, i, ii;
+          var analysis = analyzeModule(elementModule, moduleMember),
+              resources = analysis.resources,
+              container = _this2.container,
+              loads = [],
+              type,
+              current,
+              i,
+              ii;
 
           if (!analysis.element) {
             throw new Error("No element found in module \"" + moduleImport + "\".");
@@ -117,12 +127,35 @@ var ResourceCoordinator = (function () {
       configurable: true
     },
     importResources: {
-      value: function (imports) {
-        var i, ii, current, annotation, existing, lookup = {}, finalModules = [], importIds = [];
+      value: function importResources(imports, resourceManifestUrl) {
+        var i,
+            ii,
+            current,
+            annotation,
+            existing,
+            lookup = {},
+            finalModules = [],
+            importIds = [],
+            analysis,
+            type;
 
         for (i = 0, ii = imports.length; i < ii; ++i) {
           current = imports[i];
           annotation = Origin.get(current);
+
+          if (!annotation) {
+            analysis = analyzeModule({ "default": current });
+            type = (analysis.element || analysis.resources[0]).type;
+
+            if (resourceManifestUrl) {
+              annotation = new Origin(relativeToFile("./" + type.name, resourceManifestUrl));
+            } else {
+              annotation = new Origin(join(this.appResources.baseResourceUrl, type.name));
+            }
+
+            Origin.set(current, annotation);
+          }
+
           existing = lookup[annotation.moduleId];
 
           if (!existing) {
@@ -142,7 +175,7 @@ var ResourceCoordinator = (function () {
       configurable: true
     },
     importResourcesFromModuleIds: {
-      value: function (importIds) {
+      value: function importResourcesFromModuleIds(importIds) {
         var _this3 = this;
         return this.loader.loadAllModules(importIds).then(function (imports) {
           return _this3.importResourcesFromModules(imports, importIds);
@@ -153,8 +186,21 @@ var ResourceCoordinator = (function () {
       configurable: true
     },
     importResourcesFromModules: {
-      value: function (imports, importIds) {
-        var loads = [], i, ii, analysis, type, key, annotation, j, jj, resources, current, existing = this.importedModules, container = this.container, allAnalysis = new Array(imports.length);
+      value: function importResourcesFromModules(imports, importIds) {
+        var loads = [],
+            i,
+            ii,
+            analysis,
+            type,
+            key,
+            annotation,
+            j,
+            jj,
+            resources,
+            current,
+            existing = this.importedModules,
+            container = this.container,
+            allAnalysis = new Array(imports.length);
 
         if (!importIds) {
           importIds = new Array(imports.length);
@@ -221,24 +267,30 @@ var ResourceCoordinator = (function () {
 
 exports.ResourceCoordinator = ResourceCoordinator;
 var ResourceModule = (function () {
-  var ResourceModule = function ResourceModule(source, element, resources) {
-    var i, ii;
+  function ResourceModule(source, element, resources) {
+    var i, ii, org;
 
     this.source = source;
     this.element = element;
     this.resources = resources;
 
     if (element) {
-      this.id = Origin.get(element.value).moduleId;
+      org = Origin.get(element.value);
     } else if (resources.length) {
-      this.id = Origin.get(resources[0].value).moduleId;
+      org = Origin.get(resources[0].value);
     }
-  };
+
+    if (org) {
+      this.id = org.id;
+    }
+  }
 
   _prototypeProperties(ResourceModule, null, {
     register: {
-      value: function (registry, name) {
-        var i, ii, resources = this.resources;
+      value: function register(registry, name) {
+        var i,
+            ii,
+            resources = this.resources;
 
         if (this.element) {
           this.element.type.register(registry, name);
@@ -260,7 +312,19 @@ var ResourceModule = (function () {
 })();
 
 function analyzeModule(moduleInstance, viewModelMember) {
-  var viewModelType, fallback, annotation, key, exportedValue, resources = [], name, conventional;
+  var viewModelType,
+      fallback,
+      annotation,
+      key,
+      meta,
+      exportedValue,
+      resources = [],
+      name,
+      conventional;
+
+  if (typeof moduleInstance === "function") {
+    moduleInstance = { "default": moduleInstance };
+  }
 
   if (viewModelMember) {
     viewModelType = moduleInstance[viewModelMember];
@@ -273,7 +337,9 @@ function analyzeModule(moduleInstance, viewModelMember) {
       continue;
     }
 
-    annotation = getAnnotation(exportedValue, ResourceType);
+    meta = Metadata.on(exportedValue);
+    annotation = meta.first(ResourceType);
+
     if (annotation) {
       if (!viewModelType && annotation instanceof CustomElement) {
         viewModelType = exportedValue;
@@ -285,7 +351,7 @@ function analyzeModule(moduleInstance, viewModelMember) {
 
       if (conventional = CustomElement.convention(name)) {
         if (!viewModelType) {
-          addAnnotation(exportedValue, conventional);
+          meta.add(conventional);
           viewModelType = exportedValue;
         } else {
           resources.push({ type: conventional, value: exportedValue });
@@ -306,6 +372,6 @@ function analyzeModule(moduleInstance, viewModelMember) {
 
   return new ResourceModule(moduleInstance, viewModelType ? {
     value: viewModelType,
-    type: getAnnotation(viewModelType, CustomElement) || new CustomElement()
+    type: Metadata.on(viewModelType).first(CustomElement) || new CustomElement()
   } : null, resources);
 }

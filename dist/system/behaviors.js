@@ -1,47 +1,72 @@
 System.register(["aurelia-metadata", "aurelia-task-queue", "aurelia-binding", "./children", "./property", "./util"], function (_export) {
   "use strict";
 
-  var getAllAnnotations, getAnnotation, ResourceType, TaskQueue, ObserverLocator, Children, Property, hyphenate;
+  var Metadata, TaskQueue, ObserverLocator, ChildObserver, BehaviorProperty, hyphenate;
   _export("configureBehavior", configureBehavior);
 
-  function configureBehavior(behavior, container, target) {
-    var proto = target.prototype, i, ii, properties;
+  function configureBehavior(container, behavior, target, valuePropertyName) {
+    var proto = target.prototype,
+        taskQueue = container.get(TaskQueue),
+        meta = Metadata.on(target),
+        observerLocator = container.get(ObserverLocator),
+        i,
+        ii,
+        properties;
 
     if (!behavior.name) {
       behavior.name = hyphenate(target.name);
     }
 
     behavior.target = target;
-    behavior.taskQueue = container.get(TaskQueue);
-    behavior.observerLocator = container.get(ObserverLocator);
-
+    behavior.observerLocator = observerLocator;
     behavior.handlesCreated = "created" in proto;
     behavior.handlesBind = "bind" in proto;
     behavior.handlesUnbind = "unbind" in proto;
     behavior.handlesAttached = "attached" in proto;
     behavior.handlesDetached = "detached" in proto;
 
-    properties = getAllAnnotations(target, Property);
+    properties = meta.all(BehaviorProperty);
 
     for (i = 0, ii = properties.length; i < ii; ++i) {
-      properties[i].configureBehavior(behavior);
+      properties[i].define(taskQueue, behavior);
     }
 
-    behavior.childExpression = getAnnotation(target, Children);
+    properties = behavior.properties;
+
+    if (properties.length === 0 && "valueChanged" in target.prototype) {
+      new BehaviorProperty("value", "valueChanged", valuePropertyName || behavior.name).define(taskQueue, behavior);
+    }
+
+    if (properties.length !== 0) {
+      target.initialize = function (executionContext) {
+        var observerLookup = observerLocator.getObserversLookup(executionContext),
+            i,
+            ii,
+            observer;
+
+        for (i = 0, ii = properties.length; i < ii; ++i) {
+          observer = properties[i].createObserver(executionContext);
+
+          if (observer !== undefined) {
+            observerLookup[observer.propertyName] = observer;
+          }
+        }
+      };
+    }
+
+    behavior.childExpression = meta.first(ChildObserver);
   }
   return {
     setters: [function (_aureliaMetadata) {
-      getAllAnnotations = _aureliaMetadata.getAllAnnotations;
-      getAnnotation = _aureliaMetadata.getAnnotation;
-      ResourceType = _aureliaMetadata.ResourceType;
+      Metadata = _aureliaMetadata.Metadata;
     }, function (_aureliaTaskQueue) {
       TaskQueue = _aureliaTaskQueue.TaskQueue;
     }, function (_aureliaBinding) {
       ObserverLocator = _aureliaBinding.ObserverLocator;
     }, function (_children) {
-      Children = _children.Children;
+      ChildObserver = _children.ChildObserver;
     }, function (_property) {
-      Property = _property.Property;
+      BehaviorProperty = _property.BehaviorProperty;
     }, function (_util) {
       hyphenate = _util.hyphenate;
     }],

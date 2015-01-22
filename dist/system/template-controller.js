@@ -1,7 +1,7 @@
-System.register(["aurelia-metadata", "./behavior-instance", "./behaviors", "./property", "./util"], function (_export) {
+System.register(["aurelia-metadata", "./behavior-instance", "./behaviors", "./util"], function (_export) {
   "use strict";
 
-  var ResourceType, BehaviorInstance, configureBehavior, Property, hyphenate, _prototypeProperties, _inherits, TemplateController;
+  var ResourceType, BehaviorInstance, configureBehavior, hyphenate, _prototypeProperties, _inherits, TemplateController;
   return {
     setters: [function (_aureliaMetadata) {
       ResourceType = _aureliaMetadata.ResourceType;
@@ -9,8 +9,6 @@ System.register(["aurelia-metadata", "./behavior-instance", "./behaviors", "./pr
       BehaviorInstance = _behaviorInstance.BehaviorInstance;
     }, function (_behaviors) {
       configureBehavior = _behaviors.configureBehavior;
-    }, function (_property) {
-      Property = _property.Property;
     }, function (_util) {
       hyphenate = _util.hyphenate;
     }],
@@ -20,34 +18,34 @@ System.register(["aurelia-metadata", "./behavior-instance", "./behaviors", "./pr
         if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
       };
 
-      _inherits = function (child, parent) {
-        if (typeof parent !== "function" && parent !== null) {
-          throw new TypeError("Super expression must either be null or a function, not " + typeof parent);
+      _inherits = function (subClass, superClass) {
+        if (typeof superClass !== "function" && superClass !== null) {
+          throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
         }
-        child.prototype = Object.create(parent && parent.prototype, {
+        subClass.prototype = Object.create(superClass && superClass.prototype, {
           constructor: {
-            value: child,
+            value: subClass,
             enumerable: false,
             writable: true,
             configurable: true
           }
         });
-        if (parent) child.__proto__ = parent;
+        if (superClass) subClass.__proto__ = superClass;
       };
 
       TemplateController = (function (ResourceType) {
-        var TemplateController = function TemplateController(attribute) {
+        function TemplateController(attribute) {
           this.name = attribute;
           this.properties = [];
           this.attributes = {};
           this.liftsContent = true;
-        };
+        }
 
         _inherits(TemplateController, ResourceType);
 
         _prototypeProperties(TemplateController, {
           convention: {
-            value: function (name) {
+            value: function convention(name) {
               if (name.endsWith("TemplateController")) {
                 return new TemplateController(hyphenate(name.substring(0, name.length - 18)));
               }
@@ -58,13 +56,8 @@ System.register(["aurelia-metadata", "./behavior-instance", "./behaviors", "./pr
           }
         }, {
           load: {
-            value: function (container, target) {
-              configureBehavior(this, container, target);
-
-              if (this.properties.length === 0 && "valueChanged" in target.prototype) {
-                new Property("value", "valueChanged", this.name).configureBehavior(this);
-              }
-
+            value: function load(container, target) {
+              configureBehavior(container, this, target);
               return Promise.resolve(this);
             },
             writable: true,
@@ -72,7 +65,7 @@ System.register(["aurelia-metadata", "./behavior-instance", "./behaviors", "./pr
             configurable: true
           },
           register: {
-            value: function (registry, name) {
+            value: function register(registry, name) {
               registry.registerAttribute(name || this.name, this, this.name);
             },
             writable: true,
@@ -80,7 +73,7 @@ System.register(["aurelia-metadata", "./behavior-instance", "./behaviors", "./pr
             configurable: true
           },
           compile: {
-            value: function (compiler, resources, node, instruction, parentNode) {
+            value: function compile(compiler, resources, node, instruction, parentNode) {
               if (!instruction.viewFactory) {
                 var template = document.createElement("template"),
                     fragment = document.createDocumentFragment();
@@ -110,9 +103,9 @@ System.register(["aurelia-metadata", "./behavior-instance", "./behaviors", "./pr
             configurable: true
           },
           create: {
-            value: function (container, instruction, element) {
+            value: function create(container, instruction, element) {
               var executionContext = instruction.executionContext || container.get(this.target),
-                  behaviorInstance = new BehaviorInstance(this.taskQueue, this.observerLocator, this, executionContext, instruction);
+                  behaviorInstance = new BehaviorInstance(this, executionContext, instruction);
               element.primaryBehavior = behaviorInstance;
               return behaviorInstance;
             },

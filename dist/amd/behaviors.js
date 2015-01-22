@@ -2,37 +2,62 @@ define(["exports", "aurelia-metadata", "aurelia-task-queue", "aurelia-binding", 
   "use strict";
 
   exports.configureBehavior = configureBehavior;
-  var getAllAnnotations = _aureliaMetadata.getAllAnnotations;
-  var getAnnotation = _aureliaMetadata.getAnnotation;
-  var ResourceType = _aureliaMetadata.ResourceType;
+  var Metadata = _aureliaMetadata.Metadata;
   var TaskQueue = _aureliaTaskQueue.TaskQueue;
   var ObserverLocator = _aureliaBinding.ObserverLocator;
-  var Children = _children.Children;
-  var Property = _property.Property;
+  var ChildObserver = _children.ChildObserver;
+  var BehaviorProperty = _property.BehaviorProperty;
   var hyphenate = _util.hyphenate;
-  function configureBehavior(behavior, container, target) {
-    var proto = target.prototype, i, ii, properties;
+  function configureBehavior(container, behavior, target, valuePropertyName) {
+    var proto = target.prototype,
+        taskQueue = container.get(TaskQueue),
+        meta = Metadata.on(target),
+        observerLocator = container.get(ObserverLocator),
+        i,
+        ii,
+        properties;
 
     if (!behavior.name) {
       behavior.name = hyphenate(target.name);
     }
 
     behavior.target = target;
-    behavior.taskQueue = container.get(TaskQueue);
-    behavior.observerLocator = container.get(ObserverLocator);
-
+    behavior.observerLocator = observerLocator;
     behavior.handlesCreated = "created" in proto;
     behavior.handlesBind = "bind" in proto;
     behavior.handlesUnbind = "unbind" in proto;
     behavior.handlesAttached = "attached" in proto;
     behavior.handlesDetached = "detached" in proto;
 
-    properties = getAllAnnotations(target, Property);
+    properties = meta.all(BehaviorProperty);
 
     for (i = 0, ii = properties.length; i < ii; ++i) {
-      properties[i].configureBehavior(behavior);
+      properties[i].define(taskQueue, behavior);
     }
 
-    behavior.childExpression = getAnnotation(target, Children);
+    properties = behavior.properties;
+
+    if (properties.length === 0 && "valueChanged" in target.prototype) {
+      new BehaviorProperty("value", "valueChanged", valuePropertyName || behavior.name).define(taskQueue, behavior);
+    }
+
+    if (properties.length !== 0) {
+      target.initialize = function (executionContext) {
+        var observerLookup = observerLocator.getObserversLookup(executionContext),
+            i,
+            ii,
+            observer;
+
+        for (i = 0, ii = properties.length; i < ii; ++i) {
+          observer = properties[i].createObserver(executionContext);
+
+          if (observer !== undefined) {
+            observerLookup[observer.propertyName] = observer;
+          }
+        }
+      };
+    }
+
+    behavior.childExpression = meta.first(ChildObserver);
   }
 });

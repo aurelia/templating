@@ -1,30 +1,37 @@
-System.register(["./attached-behavior", "./property", "./resource-coordinator", "./resource-registry", "./children", "./custom-element", "./element-config", "./template-controller", "./view-strategy", "./view-compiler", "./view-engine", "./view-factory", "./view-slot", "./binding-language", "./composition-engine"], function (_export) {
+System.register(["aurelia-metadata", "./property", "./attached-behavior", "./children", "./custom-element", "./element-config", "./template-controller", "./view-strategy", "./resource-coordinator", "./resource-registry", "./view-compiler", "./view-engine", "./view-factory", "./view-slot", "./binding-language", "./composition-engine"], function (_export) {
   "use strict";
 
+  var Metadata, BehaviorProperty, OptionsProperty, AttachedBehavior, ChildObserver, CustomElement, UseShadowDOM, ElementConfig, TemplateController, UseView, NoView, Behavior;
   return {
-    setters: [function (_attachedBehavior) {
-      _export("AttachedBehavior", _attachedBehavior.AttachedBehavior);
+    setters: [function (_aureliaMetadata) {
+      Metadata = _aureliaMetadata.Metadata;
     }, function (_property) {
-      _export("Property", _property.Property);
+      BehaviorProperty = _property.BehaviorProperty;
+      OptionsProperty = _property.OptionsProperty;
+      _export("BehaviorProperty", _property.BehaviorProperty);
 
       _export("OptionsProperty", _property.OptionsProperty);
-    }, function (_resourceCoordinator) {
-      _export("ResourceCoordinator", _resourceCoordinator.ResourceCoordinator);
-    }, function (_resourceRegistry) {
-      _export("ResourceRegistry", _resourceRegistry.ResourceRegistry);
-
-      _export("ViewResources", _resourceRegistry.ViewResources);
+    }, function (_attachedBehavior) {
+      AttachedBehavior = _attachedBehavior.AttachedBehavior;
+      _export("AttachedBehavior", _attachedBehavior.AttachedBehavior);
     }, function (_children) {
-      _export("Children", _children.Children);
+      ChildObserver = _children.ChildObserver;
+      _export("ChildObserver", _children.ChildObserver);
     }, function (_customElement) {
+      CustomElement = _customElement.CustomElement;
+      UseShadowDOM = _customElement.UseShadowDOM;
       _export("CustomElement", _customElement.CustomElement);
 
       _export("UseShadowDOM", _customElement.UseShadowDOM);
     }, function (_elementConfig) {
+      ElementConfig = _elementConfig.ElementConfig;
       _export("ElementConfig", _elementConfig.ElementConfig);
     }, function (_templateController) {
+      TemplateController = _templateController.TemplateController;
       _export("TemplateController", _templateController.TemplateController);
     }, function (_viewStrategy) {
+      UseView = _viewStrategy.UseView;
+      NoView = _viewStrategy.NoView;
       _export("ViewStrategy", _viewStrategy.ViewStrategy);
 
       _export("UseView", _viewStrategy.UseView);
@@ -32,6 +39,12 @@ System.register(["./attached-behavior", "./property", "./resource-coordinator", 
       _export("ConventionalView", _viewStrategy.ConventionalView);
 
       _export("NoView", _viewStrategy.NoView);
+    }, function (_resourceCoordinator) {
+      _export("ResourceCoordinator", _resourceCoordinator.ResourceCoordinator);
+    }, function (_resourceRegistry) {
+      _export("ResourceRegistry", _resourceRegistry.ResourceRegistry);
+
+      _export("ViewResources", _resourceRegistry.ViewResources);
     }, function (_viewCompiler) {
       _export("ViewCompiler", _viewCompiler.ViewCompiler);
     }, function (_viewEngine) {
@@ -47,6 +60,20 @@ System.register(["./attached-behavior", "./property", "./resource-coordinator", 
     }, function (_compositionEngine) {
       _export("CompositionEngine", _compositionEngine.CompositionEngine);
     }],
-    execute: function () {}
+    execute: function () {
+      Behavior = _export("Behavior", Metadata);
+
+
+      Metadata.configure.classHelper("withProperty", BehaviorProperty);
+      Metadata.configure.classHelper("withOptions", OptionsProperty);
+      Metadata.configure.classHelper("attachedBehavior", AttachedBehavior);
+      Metadata.configure.classHelper("syncChildren", ChildObserver);
+      Metadata.configure.classHelper("customElement", CustomElement);
+      Metadata.configure.classHelper("useShadowDOM", UseShadowDOM);
+      Metadata.configure.classHelper("elementConfig", ElementConfig);
+      Metadata.configure.classHelper("templateController", TemplateController);
+      Metadata.configure.classHelper("useView", UseView);
+      Metadata.configure.classHelper("noView", NoView);
+    }
   };
 });

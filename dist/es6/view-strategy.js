@@ -1,4 +1,4 @@
-import {getAnnotation, Origin} from 'aurelia-metadata';
+import {Metadata, Origin} from 'aurelia-metadata';
 import {relativeToFile} from 'aurelia-path';
 
 export class ViewStrategy {
@@ -28,7 +28,7 @@ export class ViewStrategy {
     }
 
     annotation = Origin.get(target);
-    strategy = getAnnotation(target, ViewStrategy);
+    strategy = Metadata.on(target).first(ViewStrategy);
     
     if(!strategy){
       if(!annotation){

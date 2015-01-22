@@ -48,19 +48,19 @@ System.register(["aurelia-path"], function (_export) {
         }
       };
 
-      _inherits = function (child, parent) {
-        if (typeof parent !== "function" && parent !== null) {
-          throw new TypeError("Super expression must either be null or a function, not " + typeof parent);
+      _inherits = function (subClass, superClass) {
+        if (typeof superClass !== "function" && superClass !== null) {
+          throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
         }
-        child.prototype = Object.create(parent && parent.prototype, {
+        subClass.prototype = Object.create(superClass && superClass.prototype, {
           constructor: {
-            value: child,
+            value: subClass,
             enumerable: false,
             writable: true,
             configurable: true
           }
         });
-        if (parent) child.__proto__ = parent;
+        if (superClass) subClass.__proto__ = superClass;
       };
 
       _prototypeProperties = function (child, staticProps, instanceProps) {
@@ -69,16 +69,17 @@ System.register(["aurelia-path"], function (_export) {
       };
 
       ResourceRegistry = (function () {
-        var ResourceRegistry = function ResourceRegistry() {
+        function ResourceRegistry() {
           this.attributes = {};
           this.elements = {};
           this.valueConverters = {};
           this.attributeMap = {};
-        };
+          this.baseResourceUrl = "";
+        }
 
         _prototypeProperties(ResourceRegistry, null, {
           registerElement: {
-            value: function (tagName, behavior) {
+            value: function registerElement(tagName, behavior) {
               register(this.elements, tagName, behavior, "an Element");
             },
             writable: true,
@@ -86,7 +87,7 @@ System.register(["aurelia-path"], function (_export) {
             configurable: true
           },
           getElement: {
-            value: function (tagName) {
+            value: function getElement(tagName) {
               return this.elements[tagName];
             },
             writable: true,
@@ -94,7 +95,7 @@ System.register(["aurelia-path"], function (_export) {
             configurable: true
           },
           registerAttribute: {
-            value: function (attribute, behavior, knownAttribute) {
+            value: function registerAttribute(attribute, behavior, knownAttribute) {
               this.attributeMap[attribute] = knownAttribute;
               register(this.attributes, attribute, behavior, "an Attribute");
             },
@@ -103,7 +104,7 @@ System.register(["aurelia-path"], function (_export) {
             configurable: true
           },
           getAttribute: {
-            value: function (attribute) {
+            value: function getAttribute(attribute) {
               return this.attributes[attribute];
             },
             writable: true,
@@ -111,7 +112,7 @@ System.register(["aurelia-path"], function (_export) {
             configurable: true
           },
           registerValueConverter: {
-            value: function (name, valueConverter) {
+            value: function registerValueConverter(name, valueConverter) {
               register(this.valueConverters, name, valueConverter, "a ValueConverter");
             },
             writable: true,
@@ -119,7 +120,7 @@ System.register(["aurelia-path"], function (_export) {
             configurable: true
           },
           getValueConverter: {
-            value: function (name) {
+            value: function getValueConverter(name) {
               return this.valueConverters[name];
             },
             writable: true,
@@ -133,18 +134,18 @@ System.register(["aurelia-path"], function (_export) {
       _export("ResourceRegistry", ResourceRegistry);
 
       ViewResources = (function (ResourceRegistry) {
-        var ViewResources = function ViewResources(parent, viewUrl) {
+        function ViewResources(parent, viewUrl) {
           _get(Object.getPrototypeOf(ViewResources.prototype), "constructor", this).call(this);
           this.parent = parent;
           this.viewUrl = viewUrl;
           this.valueConverterLookupFunction = this.getValueConverter.bind(this);
-        };
+        }
 
         _inherits(ViewResources, ResourceRegistry);
 
         _prototypeProperties(ViewResources, null, {
           relativeToView: {
-            value: function (path) {
+            value: function relativeToView(path) {
               return relativeToFile(path, this.viewUrl);
             },
             writable: true,
@@ -152,7 +153,7 @@ System.register(["aurelia-path"], function (_export) {
             configurable: true
           },
           getElement: {
-            value: function (tagName) {
+            value: function getElement(tagName) {
               return this.elements[tagName] || this.parent.getElement(tagName);
             },
             writable: true,
@@ -160,7 +161,7 @@ System.register(["aurelia-path"], function (_export) {
             configurable: true
           },
           getAttribute: {
-            value: function (attribute) {
+            value: function getAttribute(attribute) {
               return this.attributes[attribute] || this.parent.getAttribute(attribute);
             },
             writable: true,
@@ -168,7 +169,7 @@ System.register(["aurelia-path"], function (_export) {
             configurable: true
           },
           getValueConverter: {
-            value: function (name) {
+            value: function getValueConverter(name) {
               return this.valueConverters[name] || this.parent.getValueConverter(name);
             },
             writable: true,

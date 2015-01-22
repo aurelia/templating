@@ -30,17 +30,22 @@ System.register([], function (_export) {
 
       placeholder = [];
       ContentSelector = (function () {
-        var ContentSelector = function ContentSelector(anchor, selector) {
+        function ContentSelector(anchor, selector) {
           this.anchor = anchor;
           this.selector = selector;
           this.all = !this.selector;
           this.groups = [];
-        };
+        }
 
         _prototypeProperties(ContentSelector, {
           applySelectors: {
-            value: function (view, contentSelectors, callback) {
-              var currentChild = view.fragment.firstChild, contentMap = new Map(), nextSibling, i, ii, contentSelector;
+            value: function applySelectors(view, contentSelectors, callback) {
+              var currentChild = view.fragment.firstChild,
+                  contentMap = new Map(),
+                  nextSibling,
+                  i,
+                  ii,
+                  contentSelector;
 
               while (currentChild) {
                 nextSibling = currentChild.nextSibling;
@@ -80,7 +85,7 @@ System.register([], function (_export) {
           }
         }, {
           copyForViewSlot: {
-            value: function () {
+            value: function copyForViewSlot() {
               return new ContentSelector(this.anchor, this.selector);
             },
             writable: true,
@@ -88,7 +93,7 @@ System.register([], function (_export) {
             configurable: true
           },
           matches: {
-            value: function (node) {
+            value: function matches(node) {
               return this.all || node.nodeType === 1 && node.matches(this.selector);
             },
             writable: true,
@@ -96,8 +101,11 @@ System.register([], function (_export) {
             configurable: true
           },
           add: {
-            value: function (group) {
-              var anchor = this.anchor, parent = anchor.parentNode, i, ii;
+            value: function add(group) {
+              var anchor = this.anchor,
+                  parent = anchor.parentNode,
+                  i,
+                  ii;
 
               for (i = 0, ii = group.length; i < ii; ++i) {
                 parent.insertBefore(group[i], anchor);
@@ -110,9 +118,12 @@ System.register([], function (_export) {
             configurable: true
           },
           insert: {
-            value: function (index, group) {
+            value: function insert(index, group) {
               if (group.length) {
-                var anchor = findInsertionPoint(this.groups, index) || this.anchor, parent = anchor.parentNode, i, ii;
+                var anchor = findInsertionPoint(this.groups, index) || this.anchor,
+                    parent = anchor.parentNode,
+                    i,
+                    ii;
 
                 for (i = 0, ii = group.length; i < ii; ++i) {
                   parent.insertBefore(group[i], anchor);
@@ -126,8 +137,10 @@ System.register([], function (_export) {
             configurable: true
           },
           removeAt: {
-            value: function (index, fragment) {
-              var group = this.groups[index], i, ii;
+            value: function removeAt(index, fragment) {
+              var group = this.groups[index],
+                  i,
+                  ii;
 
               for (i = 0, ii = group.length; i < ii; ++i) {
                 fragment.appendChild(group[i]);

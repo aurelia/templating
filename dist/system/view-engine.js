@@ -24,16 +24,16 @@ System.register(["aurelia-logging", "aurelia-loader", "aurelia-path", "./view-co
       importSplitter = /\s*,\s*/;
       logger = LogManager.getLogger("templating");
       ViewEngine = (function () {
-        var ViewEngine = function ViewEngine(loader, viewCompiler, appResources) {
+        function ViewEngine(loader, viewCompiler, appResources) {
           this.loader = loader;
           this.viewCompiler = viewCompiler;
           this.appResources = appResources;
           this.importedViews = {};
-        };
+        }
 
         _prototypeProperties(ViewEngine, {
           inject: {
-            value: function () {
+            value: function inject() {
               return [Loader, ViewCompiler, ResourceRegistry];
             },
             writable: true,
@@ -42,7 +42,7 @@ System.register(["aurelia-logging", "aurelia-loader", "aurelia-path", "./view-co
           }
         }, {
           loadViewFactory: {
-            value: function (url, compileOptions, associatedModuleId) {
+            value: function loadViewFactory(url, compileOptions, associatedModuleId) {
               var _this = this;
               var existing = this.importedViews[url];
               if (existing) {
@@ -67,30 +67,38 @@ System.register(["aurelia-logging", "aurelia-loader", "aurelia-path", "./view-co
             configurable: true
           },
           loadTemplateResources: {
-            value: function (templateUrl, template, associatedModuleId) {
+            value: function loadTemplateResources(templateUrl, template, associatedModuleId) {
               var _this2 = this;
-              var importIds, names, i, ii, j, jj, parts, src, srcParts, registry = new ViewResources(this.appResources, templateUrl), dxImportElements = template.content.querySelectorAll("import"), associatedModule;
+              var importIds,
+                  names,
+                  i,
+                  ii,
+                  src,
+                  current,
+                  registry = new ViewResources(this.appResources, templateUrl),
+                  dxImportElements = template.content.querySelectorAll("import"),
+                  associatedModule;
 
               if (dxImportElements.length === 0 && !associatedModuleId) {
                 return Promise.resolve(registry);
               }
 
-              importIds = [];
-              names = [];
+              importIds = new Array(dxImportElements.length);
+              names = new Array(dxImportElements.length);
 
               for (i = 0, ii = dxImportElements.length; i < ii; ++i) {
-                src = dxImportElements[i].getAttribute("src");
+                current = dxImportElements[i];
+                src = current.getAttribute("from");
 
                 if (!src) {
-                  throw new Error("Import element in " + templateUrl + " has no src attribute.");
+                  throw new Error("Import element in " + templateUrl + " has no \"from\" attribute.");
                 }
 
-                parts = src.split(importSplitter);
+                importIds[i] = src;
+                names[i] = current.getAttribute("as");
 
-                for (j = 0, jj = parts.length; j < jj; ++j) {
-                  srcParts = parts[j].split(" as ");
-                  importIds.push(srcParts[0]);
-                  names.push(srcParts.length == 2 ? srcParts[1] : null);
+                if (current.parentNode) {
+                  current.parentNode.removeChild(current);
                 }
               }
 

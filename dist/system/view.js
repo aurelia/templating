@@ -11,7 +11,7 @@ System.register([], function (_export) {
       };
 
       View = (function () {
-        var View = function View(fragment, behaviors, bindings, children, systemControlled, contentSelectors) {
+        function View(fragment, behaviors, bindings, children, systemControlled, contentSelectors) {
           this.fragment = fragment;
           this.behaviors = behaviors;
           this.bindings = bindings;
@@ -22,12 +22,14 @@ System.register([], function (_export) {
           this.lastChild = fragment.lastChild;
           this.isBound = false;
           this.isAttached = false;
-        };
+        }
 
         _prototypeProperties(View, null, {
           created: {
-            value: function (executionContext) {
-              var i, ii, behaviors = this.behaviors;
+            value: function created(executionContext) {
+              var i,
+                  ii,
+                  behaviors = this.behaviors;
               for (i = 0, ii = behaviors.length; i < ii; ++i) {
                 behaviors[i].created(executionContext);
               }
@@ -37,7 +39,7 @@ System.register([], function (_export) {
             configurable: true
           },
           bind: {
-            value: function (executionContext, systemUpdate) {
+            value: function bind(executionContext, systemUpdate) {
               var context, behaviors, bindings, children, i, ii;
 
               if (systemUpdate && !this.systemControlled) {
@@ -81,7 +83,7 @@ System.register([], function (_export) {
             configurable: true
           },
           addBinding: {
-            value: function (binding) {
+            value: function addBinding(binding) {
               this.bindings.push(binding);
 
               if (this.isBound) {
@@ -93,7 +95,7 @@ System.register([], function (_export) {
             configurable: true
           },
           unbind: {
-            value: function () {
+            value: function unbind() {
               var behaviors, bindings, children, i, ii;
 
               if (this.isBound) {
@@ -124,7 +126,7 @@ System.register([], function (_export) {
             configurable: true
           },
           insertNodesBefore: {
-            value: function (refNode) {
+            value: function insertNodesBefore(refNode) {
               var parent = refNode.parentNode;
               parent.insertBefore(this.fragment, refNode);
             },
@@ -133,7 +135,7 @@ System.register([], function (_export) {
             configurable: true
           },
           appendNodesTo: {
-            value: function (parent) {
+            value: function appendNodesTo(parent) {
               parent.appendChild(this.fragment);
             },
             writable: true,
@@ -141,7 +143,7 @@ System.register([], function (_export) {
             configurable: true
           },
           removeNodes: {
-            value: function () {
+            value: function removeNodes() {
               var start = this.firstChild,
                   end = this.lastChild,
                   fragment = this.fragment,
@@ -166,7 +168,7 @@ System.register([], function (_export) {
             configurable: true
           },
           attached: {
-            value: function () {
+            value: function attached() {
               var behaviors, children, i, ii;
 
               if (this.isAttached) {
@@ -194,7 +196,7 @@ System.register([], function (_export) {
             configurable: true
           },
           detached: {
-            value: function () {
+            value: function detached() {
               var behaviors, children, i, ii;
 
               if (this.isAttached) {

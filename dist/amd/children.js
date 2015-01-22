@@ -8,17 +8,17 @@ define(["exports"], function (exports) {
 
   var noMutations = [];
 
-  var Children = (function () {
-    var Children = function Children(property, changeHandler, selector) {
+  var ChildObserver = (function () {
+    function ChildObserver(property, changeHandler, selector) {
       this.selector = selector;
       this.changeHandler = changeHandler;
       this.property = property;
-    };
+    }
 
-    _prototypeProperties(Children, null, {
+    _prototypeProperties(ChildObserver, null, {
       createBinding: {
-        value: function (target, behavior) {
-          return new ChildBinder(this.selector, target, this.property, behavior, this.changeHandler);
+        value: function createBinding(target, behavior) {
+          return new ChildObserverBinder(this.selector, target, this.property, behavior, this.changeHandler);
         },
         writable: true,
         enumerable: true,
@@ -26,12 +26,12 @@ define(["exports"], function (exports) {
       }
     });
 
-    return Children;
+    return ChildObserver;
   })();
 
-  exports.Children = Children;
-  var ChildBinder = (function () {
-    var ChildBinder = function ChildBinder(selector, target, property, behavior, changeHandler) {
+  exports.ChildObserver = ChildObserver;
+  var ChildObserverBinder = (function () {
+    function ChildObserverBinder(selector, target, property, behavior, changeHandler) {
       this.selector = selector;
       this.target = target;
       this.property = property;
@@ -39,12 +39,17 @@ define(["exports"], function (exports) {
       this.behavior = behavior;
       this.changeHandler = changeHandler;
       this.observer = new MutationObserver(this.onChange.bind(this));
-    };
+    }
 
-    _prototypeProperties(ChildBinder, null, {
+    _prototypeProperties(ChildObserverBinder, null, {
       bind: {
-        value: function (source) {
-          var items, results, i, ii, node, behavior = this.behavior;
+        value: function bind(source) {
+          var items,
+              results,
+              i,
+              ii,
+              node,
+              behavior = this.behavior;
 
           this.observer.observe(this.target, { childList: true, subtree: true });
 
@@ -71,7 +76,7 @@ define(["exports"], function (exports) {
         configurable: true
       },
       unbind: {
-        value: function () {
+        value: function unbind() {
           this.observer.disconnect();
         },
         writable: true,
@@ -79,12 +84,19 @@ define(["exports"], function (exports) {
         configurable: true
       },
       onChange: {
-        value: function (mutations) {
+        value: function onChange(mutations) {
           var items = this.behavior[this.property],
               selector = this.selector;
 
           mutations.forEach(function (record) {
-            var added = record.addedNodes, removed = record.removedNodes, prev = record.previousSibling, i, ii, primary, index, node;
+            var added = record.addedNodes,
+                removed = record.removedNodes,
+                prev = record.previousSibling,
+                i,
+                ii,
+                primary,
+                index,
+                node;
 
             for (i = 0, ii = removed.length; i < ii; ++i) {
               node = removed[i];
@@ -126,8 +138,8 @@ define(["exports"], function (exports) {
       }
     });
 
-    return ChildBinder;
+    return ChildObserverBinder;
   })();
 
-  exports.ChildBinder = ChildBinder;
+  exports.ChildObserverBinder = ChildObserverBinder;
 });

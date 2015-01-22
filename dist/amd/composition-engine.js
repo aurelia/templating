@@ -13,14 +13,14 @@ define(["exports", "aurelia-metadata", "./view-strategy", "./resource-coordinato
   var ViewEngine = _viewEngine.ViewEngine;
   var CustomElement = _customElement.CustomElement;
   var CompositionEngine = (function () {
-    var CompositionEngine = function CompositionEngine(resourceCoordinator, viewEngine) {
+    function CompositionEngine(resourceCoordinator, viewEngine) {
       this.resourceCoordinator = resourceCoordinator;
       this.viewEngine = viewEngine;
-    };
+    }
 
     _prototypeProperties(CompositionEngine, {
       inject: {
-        value: function () {
+        value: function inject() {
           return [ResourceCoordinator, ViewEngine];
         },
         writable: true,
@@ -29,7 +29,7 @@ define(["exports", "aurelia-metadata", "./view-strategy", "./resource-coordinato
       }
     }, {
       activate: {
-        value: function (instruction) {
+        value: function activate(instruction) {
           if (instruction.skipActivation || typeof instruction.viewModel.activate !== "function") {
             return Promise.resolve();
           }
@@ -41,7 +41,7 @@ define(["exports", "aurelia-metadata", "./view-strategy", "./resource-coordinato
         configurable: true
       },
       createBehaviorAndSwap: {
-        value: function (instruction) {
+        value: function createBehaviorAndSwap(instruction) {
           return this.createBehavior(instruction).then(function (behavior) {
             instruction.viewSlot.swap(behavior.view);
 
@@ -57,7 +57,7 @@ define(["exports", "aurelia-metadata", "./view-strategy", "./resource-coordinato
         configurable: true
       },
       createBehavior: {
-        value: function (instruction) {
+        value: function createBehavior(instruction) {
           var childContainer = instruction.childContainer,
               viewModelInfo = instruction.viewModelInfo,
               viewModel = instruction.viewModel;
@@ -97,7 +97,7 @@ define(["exports", "aurelia-metadata", "./view-strategy", "./resource-coordinato
         configurable: true
       },
       createViewModel: {
-        value: function (instruction) {
+        value: function createViewModel(instruction) {
           var childContainer = instruction.childContainer || instruction.container.createChild();
 
           instruction.viewModel = instruction.viewResources ? instruction.viewResources.relativeToView(instruction.viewModel) : instruction.viewModel;
@@ -114,7 +114,7 @@ define(["exports", "aurelia-metadata", "./view-strategy", "./resource-coordinato
         configurable: true
       },
       compose: {
-        value: function (instruction) {
+        value: function compose(instruction) {
           var _this = this;
           instruction.childContainer = instruction.childContainer || instruction.container.createChild();
           instruction.view = ViewStrategy.normalize(instruction.view);

@@ -12,6 +12,25 @@ export class ViewSlot {
     anchor.viewSlot = this;
   }
 
+  transformChildNodesIntoView(){
+    var parent = this.anchor;
+
+    this.children.push({
+      removeNodes(){
+        var last;
+
+        while(last = parent.lastChild) {
+          parent.removeChild(last);
+        }
+      },
+      created(){},
+      bind(){},
+      unbind(){},
+      attached(){},
+      detached(){}
+    });
+  }
+
   bind(executionContext){
     var i, ii, children;
 

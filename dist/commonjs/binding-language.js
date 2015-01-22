@@ -6,11 +6,11 @@ var _prototypeProperties = function (child, staticProps, instanceProps) {
 };
 
 var BindingLanguage = (function () {
-  var BindingLanguage = function BindingLanguage() {};
+  function BindingLanguage() {}
 
   _prototypeProperties(BindingLanguage, null, {
     inspectAttribute: {
-      value: function (resources, attrName, attrValue) {
+      value: function inspectAttribute(resources, attrName, attrValue) {
         throw new Error("A BindingLanguage must implement inspectAttribute(...)");
       },
       writable: true,
@@ -18,7 +18,7 @@ var BindingLanguage = (function () {
       configurable: true
     },
     createAttributeInstruction: {
-      value: function (resources, element, info, existingInstruction) {
+      value: function createAttributeInstruction(resources, element, info, existingInstruction) {
         throw new Error("A BindingLanguage must implement createAttributeInstruction(...)");
       },
       writable: true,
@@ -26,7 +26,7 @@ var BindingLanguage = (function () {
       configurable: true
     },
     parseText: {
-      value: function (resources, value) {
+      value: function parseText(resources, value) {
         throw new Error("A BindingLanguage must implement parseText(...)");
       },
       writable: true,

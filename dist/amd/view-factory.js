@@ -39,7 +39,9 @@ define(["exports", "aurelia-dependency-injection", "./view", "./view-slot", "./c
   }
 
   function createElementContainer(parent, element, instruction, executionContext, children, resources) {
-    var container = parent.createChild(), providers, i;
+    var container = parent.createChild(),
+        providers,
+        i;
 
     container.element = element;
     container.instruction = instruction;
@@ -61,7 +63,13 @@ define(["exports", "aurelia-dependency-injection", "./view", "./view-slot", "./c
   }
 
   function applyInstructions(containers, executionContext, element, instruction, behaviors, bindings, children, contentSelectors, resources) {
-    var behaviorInstructions = instruction.behaviorInstructions, expressions = instruction.expressions, elementContainer, i, ii, current, instance;
+    var behaviorInstructions = instruction.behaviorInstructions,
+        expressions = instruction.expressions,
+        elementContainer,
+        i,
+        ii,
+        current,
+        instance;
 
     if (instruction.contentExpression) {
       bindings.push(instruction.contentExpression.createBinding(element.nextSibling));
@@ -95,16 +103,16 @@ define(["exports", "aurelia-dependency-injection", "./view", "./view-slot", "./c
   }
 
   var BoundViewFactory = (function () {
-    var BoundViewFactory = function BoundViewFactory(parentContainer, viewFactory, executionContext) {
+    function BoundViewFactory(parentContainer, viewFactory, executionContext) {
       this.parentContainer = parentContainer;
       this.viewFactory = viewFactory;
       this.executionContext = executionContext;
       this.factoryOptions = { behaviorInstance: false };
-    };
+    }
 
     _prototypeProperties(BoundViewFactory, null, {
       create: {
-        value: function (executionContext) {
+        value: function create(executionContext) {
           var childContainer = this.parentContainer.createChild(),
               context = executionContext || this.executionContext;
 
@@ -130,15 +138,15 @@ define(["exports", "aurelia-dependency-injection", "./view", "./view-slot", "./c
   };
 
   var ViewFactory = (function () {
-    var ViewFactory = function ViewFactory(template, instructions, resources) {
+    function ViewFactory(template, instructions, resources) {
       this.template = template;
       this.instructions = instructions;
       this.resources = resources;
-    };
+    }
 
     _prototypeProperties(ViewFactory, null, {
       create: {
-        value: function (container, executionContext) {
+        value: function create(container, executionContext) {
           var _this = this;
           var options = arguments[2] === undefined ? defaultFactoryOptions : arguments[2];
           return (function () {

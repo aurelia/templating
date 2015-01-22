@@ -1,4 +1,4 @@
-import {getAnnotation, Origin, ResourceType} from 'aurelia-metadata';
+import {Metadata, Origin, ResourceType} from 'aurelia-metadata';
 import {BehaviorInstance} from './behavior-instance';
 import {configureBehavior} from './behaviors';
 import {ContentSelector} from './content-selector';
@@ -8,7 +8,8 @@ import {hyphenate} from './util';
 
 var defaultInstruction = { suppressBind:false },
     contentSelectorFactoryOptions = { suppressBind:true },
-    hasShadowDOM = !!HTMLElement.prototype.createShadowRoot;
+    hasShadowDOM = !!HTMLElement.prototype.createShadowRoot,
+    valuePropertyName = 'value';
 
 export class UseShadowDOM {}
 
@@ -28,9 +29,9 @@ export class CustomElement extends ResourceType {
   load(container, target, viewStrategy){
     var annotation, options;
 
-    configureBehavior(this, container, target);
+    configureBehavior(container, this, target, valuePropertyName);
 
-    this.targetShadowDOM = getAnnotation(target, UseShadowDOM) !== null;
+    this.targetShadowDOM = Metadata.on(target).has(UseShadowDOM);
     this.usesShadowDOM = this.targetShadowDOM && hasShadowDOM;
 
     viewStrategy = viewStrategy || ViewStrategy.getDefault(target);
@@ -72,7 +73,7 @@ export class CustomElement extends ResourceType {
 
   create(container, instruction=defaultInstruction, element=null){
     var executionContext = instruction.executionContext || container.get(this.target),
-        behaviorInstance = new BehaviorInstance(this.taskQueue, this.observerLocator, this, executionContext, instruction),
+        behaviorInstance = new BehaviorInstance(this, executionContext, instruction),
         host;
 
     if(this.viewFactory){

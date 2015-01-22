@@ -9,7 +9,12 @@ System.register(["./resource-registry", "./view-factory", "./binding-language"],
   }
 
   function configureProperties(instruction, resources) {
-    var type = instruction.type, attrName = instruction.attrName, attributes = instruction.attributes, property, key, value;
+    var type = instruction.type,
+        attrName = instruction.attrName,
+        attributes = instruction.attributes,
+        property,
+        key,
+        value;
 
     var knownAttribute = resources.attributeMap[attrName];
     if (knownAttribute && attrName in attributes && knownAttribute !== attrName) {
@@ -23,11 +28,11 @@ System.register(["./resource-registry", "./view-factory", "./binding-language"],
       if (typeof value !== "string") {
         property = type.attributes[key];
 
-        if (!property) {
-          throw new Error("Attempted to set attribute \"" + key + "\" which does not exist on " + type.target.name + ".");
+        if (property !== undefined) {
+          value.targetProperty = property.name;
+        } else {
+          value.targetProperty = key;
         }
-
-        value.targetProperty = property.name;
       }
     }
   }
@@ -55,13 +60,13 @@ System.register(["./resource-registry", "./view-factory", "./binding-language"],
       defaultCompileOptions = { targetShadowDOM: false };
       hasShadowDOM = !!HTMLElement.prototype.createShadowRoot;
       ViewCompiler = (function () {
-        var ViewCompiler = function ViewCompiler(bindingLanguage) {
+        function ViewCompiler(bindingLanguage) {
           this.bindingLanguage = bindingLanguage;
-        };
+        }
 
         _prototypeProperties(ViewCompiler, {
           inject: {
-            value: function () {
+            value: function inject() {
               return [BindingLanguage];
             },
             writable: true,
@@ -70,7 +75,7 @@ System.register(["./resource-registry", "./view-factory", "./binding-language"],
           }
         }, {
           compile: {
-            value: function (templateOrFragment, resources) {
+            value: function compile(templateOrFragment, resources) {
               var _this = this;
               var options = arguments[2] === undefined ? defaultCompileOptions : arguments[2];
               return (function () {
@@ -99,7 +104,7 @@ System.register(["./resource-registry", "./view-factory", "./binding-language"],
             configurable: true
           },
           compileNode: {
-            value: function (node, resources, instructions, parentNode, parentInjectorId, targetLightDOM) {
+            value: function compileNode(node, resources, instructions, parentNode, parentInjectorId, targetLightDOM) {
               switch (node.nodeType) {
                 case 1:
                   return this.compileElement(node, resources, instructions, parentNode, parentInjectorId, targetLightDOM);
@@ -128,8 +133,27 @@ System.register(["./resource-registry", "./view-factory", "./binding-language"],
             configurable: true
           },
           compileElement: {
-            value: function (node, resources, instructions, parentNode, parentInjectorId, targetLightDOM) {
-              var tagName = node.tagName.toLowerCase(), attributes = node.attributes, expressions = [], behaviorInstructions = [], providers = [], bindingLanguage = this.bindingLanguage, liftingInstruction, viewFactory, type, elementInstruction, elementProperty, i, ii, attr, attrName, attrValue, instruction, info, property, knownAttribute;
+            value: function compileElement(node, resources, instructions, parentNode, parentInjectorId, targetLightDOM) {
+              var tagName = node.tagName.toLowerCase(),
+                  attributes = node.attributes,
+                  expressions = [],
+                  behaviorInstructions = [],
+                  providers = [],
+                  bindingLanguage = this.bindingLanguage,
+                  liftingInstruction,
+                  viewFactory,
+                  type,
+                  elementInstruction,
+                  elementProperty,
+                  i,
+                  ii,
+                  attr,
+                  attrName,
+                  attrValue,
+                  instruction,
+                  info,
+                  property,
+                  knownAttribute;
 
               if (tagName === "content") {
                 if (targetLightDOM) {
@@ -158,18 +182,43 @@ System.register(["./resource-registry", "./view-factory", "./binding-language"],
                 attrValue = attr.value;
                 info = bindingLanguage.inspectAttribute(resources, attrName, attrValue);
                 type = resources.getAttribute(info.attrName);
+                elementProperty = null;
 
-                if (type && !info.command && !info.expression) {
+                if (type) {
                   knownAttribute = resources.attributeMap[info.attrName];
                   if (knownAttribute) {
                     property = type.attributes[knownAttribute];
-                    info.command = property && property.hasOptions ? "options" : null;
+
+                    if (property) {
+                      info.defaultBindingMode = property.defaultBindingMode;
+
+                      if (!info.command && !info.expression) {
+                        info.command = property.hasOptions ? "options" : null;
+                      }
+                    }
+                  }
+                } else if (elementInstruction) {
+                  elementProperty = elementInstruction.type.attributes[info.attrName];
+                  if (elementProperty) {
+                    info.defaultBindingMode = elementProperty.defaultBindingMode;
+
+                    if (!info.command && !info.expression) {
+                      info.command = elementProperty.hasOptions ? "options" : null;
+                    }
                   }
                 }
 
-                instruction = bindingLanguage.createAttributeInstruction(resources, node, info);
+                if (elementProperty) {
+                  instruction = bindingLanguage.createAttributeInstruction(resources, node, info, elementInstruction);
+                } else {
+                  instruction = bindingLanguage.createAttributeInstruction(resources, node, info);
+                }
 
                 if (instruction) {
+                  if (instruction.alteredAttr) {
+                    type = resources.getAttribute(instruction.attrName);
+                  }
+
                   if (instruction.discrete) {
                     expressions.push(instruction);
                   } else {
@@ -184,9 +233,8 @@ System.register(["./resource-registry", "./view-factory", "./binding-language"],
                       } else {
                         behaviorInstructions.push(instruction);
                       }
-                    } else if (elementInstruction && (elementProperty = elementInstruction.type.attributes[instruction.attrName])) {
-                      elementInstruction.attributes[instruction.attrName] = instruction.attributes[instruction.attrName];
-                      elementInstruction.attributes[instruction.attrName].targetProperty = elementProperty.name;
+                    } else if (elementProperty) {
+                      elementInstruction.attributes[info.attrName].targetProperty = elementProperty.name;
                     } else {
                       expressions.push(instruction.attributes[instruction.attrName]);
                     }
@@ -203,7 +251,7 @@ System.register(["./resource-registry", "./view-factory", "./binding-language"],
                     } else {
                       behaviorInstructions.push(instruction);
                     }
-                  } else if (elementInstruction && elementInstruction.type.attributes[attrName]) {
+                  } else if (elementProperty) {
                     elementInstruction.attributes[attrName] = attrValue;
                   }
                 }

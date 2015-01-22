@@ -28,11 +28,11 @@ function configureProperties(instruction, resources){
     if(typeof value !== 'string'){
       property = type.attributes[key];
 
-      if(!property){
-        throw new Error(`Attempted to set attribute "${key}" which does not exist on ${type.target.name}.`);
+      if(property !== undefined){
+        value.targetProperty = property.name;
+      }else{
+        value.targetProperty = key;
       }
-
-      value.targetProperty = property.name;
     }
   }
 }
@@ -132,18 +132,43 @@ export class ViewCompiler {
       attrValue = attr.value;
       info = bindingLanguage.inspectAttribute(resources, attrName, attrValue);
       type = resources.getAttribute(info.attrName);
+      elementProperty = null;
 
-      if(type && !info.command && !info.expression){
-        knownAttribute = resources.attributeMap[info.attrName];
+      if(type){ //do we have an attached behavior?
+        knownAttribute = resources.attributeMap[info.attrName]; //map the local name to real name
         if(knownAttribute){
           property = type.attributes[knownAttribute];
-          info.command = (property && property.hasOptions) ? 'options' : null;
+
+          if(property){ //if there's a defined property
+            info.defaultBindingMode = property.defaultBindingMode; //set the default binding mode
+
+            if(!info.command && !info.expression){ // if there is no command or detected expression
+              info.command = property.hasOptions ? 'options' : null; //and it is an optons property, set the options command
+            }
+          }
+        }
+      }else if(elementInstruction){ //or if this is on a custom element
+        elementProperty = elementInstruction.type.attributes[info.attrName];
+        if(elementProperty){ //and this attribute is a custom property
+          info.defaultBindingMode = elementProperty.defaultBindingMode; //set the default binding mode
+          
+          if(!info.command && !info.expression){ // if there is no command or detected expression
+            info.command = elementProperty.hasOptions ? 'options' : null; //and it is an optons property, set the options command
+          }
         }
       }
 
-      instruction = bindingLanguage.createAttributeInstruction(resources, node, info);
+      if(elementProperty){
+        instruction = bindingLanguage.createAttributeInstruction(resources, node, info, elementInstruction);
+      }else{
+        instruction = bindingLanguage.createAttributeInstruction(resources, node, info);
+      }
 
       if(instruction){ //HAS BINDINGS
+        if(instruction.alteredAttr){
+          type = resources.getAttribute(instruction.attrName);
+        }
+
         if(instruction.discrete){ //ref binding or listener binding
           expressions.push(instruction);
         }else{ //attribute bindings
@@ -158,9 +183,8 @@ export class ViewCompiler {
             }else{ //attached behavior
               behaviorInstructions.push(instruction);
             }
-          }else if(elementInstruction && (elementProperty = elementInstruction.type.attributes[instruction.attrName])) { //custom element attribute
-            elementInstruction.attributes[instruction.attrName] = instruction.attributes[instruction.attrName];
-            elementInstruction.attributes[instruction.attrName].targetProperty = elementProperty.name;
+          }else if(elementProperty) { //custom element attribute
+            elementInstruction.attributes[info.attrName].targetProperty = elementProperty.name;
           } else{ //standard attribute binding
             expressions.push(instruction.attributes[instruction.attrName]);
           }
@@ -177,7 +201,7 @@ export class ViewCompiler {
           }else{ //attached behavior
             behaviorInstructions.push(instruction);
           }
-        }else if(elementInstruction && elementInstruction.type.attributes[attrName]){ //custom element attribute
+        }else if(elementProperty){ //custom element attribute
           elementInstruction.attributes[attrName] = attrValue;
         }
 

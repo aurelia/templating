@@ -8,7 +8,7 @@ define(["exports", "./content-selector"], function (exports, _contentSelector) {
 
   var ContentSelector = _contentSelector.ContentSelector;
   var ViewSlot = (function () {
-    var ViewSlot = function ViewSlot(anchor, anchorIsContainer, executionContext) {
+    function ViewSlot(anchor, anchorIsContainer, executionContext) {
       this.anchor = anchor;
       this.viewAddMethod = anchorIsContainer ? "appendNodesTo" : "insertNodesBefore";
       this.executionContext = executionContext;
@@ -17,11 +17,34 @@ define(["exports", "./content-selector"], function (exports, _contentSelector) {
       this.isAttached = false;
 
       anchor.viewSlot = this;
-    };
+    }
 
     _prototypeProperties(ViewSlot, null, {
+      transformChildNodesIntoView: {
+        value: function transformChildNodesIntoView() {
+          var parent = this.anchor;
+
+          this.children.push({
+            removeNodes: function removeNodes() {
+              var last;
+
+              while (last = parent.lastChild) {
+                parent.removeChild(last);
+              }
+            },
+            created: function created() {},
+            bind: function bind() {},
+            unbind: function unbind() {},
+            attached: function attached() {},
+            detached: function detached() {}
+          });
+        },
+        writable: true,
+        enumerable: true,
+        configurable: true
+      },
       bind: {
-        value: function (executionContext) {
+        value: function bind(executionContext) {
           var i, ii, children;
 
           if (this.isBound) {
@@ -45,8 +68,10 @@ define(["exports", "./content-selector"], function (exports, _contentSelector) {
         configurable: true
       },
       unbind: {
-        value: function () {
-          var i, ii, children = this.children;
+        value: function unbind() {
+          var i,
+              ii,
+              children = this.children;
           this.isBound = false;
 
           for (i = 0, ii = children.length; i < ii; ++i) {
@@ -58,7 +83,7 @@ define(["exports", "./content-selector"], function (exports, _contentSelector) {
         configurable: true
       },
       add: {
-        value: function (view) {
+        value: function add(view) {
           view[this.viewAddMethod](this.anchor);
           this.children.push(view);
 
@@ -71,7 +96,7 @@ define(["exports", "./content-selector"], function (exports, _contentSelector) {
         configurable: true
       },
       insert: {
-        value: function (index, view) {
+        value: function insert(index, view) {
           if (index === 0 && !this.children.length || index >= this.children.length) {
             this.add(view);
           } else {
@@ -88,7 +113,7 @@ define(["exports", "./content-selector"], function (exports, _contentSelector) {
         configurable: true
       },
       remove: {
-        value: function (view) {
+        value: function remove(view) {
           view.removeNodes();
           this.children.splice(this.children.indexOf(view), 1);
 
@@ -101,7 +126,7 @@ define(["exports", "./content-selector"], function (exports, _contentSelector) {
         configurable: true
       },
       removeAt: {
-        value: function (index) {
+        value: function removeAt(index) {
           var view = this.children[index];
 
           view.removeNodes();
@@ -118,7 +143,7 @@ define(["exports", "./content-selector"], function (exports, _contentSelector) {
         configurable: true
       },
       removeAll: {
-        value: function () {
+        value: function removeAll() {
           var children = this.children,
               ii = children.length,
               i;
@@ -140,7 +165,7 @@ define(["exports", "./content-selector"], function (exports, _contentSelector) {
         configurable: true
       },
       swap: {
-        value: function (view) {
+        value: function swap(view) {
           this.removeAll();
           this.add(view);
         },
@@ -149,7 +174,7 @@ define(["exports", "./content-selector"], function (exports, _contentSelector) {
         configurable: true
       },
       attached: {
-        value: function () {
+        value: function attached() {
           var i, ii, children;
 
           if (this.isAttached) {
@@ -168,7 +193,7 @@ define(["exports", "./content-selector"], function (exports, _contentSelector) {
         configurable: true
       },
       detached: {
-        value: function () {
+        value: function detached() {
           var i, ii, children;
 
           if (this.isAttached) {
@@ -184,7 +209,7 @@ define(["exports", "./content-selector"], function (exports, _contentSelector) {
         configurable: true
       },
       installContentSelectors: {
-        value: function (contentSelectors) {
+        value: function installContentSelectors(contentSelectors) {
           this.contentSelectors = contentSelectors;
           this.add = this.contentSelectorAdd;
           this.insert = this.contentSelectorInsert;
@@ -197,7 +222,7 @@ define(["exports", "./content-selector"], function (exports, _contentSelector) {
         configurable: true
       },
       contentSelectorAdd: {
-        value: function (view) {
+        value: function contentSelectorAdd(view) {
           ContentSelector.applySelectors(view, this.contentSelectors, function (contentSelector, group) {
             return contentSelector.add(group);
           });
@@ -213,7 +238,7 @@ define(["exports", "./content-selector"], function (exports, _contentSelector) {
         configurable: true
       },
       contentSelectorInsert: {
-        value: function (index, view) {
+        value: function contentSelectorInsert(index, view) {
           if (index === 0 && !this.children.length || index >= this.children.length) {
             this.add(view);
           } else {
@@ -233,8 +258,11 @@ define(["exports", "./content-selector"], function (exports, _contentSelector) {
         configurable: true
       },
       contentSelectorRemove: {
-        value: function (view) {
-          var index = this.children.indexOf(view), contentSelectors = this.contentSelectors, i, ii;
+        value: function contentSelectorRemove(view) {
+          var index = this.children.indexOf(view),
+              contentSelectors = this.contentSelectors,
+              i,
+              ii;
 
           for (i = 0, ii = contentSelectors.length; i < ii; ++i) {
             contentSelectors[i].removeAt(index, view.fragment);
@@ -251,8 +279,11 @@ define(["exports", "./content-selector"], function (exports, _contentSelector) {
         configurable: true
       },
       contentSelectorRemoveAt: {
-        value: function (index) {
-          var view = this.children[index], contentSelectors = this.contentSelectors, i, ii;
+        value: function contentSelectorRemoveAt(index) {
+          var view = this.children[index],
+              contentSelectors = this.contentSelectors,
+              i,
+              ii;
 
           for (i = 0, ii = contentSelectors.length; i < ii; ++i) {
             contentSelectors[i].removeAt(index, view.fragment);
@@ -271,7 +302,7 @@ define(["exports", "./content-selector"], function (exports, _contentSelector) {
         configurable: true
       },
       contentSelectorRemoveAll: {
-        value: function () {
+        value: function contentSelectorRemoveAll() {
           var children = this.children,
               contentSelectors = this.contentSelectors,
               ii = children.length,

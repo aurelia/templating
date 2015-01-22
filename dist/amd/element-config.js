@@ -6,44 +6,46 @@ define(["exports", "aurelia-metadata", "aurelia-binding"], function (exports, _a
     if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
   };
 
-  var _inherits = function (child, parent) {
-    if (typeof parent !== "function" && parent !== null) {
-      throw new TypeError("Super expression must either be null or a function, not " + typeof parent);
+  var _inherits = function (subClass, superClass) {
+    if (typeof superClass !== "function" && superClass !== null) {
+      throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
     }
-    child.prototype = Object.create(parent && parent.prototype, {
+    subClass.prototype = Object.create(superClass && superClass.prototype, {
       constructor: {
-        value: child,
+        value: subClass,
         enumerable: false,
         writable: true,
         configurable: true
       }
     });
-    if (parent) child.__proto__ = parent;
+    if (superClass) subClass.__proto__ = superClass;
   };
 
   var ResourceType = _aureliaMetadata.ResourceType;
   var EventManager = _aureliaBinding.EventManager;
   var ElementConfig = (function (ResourceType) {
-    var ElementConfig = function ElementConfig(tagName) {
-      this.tagName = tagName;
-    };
+    function ElementConfig() {
+      if (Object.getPrototypeOf(ElementConfig) !== null) {
+        Object.getPrototypeOf(ElementConfig).apply(this, arguments);
+      }
+    }
 
     _inherits(ElementConfig, ResourceType);
 
     _prototypeProperties(ElementConfig, null, {
       load: {
-        value: function (container, target) {
-          var config = target(),
+        value: function load(container, target) {
+          var config = new target(),
               eventManager = container.get(EventManager);
 
-          eventManager.registerElementConfig(this.tagName, config);
+          eventManager.registerElementConfig(config);
         },
         writable: true,
         enumerable: true,
         configurable: true
       },
       register: {
-        value: function () {},
+        value: function register() {},
         writable: true,
         enumerable: true,
         configurable: true

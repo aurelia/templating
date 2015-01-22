@@ -1,16 +1,38 @@
 import {hyphenate} from './util';
+import {ONE_WAY,TWO_WAY,ONE_TIME} from 'aurelia-binding';
 
-export class Property {
-  constructor(name, changeHandler, attribute, defaultValue){
+export class BehaviorProperty {
+  constructor(name, changeHandler, attribute, defaultValue, defaultBindingMode){
     this.name = name;
     this.changeHandler = changeHandler;
     this.attribute = attribute || hyphenate(name);
     this.defaultValue = defaultValue;
+    this.defaultBindingMode = defaultBindingMode || ONE_WAY;
   }
 
-  configureBehavior(behavior){
+  bindingIsTwoWay(){
+    this.defaultBindingMode = TWO_WAY;
+    return this;
+  }
+
+  bindingIsOneWay(){
+    this.defaultBindingMode = ONE_WAY;
+    return this;
+  }
+
+  bindingIsOneTime(){
+    this.defaultBindingMode = ONE_TIME;
+    return this;
+  }
+
+  define(taskQueue, behavior){
+    var that = this, 
+        handlerName;
+
+    this.taskQueue = taskQueue;
+
     if(!this.changeHandler){
-      var handlerName = this.name + 'Changed';
+      handlerName = this.name + 'Changed';
       if(handlerName in behavior.target.prototype){
         this.changeHandler = handlerName;
       }
@@ -18,29 +40,34 @@ export class Property {
 
     behavior.properties.push(this);
     behavior.attributes[this.attribute] = this;
+
+    Object.defineProperty(behavior.target.prototype, this.name, {
+      configurable: true,
+      enumerable: true,
+      get: function(){
+        return this.__observers__[that.name].getValue();
+      },
+      set: function(value){
+        this.__observers__[that.name].setValue(value);
+      }
+    });
   }
 
-  create(taskQueue, executionContext, observerLookup, attributes, behaviorHandlesBind){
-    var selfSubscriber, observer, attribute, info;
-      
+  createObserver(executionContext){
+    var selfSubscriber = null;
+    
     if(this.changeHandler){
       selfSubscriber = (newValue, oldValue) => executionContext[this.changeHandler](newValue, oldValue);
     }
 
-    observer = observerLookup[this.name] = new BehaviorPropertyObserver(
-      taskQueue, 
-      executionContext, 
-      this.name,
-      selfSubscriber
-      );
+    return new BehaviorPropertyObserver(this.taskQueue, executionContext, this.name, selfSubscriber);
+  }
 
-    Object.defineProperty(executionContext, this.name, {
-      configurable: true,
-      enumerable: true,
-      get: observer.getValue.bind(observer),
-      set: observer.setValue.bind(observer)
-    });
+  initialize(executionContext, observerLookup, attributes, behaviorHandlesBind, boundProperties){
+    var selfSubscriber, observer, attribute;
 
+    observer = observerLookup[this.name];
+    selfSubscriber = observer.selfSubscriber;
     attribute = attributes[this.attribute];
 
     if(behaviorHandlesBind){
@@ -51,7 +78,7 @@ export class Property {
       executionContext[this.name] = attribute;
       observer.call();
     }else if(attribute){
-      info = {observer:observer, binding:attribute.createBinding(executionContext)};
+      boundProperties.push({observer:observer, binding:attribute.createBinding(executionContext)});
     }else if(this.defaultValue){
       executionContext[this.name] = this.defaultValue;
       observer.call();
@@ -59,15 +86,14 @@ export class Property {
 
     observer.publishing = true;
     observer.selfSubscriber = selfSubscriber;
-    return info;
   }
 }
 
-export class OptionsProperty extends Property{
+export class OptionsProperty extends BehaviorProperty {
   constructor(attribute, ...rest){
     if(typeof attribute === 'string'){
       this.attribute = attribute;
-    }else{
+    }else if(attribute){
       rest.unshift(attribute);
     }
 
@@ -75,7 +101,12 @@ export class OptionsProperty extends Property{
     this.hasOptions = true;
   }
 
-  configureBehavior(behavior){
+  dynamic(){
+    this.isDynamic = true;
+    return this;
+  }
+
+  define(taskQueue, behavior){
     var i, ii, properties = this.properties;
 
     this.attribute = this.attribute || behavior.name;
@@ -84,11 +115,61 @@ export class OptionsProperty extends Property{
     behavior.attributes[this.attribute] = this;
 
     for(i = 0, ii = properties.length; i < ii; ++i){
-      properties[i].configureBehavior(behavior);
+      properties[i].define(taskQueue, behavior);
     }
   }
 
-  create(){}
+  createObserver(executionContext){}
+
+  initialize(executionContext, observerLookup, attributes, behaviorHandlesBind, boundProperties){
+    var value, key, info;
+
+    if(!this.isDynamic){
+      return;
+    }
+
+    for(key in attributes){
+      this.createDynamicProperty(executionContext, observerLookup, behaviorHandlesBind, key, attributes[key], boundProperties);
+    }
+  }
+
+  createDynamicProperty(executionContext, observerLookup, behaviorHandlesBind, name, attribute, boundProperties){
+    var changeHandlerName = name + 'Changed',
+        selfSubscriber = null, observer, info;
+
+    if(changeHandlerName in executionContext){
+      selfSubscriber = (newValue, oldValue) => executionContext[changeHandlerName](newValue, oldValue);
+    }
+
+    observer = observerLookup[name] = new BehaviorPropertyObserver(
+        this.taskQueue, 
+        executionContext, 
+        name,
+        selfSubscriber
+        );
+
+    Object.defineProperty(executionContext, name, {
+        configurable: true,
+        enumerable: true,
+        get: observer.getValue.bind(observer),
+        set: observer.setValue.bind(observer)
+      });
+
+    if(behaviorHandlesBind){
+      observer.selfSubscriber = null;
+    }
+
+    if(typeof attribute === 'string'){
+      executionContext[name] = attribute;
+      observer.call();
+    }else if(attribute){
+      info = {observer:observer, binding:attribute.createBinding(executionContext)};
+      boundProperties.push(info);
+    }
+
+    observer.publishing = true;
+    observer.selfSubscriber = selfSubscriber;
+  }
 }
 
 class BehaviorPropertyObserver {
@@ -96,7 +177,6 @@ class BehaviorPropertyObserver {
     this.taskQueue = taskQueue;
     this.obj = obj;
     this.propertyName = propertyName;
-    this.currentValue = obj[propertyName];
     this.callbacks = [];
     this.notqueued = true;
     this.publishing = false;
@@ -130,7 +210,7 @@ class BehaviorPropertyObserver {
     this.notqueued = true;
 
     if(newValue != oldValue){
-      if(this.selfSubscriber){
+      if(this.selfSubscriber !== null){
         this.selfSubscriber(newValue, oldValue);
       }
 

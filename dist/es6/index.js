@@ -23,10 +23,12 @@ export {ViewSlot} from './view-slot';
 export {BindingLanguage} from './binding-language';
 export {CompositionEngine} from './composition-engine';
 
+export var Behavior = Metadata;
+
 Metadata.configure.classHelper('withProperty', BehaviorProperty);
 Metadata.configure.classHelper('withOptions', OptionsProperty);
 Metadata.configure.classHelper('attachedBehavior', AttachedBehavior);
-Metadata.configure.classHelper('observeChildren', ChildObserver);
+Metadata.configure.classHelper('syncChildren', ChildObserver);
 Metadata.configure.classHelper('customElement', CustomElement);
 Metadata.configure.classHelper('useShadowDOM', UseShadowDOM);
 Metadata.configure.classHelper('elementConfig', ElementConfig);

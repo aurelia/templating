@@ -7,7 +7,7 @@ define(["exports"], function (exports) {
   };
 
   var View = (function () {
-    var View = function View(fragment, behaviors, bindings, children, systemControlled, contentSelectors) {
+    function View(fragment, behaviors, bindings, children, systemControlled, contentSelectors) {
       this.fragment = fragment;
       this.behaviors = behaviors;
       this.bindings = bindings;
@@ -18,12 +18,14 @@ define(["exports"], function (exports) {
       this.lastChild = fragment.lastChild;
       this.isBound = false;
       this.isAttached = false;
-    };
+    }
 
     _prototypeProperties(View, null, {
       created: {
-        value: function (executionContext) {
-          var i, ii, behaviors = this.behaviors;
+        value: function created(executionContext) {
+          var i,
+              ii,
+              behaviors = this.behaviors;
           for (i = 0, ii = behaviors.length; i < ii; ++i) {
             behaviors[i].created(executionContext);
           }
@@ -33,7 +35,7 @@ define(["exports"], function (exports) {
         configurable: true
       },
       bind: {
-        value: function (executionContext, systemUpdate) {
+        value: function bind(executionContext, systemUpdate) {
           var context, behaviors, bindings, children, i, ii;
 
           if (systemUpdate && !this.systemControlled) {
@@ -77,7 +79,7 @@ define(["exports"], function (exports) {
         configurable: true
       },
       addBinding: {
-        value: function (binding) {
+        value: function addBinding(binding) {
           this.bindings.push(binding);
 
           if (this.isBound) {
@@ -89,7 +91,7 @@ define(["exports"], function (exports) {
         configurable: true
       },
       unbind: {
-        value: function () {
+        value: function unbind() {
           var behaviors, bindings, children, i, ii;
 
           if (this.isBound) {
@@ -120,7 +122,7 @@ define(["exports"], function (exports) {
         configurable: true
       },
       insertNodesBefore: {
-        value: function (refNode) {
+        value: function insertNodesBefore(refNode) {
           var parent = refNode.parentNode;
           parent.insertBefore(this.fragment, refNode);
         },
@@ -129,7 +131,7 @@ define(["exports"], function (exports) {
         configurable: true
       },
       appendNodesTo: {
-        value: function (parent) {
+        value: function appendNodesTo(parent) {
           parent.appendChild(this.fragment);
         },
         writable: true,
@@ -137,7 +139,7 @@ define(["exports"], function (exports) {
         configurable: true
       },
       removeNodes: {
-        value: function () {
+        value: function removeNodes() {
           var start = this.firstChild,
               end = this.lastChild,
               fragment = this.fragment,
@@ -162,7 +164,7 @@ define(["exports"], function (exports) {
         configurable: true
       },
       attached: {
-        value: function () {
+        value: function attached() {
           var behaviors, children, i, ii;
 
           if (this.isAttached) {
@@ -190,7 +192,7 @@ define(["exports"], function (exports) {
         configurable: true
       },
       detached: {
-        value: function () {
+        value: function detached() {
           var behaviors, children, i, ii;
 
           if (this.isAttached) {

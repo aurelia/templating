@@ -1,4 +1,4 @@
-define(["exports", "aurelia-loader", "aurelia-dependency-injection", "aurelia-metadata", "aurelia-binding", "./custom-element", "./attached-behavior", "./template-controller", "./view-engine"], function (exports, _aureliaLoader, _aureliaDependencyInjection, _aureliaMetadata, _aureliaBinding, _customElement, _attachedBehavior, _templateController, _viewEngine) {
+define(["exports", "aurelia-loader", "aurelia-path", "aurelia-dependency-injection", "aurelia-metadata", "aurelia-binding", "./custom-element", "./attached-behavior", "./template-controller", "./view-engine", "./resource-registry"], function (exports, _aureliaLoader, _aureliaPath, _aureliaDependencyInjection, _aureliaMetadata, _aureliaBinding, _customElement, _attachedBehavior, _templateController, _viewEngine, _resourceRegistry) {
   "use strict";
 
   var _prototypeProperties = function (child, staticProps, instanceProps) {
@@ -7,9 +7,10 @@ define(["exports", "aurelia-loader", "aurelia-dependency-injection", "aurelia-me
   };
 
   var Loader = _aureliaLoader.Loader;
+  var relativeToFile = _aureliaPath.relativeToFile;
+  var join = _aureliaPath.join;
   var Container = _aureliaDependencyInjection.Container;
-  var getAnnotation = _aureliaMetadata.getAnnotation;
-  var addAnnotation = _aureliaMetadata.addAnnotation;
+  var Metadata = _aureliaMetadata.Metadata;
   var ResourceType = _aureliaMetadata.ResourceType;
   var Origin = _aureliaMetadata.Origin;
   var ValueConverter = _aureliaBinding.ValueConverter;
@@ -17,6 +18,7 @@ define(["exports", "aurelia-loader", "aurelia-dependency-injection", "aurelia-me
   var AttachedBehavior = _attachedBehavior.AttachedBehavior;
   var TemplateController = _templateController.TemplateController;
   var ViewEngine = _viewEngine.ViewEngine;
+  var ResourceRegistry = _resourceRegistry.ResourceRegistry;
 
 
   var id = 0;
@@ -26,19 +28,20 @@ define(["exports", "aurelia-loader", "aurelia-dependency-injection", "aurelia-me
   }
 
   var ResourceCoordinator = (function () {
-    var ResourceCoordinator = function ResourceCoordinator(loader, container, viewEngine) {
+    function ResourceCoordinator(loader, container, viewEngine, appResources) {
       this.loader = loader;
       this.container = container;
       this.viewEngine = viewEngine;
       this.importedModules = {};
       this.importedAnonymous = {};
+      this.appResources = appResources;
       viewEngine.resourceCoordinator = this;
-    };
+    }
 
     _prototypeProperties(ResourceCoordinator, {
       inject: {
-        value: function () {
-          return [Loader, Container, ViewEngine];
+        value: function inject() {
+          return [Loader, Container, ViewEngine, ResourceRegistry];
         },
         writable: true,
         enumerable: true,
@@ -46,7 +49,7 @@ define(["exports", "aurelia-loader", "aurelia-dependency-injection", "aurelia-me
       }
     }, {
       getExistingModuleAnalysis: {
-        value: function (id) {
+        value: function getExistingModuleAnalysis(id) {
           return this.importedModules[id] || this.importedAnonymous[id];
         },
         writable: true,
@@ -54,7 +57,7 @@ define(["exports", "aurelia-loader", "aurelia-dependency-injection", "aurelia-me
         configurable: true
       },
       loadViewModelInfo: {
-        value: function (moduleImport, moduleMember) {
+        value: function loadViewModelInfo(moduleImport, moduleMember) {
           return this._loadAndAnalyzeModuleForElement(moduleImport, moduleMember, this.importedAnonymous);
         },
         writable: true,
@@ -62,7 +65,7 @@ define(["exports", "aurelia-loader", "aurelia-dependency-injection", "aurelia-me
         configurable: true
       },
       loadElement: {
-        value: function (moduleImport, moduleMember, viewStategy) {
+        value: function loadElement(moduleImport, moduleMember, viewStategy) {
           var _this = this;
           return this._loadAndAnalyzeModuleForElement(moduleImport, moduleMember, this.importedModules).then(function (info) {
             var type = info.type;
@@ -81,7 +84,7 @@ define(["exports", "aurelia-loader", "aurelia-dependency-injection", "aurelia-me
         configurable: true
       },
       _loadAndAnalyzeModuleForElement: {
-        value: function (moduleImport, moduleMember, cache) {
+        value: function LoadAndAnalyzeModuleForElement(moduleImport, moduleMember, cache) {
           var _this2 = this;
           var existing = cache[moduleImport];
 
@@ -90,7 +93,14 @@ define(["exports", "aurelia-loader", "aurelia-dependency-injection", "aurelia-me
           }
 
           return this.loader.loadModule(moduleImport).then(function (elementModule) {
-            var analysis = analyzeModule(elementModule, moduleMember), resources = analysis.resources, container = _this2.container, loads = [], type, current, i, ii;
+            var analysis = analyzeModule(elementModule, moduleMember),
+                resources = analysis.resources,
+                container = _this2.container,
+                loads = [],
+                type,
+                current,
+                i,
+                ii;
 
             if (!analysis.element) {
               throw new Error("No element found in module \"" + moduleImport + "\".");
@@ -118,12 +128,35 @@ define(["exports", "aurelia-loader", "aurelia-dependency-injection", "aurelia-me
         configurable: true
       },
       importResources: {
-        value: function (imports) {
-          var i, ii, current, annotation, existing, lookup = {}, finalModules = [], importIds = [];
+        value: function importResources(imports, resourceManifestUrl) {
+          var i,
+              ii,
+              current,
+              annotation,
+              existing,
+              lookup = {},
+              finalModules = [],
+              importIds = [],
+              analysis,
+              type;
 
           for (i = 0, ii = imports.length; i < ii; ++i) {
             current = imports[i];
             annotation = Origin.get(current);
+
+            if (!annotation) {
+              analysis = analyzeModule({ "default": current });
+              type = (analysis.element || analysis.resources[0]).type;
+
+              if (resourceManifestUrl) {
+                annotation = new Origin(relativeToFile("./" + type.name, resourceManifestUrl));
+              } else {
+                annotation = new Origin(join(this.appResources.baseResourceUrl, type.name));
+              }
+
+              Origin.set(current, annotation);
+            }
+
             existing = lookup[annotation.moduleId];
 
             if (!existing) {
@@ -143,7 +176,7 @@ define(["exports", "aurelia-loader", "aurelia-dependency-injection", "aurelia-me
         configurable: true
       },
       importResourcesFromModuleIds: {
-        value: function (importIds) {
+        value: function importResourcesFromModuleIds(importIds) {
           var _this3 = this;
           return this.loader.loadAllModules(importIds).then(function (imports) {
             return _this3.importResourcesFromModules(imports, importIds);
@@ -154,8 +187,21 @@ define(["exports", "aurelia-loader", "aurelia-dependency-injection", "aurelia-me
         configurable: true
       },
       importResourcesFromModules: {
-        value: function (imports, importIds) {
-          var loads = [], i, ii, analysis, type, key, annotation, j, jj, resources, current, existing = this.importedModules, container = this.container, allAnalysis = new Array(imports.length);
+        value: function importResourcesFromModules(imports, importIds) {
+          var loads = [],
+              i,
+              ii,
+              analysis,
+              type,
+              key,
+              annotation,
+              j,
+              jj,
+              resources,
+              current,
+              existing = this.importedModules,
+              container = this.container,
+              allAnalysis = new Array(imports.length);
 
           if (!importIds) {
             importIds = new Array(imports.length);
@@ -222,24 +268,30 @@ define(["exports", "aurelia-loader", "aurelia-dependency-injection", "aurelia-me
 
   exports.ResourceCoordinator = ResourceCoordinator;
   var ResourceModule = (function () {
-    var ResourceModule = function ResourceModule(source, element, resources) {
-      var i, ii;
+    function ResourceModule(source, element, resources) {
+      var i, ii, org;
 
       this.source = source;
       this.element = element;
       this.resources = resources;
 
       if (element) {
-        this.id = Origin.get(element.value).moduleId;
+        org = Origin.get(element.value);
       } else if (resources.length) {
-        this.id = Origin.get(resources[0].value).moduleId;
+        org = Origin.get(resources[0].value);
       }
-    };
+
+      if (org) {
+        this.id = org.id;
+      }
+    }
 
     _prototypeProperties(ResourceModule, null, {
       register: {
-        value: function (registry, name) {
-          var i, ii, resources = this.resources;
+        value: function register(registry, name) {
+          var i,
+              ii,
+              resources = this.resources;
 
           if (this.element) {
             this.element.type.register(registry, name);
@@ -261,7 +313,19 @@ define(["exports", "aurelia-loader", "aurelia-dependency-injection", "aurelia-me
   })();
 
   function analyzeModule(moduleInstance, viewModelMember) {
-    var viewModelType, fallback, annotation, key, exportedValue, resources = [], name, conventional;
+    var viewModelType,
+        fallback,
+        annotation,
+        key,
+        meta,
+        exportedValue,
+        resources = [],
+        name,
+        conventional;
+
+    if (typeof moduleInstance === "function") {
+      moduleInstance = { "default": moduleInstance };
+    }
 
     if (viewModelMember) {
       viewModelType = moduleInstance[viewModelMember];
@@ -274,7 +338,9 @@ define(["exports", "aurelia-loader", "aurelia-dependency-injection", "aurelia-me
         continue;
       }
 
-      annotation = getAnnotation(exportedValue, ResourceType);
+      meta = Metadata.on(exportedValue);
+      annotation = meta.first(ResourceType);
+
       if (annotation) {
         if (!viewModelType && annotation instanceof CustomElement) {
           viewModelType = exportedValue;
@@ -286,7 +352,7 @@ define(["exports", "aurelia-loader", "aurelia-dependency-injection", "aurelia-me
 
         if (conventional = CustomElement.convention(name)) {
           if (!viewModelType) {
-            addAnnotation(exportedValue, conventional);
+            meta.add(conventional);
             viewModelType = exportedValue;
           } else {
             resources.push({ type: conventional, value: exportedValue });
@@ -307,7 +373,7 @@ define(["exports", "aurelia-loader", "aurelia-dependency-injection", "aurelia-me
 
     return new ResourceModule(moduleInstance, viewModelType ? {
       value: viewModelType,
-      type: getAnnotation(viewModelType, CustomElement) || new CustomElement()
+      type: Metadata.on(viewModelType).first(CustomElement) || new CustomElement()
     } : null, resources);
   }
 });

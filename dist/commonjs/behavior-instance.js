@@ -6,31 +6,27 @@ var _prototypeProperties = function (child, staticProps, instanceProps) {
 };
 
 var BehaviorInstance = (function () {
-  var BehaviorInstance = function BehaviorInstance(taskQueue, observerLocator, behaviorType, executionContext, instruction) {
-    this.behaviorType = behaviorType;
+  function BehaviorInstance(behavior, executionContext, instruction) {
+    this.behavior = behavior;
     this.executionContext = executionContext;
 
-    var observerLookup = observerLocator.getObserversLookup(executionContext),
-        handlesBind = behaviorType.handlesBind,
+    var observerLookup = behavior.observerLocator.getObserversLookup(executionContext),
+        handlesBind = behavior.handlesBind,
         attributes = instruction.attributes,
         boundProperties = this.boundProperties = [],
-        properties = behaviorType.properties,
+        properties = behavior.properties,
         i,
-        ii,
-        info;
+        ii;
 
     for (i = 0, ii = properties.length; i < ii; ++i) {
-      info = properties[i].create(taskQueue, executionContext, observerLookup, attributes, handlesBind);
-      if (info !== undefined) {
-        boundProperties.push(info);
-      }
+      properties[i].initialize(executionContext, observerLookup, attributes, handlesBind, boundProperties);
     }
-  };
+  }
 
   _prototypeProperties(BehaviorInstance, null, {
     created: {
-      value: function (context) {
-        if (this.behaviorType.handlesCreated) {
+      value: function created(context) {
+        if (this.behavior.handlesCreated) {
           this.executionContext.created(context);
         }
       },
@@ -39,8 +35,14 @@ var BehaviorInstance = (function () {
       configurable: true
     },
     bind: {
-      value: function (context) {
-        var skipSelfSubscriber = this.behaviorType.handlesBind, boundProperties = this.boundProperties, i, ii, x, observer, selfSubscriber;
+      value: function bind(context) {
+        var skipSelfSubscriber = this.behavior.handlesBind,
+            boundProperties = this.boundProperties,
+            i,
+            ii,
+            x,
+            observer,
+            selfSubscriber;
 
         for (i = 0, ii = boundProperties.length; i < ii; ++i) {
           x = boundProperties[i];
@@ -72,14 +74,16 @@ var BehaviorInstance = (function () {
       configurable: true
     },
     unbind: {
-      value: function () {
-        var boundProperties = this.boundProperties, i, ii;
+      value: function unbind() {
+        var boundProperties = this.boundProperties,
+            i,
+            ii;
 
         if (this.view) {
           this.view.unbind();
         }
 
-        if (this.behaviorType.handlesUnbind) {
+        if (this.behavior.handlesUnbind) {
           this.executionContext.unbind();
         }
 
@@ -92,8 +96,8 @@ var BehaviorInstance = (function () {
       configurable: true
     },
     attached: {
-      value: function () {
-        if (this.behaviorType.handlesAttached) {
+      value: function attached() {
+        if (this.behavior.handlesAttached) {
           this.executionContext.attached();
         }
       },
@@ -102,8 +106,8 @@ var BehaviorInstance = (function () {
       configurable: true
     },
     detached: {
-      value: function () {
-        if (this.behaviorType.handlesDetached) {
+      value: function detached() {
+        if (this.behavior.handlesDetached) {
           this.executionContext.detached();
         }
       },
