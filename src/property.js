@@ -10,17 +10,17 @@ export class BehaviorProperty {
     this.defaultBindingMode = defaultBindingMode || ONE_WAY;
   }
 
-  defaultBindingIsTwoWay(){
+  bindingIsTwoWay(){
     this.defaultBindingMode = TWO_WAY;
     return this;
   }
 
-  defaultBindingIsOneWay(){
+  bindingIsOneWay(){
     this.defaultBindingMode = ONE_WAY;
     return this;
   }
 
-  defaultBindingIsOneTime(){
+  bindingIsOneTime(){
     this.defaultBindingMode = ONE_TIME;
     return this;
   }
