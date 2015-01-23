@@ -199,10 +199,12 @@ class ResourceModule {
       org = Origin.get(element.value);
     }else if(resources.length){
       org = Origin.get(resources[0].value);
+    }else{
+      org = Origin.get(source);
     }
 
     if(org){
-      this.id = org.id;
+      this.id = org.moduleId;
     }
   }
 
