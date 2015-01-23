@@ -26,13 +26,22 @@ export class CustomElement extends ResourceType {
     }
   }
 
-  load(container, target, viewStrategy){
-    var annotation, options;
+  configure(container, target){
+    if(this.configured){
+      return;
+    }
 
     configureBehavior(container, this, target, valuePropertyName);
-
+    
+    this.configured = true;
     this.targetShadowDOM = Metadata.on(target).has(UseShadowDOM);
     this.usesShadowDOM = this.targetShadowDOM && hasShadowDOM;
+  }
+
+  load(container, target, viewStrategy){
+    var options;
+
+    this.configure(container, target);
 
     viewStrategy = viewStrategy || ViewStrategy.getDefault(target);
     options = { targetShadowDOM:this.targetShadowDOM };
