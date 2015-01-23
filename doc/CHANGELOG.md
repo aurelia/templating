@@ -1,3 +1,11 @@
+### 0.8.1 (2015-01-23)
+
+
+#### Bug Fixes
+
+* **resource-coordinator:** incorrectly setting analyzed module ids ([7fa47357](http://github.com/aurelia/templating/commit/7fa47357408aedca21eb882a89c3bf8e43560e7b))
+
+
 ## 0.8.0 (2015-01-22)
 
 
