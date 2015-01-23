@@ -116,25 +116,29 @@ define(["exports", "./util", "aurelia-binding"], function (exports, _util, _aure
           var selfSubscriber, observer, attribute;
 
           observer = observerLookup[this.name];
-          selfSubscriber = observer.selfSubscriber;
-          attribute = attributes[this.attribute];
 
-          if (behaviorHandlesBind) {
-            observer.selfSubscriber = null;
-          }
+          if (attributes !== undefined) {
+            selfSubscriber = observer.selfSubscriber;
+            attribute = attributes[this.attribute];
 
-          if (typeof attribute === "string") {
-            executionContext[this.name] = attribute;
-            observer.call();
-          } else if (attribute) {
-            boundProperties.push({ observer: observer, binding: attribute.createBinding(executionContext) });
-          } else if (this.defaultValue) {
-            executionContext[this.name] = this.defaultValue;
-            observer.call();
+            if (behaviorHandlesBind) {
+              observer.selfSubscriber = null;
+            }
+
+            if (typeof attribute === "string") {
+              executionContext[this.name] = attribute;
+              observer.call();
+            } else if (attribute) {
+              boundProperties.push({ observer: observer, binding: attribute.createBinding(executionContext) });
+            } else if (this.defaultValue) {
+              executionContext[this.name] = this.defaultValue;
+              observer.call();
+            }
+
+            observer.selfSubscriber = selfSubscriber;
           }
 
           observer.publishing = true;
-          observer.selfSubscriber = selfSubscriber;
         },
         writable: true,
         enumerable: true,

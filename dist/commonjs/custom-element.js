@@ -60,15 +60,28 @@ var CustomElement = (function (ResourceType) {
       configurable: true
     }
   }, {
-    load: {
-      value: function load(container, target, viewStrategy) {
-        var _this = this;
-        var annotation, options;
+    configure: {
+      value: function configure(container, target) {
+        if (this.configured) {
+          return;
+        }
 
         configureBehavior(container, this, target, valuePropertyName);
 
+        this.configured = true;
         this.targetShadowDOM = Metadata.on(target).has(UseShadowDOM);
         this.usesShadowDOM = this.targetShadowDOM && hasShadowDOM;
+      },
+      writable: true,
+      enumerable: true,
+      configurable: true
+    },
+    load: {
+      value: function load(container, target, viewStrategy) {
+        var _this = this;
+        var options;
+
+        this.configure(container, target);
 
         viewStrategy = viewStrategy || ViewStrategy.getDefault(target);
         options = { targetShadowDOM: this.targetShadowDOM };

@@ -118,6 +118,7 @@ var ResourceCoordinator = (function () {
           cache[analysis.id] = analysis;
 
           return Promise.all(loads).then(function () {
+            analysis.element.type.configure(container, analysis.element.value);
             return analysis.element;
           });
         });

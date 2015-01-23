@@ -78,7 +78,10 @@ export class ResourceCoordinator {
 
       cache[analysis.id] = analysis;
 
-      return Promise.all(loads).then(() => analysis.element);
+      return Promise.all(loads).then(() => {
+        analysis.element.type.configure(container, analysis.element.value);
+        return analysis.element;
+      });
     });
   }
 

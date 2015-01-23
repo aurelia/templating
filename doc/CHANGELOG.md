@@ -1,3 +1,11 @@
+### 0.8.2 (2015-01-23)
+
+
+#### Bug Fixes
+
+* **property:** prevent errors with property meta on composed view models ([0c9ef978](http://github.com/aurelia/templating/commit/0c9ef97870d4174346c55bcf04b7726a286749b6))
+
+
 ### 0.8.1 (2015-01-23)
 
 
