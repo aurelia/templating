@@ -42,6 +42,7 @@ var CompositionEngine = (function () {
     createBehaviorAndSwap: {
       value: function createBehaviorAndSwap(instruction) {
         return this.createBehavior(instruction).then(function (behavior) {
+          behavior.view.bind(behavior.executionContext);
           instruction.viewSlot.swap(behavior.view);
 
           if (instruction.currentBehavior) {
@@ -87,7 +88,7 @@ var CompositionEngine = (function () {
           }
 
           return doneLoading.then(function (behaviorType) {
-            return behaviorType.create(childContainer, { executionContext: viewModel });
+            return behaviorType.create(childContainer, { executionContext: viewModel, suppressBind: true });
           });
         });
       },

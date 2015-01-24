@@ -21,6 +21,7 @@ export class CompositionEngine {
 
   createBehaviorAndSwap(instruction){
     return this.createBehavior(instruction).then(behavior => {
+      behavior.view.bind(behavior.executionContext);
       instruction.viewSlot.swap(behavior.view);
 
       if(instruction.currentBehavior){
@@ -62,7 +63,7 @@ export class CompositionEngine {
       }
 
       return doneLoading.then(behaviorType => {
-        return behaviorType.create(childContainer, {executionContext:viewModel});
+        return behaviorType.create(childContainer, {executionContext:viewModel, suppressBind:true});
       });
     });
   }

@@ -1,3 +1,11 @@
+### 0.8.3 (2015-01-24)
+
+
+#### Bug Fixes
+
+* **composition-engine:** ensure that bind callbacks execute ([74048922](http://github.com/aurelia/templating/commit/7404892281600785fe71bd6c438374301fbd3f81))
+
+
 ### 0.8.2 (2015-01-23)
 
 
