@@ -27,10 +27,10 @@
       "lib": "dist"
     },
     "dependencies": {
-      "aurelia-binding": "^0.3.0",
-      "aurelia-dependency-injection": "^0.4.0",
+      "aurelia-binding": "^0.3.2",
+      "aurelia-dependency-injection": "^0.4.1",
       "aurelia-html-template-element": "^0.1.2",
-      "aurelia-loader": "^0.3.2",
+      "aurelia-loader": "^0.3.3",
       "aurelia-logging": "^0.2.2",
       "aurelia-metadata": "^0.3.0",
       "aurelia-path": "^0.4.1",
