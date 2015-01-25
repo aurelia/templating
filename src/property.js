@@ -110,6 +110,11 @@ export class OptionsProperty extends BehaviorProperty {
     return this;
   }
 
+  withProperty(name, changeHandler, attribute, defaultValue, defaultBindingMode){
+    this.properties.push(new BehaviorProperty(name, changeHandler, attribute, defaultValue, defaultBindingMode));
+    return this;
+  }
+
   define(taskQueue, behavior){
     var i, ii, properties = this.properties;
 
