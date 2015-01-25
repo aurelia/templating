@@ -55,9 +55,16 @@ System.register(["aurelia-metadata", "./behavior-instance", "./behaviors", "./ut
             configurable: true
           }
         }, {
+          analyze: {
+            value: function analyze(container, target) {
+              configureBehavior(container, this, target);
+            },
+            writable: true,
+            enumerable: true,
+            configurable: true
+          },
           load: {
             value: function load(container, target) {
-              configureBehavior(container, this, target);
               return Promise.resolve(this);
             },
             writable: true,

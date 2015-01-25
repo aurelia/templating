@@ -1,3 +1,11 @@
+### 0.8.5 (2015-01-25)
+
+
+#### Bug Fixes
+
+* **resources:** enable early name analysis of resources ([331fcfd1](http://github.com/aurelia/templating/commit/331fcfd1341acab1c0cc65a103c3951cd047ca6b))
+
+
 ### 0.8.4 (2015-01-24)
 
 

@@ -60,12 +60,8 @@ var CustomElement = (function (ResourceType) {
       configurable: true
     }
   }, {
-    configure: {
-      value: function configure(container, target) {
-        if (this.configured) {
-          return;
-        }
-
+    analyze: {
+      value: function analyze(container, target) {
         configureBehavior(container, this, target, valuePropertyName);
 
         this.configured = true;
@@ -80,8 +76,6 @@ var CustomElement = (function (ResourceType) {
       value: function load(container, target, viewStrategy) {
         var _this = this;
         var options;
-
-        this.configure(container, target);
 
         viewStrategy = viewStrategy || ViewStrategy.getDefault(target);
         options = { targetShadowDOM: this.targetShadowDOM };

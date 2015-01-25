@@ -70,12 +70,8 @@ System.register(["aurelia-metadata", "./behavior-instance", "./behaviors", "./co
             configurable: true
           }
         }, {
-          configure: {
-            value: function configure(container, target) {
-              if (this.configured) {
-                return;
-              }
-
+          analyze: {
+            value: function analyze(container, target) {
               configureBehavior(container, this, target, valuePropertyName);
 
               this.configured = true;
@@ -90,8 +86,6 @@ System.register(["aurelia-metadata", "./behavior-instance", "./behaviors", "./co
             value: function load(container, target, viewStrategy) {
               var _this = this;
               var options;
-
-              this.configure(container, target);
 
               viewStrategy = viewStrategy || ViewStrategy.getDefault(target);
               options = { targetShadowDOM: this.targetShadowDOM };

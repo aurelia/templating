@@ -106,6 +106,8 @@ define(["exports", "aurelia-loader", "aurelia-path", "aurelia-dependency-injecti
               throw new Error("No element found in module \"" + moduleImport + "\".");
             }
 
+            analysis.analyze(container);
+
             for (i = 0, ii = resources.length; i < ii; ++i) {
               current = resources[i];
               type = current.type;
@@ -119,7 +121,6 @@ define(["exports", "aurelia-loader", "aurelia-path", "aurelia-dependency-injecti
             cache[analysis.id] = analysis;
 
             return Promise.all(loads).then(function () {
-              analysis.element.type.configure(container, analysis.element.value);
               return analysis.element;
             });
           });
@@ -141,12 +142,15 @@ define(["exports", "aurelia-loader", "aurelia-path", "aurelia-dependency-injecti
               analysis,
               type;
 
+          var container = this.container;
+
           for (i = 0, ii = imports.length; i < ii; ++i) {
             current = imports[i];
             annotation = Origin.get(current);
 
             if (!annotation) {
               analysis = analyzeModule({ "default": current });
+              analysis.analyze(container);
               type = (analysis.element || analysis.resources[0]).type;
 
               if (resourceManifestUrl) {
@@ -230,6 +234,7 @@ define(["exports", "aurelia-loader", "aurelia-path", "aurelia-dependency-injecti
             }
 
             analysis = analyzeModule(imports[i]);
+            analysis.analyze(container);
             existing[analysis.id] = analysis;
             allAnalysis[i] = analysis;
             resources = analysis.resources;
@@ -290,6 +295,33 @@ define(["exports", "aurelia-loader", "aurelia-path", "aurelia-dependency-injecti
     }
 
     _prototypeProperties(ResourceModule, null, {
+      analyze: {
+        value: function analyze(container) {
+          var current = this.element,
+              resources = this.resources,
+              i,
+              ii;
+
+          if (current) {
+            if (!current.type.isAnalyzed) {
+              current.type.isAnalyzed = true;
+              current.type.analyze(container, current.value);
+            }
+          }
+
+          for (i = 0, ii = resources.length; i < ii; ++i) {
+            current = resources[i];
+
+            if ("analyze" in current.type && !current.type.isAnalyzed) {
+              current.type.isAnalyzed = true;
+              current.type.analyze(container, current.value);
+            }
+          }
+        },
+        writable: true,
+        enumerable: true,
+        configurable: true
+      },
       register: {
         value: function register(registry, name) {
           var i,

@@ -66,6 +66,8 @@ export class ResourceCoordinator {
         throw new Error(`No element found in module "${moduleImport}".`);
       }
 
+      analysis.analyze(container);
+
       for(i = 0, ii = resources.length; i < ii; ++i){
         current = resources[i];
         type = current.type;
@@ -78,10 +80,7 @@ export class ResourceCoordinator {
 
       cache[analysis.id] = analysis;
 
-      return Promise.all(loads).then(() => {
-        analysis.element.type.configure(container, analysis.element.value);
-        return analysis.element;
-      });
+      return Promise.all(loads).then(() => analysis.element);
     });
   }
 
@@ -91,12 +90,15 @@ export class ResourceCoordinator {
         finalModules = [],
         importIds = [], analysis, type;
 
+    var container = this.container;
+
     for(i = 0, ii = imports.length; i < ii; ++i){
       current = imports[i];
       annotation = Origin.get(current);
 
       if(!annotation){ 
         analysis = analyzeModule({'default':current});
+        analysis.analyze(container);
         type = (analysis.element || analysis.resources[0]).type;
 
         if(resourceManifestUrl){
@@ -162,6 +164,7 @@ export class ResourceCoordinator {
       }
 
       analysis = analyzeModule(imports[i]);
+      analysis.analyze(container);
       existing[analysis.id] = analysis;
       allAnalysis[i] = analysis;
       resources = analysis.resources;
@@ -208,6 +211,28 @@ class ResourceModule {
 
     if(org){
       this.id = org.moduleId;
+    }
+  }
+
+  analyze(container){
+    var current = this.element, 
+        resources = this.resources,
+        i, ii;
+
+    if(current){
+      if(!current.type.isAnalyzed){
+        current.type.isAnalyzed = true;
+        current.type.analyze(container, current.value);
+      }
+    }
+
+    for(i = 0, ii = resources.length; i < ii; ++i){
+      current = resources[i];
+
+      if('analyze' in current.type && !current.type.isAnalyzed){
+        current.type.isAnalyzed = true;
+        current.type.analyze(container, current.value);
+      }
     }
   }
 

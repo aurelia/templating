@@ -16,8 +16,11 @@ export class AttachedBehavior extends ResourceType {
     }
   }
 
-  load(container, target){
+  analyze(container, target){
     configureBehavior(container, this, target);
+  }
+
+  load(container, target){
     return Promise.resolve(this);
   }
 
