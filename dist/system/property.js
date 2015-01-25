@@ -184,6 +184,15 @@ System.register(["./util", "aurelia-binding"], function (_export) {
             enumerable: true,
             configurable: true
           },
+          withProperty: {
+            value: function withProperty(name, changeHandler, attribute, defaultValue, defaultBindingMode) {
+              this.properties.push(new BehaviorProperty(name, changeHandler, attribute, defaultValue, defaultBindingMode));
+              return this;
+            },
+            writable: true,
+            enumerable: true,
+            configurable: true
+          },
           define: {
             value: function define(taskQueue, behavior) {
               var i,

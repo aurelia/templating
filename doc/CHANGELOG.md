@@ -1,3 +1,11 @@
+### 0.8.6 (2015-01-25)
+
+
+#### Features
+
+* **property:** add fluent api helper method for options property properties ([597426b0](http://github.com/aurelia/templating/commit/597426b0d740073b84d71a39f56623173b3886b8))
+
+
 ### 0.8.5 (2015-01-25)
 
 
