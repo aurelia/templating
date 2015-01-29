@@ -101,7 +101,7 @@ export class CompositionEngine {
       }
 
       return instruction.view.loadViewFactory(this.viewEngine).then(viewFactory => {
-        result = viewFactory.create(childContainer, instruction.executionContext);
+        var result = viewFactory.create(instruction.childContainer, instruction.executionContext);
         instruction.viewSlot.swap(result);
         return result;
       });

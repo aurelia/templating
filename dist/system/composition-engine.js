@@ -143,7 +143,7 @@ System.register(["aurelia-metadata", "./view-strategy", "./resource-coordinator"
                 }
 
                 return instruction.view.loadViewFactory(this.viewEngine).then(function (viewFactory) {
-                  result = viewFactory.create(childContainer, instruction.executionContext);
+                  var result = viewFactory.create(instruction.childContainer, instruction.executionContext);
                   instruction.viewSlot.swap(result);
                   return result;
                 });

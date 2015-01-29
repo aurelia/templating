@@ -1,3 +1,11 @@
+### 0.8.7 (2015-01-29)
+
+
+#### Bug Fixes
+
+* **composition-engine:** fix syntax error ([f87668da](http://github.com/aurelia/templating/commit/f87668da917b9fe2ddc0dfa944c29ae9fdd66a4a))
+
+
 ### 0.8.6 (2015-01-25)
 
 
