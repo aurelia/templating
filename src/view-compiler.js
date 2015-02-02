@@ -16,7 +16,7 @@ function configureProperties(instruction, resources){
       attributes = instruction.attributes,
       property, key, value;
 
-  var knownAttribute = resources.attributeMap[attrName];
+  var knownAttribute = resources.mapAttribute(attrName);
   if(knownAttribute && attrName in attributes && knownAttribute !== attrName){
     attributes[knownAttribute] = attributes[attrName];
     delete attributes[attrName];
@@ -96,22 +96,22 @@ export class ViewCompiler {
 
   compileElement(node, resources, instructions, parentNode, parentInjectorId, targetLightDOM){
     var tagName = node.tagName.toLowerCase(),
-        attributes = node.attributes, 
-        expressions = [], 
+        attributes = node.attributes,
+        expressions = [],
         behaviorInstructions = [],
         providers = [],
         bindingLanguage = this.bindingLanguage,
-        liftingInstruction, viewFactory, type, elementInstruction, 
-        elementProperty, i, ii, attr, attrName, attrValue, instruction, info, 
+        liftingInstruction, viewFactory, type, elementInstruction,
+        elementProperty, i, ii, attr, attrName, attrValue, instruction, info,
         property, knownAttribute;
 
     if(tagName === 'content'){
       if(targetLightDOM){
-        instructions.push({ 
+        instructions.push({
           parentInjectorId: parentInjectorId,
-          contentSelector: true, 
+          contentSelector: true,
           selector:node.getAttribute('select'),
-          suppressBind: true 
+          suppressBind: true
         });
         makeIntoInstructionTarget(node);
       }
@@ -127,7 +127,7 @@ export class ViewCompiler {
     }
 
     for(i = 0, ii = attributes.length; i < ii; ++i){
-      attr = attributes[i]; 
+      attr = attributes[i];
       attrName = attr.name;
       attrValue = attr.value;
       info = bindingLanguage.inspectAttribute(resources, attrName, attrValue);
@@ -135,7 +135,7 @@ export class ViewCompiler {
       elementProperty = null;
 
       if(type){ //do we have an attached behavior?
-        knownAttribute = resources.attributeMap[info.attrName]; //map the local name to real name
+        knownAttribute = resources.mapAttribute(info.attrName); //map the local name to real name
         if(knownAttribute){
           property = type.attributes[knownAttribute];
 
@@ -151,7 +151,7 @@ export class ViewCompiler {
         elementProperty = elementInstruction.type.attributes[info.attrName];
         if(elementProperty){ //and this attribute is a custom property
           info.defaultBindingMode = elementProperty.defaultBindingMode; //set the default binding mode
-          
+
           if(!info.command && !info.expression){ // if there is no command or detected expression
             info.command = elementProperty.hasOptions ? 'options' : null; //and it is an optons property, set the options command
           }
@@ -192,7 +192,7 @@ export class ViewCompiler {
       }else{ //NO BINDINGS
         if(type){ //templator or attached behavior found
           instruction = { attrName:attrName, type:type, attributes:{} };
-          instruction.attributes[resources.attributeMap[attrName]] = attrValue;
+          instruction.attributes[resources.mapAttribute(attrName)] = attrValue;
 
           if(type.liftsContent){ //template controller
             instruction.originalAttrName = attrName;
@@ -216,7 +216,7 @@ export class ViewCompiler {
       instructions.push({
         anchorIsContainer: false,
         parentInjectorId: parentInjectorId,
-        expressions: [], 
+        expressions: [],
         behaviorInstructions: [liftingInstruction],
         viewFactory: liftingInstruction.viewFactory,
         providers: [liftingInstruction.type.target]
@@ -236,7 +236,7 @@ export class ViewCompiler {
           anchorIsContainer: true,
           injectorId: injectorId,
           parentInjectorId: parentInjectorId,
-          expressions: expressions, 
+          expressions: expressions,
           behaviorInstructions: behaviorInstructions,
           providers: providers
         });

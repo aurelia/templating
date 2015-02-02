@@ -68,6 +68,10 @@ export class ViewResources extends ResourceRegistry {
     return this.elements[tagName] || this.parent.getElement(tagName);
   }
 
+  mapAttribute(attribute){
+    return this.attributeMap[attribute] || this.parent.attributeMap[attribute];
+  }
+
   getAttribute(attribute){
     return this.attributes[attribute] || this.parent.getAttribute(attribute);
   }
