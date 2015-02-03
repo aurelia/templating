@@ -10,27 +10,11 @@ System.register(["aurelia-metadata", "aurelia-path"], function (_export) {
       relativeToFile = _aureliaPath.relativeToFile;
     }],
     execute: function () {
-      _inherits = function (subClass, superClass) {
-        if (typeof superClass !== "function" && superClass !== null) {
-          throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
-        }
-        subClass.prototype = Object.create(superClass && superClass.prototype, {
-          constructor: {
-            value: subClass,
-            enumerable: false,
-            writable: true,
-            configurable: true
-          }
-        });
-        if (superClass) subClass.__proto__ = superClass;
-      };
+      _inherits = function (subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
 
-      _prototypeProperties = function (child, staticProps, instanceProps) {
-        if (staticProps) Object.defineProperties(child, staticProps);
-        if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
-      };
+      _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
-      ViewStrategy = (function () {
+      ViewStrategy = _export("ViewStrategy", (function () {
         function ViewStrategy() {}
 
         _prototypeProperties(ViewStrategy, {
@@ -47,7 +31,6 @@ System.register(["aurelia-metadata", "aurelia-path"], function (_export) {
               return value;
             },
             writable: true,
-            enumerable: true,
             configurable: true
           },
           getDefault: {
@@ -74,14 +57,12 @@ System.register(["aurelia-metadata", "aurelia-path"], function (_export) {
               return strategy;
             },
             writable: true,
-            enumerable: true,
             configurable: true
           }
         }, {
           makeRelativeTo: {
             value: function makeRelativeTo(baseUrl) {},
             writable: true,
-            enumerable: true,
             configurable: true
           },
           loadViewFactory: {
@@ -89,16 +70,13 @@ System.register(["aurelia-metadata", "aurelia-path"], function (_export) {
               throw new Error("A ViewStrategy must implement loadViewFactory(viewEngine, options).");
             },
             writable: true,
-            enumerable: true,
             configurable: true
           }
         });
 
         return ViewStrategy;
-      })();
-      _export("ViewStrategy", ViewStrategy);
-
-      UseView = (function (ViewStrategy) {
+      })());
+      UseView = _export("UseView", (function (ViewStrategy) {
         function UseView(path) {
           this.path = path;
         }
@@ -115,7 +93,6 @@ System.register(["aurelia-metadata", "aurelia-path"], function (_export) {
               return viewEngine.loadViewFactory(this.absolutePath || this.path, options, this.moduleId);
             },
             writable: true,
-            enumerable: true,
             configurable: true
           },
           makeRelativeTo: {
@@ -123,16 +100,13 @@ System.register(["aurelia-metadata", "aurelia-path"], function (_export) {
               this.absolutePath = relativeToFile(this.path, file);
             },
             writable: true,
-            enumerable: true,
             configurable: true
           }
         });
 
         return UseView;
-      })(ViewStrategy);
-      _export("UseView", UseView);
-
-      ConventionalView = (function (ViewStrategy) {
+      })(ViewStrategy));
+      ConventionalView = _export("ConventionalView", (function (ViewStrategy) {
         function ConventionalView(moduleId) {
           this.moduleId = moduleId;
           this.viewUrl = ConventionalView.convertModuleIdToViewUrl(moduleId);
@@ -146,7 +120,6 @@ System.register(["aurelia-metadata", "aurelia-path"], function (_export) {
               return moduleId + ".html";
             },
             writable: true,
-            enumerable: true,
             configurable: true
           }
         }, {
@@ -155,16 +128,13 @@ System.register(["aurelia-metadata", "aurelia-path"], function (_export) {
               return viewEngine.loadViewFactory(this.viewUrl, options, this.moduleId);
             },
             writable: true,
-            enumerable: true,
             configurable: true
           }
         });
 
         return ConventionalView;
-      })(ViewStrategy);
-      _export("ConventionalView", ConventionalView);
-
-      NoView = (function (ViewStrategy) {
+      })(ViewStrategy));
+      NoView = _export("NoView", (function (ViewStrategy) {
         function NoView() {
           if (Object.getPrototypeOf(NoView) !== null) {
             Object.getPrototypeOf(NoView).apply(this, arguments);
@@ -179,14 +149,12 @@ System.register(["aurelia-metadata", "aurelia-path"], function (_export) {
               return Promise.resolve(null);
             },
             writable: true,
-            enumerable: true,
             configurable: true
           }
         });
 
         return NoView;
-      })(ViewStrategy);
-      _export("NoView", NoView);
+      })(ViewStrategy));
     }
   };
 });

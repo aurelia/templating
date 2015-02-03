@@ -1,10 +1,7 @@
 define(["exports", "aurelia-dependency-injection", "./view", "./view-slot", "./content-selector", "./resource-registry"], function (exports, _aureliaDependencyInjection, _view, _viewSlot, _contentSelector, _resourceRegistry) {
   "use strict";
 
-  var _prototypeProperties = function (child, staticProps, instanceProps) {
-    if (staticProps) Object.defineProperties(child, staticProps);
-    if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
-  };
+  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
   var Container = _aureliaDependencyInjection.Container;
   var View = _view.View;
@@ -102,7 +99,7 @@ define(["exports", "aurelia-dependency-injection", "./view", "./view-slot", "./c
     }
   }
 
-  var BoundViewFactory = (function () {
+  var BoundViewFactory = exports.BoundViewFactory = (function () {
     function BoundViewFactory(parentContainer, viewFactory, executionContext) {
       this.parentContainer = parentContainer;
       this.viewFactory = viewFactory;
@@ -121,7 +118,6 @@ define(["exports", "aurelia-dependency-injection", "./view", "./view-slot", "./c
           return this.viewFactory.create(childContainer, context, this.factoryOptions);
         },
         writable: true,
-        enumerable: true,
         configurable: true
       }
     });
@@ -129,15 +125,13 @@ define(["exports", "aurelia-dependency-injection", "./view", "./view-slot", "./c
     return BoundViewFactory;
   })();
 
-  exports.BoundViewFactory = BoundViewFactory;
-
 
   var defaultFactoryOptions = {
     systemControlled: false,
     suppressBind: false
   };
 
-  var ViewFactory = (function () {
+  var ViewFactory = exports.ViewFactory = (function () {
     function ViewFactory(template, instructions, resources) {
       this.template = template;
       this.instructions = instructions;
@@ -147,44 +141,39 @@ define(["exports", "aurelia-dependency-injection", "./view", "./view-slot", "./c
     _prototypeProperties(ViewFactory, null, {
       create: {
         value: function create(container, executionContext) {
-          var _this = this;
           var options = arguments[2] === undefined ? defaultFactoryOptions : arguments[2];
-          return (function () {
-            var fragment = _this.template.cloneNode(true),
-                instructables = fragment.querySelectorAll(".au-target"),
-                instructions = _this.instructions,
-                resources = _this.resources,
-                behaviors = [],
-                bindings = [],
-                children = [],
-                contentSelectors = [],
-                containers = { root: container },
-                i,
-                ii,
-                view;
+          var fragment = this.template.cloneNode(true),
+              instructables = fragment.querySelectorAll(".au-target"),
+              instructions = this.instructions,
+              resources = this.resources,
+              behaviors = [],
+              bindings = [],
+              children = [],
+              contentSelectors = [],
+              containers = { root: container },
+              i,
+              ii,
+              view;
 
-            for (i = 0, ii = instructables.length; i < ii; ++i) {
-              applyInstructions(containers, executionContext, instructables[i], instructions[i], behaviors, bindings, children, contentSelectors, resources);
-            }
+          for (i = 0, ii = instructables.length; i < ii; ++i) {
+            applyInstructions(containers, executionContext, instructables[i], instructions[i], behaviors, bindings, children, contentSelectors, resources);
+          }
 
-            view = new View(fragment, behaviors, bindings, children, options.systemControlled, contentSelectors);
-            view.created(executionContext);
+          view = new View(fragment, behaviors, bindings, children, options.systemControlled, contentSelectors);
+          view.created(executionContext);
 
-            if (!options.suppressBind) {
-              view.bind(executionContext);
-            }
+          if (!options.suppressBind) {
+            view.bind(executionContext);
+          }
 
-            return view;
-          })();
+          return view;
         },
         writable: true,
-        enumerable: true,
         configurable: true
       }
     });
 
     return ViewFactory;
   })();
-
-  exports.ViewFactory = ViewFactory;
+  exports.__esModule = true;
 });

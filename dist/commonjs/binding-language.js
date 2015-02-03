@@ -1,11 +1,8 @@
 "use strict";
 
-var _prototypeProperties = function (child, staticProps, instanceProps) {
-  if (staticProps) Object.defineProperties(child, staticProps);
-  if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
-};
+var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
-var BindingLanguage = (function () {
+var BindingLanguage = exports.BindingLanguage = (function () {
   function BindingLanguage() {}
 
   _prototypeProperties(BindingLanguage, null, {
@@ -14,7 +11,6 @@ var BindingLanguage = (function () {
         throw new Error("A BindingLanguage must implement inspectAttribute(...)");
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     createAttributeInstruction: {
@@ -22,7 +18,6 @@ var BindingLanguage = (function () {
         throw new Error("A BindingLanguage must implement createAttributeInstruction(...)");
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     parseText: {
@@ -30,12 +25,10 @@ var BindingLanguage = (function () {
         throw new Error("A BindingLanguage must implement parseText(...)");
       },
       writable: true,
-      enumerable: true,
       configurable: true
     }
   });
 
   return BindingLanguage;
 })();
-
-exports.BindingLanguage = BindingLanguage;
+exports.__esModule = true;

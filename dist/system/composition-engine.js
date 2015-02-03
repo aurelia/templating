@@ -16,12 +16,9 @@ System.register(["aurelia-metadata", "./view-strategy", "./resource-coordinator"
       CustomElement = _customElement.CustomElement;
     }],
     execute: function () {
-      _prototypeProperties = function (child, staticProps, instanceProps) {
-        if (staticProps) Object.defineProperties(child, staticProps);
-        if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
-      };
+      _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
-      CompositionEngine = (function () {
+      CompositionEngine = _export("CompositionEngine", (function () {
         function CompositionEngine(resourceCoordinator, viewEngine) {
           this.resourceCoordinator = resourceCoordinator;
           this.viewEngine = viewEngine;
@@ -33,7 +30,6 @@ System.register(["aurelia-metadata", "./view-strategy", "./resource-coordinator"
               return [ResourceCoordinator, ViewEngine];
             },
             writable: true,
-            enumerable: true,
             configurable: true
           }
         }, {
@@ -46,7 +42,6 @@ System.register(["aurelia-metadata", "./view-strategy", "./resource-coordinator"
               return instruction.viewModel.activate(instruction.model) || Promise.resolve();
             },
             writable: true,
-            enumerable: true,
             configurable: true
           },
           createBehaviorAndSwap: {
@@ -63,7 +58,6 @@ System.register(["aurelia-metadata", "./view-strategy", "./resource-coordinator"
               });
             },
             writable: true,
-            enumerable: true,
             configurable: true
           },
           createBehavior: {
@@ -103,7 +97,6 @@ System.register(["aurelia-metadata", "./view-strategy", "./resource-coordinator"
               });
             },
             writable: true,
-            enumerable: true,
             configurable: true
           },
           createViewModel: {
@@ -120,7 +113,6 @@ System.register(["aurelia-metadata", "./view-strategy", "./resource-coordinator"
               });
             },
             writable: true,
-            enumerable: true,
             configurable: true
           },
           compose: {
@@ -153,14 +145,12 @@ System.register(["aurelia-metadata", "./view-strategy", "./resource-coordinator"
               }
             },
             writable: true,
-            enumerable: true,
             configurable: true
           }
         });
 
         return CompositionEngine;
-      })();
-      _export("CompositionEngine", CompositionEngine);
+      })());
     }
   };
 });

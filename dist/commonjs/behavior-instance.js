@@ -1,11 +1,8 @@
 "use strict";
 
-var _prototypeProperties = function (child, staticProps, instanceProps) {
-  if (staticProps) Object.defineProperties(child, staticProps);
-  if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
-};
+var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
-var BehaviorInstance = (function () {
+var BehaviorInstance = exports.BehaviorInstance = (function () {
   function BehaviorInstance(behavior, executionContext, instruction) {
     this.behavior = behavior;
     this.executionContext = executionContext;
@@ -31,7 +28,6 @@ var BehaviorInstance = (function () {
         }
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     bind: {
@@ -70,7 +66,6 @@ var BehaviorInstance = (function () {
         }
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     unbind: {
@@ -92,7 +87,6 @@ var BehaviorInstance = (function () {
         }
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     attached: {
@@ -102,7 +96,6 @@ var BehaviorInstance = (function () {
         }
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     detached: {
@@ -112,12 +105,10 @@ var BehaviorInstance = (function () {
         }
       },
       writable: true,
-      enumerable: true,
       configurable: true
     }
   });
 
   return BehaviorInstance;
 })();
-
-exports.BehaviorInstance = BehaviorInstance;
+exports.__esModule = true;

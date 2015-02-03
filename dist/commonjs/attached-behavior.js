@@ -1,30 +1,14 @@
 "use strict";
 
-var _prototypeProperties = function (child, staticProps, instanceProps) {
-  if (staticProps) Object.defineProperties(child, staticProps);
-  if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
-};
+var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
-var _inherits = function (subClass, superClass) {
-  if (typeof superClass !== "function" && superClass !== null) {
-    throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
-  }
-  subClass.prototype = Object.create(superClass && superClass.prototype, {
-    constructor: {
-      value: subClass,
-      enumerable: false,
-      writable: true,
-      configurable: true
-    }
-  });
-  if (superClass) subClass.__proto__ = superClass;
-};
+var _inherits = function (subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
 
 var ResourceType = require("aurelia-metadata").ResourceType;
 var BehaviorInstance = require("./behavior-instance").BehaviorInstance;
 var configureBehavior = require("./behaviors").configureBehavior;
 var hyphenate = require("./util").hyphenate;
-var AttachedBehavior = (function (ResourceType) {
+var AttachedBehavior = exports.AttachedBehavior = (function (ResourceType) {
   function AttachedBehavior(attribute) {
     this.name = attribute;
     this.properties = [];
@@ -41,7 +25,6 @@ var AttachedBehavior = (function (ResourceType) {
         }
       },
       writable: true,
-      enumerable: true,
       configurable: true
     }
   }, {
@@ -50,7 +33,6 @@ var AttachedBehavior = (function (ResourceType) {
         configureBehavior(container, this, target);
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     load: {
@@ -58,7 +40,6 @@ var AttachedBehavior = (function (ResourceType) {
         return Promise.resolve(this);
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     register: {
@@ -66,7 +47,6 @@ var AttachedBehavior = (function (ResourceType) {
         registry.registerAttribute(name || this.name, this, this.name);
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     compile: {
@@ -75,7 +55,6 @@ var AttachedBehavior = (function (ResourceType) {
         return node;
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     create: {
@@ -90,12 +69,10 @@ var AttachedBehavior = (function (ResourceType) {
         return behaviorInstance;
       },
       writable: true,
-      enumerable: true,
       configurable: true
     }
   });
 
   return AttachedBehavior;
 })(ResourceType);
-
-exports.AttachedBehavior = AttachedBehavior;
+exports.__esModule = true;

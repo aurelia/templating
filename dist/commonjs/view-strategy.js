@@ -1,29 +1,15 @@
 "use strict";
 
-var _inherits = function (subClass, superClass) {
-  if (typeof superClass !== "function" && superClass !== null) {
-    throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
-  }
-  subClass.prototype = Object.create(superClass && superClass.prototype, {
-    constructor: {
-      value: subClass,
-      enumerable: false,
-      writable: true,
-      configurable: true
-    }
-  });
-  if (superClass) subClass.__proto__ = superClass;
-};
+var _inherits = function (subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
 
-var _prototypeProperties = function (child, staticProps, instanceProps) {
-  if (staticProps) Object.defineProperties(child, staticProps);
-  if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
-};
+var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
-var Metadata = require("aurelia-metadata").Metadata;
-var Origin = require("aurelia-metadata").Origin;
+var _aureliaMetadata = require("aurelia-metadata");
+
+var Metadata = _aureliaMetadata.Metadata;
+var Origin = _aureliaMetadata.Origin;
 var relativeToFile = require("aurelia-path").relativeToFile;
-var ViewStrategy = (function () {
+var ViewStrategy = exports.ViewStrategy = (function () {
   function ViewStrategy() {}
 
   _prototypeProperties(ViewStrategy, {
@@ -40,7 +26,6 @@ var ViewStrategy = (function () {
         return value;
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     getDefault: {
@@ -67,14 +52,12 @@ var ViewStrategy = (function () {
         return strategy;
       },
       writable: true,
-      enumerable: true,
       configurable: true
     }
   }, {
     makeRelativeTo: {
       value: function makeRelativeTo(baseUrl) {},
       writable: true,
-      enumerable: true,
       configurable: true
     },
     loadViewFactory: {
@@ -82,16 +65,13 @@ var ViewStrategy = (function () {
         throw new Error("A ViewStrategy must implement loadViewFactory(viewEngine, options).");
       },
       writable: true,
-      enumerable: true,
       configurable: true
     }
   });
 
   return ViewStrategy;
 })();
-
-exports.ViewStrategy = ViewStrategy;
-var UseView = (function (ViewStrategy) {
+var UseView = exports.UseView = (function (ViewStrategy) {
   function UseView(path) {
     this.path = path;
   }
@@ -108,7 +88,6 @@ var UseView = (function (ViewStrategy) {
         return viewEngine.loadViewFactory(this.absolutePath || this.path, options, this.moduleId);
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     makeRelativeTo: {
@@ -116,16 +95,13 @@ var UseView = (function (ViewStrategy) {
         this.absolutePath = relativeToFile(this.path, file);
       },
       writable: true,
-      enumerable: true,
       configurable: true
     }
   });
 
   return UseView;
 })(ViewStrategy);
-
-exports.UseView = UseView;
-var ConventionalView = (function (ViewStrategy) {
+var ConventionalView = exports.ConventionalView = (function (ViewStrategy) {
   function ConventionalView(moduleId) {
     this.moduleId = moduleId;
     this.viewUrl = ConventionalView.convertModuleIdToViewUrl(moduleId);
@@ -139,7 +115,6 @@ var ConventionalView = (function (ViewStrategy) {
         return moduleId + ".html";
       },
       writable: true,
-      enumerable: true,
       configurable: true
     }
   }, {
@@ -148,16 +123,13 @@ var ConventionalView = (function (ViewStrategy) {
         return viewEngine.loadViewFactory(this.viewUrl, options, this.moduleId);
       },
       writable: true,
-      enumerable: true,
       configurable: true
     }
   });
 
   return ConventionalView;
 })(ViewStrategy);
-
-exports.ConventionalView = ConventionalView;
-var NoView = (function (ViewStrategy) {
+var NoView = exports.NoView = (function (ViewStrategy) {
   function NoView() {
     if (Object.getPrototypeOf(NoView) !== null) {
       Object.getPrototypeOf(NoView).apply(this, arguments);
@@ -172,12 +144,10 @@ var NoView = (function (ViewStrategy) {
         return Promise.resolve(null);
       },
       writable: true,
-      enumerable: true,
       configurable: true
     }
   });
 
   return NoView;
 })(ViewStrategy);
-
-exports.NoView = NoView;
+exports.__esModule = true;

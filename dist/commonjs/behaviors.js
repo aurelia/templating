@@ -59,3 +59,4 @@ function configureBehavior(container, behavior, target, valuePropertyName) {
 
   behavior.childExpression = meta.first(ChildObserver);
 }
+exports.__esModule = true;

@@ -1,30 +1,16 @@
 "use strict";
 
-var _inherits = function (subClass, superClass) {
-  if (typeof superClass !== "function" && superClass !== null) {
-    throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
-  }
-  subClass.prototype = Object.create(superClass && superClass.prototype, {
-    constructor: {
-      value: subClass,
-      enumerable: false,
-      writable: true,
-      configurable: true
-    }
-  });
-  if (superClass) subClass.__proto__ = superClass;
-};
+var _inherits = function (subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
 
-var _prototypeProperties = function (child, staticProps, instanceProps) {
-  if (staticProps) Object.defineProperties(child, staticProps);
-  if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
-};
+var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
 var hyphenate = require("./util").hyphenate;
-var ONE_WAY = require("aurelia-binding").ONE_WAY;
-var TWO_WAY = require("aurelia-binding").TWO_WAY;
-var ONE_TIME = require("aurelia-binding").ONE_TIME;
-var BehaviorProperty = (function () {
+var _aureliaBinding = require("aurelia-binding");
+
+var ONE_WAY = _aureliaBinding.ONE_WAY;
+var TWO_WAY = _aureliaBinding.TWO_WAY;
+var ONE_TIME = _aureliaBinding.ONE_TIME;
+var BehaviorProperty = exports.BehaviorProperty = (function () {
   function BehaviorProperty(name, changeHandler, attribute, defaultValue, defaultBindingMode) {
     this.name = name;
     this.changeHandler = changeHandler;
@@ -40,7 +26,6 @@ var BehaviorProperty = (function () {
         return this;
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     bindingIsOneWay: {
@@ -49,7 +34,6 @@ var BehaviorProperty = (function () {
         return this;
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     bindingIsOneTime: {
@@ -58,7 +42,6 @@ var BehaviorProperty = (function () {
         return this;
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     define: {
@@ -90,7 +73,6 @@ var BehaviorProperty = (function () {
         });
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     createObserver: {
@@ -107,7 +89,6 @@ var BehaviorProperty = (function () {
         return new BehaviorPropertyObserver(this.taskQueue, executionContext, this.name, selfSubscriber);
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     initialize: {
@@ -140,16 +121,13 @@ var BehaviorProperty = (function () {
         observer.publishing = true;
       },
       writable: true,
-      enumerable: true,
       configurable: true
     }
   });
 
   return BehaviorProperty;
 })();
-
-exports.BehaviorProperty = BehaviorProperty;
-var OptionsProperty = (function (BehaviorProperty) {
+var OptionsProperty = exports.OptionsProperty = (function (BehaviorProperty) {
   function OptionsProperty(attribute) {
     for (var _len = arguments.length, rest = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
       rest[_key - 1] = arguments[_key];
@@ -174,7 +152,6 @@ var OptionsProperty = (function (BehaviorProperty) {
         return this;
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     withProperty: {
@@ -183,7 +160,6 @@ var OptionsProperty = (function (BehaviorProperty) {
         return this;
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     define: {
@@ -202,13 +178,11 @@ var OptionsProperty = (function (BehaviorProperty) {
         }
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     createObserver: {
       value: function createObserver(executionContext) {},
       writable: true,
-      enumerable: true,
       configurable: true
     },
     initialize: {
@@ -224,7 +198,6 @@ var OptionsProperty = (function (BehaviorProperty) {
         }
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     createDynamicProperty: {
@@ -265,15 +238,12 @@ var OptionsProperty = (function (BehaviorProperty) {
         observer.selfSubscriber = selfSubscriber;
       },
       writable: true,
-      enumerable: true,
       configurable: true
     }
   });
 
   return OptionsProperty;
 })(BehaviorProperty);
-
-exports.OptionsProperty = OptionsProperty;
 var BehaviorPropertyObserver = (function () {
   function BehaviorPropertyObserver(taskQueue, obj, propertyName, selfSubscriber) {
     this.taskQueue = taskQueue;
@@ -291,7 +261,6 @@ var BehaviorPropertyObserver = (function () {
         return this.currentValue;
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     setValue: {
@@ -309,7 +278,6 @@ var BehaviorPropertyObserver = (function () {
         }
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     call: {
@@ -334,7 +302,6 @@ var BehaviorPropertyObserver = (function () {
         }
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     subscribe: {
@@ -346,10 +313,11 @@ var BehaviorPropertyObserver = (function () {
         };
       },
       writable: true,
-      enumerable: true,
       configurable: true
     }
   });
 
   return BehaviorPropertyObserver;
 })();
+
+exports.__esModule = true;

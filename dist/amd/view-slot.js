@@ -1,13 +1,10 @@
 define(["exports", "./content-selector"], function (exports, _contentSelector) {
   "use strict";
 
-  var _prototypeProperties = function (child, staticProps, instanceProps) {
-    if (staticProps) Object.defineProperties(child, staticProps);
-    if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
-  };
+  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
   var ContentSelector = _contentSelector.ContentSelector;
-  var ViewSlot = (function () {
+  var ViewSlot = exports.ViewSlot = (function () {
     function ViewSlot(anchor, anchorIsContainer, executionContext) {
       this.anchor = anchor;
       this.viewAddMethod = anchorIsContainer ? "appendNodesTo" : "insertNodesBefore";
@@ -40,7 +37,6 @@ define(["exports", "./content-selector"], function (exports, _contentSelector) {
           });
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       bind: {
@@ -64,7 +60,6 @@ define(["exports", "./content-selector"], function (exports, _contentSelector) {
           }
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       unbind: {
@@ -79,7 +74,6 @@ define(["exports", "./content-selector"], function (exports, _contentSelector) {
           }
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       add: {
@@ -92,7 +86,6 @@ define(["exports", "./content-selector"], function (exports, _contentSelector) {
           }
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       insert: {
@@ -109,7 +102,6 @@ define(["exports", "./content-selector"], function (exports, _contentSelector) {
           }
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       remove: {
@@ -122,7 +114,6 @@ define(["exports", "./content-selector"], function (exports, _contentSelector) {
           }
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       removeAt: {
@@ -139,7 +130,6 @@ define(["exports", "./content-selector"], function (exports, _contentSelector) {
           return view;
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       removeAll: {
@@ -161,7 +151,6 @@ define(["exports", "./content-selector"], function (exports, _contentSelector) {
           this.children = [];
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       swap: {
@@ -170,7 +159,6 @@ define(["exports", "./content-selector"], function (exports, _contentSelector) {
           this.add(view);
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       attached: {
@@ -189,7 +177,6 @@ define(["exports", "./content-selector"], function (exports, _contentSelector) {
           }
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       detached: {
@@ -205,7 +192,6 @@ define(["exports", "./content-selector"], function (exports, _contentSelector) {
           }
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       installContentSelectors: {
@@ -218,7 +204,6 @@ define(["exports", "./content-selector"], function (exports, _contentSelector) {
           this.removeAll = this.contentSelectorRemoveAll;
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       contentSelectorAdd: {
@@ -234,7 +219,6 @@ define(["exports", "./content-selector"], function (exports, _contentSelector) {
           }
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       contentSelectorInsert: {
@@ -254,7 +238,6 @@ define(["exports", "./content-selector"], function (exports, _contentSelector) {
           }
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       contentSelectorRemove: {
@@ -275,7 +258,6 @@ define(["exports", "./content-selector"], function (exports, _contentSelector) {
           }
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       contentSelectorRemoveAt: {
@@ -298,7 +280,6 @@ define(["exports", "./content-selector"], function (exports, _contentSelector) {
           return view;
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       contentSelectorRemoveAll: {
@@ -328,13 +309,11 @@ define(["exports", "./content-selector"], function (exports, _contentSelector) {
           this.children = [];
         },
         writable: true,
-        enumerable: true,
         configurable: true
       }
     });
 
     return ViewSlot;
   })();
-
-  exports.ViewSlot = ViewSlot;
+  exports.__esModule = true;
 });

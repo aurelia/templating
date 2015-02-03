@@ -1,12 +1,9 @@
 define(["exports"], function (exports) {
   "use strict";
 
-  var _prototypeProperties = function (child, staticProps, instanceProps) {
-    if (staticProps) Object.defineProperties(child, staticProps);
-    if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
-  };
+  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
-  var BehaviorInstance = (function () {
+  var BehaviorInstance = exports.BehaviorInstance = (function () {
     function BehaviorInstance(behavior, executionContext, instruction) {
       this.behavior = behavior;
       this.executionContext = executionContext;
@@ -32,7 +29,6 @@ define(["exports"], function (exports) {
           }
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       bind: {
@@ -71,7 +67,6 @@ define(["exports"], function (exports) {
           }
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       unbind: {
@@ -93,7 +88,6 @@ define(["exports"], function (exports) {
           }
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       attached: {
@@ -103,7 +97,6 @@ define(["exports"], function (exports) {
           }
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       detached: {
@@ -113,13 +106,11 @@ define(["exports"], function (exports) {
           }
         },
         writable: true,
-        enumerable: true,
         configurable: true
       }
     });
 
     return BehaviorInstance;
   })();
-
-  exports.BehaviorInstance = BehaviorInstance;
+  exports.__esModule = true;
 });

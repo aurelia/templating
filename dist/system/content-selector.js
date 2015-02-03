@@ -18,10 +18,7 @@ System.register([], function (_export) {
   return {
     setters: [],
     execute: function () {
-      _prototypeProperties = function (child, staticProps, instanceProps) {
-        if (staticProps) Object.defineProperties(child, staticProps);
-        if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
-      };
+      _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
       if (Element && !Element.prototype.matches) {
         proto = Element.prototype;
@@ -29,7 +26,7 @@ System.register([], function (_export) {
       }
 
       placeholder = [];
-      ContentSelector = (function () {
+      ContentSelector = _export("ContentSelector", (function () {
         function ContentSelector(anchor, selector) {
           this.anchor = anchor;
           this.selector = selector;
@@ -80,7 +77,6 @@ System.register([], function (_export) {
               }
             },
             writable: true,
-            enumerable: true,
             configurable: true
           }
         }, {
@@ -89,7 +85,6 @@ System.register([], function (_export) {
               return new ContentSelector(this.anchor, this.selector);
             },
             writable: true,
-            enumerable: true,
             configurable: true
           },
           matches: {
@@ -97,7 +92,6 @@ System.register([], function (_export) {
               return this.all || node.nodeType === 1 && node.matches(this.selector);
             },
             writable: true,
-            enumerable: true,
             configurable: true
           },
           add: {
@@ -114,7 +108,6 @@ System.register([], function (_export) {
               this.groups.push(group);
             },
             writable: true,
-            enumerable: true,
             configurable: true
           },
           insert: {
@@ -133,7 +126,6 @@ System.register([], function (_export) {
               this.groups.splice(index, 0, group);
             },
             writable: true,
-            enumerable: true,
             configurable: true
           },
           removeAt: {
@@ -149,14 +141,12 @@ System.register([], function (_export) {
               this.groups.splice(index, 1);
             },
             writable: true,
-            enumerable: true,
             configurable: true
           }
         });
 
         return ContentSelector;
-      })();
-      _export("ContentSelector", ContentSelector);
+      })());
     }
   };
 });

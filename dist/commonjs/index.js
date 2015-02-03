@@ -1,35 +1,53 @@
 "use strict";
 
 var Metadata = require("aurelia-metadata").Metadata;
-var BehaviorProperty = require("./property").BehaviorProperty;
-var OptionsProperty = require("./property").OptionsProperty;
-var AttachedBehavior = require("./attached-behavior").AttachedBehavior;
-var ChildObserver = require("./children").ChildObserver;
-var CustomElement = require("./custom-element").CustomElement;
-var UseShadowDOM = require("./custom-element").UseShadowDOM;
-var ElementConfig = require("./element-config").ElementConfig;
-var TemplateController = require("./template-controller").TemplateController;
-var UseView = require("./view-strategy").UseView;
-var NoView = require("./view-strategy").NoView;
-exports.AttachedBehavior = require("./attached-behavior").AttachedBehavior;
-exports.BehaviorProperty = require("./property").BehaviorProperty;
-exports.OptionsProperty = require("./property").OptionsProperty;
+var _property = require("./property");
+
+var BehaviorProperty = _property.BehaviorProperty;
+var OptionsProperty = _property.OptionsProperty;
+var _attachedBehavior = require("./attached-behavior");
+
+var AttachedBehavior = _attachedBehavior.AttachedBehavior;
+var _children = require("./children");
+
+var ChildObserver = _children.ChildObserver;
+var _customElement = require("./custom-element");
+
+var CustomElement = _customElement.CustomElement;
+var UseShadowDOM = _customElement.UseShadowDOM;
+var _elementConfig = require("./element-config");
+
+var ElementConfig = _elementConfig.ElementConfig;
+var _templateController = require("./template-controller");
+
+var TemplateController = _templateController.TemplateController;
+var _viewStrategy = require("./view-strategy");
+
+var UseView = _viewStrategy.UseView;
+var NoView = _viewStrategy.NoView;
+exports.AttachedBehavior = _attachedBehavior.AttachedBehavior;
+exports.BehaviorProperty = _property.BehaviorProperty;
+exports.OptionsProperty = _property.OptionsProperty;
 exports.ResourceCoordinator = require("./resource-coordinator").ResourceCoordinator;
-exports.ResourceRegistry = require("./resource-registry").ResourceRegistry;
-exports.ViewResources = require("./resource-registry").ViewResources;
-exports.ChildObserver = require("./children").ChildObserver;
-exports.CustomElement = require("./custom-element").CustomElement;
-exports.UseShadowDOM = require("./custom-element").UseShadowDOM;
-exports.ElementConfig = require("./element-config").ElementConfig;
-exports.TemplateController = require("./template-controller").TemplateController;
-exports.ViewStrategy = require("./view-strategy").ViewStrategy;
-exports.UseView = require("./view-strategy").UseView;
-exports.ConventionalView = require("./view-strategy").ConventionalView;
-exports.NoView = require("./view-strategy").NoView;
+var _resourceRegistry = require("./resource-registry");
+
+exports.ResourceRegistry = _resourceRegistry.ResourceRegistry;
+exports.ViewResources = _resourceRegistry.ViewResources;
+exports.ChildObserver = _children.ChildObserver;
+exports.CustomElement = _customElement.CustomElement;
+exports.UseShadowDOM = _customElement.UseShadowDOM;
+exports.ElementConfig = _elementConfig.ElementConfig;
+exports.TemplateController = _templateController.TemplateController;
+exports.ViewStrategy = _viewStrategy.ViewStrategy;
+exports.UseView = _viewStrategy.UseView;
+exports.ConventionalView = _viewStrategy.ConventionalView;
+exports.NoView = _viewStrategy.NoView;
 exports.ViewCompiler = require("./view-compiler").ViewCompiler;
 exports.ViewEngine = require("./view-engine").ViewEngine;
-exports.ViewFactory = require("./view-factory").ViewFactory;
-exports.BoundViewFactory = require("./view-factory").BoundViewFactory;
+var _viewFactory = require("./view-factory");
+
+exports.ViewFactory = _viewFactory.ViewFactory;
+exports.BoundViewFactory = _viewFactory.BoundViewFactory;
 exports.ViewSlot = require("./view-slot").ViewSlot;
 exports.BindingLanguage = require("./binding-language").BindingLanguage;
 exports.CompositionEngine = require("./composition-engine").CompositionEngine;
@@ -45,3 +63,4 @@ Metadata.configure.classHelper("elementConfig", ElementConfig);
 Metadata.configure.classHelper("templateController", TemplateController);
 Metadata.configure.classHelper("useView", UseView);
 Metadata.configure.classHelper("noView", NoView);
+exports.__esModule = true;

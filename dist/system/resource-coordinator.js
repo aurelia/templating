@@ -98,13 +98,10 @@ System.register(["aurelia-loader", "aurelia-path", "aurelia-dependency-injection
       ResourceRegistry = _resourceRegistry.ResourceRegistry;
     }],
     execute: function () {
-      _prototypeProperties = function (child, staticProps, instanceProps) {
-        if (staticProps) Object.defineProperties(child, staticProps);
-        if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
-      };
+      _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
       id = 0;
-      ResourceCoordinator = (function () {
+      ResourceCoordinator = _export("ResourceCoordinator", (function () {
         function ResourceCoordinator(loader, container, viewEngine, appResources) {
           this.loader = loader;
           this.container = container;
@@ -121,7 +118,6 @@ System.register(["aurelia-loader", "aurelia-path", "aurelia-dependency-injection
               return [Loader, Container, ViewEngine, ResourceRegistry];
             },
             writable: true,
-            enumerable: true,
             configurable: true
           }
         }, {
@@ -130,7 +126,6 @@ System.register(["aurelia-loader", "aurelia-path", "aurelia-dependency-injection
               return this.importedModules[id] || this.importedAnonymous[id];
             },
             writable: true,
-            enumerable: true,
             configurable: true
           },
           loadViewModelInfo: {
@@ -138,7 +133,6 @@ System.register(["aurelia-loader", "aurelia-path", "aurelia-dependency-injection
               return this._loadAndAnalyzeModuleForElement(moduleImport, moduleMember, this.importedAnonymous);
             },
             writable: true,
-            enumerable: true,
             configurable: true
           },
           loadElement: {
@@ -157,12 +151,11 @@ System.register(["aurelia-loader", "aurelia-path", "aurelia-dependency-injection
               });
             },
             writable: true,
-            enumerable: true,
             configurable: true
           },
           _loadAndAnalyzeModuleForElement: {
-            value: function LoadAndAnalyzeModuleForElement(moduleImport, moduleMember, cache) {
-              var _this2 = this;
+            value: function _loadAndAnalyzeModuleForElement(moduleImport, moduleMember, cache) {
+              var _this = this;
               var existing = cache[moduleImport];
 
               if (existing) {
@@ -172,7 +165,7 @@ System.register(["aurelia-loader", "aurelia-path", "aurelia-dependency-injection
               return this.loader.loadModule(moduleImport).then(function (elementModule) {
                 var analysis = analyzeModule(elementModule, moduleMember),
                     resources = analysis.resources,
-                    container = _this2.container,
+                    container = _this.container,
                     loads = [],
                     type,
                     current,
@@ -203,7 +196,6 @@ System.register(["aurelia-loader", "aurelia-path", "aurelia-dependency-injection
               });
             },
             writable: true,
-            enumerable: true,
             configurable: true
           },
           importResources: {
@@ -254,18 +246,16 @@ System.register(["aurelia-loader", "aurelia-path", "aurelia-dependency-injection
               return this.importResourcesFromModules(finalModules, importIds);
             },
             writable: true,
-            enumerable: true,
             configurable: true
           },
           importResourcesFromModuleIds: {
             value: function importResourcesFromModuleIds(importIds) {
-              var _this3 = this;
+              var _this = this;
               return this.loader.loadAllModules(importIds).then(function (imports) {
-                return _this3.importResourcesFromModules(imports, importIds);
+                return _this.importResourcesFromModules(imports, importIds);
               });
             },
             writable: true,
-            enumerable: true,
             configurable: true
           },
           importResourcesFromModules: {
@@ -341,15 +331,12 @@ System.register(["aurelia-loader", "aurelia-path", "aurelia-dependency-injection
               });
             },
             writable: true,
-            enumerable: true,
             configurable: true
           }
         });
 
         return ResourceCoordinator;
-      })();
-      _export("ResourceCoordinator", ResourceCoordinator);
-
+      })());
       ResourceModule = (function () {
         function ResourceModule(source, element, resources) {
           var i, ii, org;
@@ -396,7 +383,6 @@ System.register(["aurelia-loader", "aurelia-path", "aurelia-dependency-injection
               }
             },
             writable: true,
-            enumerable: true,
             configurable: true
           },
           register: {
@@ -416,7 +402,6 @@ System.register(["aurelia-loader", "aurelia-path", "aurelia-dependency-injection
               }
             },
             writable: true,
-            enumerable: true,
             configurable: true
           }
         });

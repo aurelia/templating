@@ -1,29 +1,24 @@
 "use strict";
 
-var _prototypeProperties = function (child, staticProps, instanceProps) {
-  if (staticProps) Object.defineProperties(child, staticProps);
-  if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
-};
+var _interopRequireWildcard = function (obj) { return obj && obj.__esModule ? obj : { "default": obj }; };
 
-var _interopRequireWildcard = function (obj) {
-  return obj && obj.constructor === Object ? obj : {
-    "default": obj
-  };
-};
+var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
 var LogManager = _interopRequireWildcard(require("aurelia-logging"));
 
 var Loader = require("aurelia-loader").Loader;
 var relativeToFile = require("aurelia-path").relativeToFile;
 var ViewCompiler = require("./view-compiler").ViewCompiler;
-var ResourceRegistry = require("./resource-registry").ResourceRegistry;
-var ViewResources = require("./resource-registry").ViewResources;
+var _resourceRegistry = require("./resource-registry");
+
+var ResourceRegistry = _resourceRegistry.ResourceRegistry;
+var ViewResources = _resourceRegistry.ViewResources;
 
 
 var importSplitter = /\s*,\s*/,
     logger = LogManager.getLogger("templating");
 
-var ViewEngine = (function () {
+var ViewEngine = exports.ViewEngine = (function () {
   function ViewEngine(loader, viewCompiler, appResources) {
     this.loader = loader;
     this.viewCompiler = viewCompiler;
@@ -37,7 +32,6 @@ var ViewEngine = (function () {
         return [Loader, ViewCompiler, ResourceRegistry];
       },
       writable: true,
-      enumerable: true,
       configurable: true
     }
   }, {
@@ -63,12 +57,11 @@ var ViewEngine = (function () {
         });
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     loadTemplateResources: {
       value: function loadTemplateResources(templateUrl, template, associatedModuleId) {
-        var _this2 = this;
+        var _this = this;
         var importIds,
             names,
             i,
@@ -113,7 +106,7 @@ var ViewEngine = (function () {
           }
 
           if (associatedModuleId) {
-            associatedModule = _this2.resourceCoordinator.getExistingModuleAnalysis(associatedModuleId);
+            associatedModule = _this.resourceCoordinator.getExistingModuleAnalysis(associatedModuleId);
 
             if (associatedModule) {
               associatedModule.register(registry);
@@ -124,12 +117,10 @@ var ViewEngine = (function () {
         });
       },
       writable: true,
-      enumerable: true,
       configurable: true
     }
   });
 
   return ViewEngine;
 })();
-
-exports.ViewEngine = ViewEngine;
+exports.__esModule = true;

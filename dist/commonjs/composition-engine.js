@@ -1,17 +1,16 @@
 "use strict";
 
-var _prototypeProperties = function (child, staticProps, instanceProps) {
-  if (staticProps) Object.defineProperties(child, staticProps);
-  if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
-};
+var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
 var Origin = require("aurelia-metadata").Origin;
-var ViewStrategy = require("./view-strategy").ViewStrategy;
-var UseView = require("./view-strategy").UseView;
+var _viewStrategy = require("./view-strategy");
+
+var ViewStrategy = _viewStrategy.ViewStrategy;
+var UseView = _viewStrategy.UseView;
 var ResourceCoordinator = require("./resource-coordinator").ResourceCoordinator;
 var ViewEngine = require("./view-engine").ViewEngine;
 var CustomElement = require("./custom-element").CustomElement;
-var CompositionEngine = (function () {
+var CompositionEngine = exports.CompositionEngine = (function () {
   function CompositionEngine(resourceCoordinator, viewEngine) {
     this.resourceCoordinator = resourceCoordinator;
     this.viewEngine = viewEngine;
@@ -23,7 +22,6 @@ var CompositionEngine = (function () {
         return [ResourceCoordinator, ViewEngine];
       },
       writable: true,
-      enumerable: true,
       configurable: true
     }
   }, {
@@ -36,7 +34,6 @@ var CompositionEngine = (function () {
         return instruction.viewModel.activate(instruction.model) || Promise.resolve();
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     createBehaviorAndSwap: {
@@ -53,7 +50,6 @@ var CompositionEngine = (function () {
         });
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     createBehavior: {
@@ -93,7 +89,6 @@ var CompositionEngine = (function () {
         });
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     createViewModel: {
@@ -110,7 +105,6 @@ var CompositionEngine = (function () {
         });
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     compose: {
@@ -143,12 +137,10 @@ var CompositionEngine = (function () {
         }
       },
       writable: true,
-      enumerable: true,
       configurable: true
     }
   });
 
   return CompositionEngine;
 })();
-
-exports.CompositionEngine = CompositionEngine;
+exports.__esModule = true;

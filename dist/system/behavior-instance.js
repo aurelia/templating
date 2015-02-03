@@ -5,12 +5,9 @@ System.register([], function (_export) {
   return {
     setters: [],
     execute: function () {
-      _prototypeProperties = function (child, staticProps, instanceProps) {
-        if (staticProps) Object.defineProperties(child, staticProps);
-        if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
-      };
+      _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
-      BehaviorInstance = (function () {
+      BehaviorInstance = _export("BehaviorInstance", (function () {
         function BehaviorInstance(behavior, executionContext, instruction) {
           this.behavior = behavior;
           this.executionContext = executionContext;
@@ -36,7 +33,6 @@ System.register([], function (_export) {
               }
             },
             writable: true,
-            enumerable: true,
             configurable: true
           },
           bind: {
@@ -75,7 +71,6 @@ System.register([], function (_export) {
               }
             },
             writable: true,
-            enumerable: true,
             configurable: true
           },
           unbind: {
@@ -97,7 +92,6 @@ System.register([], function (_export) {
               }
             },
             writable: true,
-            enumerable: true,
             configurable: true
           },
           attached: {
@@ -107,7 +101,6 @@ System.register([], function (_export) {
               }
             },
             writable: true,
-            enumerable: true,
             configurable: true
           },
           detached: {
@@ -117,14 +110,12 @@ System.register([], function (_export) {
               }
             },
             writable: true,
-            enumerable: true,
             configurable: true
           }
         });
 
         return BehaviorInstance;
-      })();
-      _export("BehaviorInstance", BehaviorInstance);
+      })());
     }
   };
 });

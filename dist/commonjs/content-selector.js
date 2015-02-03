@@ -1,9 +1,6 @@
 "use strict";
 
-var _prototypeProperties = function (child, staticProps, instanceProps) {
-  if (staticProps) Object.defineProperties(child, staticProps);
-  if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
-};
+var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
 if (Element && !Element.prototype.matches) {
   var proto = Element.prototype;
@@ -23,7 +20,7 @@ function findInsertionPoint(groups, index) {
   return insertionPoint || anchor;
 }
 
-var ContentSelector = (function () {
+var ContentSelector = exports.ContentSelector = (function () {
   function ContentSelector(anchor, selector) {
     this.anchor = anchor;
     this.selector = selector;
@@ -74,7 +71,6 @@ var ContentSelector = (function () {
         }
       },
       writable: true,
-      enumerable: true,
       configurable: true
     }
   }, {
@@ -83,7 +79,6 @@ var ContentSelector = (function () {
         return new ContentSelector(this.anchor, this.selector);
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     matches: {
@@ -91,7 +86,6 @@ var ContentSelector = (function () {
         return this.all || node.nodeType === 1 && node.matches(this.selector);
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     add: {
@@ -108,7 +102,6 @@ var ContentSelector = (function () {
         this.groups.push(group);
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     insert: {
@@ -127,7 +120,6 @@ var ContentSelector = (function () {
         this.groups.splice(index, 0, group);
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     removeAt: {
@@ -143,12 +135,10 @@ var ContentSelector = (function () {
         this.groups.splice(index, 1);
       },
       writable: true,
-      enumerable: true,
       configurable: true
     }
   });
 
   return ContentSelector;
 })();
-
-exports.ContentSelector = ContentSelector;
+exports.__esModule = true;

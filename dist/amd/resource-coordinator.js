@@ -1,10 +1,7 @@
 define(["exports", "aurelia-loader", "aurelia-path", "aurelia-dependency-injection", "aurelia-metadata", "aurelia-binding", "./custom-element", "./attached-behavior", "./template-controller", "./view-engine", "./resource-registry"], function (exports, _aureliaLoader, _aureliaPath, _aureliaDependencyInjection, _aureliaMetadata, _aureliaBinding, _customElement, _attachedBehavior, _templateController, _viewEngine, _resourceRegistry) {
   "use strict";
 
-  var _prototypeProperties = function (child, staticProps, instanceProps) {
-    if (staticProps) Object.defineProperties(child, staticProps);
-    if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
-  };
+  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
   var Loader = _aureliaLoader.Loader;
   var relativeToFile = _aureliaPath.relativeToFile;
@@ -27,7 +24,7 @@ define(["exports", "aurelia-loader", "aurelia-path", "aurelia-dependency-injecti
     return ++id;
   }
 
-  var ResourceCoordinator = (function () {
+  var ResourceCoordinator = exports.ResourceCoordinator = (function () {
     function ResourceCoordinator(loader, container, viewEngine, appResources) {
       this.loader = loader;
       this.container = container;
@@ -44,7 +41,6 @@ define(["exports", "aurelia-loader", "aurelia-path", "aurelia-dependency-injecti
           return [Loader, Container, ViewEngine, ResourceRegistry];
         },
         writable: true,
-        enumerable: true,
         configurable: true
       }
     }, {
@@ -53,7 +49,6 @@ define(["exports", "aurelia-loader", "aurelia-path", "aurelia-dependency-injecti
           return this.importedModules[id] || this.importedAnonymous[id];
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       loadViewModelInfo: {
@@ -61,7 +56,6 @@ define(["exports", "aurelia-loader", "aurelia-path", "aurelia-dependency-injecti
           return this._loadAndAnalyzeModuleForElement(moduleImport, moduleMember, this.importedAnonymous);
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       loadElement: {
@@ -80,12 +74,11 @@ define(["exports", "aurelia-loader", "aurelia-path", "aurelia-dependency-injecti
           });
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       _loadAndAnalyzeModuleForElement: {
-        value: function LoadAndAnalyzeModuleForElement(moduleImport, moduleMember, cache) {
-          var _this2 = this;
+        value: function _loadAndAnalyzeModuleForElement(moduleImport, moduleMember, cache) {
+          var _this = this;
           var existing = cache[moduleImport];
 
           if (existing) {
@@ -95,7 +88,7 @@ define(["exports", "aurelia-loader", "aurelia-path", "aurelia-dependency-injecti
           return this.loader.loadModule(moduleImport).then(function (elementModule) {
             var analysis = analyzeModule(elementModule, moduleMember),
                 resources = analysis.resources,
-                container = _this2.container,
+                container = _this.container,
                 loads = [],
                 type,
                 current,
@@ -126,7 +119,6 @@ define(["exports", "aurelia-loader", "aurelia-path", "aurelia-dependency-injecti
           });
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       importResources: {
@@ -177,18 +169,16 @@ define(["exports", "aurelia-loader", "aurelia-path", "aurelia-dependency-injecti
           return this.importResourcesFromModules(finalModules, importIds);
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       importResourcesFromModuleIds: {
         value: function importResourcesFromModuleIds(importIds) {
-          var _this3 = this;
+          var _this = this;
           return this.loader.loadAllModules(importIds).then(function (imports) {
-            return _this3.importResourcesFromModules(imports, importIds);
+            return _this.importResourcesFromModules(imports, importIds);
           });
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       importResourcesFromModules: {
@@ -264,15 +254,12 @@ define(["exports", "aurelia-loader", "aurelia-path", "aurelia-dependency-injecti
           });
         },
         writable: true,
-        enumerable: true,
         configurable: true
       }
     });
 
     return ResourceCoordinator;
   })();
-
-  exports.ResourceCoordinator = ResourceCoordinator;
   var ResourceModule = (function () {
     function ResourceModule(source, element, resources) {
       var i, ii, org;
@@ -319,7 +306,6 @@ define(["exports", "aurelia-loader", "aurelia-path", "aurelia-dependency-injecti
           }
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       register: {
@@ -339,7 +325,6 @@ define(["exports", "aurelia-loader", "aurelia-path", "aurelia-dependency-injecti
           }
         },
         writable: true,
-        enumerable: true,
         configurable: true
       }
     });
@@ -411,4 +396,5 @@ define(["exports", "aurelia-loader", "aurelia-path", "aurelia-dependency-injecti
       type: Metadata.on(viewModelType).first(CustomElement) || new CustomElement()
     } : null, resources);
   }
+  exports.__esModule = true;
 });

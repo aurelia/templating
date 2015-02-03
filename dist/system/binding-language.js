@@ -5,12 +5,9 @@ System.register([], function (_export) {
   return {
     setters: [],
     execute: function () {
-      _prototypeProperties = function (child, staticProps, instanceProps) {
-        if (staticProps) Object.defineProperties(child, staticProps);
-        if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
-      };
+      _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
-      BindingLanguage = (function () {
+      BindingLanguage = _export("BindingLanguage", (function () {
         function BindingLanguage() {}
 
         _prototypeProperties(BindingLanguage, null, {
@@ -19,7 +16,6 @@ System.register([], function (_export) {
               throw new Error("A BindingLanguage must implement inspectAttribute(...)");
             },
             writable: true,
-            enumerable: true,
             configurable: true
           },
           createAttributeInstruction: {
@@ -27,7 +23,6 @@ System.register([], function (_export) {
               throw new Error("A BindingLanguage must implement createAttributeInstruction(...)");
             },
             writable: true,
-            enumerable: true,
             configurable: true
           },
           parseText: {
@@ -35,14 +30,12 @@ System.register([], function (_export) {
               throw new Error("A BindingLanguage must implement parseText(...)");
             },
             writable: true,
-            enumerable: true,
             configurable: true
           }
         });
 
         return BindingLanguage;
-      })();
-      _export("BindingLanguage", BindingLanguage);
+      })());
     }
   };
 });

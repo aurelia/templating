@@ -1,9 +1,6 @@
 "use strict";
 
-var _prototypeProperties = function (child, staticProps, instanceProps) {
-  if (staticProps) Object.defineProperties(child, staticProps);
-  if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
-};
+var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
 var Container = require("aurelia-dependency-injection").Container;
 var View = require("./view").View;
@@ -101,7 +98,7 @@ function applyInstructions(containers, executionContext, element, instruction, b
   }
 }
 
-var BoundViewFactory = (function () {
+var BoundViewFactory = exports.BoundViewFactory = (function () {
   function BoundViewFactory(parentContainer, viewFactory, executionContext) {
     this.parentContainer = parentContainer;
     this.viewFactory = viewFactory;
@@ -120,7 +117,6 @@ var BoundViewFactory = (function () {
         return this.viewFactory.create(childContainer, context, this.factoryOptions);
       },
       writable: true,
-      enumerable: true,
       configurable: true
     }
   });
@@ -128,15 +124,13 @@ var BoundViewFactory = (function () {
   return BoundViewFactory;
 })();
 
-exports.BoundViewFactory = BoundViewFactory;
-
 
 var defaultFactoryOptions = {
   systemControlled: false,
   suppressBind: false
 };
 
-var ViewFactory = (function () {
+var ViewFactory = exports.ViewFactory = (function () {
   function ViewFactory(template, instructions, resources) {
     this.template = template;
     this.instructions = instructions;
@@ -146,43 +140,38 @@ var ViewFactory = (function () {
   _prototypeProperties(ViewFactory, null, {
     create: {
       value: function create(container, executionContext) {
-        var _this = this;
         var options = arguments[2] === undefined ? defaultFactoryOptions : arguments[2];
-        return (function () {
-          var fragment = _this.template.cloneNode(true),
-              instructables = fragment.querySelectorAll(".au-target"),
-              instructions = _this.instructions,
-              resources = _this.resources,
-              behaviors = [],
-              bindings = [],
-              children = [],
-              contentSelectors = [],
-              containers = { root: container },
-              i,
-              ii,
-              view;
+        var fragment = this.template.cloneNode(true),
+            instructables = fragment.querySelectorAll(".au-target"),
+            instructions = this.instructions,
+            resources = this.resources,
+            behaviors = [],
+            bindings = [],
+            children = [],
+            contentSelectors = [],
+            containers = { root: container },
+            i,
+            ii,
+            view;
 
-          for (i = 0, ii = instructables.length; i < ii; ++i) {
-            applyInstructions(containers, executionContext, instructables[i], instructions[i], behaviors, bindings, children, contentSelectors, resources);
-          }
+        for (i = 0, ii = instructables.length; i < ii; ++i) {
+          applyInstructions(containers, executionContext, instructables[i], instructions[i], behaviors, bindings, children, contentSelectors, resources);
+        }
 
-          view = new View(fragment, behaviors, bindings, children, options.systemControlled, contentSelectors);
-          view.created(executionContext);
+        view = new View(fragment, behaviors, bindings, children, options.systemControlled, contentSelectors);
+        view.created(executionContext);
 
-          if (!options.suppressBind) {
-            view.bind(executionContext);
-          }
+        if (!options.suppressBind) {
+          view.bind(executionContext);
+        }
 
-          return view;
-        })();
+        return view;
       },
       writable: true,
-      enumerable: true,
       configurable: true
     }
   });
 
   return ViewFactory;
 })();
-
-exports.ViewFactory = ViewFactory;
+exports.__esModule = true;

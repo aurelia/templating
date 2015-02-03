@@ -5,13 +5,10 @@ System.register([], function (_export) {
   return {
     setters: [],
     execute: function () {
-      _prototypeProperties = function (child, staticProps, instanceProps) {
-        if (staticProps) Object.defineProperties(child, staticProps);
-        if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
-      };
+      _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
       noMutations = [];
-      ChildObserver = (function () {
+      ChildObserver = _export("ChildObserver", (function () {
         function ChildObserver(property, changeHandler, selector) {
           this.selector = selector;
           this.changeHandler = changeHandler;
@@ -24,16 +21,13 @@ System.register([], function (_export) {
               return new ChildObserverBinder(this.selector, target, this.property, behavior, this.changeHandler);
             },
             writable: true,
-            enumerable: true,
             configurable: true
           }
         });
 
         return ChildObserver;
-      })();
-      _export("ChildObserver", ChildObserver);
-
-      ChildObserverBinder = (function () {
+      })());
+      ChildObserverBinder = _export("ChildObserverBinder", (function () {
         function ChildObserverBinder(selector, target, property, behavior, changeHandler) {
           this.selector = selector;
           this.target = target;
@@ -75,7 +69,6 @@ System.register([], function (_export) {
               }
             },
             writable: true,
-            enumerable: true,
             configurable: true
           },
           unbind: {
@@ -83,7 +76,6 @@ System.register([], function (_export) {
               this.observer.disconnect();
             },
             writable: true,
-            enumerable: true,
             configurable: true
           },
           onChange: {
@@ -136,14 +128,12 @@ System.register([], function (_export) {
               }
             },
             writable: true,
-            enumerable: true,
             configurable: true
           }
         });
 
         return ChildObserverBinder;
-      })();
-      _export("ChildObserverBinder", ChildObserverBinder);
+      })());
     }
   };
 });

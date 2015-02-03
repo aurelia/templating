@@ -16,14 +16,11 @@ System.register(["aurelia-logging", "aurelia-loader", "aurelia-path", "./view-co
       ViewResources = _resourceRegistry.ViewResources;
     }],
     execute: function () {
-      _prototypeProperties = function (child, staticProps, instanceProps) {
-        if (staticProps) Object.defineProperties(child, staticProps);
-        if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
-      };
+      _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
       importSplitter = /\s*,\s*/;
       logger = LogManager.getLogger("templating");
-      ViewEngine = (function () {
+      ViewEngine = _export("ViewEngine", (function () {
         function ViewEngine(loader, viewCompiler, appResources) {
           this.loader = loader;
           this.viewCompiler = viewCompiler;
@@ -37,7 +34,6 @@ System.register(["aurelia-logging", "aurelia-loader", "aurelia-path", "./view-co
               return [Loader, ViewCompiler, ResourceRegistry];
             },
             writable: true,
-            enumerable: true,
             configurable: true
           }
         }, {
@@ -63,12 +59,11 @@ System.register(["aurelia-logging", "aurelia-loader", "aurelia-path", "./view-co
               });
             },
             writable: true,
-            enumerable: true,
             configurable: true
           },
           loadTemplateResources: {
             value: function loadTemplateResources(templateUrl, template, associatedModuleId) {
-              var _this2 = this;
+              var _this = this;
               var importIds,
                   names,
                   i,
@@ -113,7 +108,7 @@ System.register(["aurelia-logging", "aurelia-loader", "aurelia-path", "./view-co
                 }
 
                 if (associatedModuleId) {
-                  associatedModule = _this2.resourceCoordinator.getExistingModuleAnalysis(associatedModuleId);
+                  associatedModule = _this.resourceCoordinator.getExistingModuleAnalysis(associatedModuleId);
 
                   if (associatedModule) {
                     associatedModule.register(registry);
@@ -124,14 +119,12 @@ System.register(["aurelia-logging", "aurelia-loader", "aurelia-path", "./view-co
               });
             },
             writable: true,
-            enumerable: true,
             configurable: true
           }
         });
 
         return ViewEngine;
-      })();
-      _export("ViewEngine", ViewEngine);
+      })());
     }
   };
 });

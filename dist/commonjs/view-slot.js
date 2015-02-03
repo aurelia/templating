@@ -1,12 +1,9 @@
 "use strict";
 
-var _prototypeProperties = function (child, staticProps, instanceProps) {
-  if (staticProps) Object.defineProperties(child, staticProps);
-  if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
-};
+var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
 var ContentSelector = require("./content-selector").ContentSelector;
-var ViewSlot = (function () {
+var ViewSlot = exports.ViewSlot = (function () {
   function ViewSlot(anchor, anchorIsContainer, executionContext) {
     this.anchor = anchor;
     this.viewAddMethod = anchorIsContainer ? "appendNodesTo" : "insertNodesBefore";
@@ -39,7 +36,6 @@ var ViewSlot = (function () {
         });
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     bind: {
@@ -63,7 +59,6 @@ var ViewSlot = (function () {
         }
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     unbind: {
@@ -78,7 +73,6 @@ var ViewSlot = (function () {
         }
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     add: {
@@ -91,7 +85,6 @@ var ViewSlot = (function () {
         }
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     insert: {
@@ -108,7 +101,6 @@ var ViewSlot = (function () {
         }
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     remove: {
@@ -121,7 +113,6 @@ var ViewSlot = (function () {
         }
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     removeAt: {
@@ -138,7 +129,6 @@ var ViewSlot = (function () {
         return view;
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     removeAll: {
@@ -160,7 +150,6 @@ var ViewSlot = (function () {
         this.children = [];
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     swap: {
@@ -169,7 +158,6 @@ var ViewSlot = (function () {
         this.add(view);
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     attached: {
@@ -188,7 +176,6 @@ var ViewSlot = (function () {
         }
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     detached: {
@@ -204,7 +191,6 @@ var ViewSlot = (function () {
         }
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     installContentSelectors: {
@@ -217,7 +203,6 @@ var ViewSlot = (function () {
         this.removeAll = this.contentSelectorRemoveAll;
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     contentSelectorAdd: {
@@ -233,7 +218,6 @@ var ViewSlot = (function () {
         }
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     contentSelectorInsert: {
@@ -253,7 +237,6 @@ var ViewSlot = (function () {
         }
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     contentSelectorRemove: {
@@ -274,7 +257,6 @@ var ViewSlot = (function () {
         }
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     contentSelectorRemoveAt: {
@@ -297,7 +279,6 @@ var ViewSlot = (function () {
         return view;
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     contentSelectorRemoveAll: {
@@ -327,12 +308,10 @@ var ViewSlot = (function () {
         this.children = [];
       },
       writable: true,
-      enumerable: true,
       configurable: true
     }
   });
 
   return ViewSlot;
 })();
-
-exports.ViewSlot = ViewSlot;
+exports.__esModule = true;

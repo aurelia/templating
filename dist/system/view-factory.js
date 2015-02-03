@@ -106,12 +106,9 @@ System.register(["aurelia-dependency-injection", "./view", "./view-slot", "./con
       ViewResources = _resourceRegistry.ViewResources;
     }],
     execute: function () {
-      _prototypeProperties = function (child, staticProps, instanceProps) {
-        if (staticProps) Object.defineProperties(child, staticProps);
-        if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
-      };
+      _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
-      BoundViewFactory = (function () {
+      BoundViewFactory = _export("BoundViewFactory", (function () {
         function BoundViewFactory(parentContainer, viewFactory, executionContext) {
           this.parentContainer = parentContainer;
           this.viewFactory = viewFactory;
@@ -130,20 +127,17 @@ System.register(["aurelia-dependency-injection", "./view", "./view-slot", "./con
               return this.viewFactory.create(childContainer, context, this.factoryOptions);
             },
             writable: true,
-            enumerable: true,
             configurable: true
           }
         });
 
         return BoundViewFactory;
-      })();
-      _export("BoundViewFactory", BoundViewFactory);
-
+      })());
       defaultFactoryOptions = {
         systemControlled: false,
         suppressBind: false
       };
-      ViewFactory = (function () {
+      ViewFactory = _export("ViewFactory", (function () {
         function ViewFactory(template, instructions, resources) {
           this.template = template;
           this.instructions = instructions;
@@ -153,45 +147,40 @@ System.register(["aurelia-dependency-injection", "./view", "./view-slot", "./con
         _prototypeProperties(ViewFactory, null, {
           create: {
             value: function create(container, executionContext) {
-              var _this = this;
               var options = arguments[2] === undefined ? defaultFactoryOptions : arguments[2];
-              return (function () {
-                var fragment = _this.template.cloneNode(true),
-                    instructables = fragment.querySelectorAll(".au-target"),
-                    instructions = _this.instructions,
-                    resources = _this.resources,
-                    behaviors = [],
-                    bindings = [],
-                    children = [],
-                    contentSelectors = [],
-                    containers = { root: container },
-                    i,
-                    ii,
-                    view;
+              var fragment = this.template.cloneNode(true),
+                  instructables = fragment.querySelectorAll(".au-target"),
+                  instructions = this.instructions,
+                  resources = this.resources,
+                  behaviors = [],
+                  bindings = [],
+                  children = [],
+                  contentSelectors = [],
+                  containers = { root: container },
+                  i,
+                  ii,
+                  view;
 
-                for (i = 0, ii = instructables.length; i < ii; ++i) {
-                  applyInstructions(containers, executionContext, instructables[i], instructions[i], behaviors, bindings, children, contentSelectors, resources);
-                }
+              for (i = 0, ii = instructables.length; i < ii; ++i) {
+                applyInstructions(containers, executionContext, instructables[i], instructions[i], behaviors, bindings, children, contentSelectors, resources);
+              }
 
-                view = new View(fragment, behaviors, bindings, children, options.systemControlled, contentSelectors);
-                view.created(executionContext);
+              view = new View(fragment, behaviors, bindings, children, options.systemControlled, contentSelectors);
+              view.created(executionContext);
 
-                if (!options.suppressBind) {
-                  view.bind(executionContext);
-                }
+              if (!options.suppressBind) {
+                view.bind(executionContext);
+              }
 
-                return view;
-              })();
+              return view;
             },
             writable: true,
-            enumerable: true,
             configurable: true
           }
         });
 
         return ViewFactory;
-      })();
-      _export("ViewFactory", ViewFactory);
+      })());
     }
   };
 });

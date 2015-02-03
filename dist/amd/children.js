@@ -1,14 +1,11 @@
 define(["exports"], function (exports) {
   "use strict";
 
-  var _prototypeProperties = function (child, staticProps, instanceProps) {
-    if (staticProps) Object.defineProperties(child, staticProps);
-    if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
-  };
+  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
   var noMutations = [];
 
-  var ChildObserver = (function () {
+  var ChildObserver = exports.ChildObserver = (function () {
     function ChildObserver(property, changeHandler, selector) {
       this.selector = selector;
       this.changeHandler = changeHandler;
@@ -21,16 +18,13 @@ define(["exports"], function (exports) {
           return new ChildObserverBinder(this.selector, target, this.property, behavior, this.changeHandler);
         },
         writable: true,
-        enumerable: true,
         configurable: true
       }
     });
 
     return ChildObserver;
   })();
-
-  exports.ChildObserver = ChildObserver;
-  var ChildObserverBinder = (function () {
+  var ChildObserverBinder = exports.ChildObserverBinder = (function () {
     function ChildObserverBinder(selector, target, property, behavior, changeHandler) {
       this.selector = selector;
       this.target = target;
@@ -72,7 +66,6 @@ define(["exports"], function (exports) {
           }
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       unbind: {
@@ -80,7 +73,6 @@ define(["exports"], function (exports) {
           this.observer.disconnect();
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       onChange: {
@@ -133,13 +125,11 @@ define(["exports"], function (exports) {
           }
         },
         writable: true,
-        enumerable: true,
         configurable: true
       }
     });
 
     return ChildObserverBinder;
   })();
-
-  exports.ChildObserverBinder = ChildObserverBinder;
+  exports.__esModule = true;
 });

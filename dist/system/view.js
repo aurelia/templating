@@ -5,12 +5,9 @@ System.register([], function (_export) {
   return {
     setters: [],
     execute: function () {
-      _prototypeProperties = function (child, staticProps, instanceProps) {
-        if (staticProps) Object.defineProperties(child, staticProps);
-        if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
-      };
+      _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
-      View = (function () {
+      View = _export("View", (function () {
         function View(fragment, behaviors, bindings, children, systemControlled, contentSelectors) {
           this.fragment = fragment;
           this.behaviors = behaviors;
@@ -35,7 +32,6 @@ System.register([], function (_export) {
               }
             },
             writable: true,
-            enumerable: true,
             configurable: true
           },
           bind: {
@@ -79,7 +75,6 @@ System.register([], function (_export) {
               }
             },
             writable: true,
-            enumerable: true,
             configurable: true
           },
           addBinding: {
@@ -91,7 +86,6 @@ System.register([], function (_export) {
               }
             },
             writable: true,
-            enumerable: true,
             configurable: true
           },
           unbind: {
@@ -122,7 +116,6 @@ System.register([], function (_export) {
               }
             },
             writable: true,
-            enumerable: true,
             configurable: true
           },
           insertNodesBefore: {
@@ -131,7 +124,6 @@ System.register([], function (_export) {
               parent.insertBefore(this.fragment, refNode);
             },
             writable: true,
-            enumerable: true,
             configurable: true
           },
           appendNodesTo: {
@@ -139,7 +131,6 @@ System.register([], function (_export) {
               parent.appendChild(this.fragment);
             },
             writable: true,
-            enumerable: true,
             configurable: true
           },
           removeNodes: {
@@ -164,7 +155,6 @@ System.register([], function (_export) {
               }
             },
             writable: true,
-            enumerable: true,
             configurable: true
           },
           attached: {
@@ -192,7 +182,6 @@ System.register([], function (_export) {
               }
             },
             writable: true,
-            enumerable: true,
             configurable: true
           },
           detached: {
@@ -218,14 +207,12 @@ System.register([], function (_export) {
               }
             },
             writable: true,
-            enumerable: true,
             configurable: true
           }
         });
 
         return View;
-      })();
-      _export("View", View);
+      })());
     }
   };
 });

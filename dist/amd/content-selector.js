@@ -1,10 +1,7 @@
 define(["exports"], function (exports) {
   "use strict";
 
-  var _prototypeProperties = function (child, staticProps, instanceProps) {
-    if (staticProps) Object.defineProperties(child, staticProps);
-    if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
-  };
+  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
   if (Element && !Element.prototype.matches) {
     var proto = Element.prototype;
@@ -24,7 +21,7 @@ define(["exports"], function (exports) {
     return insertionPoint || anchor;
   }
 
-  var ContentSelector = (function () {
+  var ContentSelector = exports.ContentSelector = (function () {
     function ContentSelector(anchor, selector) {
       this.anchor = anchor;
       this.selector = selector;
@@ -75,7 +72,6 @@ define(["exports"], function (exports) {
           }
         },
         writable: true,
-        enumerable: true,
         configurable: true
       }
     }, {
@@ -84,7 +80,6 @@ define(["exports"], function (exports) {
           return new ContentSelector(this.anchor, this.selector);
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       matches: {
@@ -92,7 +87,6 @@ define(["exports"], function (exports) {
           return this.all || node.nodeType === 1 && node.matches(this.selector);
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       add: {
@@ -109,7 +103,6 @@ define(["exports"], function (exports) {
           this.groups.push(group);
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       insert: {
@@ -128,7 +121,6 @@ define(["exports"], function (exports) {
           this.groups.splice(index, 0, group);
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       removeAt: {
@@ -144,13 +136,11 @@ define(["exports"], function (exports) {
           this.groups.splice(index, 1);
         },
         writable: true,
-        enumerable: true,
         configurable: true
       }
     });
 
     return ContentSelector;
   })();
-
-  exports.ContentSelector = ContentSelector;
+  exports.__esModule = true;
 });

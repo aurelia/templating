@@ -1,3 +1,11 @@
+### 0.8.8 (2015-02-03)
+
+
+#### Bug Fixes
+
+* **view-compiler:** correctly map renamed attached behaviors at app level ([47f9e2f9](http://github.com/aurelia/templating/commit/47f9e2f93fb8e2552fa0f74dd402968397261c2b))
+
+
 ### 0.8.7 (2015-01-29)
 
 

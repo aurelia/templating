@@ -60,4 +60,5 @@ define(["exports", "aurelia-metadata", "aurelia-task-queue", "aurelia-binding", 
 
     behavior.childExpression = meta.first(ChildObserver);
   }
+  exports.__esModule = true;
 });

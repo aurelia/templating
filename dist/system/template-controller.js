@@ -13,27 +13,11 @@ System.register(["aurelia-metadata", "./behavior-instance", "./behaviors", "./ut
       hyphenate = _util.hyphenate;
     }],
     execute: function () {
-      _prototypeProperties = function (child, staticProps, instanceProps) {
-        if (staticProps) Object.defineProperties(child, staticProps);
-        if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
-      };
+      _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
-      _inherits = function (subClass, superClass) {
-        if (typeof superClass !== "function" && superClass !== null) {
-          throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
-        }
-        subClass.prototype = Object.create(superClass && superClass.prototype, {
-          constructor: {
-            value: subClass,
-            enumerable: false,
-            writable: true,
-            configurable: true
-          }
-        });
-        if (superClass) subClass.__proto__ = superClass;
-      };
+      _inherits = function (subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
 
-      TemplateController = (function (ResourceType) {
+      TemplateController = _export("TemplateController", (function (ResourceType) {
         function TemplateController(attribute) {
           this.name = attribute;
           this.properties = [];
@@ -51,7 +35,6 @@ System.register(["aurelia-metadata", "./behavior-instance", "./behaviors", "./ut
               }
             },
             writable: true,
-            enumerable: true,
             configurable: true
           }
         }, {
@@ -60,7 +43,6 @@ System.register(["aurelia-metadata", "./behavior-instance", "./behaviors", "./ut
               configureBehavior(container, this, target);
             },
             writable: true,
-            enumerable: true,
             configurable: true
           },
           load: {
@@ -68,7 +50,6 @@ System.register(["aurelia-metadata", "./behavior-instance", "./behaviors", "./ut
               return Promise.resolve(this);
             },
             writable: true,
-            enumerable: true,
             configurable: true
           },
           register: {
@@ -76,7 +57,6 @@ System.register(["aurelia-metadata", "./behavior-instance", "./behaviors", "./ut
               registry.registerAttribute(name || this.name, this, this.name);
             },
             writable: true,
-            enumerable: true,
             configurable: true
           },
           compile: {
@@ -106,7 +86,6 @@ System.register(["aurelia-metadata", "./behavior-instance", "./behaviors", "./ut
               return node;
             },
             writable: true,
-            enumerable: true,
             configurable: true
           },
           create: {
@@ -117,14 +96,12 @@ System.register(["aurelia-metadata", "./behavior-instance", "./behaviors", "./ut
               return behaviorInstance;
             },
             writable: true,
-            enumerable: true,
             configurable: true
           }
         });
 
         return TemplateController;
-      })(ResourceType);
-      _export("TemplateController", TemplateController);
+      })(ResourceType));
     }
   };
 });

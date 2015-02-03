@@ -1,30 +1,14 @@
 "use strict";
 
-var _prototypeProperties = function (child, staticProps, instanceProps) {
-  if (staticProps) Object.defineProperties(child, staticProps);
-  if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
-};
+var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
-var _inherits = function (subClass, superClass) {
-  if (typeof superClass !== "function" && superClass !== null) {
-    throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
-  }
-  subClass.prototype = Object.create(superClass && superClass.prototype, {
-    constructor: {
-      value: subClass,
-      enumerable: false,
-      writable: true,
-      configurable: true
-    }
-  });
-  if (superClass) subClass.__proto__ = superClass;
-};
+var _inherits = function (subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
 
 var ResourceType = require("aurelia-metadata").ResourceType;
 var BehaviorInstance = require("./behavior-instance").BehaviorInstance;
 var configureBehavior = require("./behaviors").configureBehavior;
 var hyphenate = require("./util").hyphenate;
-var TemplateController = (function (ResourceType) {
+var TemplateController = exports.TemplateController = (function (ResourceType) {
   function TemplateController(attribute) {
     this.name = attribute;
     this.properties = [];
@@ -42,7 +26,6 @@ var TemplateController = (function (ResourceType) {
         }
       },
       writable: true,
-      enumerable: true,
       configurable: true
     }
   }, {
@@ -51,7 +34,6 @@ var TemplateController = (function (ResourceType) {
         configureBehavior(container, this, target);
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     load: {
@@ -59,7 +41,6 @@ var TemplateController = (function (ResourceType) {
         return Promise.resolve(this);
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     register: {
@@ -67,7 +48,6 @@ var TemplateController = (function (ResourceType) {
         registry.registerAttribute(name || this.name, this, this.name);
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     compile: {
@@ -97,7 +77,6 @@ var TemplateController = (function (ResourceType) {
         return node;
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     create: {
@@ -108,12 +87,10 @@ var TemplateController = (function (ResourceType) {
         return behaviorInstance;
       },
       writable: true,
-      enumerable: true,
       configurable: true
     }
   });
 
   return TemplateController;
 })(ResourceType);
-
-exports.TemplateController = TemplateController;
+exports.__esModule = true;

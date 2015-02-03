@@ -1,9 +1,6 @@
 "use strict";
 
-var _prototypeProperties = function (child, staticProps, instanceProps) {
-  if (staticProps) Object.defineProperties(child, staticProps);
-  if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
-};
+var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
 var ResourceRegistry = require("./resource-registry").ResourceRegistry;
 var ViewFactory = require("./view-factory").ViewFactory;
@@ -26,7 +23,7 @@ function configureProperties(instruction, resources) {
       key,
       value;
 
-  var knownAttribute = resources.attributeMap[attrName];
+  var knownAttribute = resources.mapAttribute(attrName);
   if (knownAttribute && attrName in attributes && knownAttribute !== attrName) {
     attributes[knownAttribute] = attributes[attrName];
     delete attributes[attrName];
@@ -52,7 +49,7 @@ function makeIntoInstructionTarget(element) {
   element.setAttribute("class", value ? value += " au-target" : "au-target");
 }
 
-var ViewCompiler = (function () {
+var ViewCompiler = exports.ViewCompiler = (function () {
   function ViewCompiler(bindingLanguage) {
     this.bindingLanguage = bindingLanguage;
   }
@@ -63,37 +60,32 @@ var ViewCompiler = (function () {
         return [BindingLanguage];
       },
       writable: true,
-      enumerable: true,
       configurable: true
     }
   }, {
     compile: {
       value: function compile(templateOrFragment, resources) {
-        var _this = this;
         var options = arguments[2] === undefined ? defaultCompileOptions : arguments[2];
-        return (function () {
-          var instructions = [],
-              targetShadowDOM = options.targetShadowDOM,
-              content;
+        var instructions = [],
+            targetShadowDOM = options.targetShadowDOM,
+            content;
 
-          targetShadowDOM = targetShadowDOM && hasShadowDOM;
+        targetShadowDOM = targetShadowDOM && hasShadowDOM;
 
-          if (templateOrFragment.content) {
-            content = document.adoptNode(templateOrFragment.content, true);
-          } else {
-            content = templateOrFragment;
-          }
+        if (templateOrFragment.content) {
+          content = document.adoptNode(templateOrFragment.content, true);
+        } else {
+          content = templateOrFragment;
+        }
 
-          _this.compileNode(content, resources, instructions, templateOrFragment, "root", !targetShadowDOM);
+        this.compileNode(content, resources, instructions, templateOrFragment, "root", !targetShadowDOM);
 
-          content.insertBefore(document.createComment("<view>"), content.firstChild);
-          content.appendChild(document.createComment("</view>"));
+        content.insertBefore(document.createComment("<view>"), content.firstChild);
+        content.appendChild(document.createComment("</view>"));
 
-          return new ViewFactory(content, instructions, resources);
-        })();
+        return new ViewFactory(content, instructions, resources);
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     compileNode: {
@@ -122,7 +114,6 @@ var ViewCompiler = (function () {
         return node.nextSibling;
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     compileElement: {
@@ -178,7 +169,7 @@ var ViewCompiler = (function () {
           elementProperty = null;
 
           if (type) {
-            knownAttribute = resources.attributeMap[info.attrName];
+            knownAttribute = resources.mapAttribute(info.attrName);
             if (knownAttribute) {
               property = type.attributes[knownAttribute];
 
@@ -235,7 +226,7 @@ var ViewCompiler = (function () {
           } else {
             if (type) {
               instruction = { attrName: attrName, type: type, attributes: {} };
-              instruction.attributes[resources.attributeMap[attrName]] = attrValue;
+              instruction.attributes[resources.mapAttribute(attrName)] = attrValue;
 
               if (type.liftsContent) {
                 instruction.originalAttrName = attrName;
@@ -292,12 +283,10 @@ var ViewCompiler = (function () {
         return node.nextSibling;
       },
       writable: true,
-      enumerable: true,
       configurable: true
     }
   });
 
   return ViewCompiler;
 })();
-
-exports.ViewCompiler = ViewCompiler;
+exports.__esModule = true;

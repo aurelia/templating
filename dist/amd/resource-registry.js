@@ -1,47 +1,11 @@
 define(["exports", "aurelia-path"], function (exports, _aureliaPath) {
   "use strict";
 
-  var _get = function get(object, property, receiver) {
-    var desc = Object.getOwnPropertyDescriptor(object, property);
+  var _get = function get(object, property, receiver) { var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc && desc.writable) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
-    if (desc === undefined) {
-      var parent = Object.getPrototypeOf(object);
+  var _inherits = function (subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
 
-      if (parent === null) {
-        return undefined;
-      } else {
-        return get(parent, property, receiver);
-      }
-    } else if ("value" in desc && desc.writable) {
-      return desc.value;
-    } else {
-      var getter = desc.get;
-      if (getter === undefined) {
-        return undefined;
-      }
-      return getter.call(receiver);
-    }
-  };
-
-  var _inherits = function (subClass, superClass) {
-    if (typeof superClass !== "function" && superClass !== null) {
-      throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
-    }
-    subClass.prototype = Object.create(superClass && superClass.prototype, {
-      constructor: {
-        value: subClass,
-        enumerable: false,
-        writable: true,
-        configurable: true
-      }
-    });
-    if (superClass) subClass.__proto__ = superClass;
-  };
-
-  var _prototypeProperties = function (child, staticProps, instanceProps) {
-    if (staticProps) Object.defineProperties(child, staticProps);
-    if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
-  };
+  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
   var relativeToFile = _aureliaPath.relativeToFile;
 
@@ -63,7 +27,7 @@ define(["exports", "aurelia-path"], function (exports, _aureliaPath) {
     lookup[name] = resource;
   }
 
-  var ResourceRegistry = (function () {
+  var ResourceRegistry = exports.ResourceRegistry = (function () {
     function ResourceRegistry() {
       this.attributes = {};
       this.elements = {};
@@ -78,7 +42,6 @@ define(["exports", "aurelia-path"], function (exports, _aureliaPath) {
           register(this.elements, tagName, behavior, "an Element");
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       getElement: {
@@ -86,7 +49,6 @@ define(["exports", "aurelia-path"], function (exports, _aureliaPath) {
           return this.elements[tagName];
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       registerAttribute: {
@@ -95,7 +57,6 @@ define(["exports", "aurelia-path"], function (exports, _aureliaPath) {
           register(this.attributes, attribute, behavior, "an Attribute");
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       getAttribute: {
@@ -103,7 +64,6 @@ define(["exports", "aurelia-path"], function (exports, _aureliaPath) {
           return this.attributes[attribute];
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       registerValueConverter: {
@@ -111,7 +71,6 @@ define(["exports", "aurelia-path"], function (exports, _aureliaPath) {
           register(this.valueConverters, name, valueConverter, "a ValueConverter");
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       getValueConverter: {
@@ -119,16 +78,13 @@ define(["exports", "aurelia-path"], function (exports, _aureliaPath) {
           return this.valueConverters[name];
         },
         writable: true,
-        enumerable: true,
         configurable: true
       }
     });
 
     return ResourceRegistry;
   })();
-
-  exports.ResourceRegistry = ResourceRegistry;
-  var ViewResources = (function (ResourceRegistry) {
+  var ViewResources = exports.ViewResources = (function (ResourceRegistry) {
     function ViewResources(parent, viewUrl) {
       _get(Object.getPrototypeOf(ViewResources.prototype), "constructor", this).call(this);
       this.parent = parent;
@@ -144,7 +100,6 @@ define(["exports", "aurelia-path"], function (exports, _aureliaPath) {
           return relativeToFile(path, this.viewUrl);
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       getElement: {
@@ -152,7 +107,13 @@ define(["exports", "aurelia-path"], function (exports, _aureliaPath) {
           return this.elements[tagName] || this.parent.getElement(tagName);
         },
         writable: true,
-        enumerable: true,
+        configurable: true
+      },
+      mapAttribute: {
+        value: function mapAttribute(attribute) {
+          return this.attributeMap[attribute] || this.parent.attributeMap[attribute];
+        },
+        writable: true,
         configurable: true
       },
       getAttribute: {
@@ -160,7 +121,6 @@ define(["exports", "aurelia-path"], function (exports, _aureliaPath) {
           return this.attributes[attribute] || this.parent.getAttribute(attribute);
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       getValueConverter: {
@@ -168,13 +128,11 @@ define(["exports", "aurelia-path"], function (exports, _aureliaPath) {
           return this.valueConverters[name] || this.parent.getValueConverter(name);
         },
         writable: true,
-        enumerable: true,
         configurable: true
       }
     });
 
     return ViewResources;
   })(ResourceRegistry);
-
-  exports.ViewResources = ViewResources;
+  exports.__esModule = true;
 });

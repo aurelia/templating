@@ -1,31 +1,15 @@
 define(["exports", "./util", "aurelia-binding"], function (exports, _util, _aureliaBinding) {
   "use strict";
 
-  var _inherits = function (subClass, superClass) {
-    if (typeof superClass !== "function" && superClass !== null) {
-      throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
-    }
-    subClass.prototype = Object.create(superClass && superClass.prototype, {
-      constructor: {
-        value: subClass,
-        enumerable: false,
-        writable: true,
-        configurable: true
-      }
-    });
-    if (superClass) subClass.__proto__ = superClass;
-  };
+  var _inherits = function (subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
 
-  var _prototypeProperties = function (child, staticProps, instanceProps) {
-    if (staticProps) Object.defineProperties(child, staticProps);
-    if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
-  };
+  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
   var hyphenate = _util.hyphenate;
   var ONE_WAY = _aureliaBinding.ONE_WAY;
   var TWO_WAY = _aureliaBinding.TWO_WAY;
   var ONE_TIME = _aureliaBinding.ONE_TIME;
-  var BehaviorProperty = (function () {
+  var BehaviorProperty = exports.BehaviorProperty = (function () {
     function BehaviorProperty(name, changeHandler, attribute, defaultValue, defaultBindingMode) {
       this.name = name;
       this.changeHandler = changeHandler;
@@ -41,7 +25,6 @@ define(["exports", "./util", "aurelia-binding"], function (exports, _util, _aure
           return this;
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       bindingIsOneWay: {
@@ -50,7 +33,6 @@ define(["exports", "./util", "aurelia-binding"], function (exports, _util, _aure
           return this;
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       bindingIsOneTime: {
@@ -59,7 +41,6 @@ define(["exports", "./util", "aurelia-binding"], function (exports, _util, _aure
           return this;
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       define: {
@@ -91,7 +72,6 @@ define(["exports", "./util", "aurelia-binding"], function (exports, _util, _aure
           });
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       createObserver: {
@@ -108,7 +88,6 @@ define(["exports", "./util", "aurelia-binding"], function (exports, _util, _aure
           return new BehaviorPropertyObserver(this.taskQueue, executionContext, this.name, selfSubscriber);
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       initialize: {
@@ -141,16 +120,13 @@ define(["exports", "./util", "aurelia-binding"], function (exports, _util, _aure
           observer.publishing = true;
         },
         writable: true,
-        enumerable: true,
         configurable: true
       }
     });
 
     return BehaviorProperty;
   })();
-
-  exports.BehaviorProperty = BehaviorProperty;
-  var OptionsProperty = (function (BehaviorProperty) {
+  var OptionsProperty = exports.OptionsProperty = (function (BehaviorProperty) {
     function OptionsProperty(attribute) {
       for (var _len = arguments.length, rest = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
         rest[_key - 1] = arguments[_key];
@@ -175,7 +151,6 @@ define(["exports", "./util", "aurelia-binding"], function (exports, _util, _aure
           return this;
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       withProperty: {
@@ -184,7 +159,6 @@ define(["exports", "./util", "aurelia-binding"], function (exports, _util, _aure
           return this;
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       define: {
@@ -203,13 +177,11 @@ define(["exports", "./util", "aurelia-binding"], function (exports, _util, _aure
           }
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       createObserver: {
         value: function createObserver(executionContext) {},
         writable: true,
-        enumerable: true,
         configurable: true
       },
       initialize: {
@@ -225,7 +197,6 @@ define(["exports", "./util", "aurelia-binding"], function (exports, _util, _aure
           }
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       createDynamicProperty: {
@@ -266,15 +237,12 @@ define(["exports", "./util", "aurelia-binding"], function (exports, _util, _aure
           observer.selfSubscriber = selfSubscriber;
         },
         writable: true,
-        enumerable: true,
         configurable: true
       }
     });
 
     return OptionsProperty;
   })(BehaviorProperty);
-
-  exports.OptionsProperty = OptionsProperty;
   var BehaviorPropertyObserver = (function () {
     function BehaviorPropertyObserver(taskQueue, obj, propertyName, selfSubscriber) {
       this.taskQueue = taskQueue;
@@ -292,7 +260,6 @@ define(["exports", "./util", "aurelia-binding"], function (exports, _util, _aure
           return this.currentValue;
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       setValue: {
@@ -310,7 +277,6 @@ define(["exports", "./util", "aurelia-binding"], function (exports, _util, _aure
           }
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       call: {
@@ -335,7 +301,6 @@ define(["exports", "./util", "aurelia-binding"], function (exports, _util, _aure
           }
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       subscribe: {
@@ -347,11 +312,12 @@ define(["exports", "./util", "aurelia-binding"], function (exports, _util, _aure
           };
         },
         writable: true,
-        enumerable: true,
         configurable: true
       }
     });
 
     return BehaviorPropertyObserver;
   })();
+
+  exports.__esModule = true;
 });

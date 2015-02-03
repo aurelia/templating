@@ -1,10 +1,7 @@
 define(["exports", "aurelia-metadata", "./view-strategy", "./resource-coordinator", "./view-engine", "./custom-element"], function (exports, _aureliaMetadata, _viewStrategy, _resourceCoordinator, _viewEngine, _customElement) {
   "use strict";
 
-  var _prototypeProperties = function (child, staticProps, instanceProps) {
-    if (staticProps) Object.defineProperties(child, staticProps);
-    if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
-  };
+  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
   var Origin = _aureliaMetadata.Origin;
   var ViewStrategy = _viewStrategy.ViewStrategy;
@@ -12,7 +9,7 @@ define(["exports", "aurelia-metadata", "./view-strategy", "./resource-coordinato
   var ResourceCoordinator = _resourceCoordinator.ResourceCoordinator;
   var ViewEngine = _viewEngine.ViewEngine;
   var CustomElement = _customElement.CustomElement;
-  var CompositionEngine = (function () {
+  var CompositionEngine = exports.CompositionEngine = (function () {
     function CompositionEngine(resourceCoordinator, viewEngine) {
       this.resourceCoordinator = resourceCoordinator;
       this.viewEngine = viewEngine;
@@ -24,7 +21,6 @@ define(["exports", "aurelia-metadata", "./view-strategy", "./resource-coordinato
           return [ResourceCoordinator, ViewEngine];
         },
         writable: true,
-        enumerable: true,
         configurable: true
       }
     }, {
@@ -37,7 +33,6 @@ define(["exports", "aurelia-metadata", "./view-strategy", "./resource-coordinato
           return instruction.viewModel.activate(instruction.model) || Promise.resolve();
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       createBehaviorAndSwap: {
@@ -54,7 +49,6 @@ define(["exports", "aurelia-metadata", "./view-strategy", "./resource-coordinato
           });
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       createBehavior: {
@@ -94,7 +88,6 @@ define(["exports", "aurelia-metadata", "./view-strategy", "./resource-coordinato
           });
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       createViewModel: {
@@ -111,7 +104,6 @@ define(["exports", "aurelia-metadata", "./view-strategy", "./resource-coordinato
           });
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       compose: {
@@ -144,13 +136,11 @@ define(["exports", "aurelia-metadata", "./view-strategy", "./resource-coordinato
           }
         },
         writable: true,
-        enumerable: true,
         configurable: true
       }
     });
 
     return CompositionEngine;
   })();
-
-  exports.CompositionEngine = CompositionEngine;
+  exports.__esModule = true;
 });

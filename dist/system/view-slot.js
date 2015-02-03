@@ -7,12 +7,9 @@ System.register(["./content-selector"], function (_export) {
       ContentSelector = _contentSelector.ContentSelector;
     }],
     execute: function () {
-      _prototypeProperties = function (child, staticProps, instanceProps) {
-        if (staticProps) Object.defineProperties(child, staticProps);
-        if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
-      };
+      _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
-      ViewSlot = (function () {
+      ViewSlot = _export("ViewSlot", (function () {
         function ViewSlot(anchor, anchorIsContainer, executionContext) {
           this.anchor = anchor;
           this.viewAddMethod = anchorIsContainer ? "appendNodesTo" : "insertNodesBefore";
@@ -45,7 +42,6 @@ System.register(["./content-selector"], function (_export) {
               });
             },
             writable: true,
-            enumerable: true,
             configurable: true
           },
           bind: {
@@ -69,7 +65,6 @@ System.register(["./content-selector"], function (_export) {
               }
             },
             writable: true,
-            enumerable: true,
             configurable: true
           },
           unbind: {
@@ -84,7 +79,6 @@ System.register(["./content-selector"], function (_export) {
               }
             },
             writable: true,
-            enumerable: true,
             configurable: true
           },
           add: {
@@ -97,7 +91,6 @@ System.register(["./content-selector"], function (_export) {
               }
             },
             writable: true,
-            enumerable: true,
             configurable: true
           },
           insert: {
@@ -114,7 +107,6 @@ System.register(["./content-selector"], function (_export) {
               }
             },
             writable: true,
-            enumerable: true,
             configurable: true
           },
           remove: {
@@ -127,7 +119,6 @@ System.register(["./content-selector"], function (_export) {
               }
             },
             writable: true,
-            enumerable: true,
             configurable: true
           },
           removeAt: {
@@ -144,7 +135,6 @@ System.register(["./content-selector"], function (_export) {
               return view;
             },
             writable: true,
-            enumerable: true,
             configurable: true
           },
           removeAll: {
@@ -166,7 +156,6 @@ System.register(["./content-selector"], function (_export) {
               this.children = [];
             },
             writable: true,
-            enumerable: true,
             configurable: true
           },
           swap: {
@@ -175,7 +164,6 @@ System.register(["./content-selector"], function (_export) {
               this.add(view);
             },
             writable: true,
-            enumerable: true,
             configurable: true
           },
           attached: {
@@ -194,7 +182,6 @@ System.register(["./content-selector"], function (_export) {
               }
             },
             writable: true,
-            enumerable: true,
             configurable: true
           },
           detached: {
@@ -210,7 +197,6 @@ System.register(["./content-selector"], function (_export) {
               }
             },
             writable: true,
-            enumerable: true,
             configurable: true
           },
           installContentSelectors: {
@@ -223,7 +209,6 @@ System.register(["./content-selector"], function (_export) {
               this.removeAll = this.contentSelectorRemoveAll;
             },
             writable: true,
-            enumerable: true,
             configurable: true
           },
           contentSelectorAdd: {
@@ -239,7 +224,6 @@ System.register(["./content-selector"], function (_export) {
               }
             },
             writable: true,
-            enumerable: true,
             configurable: true
           },
           contentSelectorInsert: {
@@ -259,7 +243,6 @@ System.register(["./content-selector"], function (_export) {
               }
             },
             writable: true,
-            enumerable: true,
             configurable: true
           },
           contentSelectorRemove: {
@@ -280,7 +263,6 @@ System.register(["./content-selector"], function (_export) {
               }
             },
             writable: true,
-            enumerable: true,
             configurable: true
           },
           contentSelectorRemoveAt: {
@@ -303,7 +285,6 @@ System.register(["./content-selector"], function (_export) {
               return view;
             },
             writable: true,
-            enumerable: true,
             configurable: true
           },
           contentSelectorRemoveAll: {
@@ -333,14 +314,12 @@ System.register(["./content-selector"], function (_export) {
               this.children = [];
             },
             writable: true,
-            enumerable: true,
             configurable: true
           }
         });
 
         return ViewSlot;
-      })();
-      _export("ViewSlot", ViewSlot);
+      })());
     }
   };
 });

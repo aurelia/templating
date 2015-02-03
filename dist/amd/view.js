@@ -1,12 +1,9 @@
 define(["exports"], function (exports) {
   "use strict";
 
-  var _prototypeProperties = function (child, staticProps, instanceProps) {
-    if (staticProps) Object.defineProperties(child, staticProps);
-    if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
-  };
+  var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
-  var View = (function () {
+  var View = exports.View = (function () {
     function View(fragment, behaviors, bindings, children, systemControlled, contentSelectors) {
       this.fragment = fragment;
       this.behaviors = behaviors;
@@ -31,7 +28,6 @@ define(["exports"], function (exports) {
           }
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       bind: {
@@ -75,7 +71,6 @@ define(["exports"], function (exports) {
           }
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       addBinding: {
@@ -87,7 +82,6 @@ define(["exports"], function (exports) {
           }
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       unbind: {
@@ -118,7 +112,6 @@ define(["exports"], function (exports) {
           }
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       insertNodesBefore: {
@@ -127,7 +120,6 @@ define(["exports"], function (exports) {
           parent.insertBefore(this.fragment, refNode);
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       appendNodesTo: {
@@ -135,7 +127,6 @@ define(["exports"], function (exports) {
           parent.appendChild(this.fragment);
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       removeNodes: {
@@ -160,7 +151,6 @@ define(["exports"], function (exports) {
           }
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       attached: {
@@ -188,7 +178,6 @@ define(["exports"], function (exports) {
           }
         },
         writable: true,
-        enumerable: true,
         configurable: true
       },
       detached: {
@@ -214,13 +203,11 @@ define(["exports"], function (exports) {
           }
         },
         writable: true,
-        enumerable: true,
         configurable: true
       }
     });
 
     return View;
   })();
-
-  exports.View = View;
+  exports.__esModule = true;
 });

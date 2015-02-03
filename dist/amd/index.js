@@ -46,4 +46,5 @@ define(["exports", "aurelia-metadata", "./property", "./attached-behavior", "./c
   Metadata.configure.classHelper("templateController", TemplateController);
   Metadata.configure.classHelper("useView", UseView);
   Metadata.configure.classHelper("noView", NoView);
+  exports.__esModule = true;
 });

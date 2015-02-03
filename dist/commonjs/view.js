@@ -1,11 +1,8 @@
 "use strict";
 
-var _prototypeProperties = function (child, staticProps, instanceProps) {
-  if (staticProps) Object.defineProperties(child, staticProps);
-  if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
-};
+var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
-var View = (function () {
+var View = exports.View = (function () {
   function View(fragment, behaviors, bindings, children, systemControlled, contentSelectors) {
     this.fragment = fragment;
     this.behaviors = behaviors;
@@ -30,7 +27,6 @@ var View = (function () {
         }
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     bind: {
@@ -74,7 +70,6 @@ var View = (function () {
         }
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     addBinding: {
@@ -86,7 +81,6 @@ var View = (function () {
         }
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     unbind: {
@@ -117,7 +111,6 @@ var View = (function () {
         }
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     insertNodesBefore: {
@@ -126,7 +119,6 @@ var View = (function () {
         parent.insertBefore(this.fragment, refNode);
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     appendNodesTo: {
@@ -134,7 +126,6 @@ var View = (function () {
         parent.appendChild(this.fragment);
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     removeNodes: {
@@ -159,7 +150,6 @@ var View = (function () {
         }
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     attached: {
@@ -187,7 +177,6 @@ var View = (function () {
         }
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     detached: {
@@ -213,12 +202,10 @@ var View = (function () {
         }
       },
       writable: true,
-      enumerable: true,
       configurable: true
     }
   });
 
   return View;
 })();
-
-exports.View = View;
+exports.__esModule = true;

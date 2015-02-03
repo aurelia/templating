@@ -1,17 +1,18 @@
 "use strict";
 
-var _prototypeProperties = function (child, staticProps, instanceProps) {
-  if (staticProps) Object.defineProperties(child, staticProps);
-  if (instanceProps) Object.defineProperties(child.prototype, instanceProps);
-};
+var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
 var Loader = require("aurelia-loader").Loader;
-var relativeToFile = require("aurelia-path").relativeToFile;
-var join = require("aurelia-path").join;
+var _aureliaPath = require("aurelia-path");
+
+var relativeToFile = _aureliaPath.relativeToFile;
+var join = _aureliaPath.join;
 var Container = require("aurelia-dependency-injection").Container;
-var Metadata = require("aurelia-metadata").Metadata;
-var ResourceType = require("aurelia-metadata").ResourceType;
-var Origin = require("aurelia-metadata").Origin;
+var _aureliaMetadata = require("aurelia-metadata");
+
+var Metadata = _aureliaMetadata.Metadata;
+var ResourceType = _aureliaMetadata.ResourceType;
+var Origin = _aureliaMetadata.Origin;
 var ValueConverter = require("aurelia-binding").ValueConverter;
 var CustomElement = require("./custom-element").CustomElement;
 var AttachedBehavior = require("./attached-behavior").AttachedBehavior;
@@ -26,7 +27,7 @@ function nextId() {
   return ++id;
 }
 
-var ResourceCoordinator = (function () {
+var ResourceCoordinator = exports.ResourceCoordinator = (function () {
   function ResourceCoordinator(loader, container, viewEngine, appResources) {
     this.loader = loader;
     this.container = container;
@@ -43,7 +44,6 @@ var ResourceCoordinator = (function () {
         return [Loader, Container, ViewEngine, ResourceRegistry];
       },
       writable: true,
-      enumerable: true,
       configurable: true
     }
   }, {
@@ -52,7 +52,6 @@ var ResourceCoordinator = (function () {
         return this.importedModules[id] || this.importedAnonymous[id];
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     loadViewModelInfo: {
@@ -60,7 +59,6 @@ var ResourceCoordinator = (function () {
         return this._loadAndAnalyzeModuleForElement(moduleImport, moduleMember, this.importedAnonymous);
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     loadElement: {
@@ -79,12 +77,11 @@ var ResourceCoordinator = (function () {
         });
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     _loadAndAnalyzeModuleForElement: {
-      value: function LoadAndAnalyzeModuleForElement(moduleImport, moduleMember, cache) {
-        var _this2 = this;
+      value: function _loadAndAnalyzeModuleForElement(moduleImport, moduleMember, cache) {
+        var _this = this;
         var existing = cache[moduleImport];
 
         if (existing) {
@@ -94,7 +91,7 @@ var ResourceCoordinator = (function () {
         return this.loader.loadModule(moduleImport).then(function (elementModule) {
           var analysis = analyzeModule(elementModule, moduleMember),
               resources = analysis.resources,
-              container = _this2.container,
+              container = _this.container,
               loads = [],
               type,
               current,
@@ -125,7 +122,6 @@ var ResourceCoordinator = (function () {
         });
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     importResources: {
@@ -176,18 +172,16 @@ var ResourceCoordinator = (function () {
         return this.importResourcesFromModules(finalModules, importIds);
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     importResourcesFromModuleIds: {
       value: function importResourcesFromModuleIds(importIds) {
-        var _this3 = this;
+        var _this = this;
         return this.loader.loadAllModules(importIds).then(function (imports) {
-          return _this3.importResourcesFromModules(imports, importIds);
+          return _this.importResourcesFromModules(imports, importIds);
         });
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     importResourcesFromModules: {
@@ -263,15 +257,12 @@ var ResourceCoordinator = (function () {
         });
       },
       writable: true,
-      enumerable: true,
       configurable: true
     }
   });
 
   return ResourceCoordinator;
 })();
-
-exports.ResourceCoordinator = ResourceCoordinator;
 var ResourceModule = (function () {
   function ResourceModule(source, element, resources) {
     var i, ii, org;
@@ -318,7 +309,6 @@ var ResourceModule = (function () {
         }
       },
       writable: true,
-      enumerable: true,
       configurable: true
     },
     register: {
@@ -338,7 +328,6 @@ var ResourceModule = (function () {
         }
       },
       writable: true,
-      enumerable: true,
       configurable: true
     }
   });
@@ -410,3 +399,4 @@ function analyzeModule(moduleInstance, viewModelMember) {
     type: Metadata.on(viewModelType).first(CustomElement) || new CustomElement()
   } : null, resources);
 }
+exports.__esModule = true;
