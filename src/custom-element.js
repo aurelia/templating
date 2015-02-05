@@ -41,7 +41,10 @@ export class CustomElement extends ResourceType {
     var options;
 
     viewStrategy = viewStrategy || ViewStrategy.getDefault(target);
-    options = { targetShadowDOM:this.targetShadowDOM };
+    options = {
+      targetShadowDOM:this.targetShadowDOM,
+      beforeCompile:target.beforeCompile
+    };
 
     if(!viewStrategy.moduleId){
       viewStrategy.moduleId = Origin.get(target).moduleId;
