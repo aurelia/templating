@@ -40,7 +40,7 @@ export class TemplateController extends ResourceType {
         node.parentNode.replaceChild(template, node);
       }else if(window.ShadowDOMPolyfill){ //HACK: IE template element and shadow dom polyfills not quite right...
         ShadowDOMPolyfill.unwrap(parentNode).replaceChild(
-          ShadowDOMPolyfill.unwrap(template), 
+          ShadowDOMPolyfill.unwrap(template),
           ShadowDOMPolyfill.unwrap(node)
           );
       }else{ //HACK: same as above
@@ -61,7 +61,13 @@ export class TemplateController extends ResourceType {
   create(container, instruction, element){
     var executionContext = instruction.executionContext || container.get(this.target),
         behaviorInstance = new BehaviorInstance(this, executionContext, instruction);
+
     element.primaryBehavior = behaviorInstance;
+
+    if(!(this.apiName in element)){
+      element[this.apiName] = behaviorInstance.executionContext;
+    }
+
     return behaviorInstance;
   }
 }

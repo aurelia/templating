@@ -90,8 +90,11 @@ export class CustomElement extends ResourceType {
     }
 
     if(element){
-      element.elementBehavior = behaviorInstance;
       element.primaryBehavior = behaviorInstance;
+
+      if(!(this.apiName in element)){
+        element[this.apiName] = behaviorInstance.executionContext;
+      }
 
       if(behaviorInstance.view){
         if(this.usesShadowDOM) {

@@ -16,13 +16,16 @@ export function configureBehavior(container, behavior, target, valuePropertyName
     behavior.name = hyphenate(target.name);
   }
 
-  behavior.target = target; 
+  behavior.target = target;
   behavior.observerLocator = observerLocator;
   behavior.handlesCreated = ('created' in proto);
   behavior.handlesBind = ('bind' in proto);
   behavior.handlesUnbind = ('unbind' in proto);
   behavior.handlesAttached = ('attached' in proto);
   behavior.handlesDetached = ('detached' in proto);
+  behavior.apiName = behavior.name.replace(/-([a-z])/g, (m, w) => {
+    return w.toUpperCase();
+  });
 
   properties = meta.all(BehaviorProperty);
 

@@ -30,8 +30,8 @@ function elementContainerGet(key){
 }
 
 function createElementContainer(parent, element, instruction, executionContext, children, resources){
-  var container = parent.createChild(), 
-                  providers, 
+  var container = parent.createChild(),
+                  providers,
                   i;
 
   container.element = element;
@@ -53,7 +53,7 @@ function createElementContainer(parent, element, instruction, executionContext, 
   return container;
 }
 
-function applyInstructions(containers, executionContext, element, instruction, 
+function applyInstructions(containers, executionContext, element, instruction,
   behaviors, bindings, children, contentSelectors, resources){
   var behaviorInstructions = instruction.behaviorInstructions,
       expressions = instruction.expressions,
@@ -65,7 +65,7 @@ function applyInstructions(containers, executionContext, element, instruction,
     return;
   }
 
-  if(instruction.contentSelector){ 
+  if(instruction.contentSelector){
     contentSelectors.push(new ContentSelector(element, instruction.selector));
     return;
   }
@@ -84,7 +84,7 @@ function applyInstructions(containers, executionContext, element, instruction,
     for(i = 0, ii = behaviorInstructions.length; i < ii; ++i){
       current = behaviorInstructions[i];
       instance = current.type.create(elementContainer, current, element, bindings);
-      
+
       if(instance.contentView){
         children.push(instance.contentView);
       }
@@ -111,7 +111,7 @@ export class BoundViewFactory {
         context = executionContext || this.executionContext;
 
     this.factoryOptions.systemControlled = !executionContext;
-        
+
     return this.viewFactory.create(childContainer, context, this.factoryOptions);
   }
 }
@@ -129,7 +129,7 @@ export class ViewFactory{
   }
 
   create(container, executionContext, options=defaultFactoryOptions){
-    var fragment = this.template.cloneNode(true), 
+    var fragment = this.template.cloneNode(true),
         instructables = fragment.querySelectorAll('.au-target'),
         instructions = this.instructions,
         resources = this.resources,
@@ -141,7 +141,7 @@ export class ViewFactory{
         i, ii, view;
 
     for(i = 0, ii = instructables.length; i < ii; ++i){
-      applyInstructions(containers, executionContext, instructables[i], 
+      applyInstructions(containers, executionContext, instructables[i],
         instructions[i], behaviors, bindings, children, contentSelectors, resources);
     }
 
