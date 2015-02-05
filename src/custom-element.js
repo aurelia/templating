@@ -12,6 +12,7 @@ var defaultInstruction = { suppressBind:false },
     valuePropertyName = 'value';
 
 export class UseShadowDOM {}
+export class SkipContentProcessing {}
 
 export class CustomElement extends ResourceType {
   constructor(tagName){
@@ -27,10 +28,12 @@ export class CustomElement extends ResourceType {
   }
 
   analyze(container, target){
+    var meta = Metadata.on(target);
     configureBehavior(container, this, target, valuePropertyName);
-    
+
     this.configured = true;
-    this.targetShadowDOM = Metadata.on(target).has(UseShadowDOM);
+    this.targetShadowDOM = meta.has(UseShadowDOM);
+    this.skipContentProcessing = meta.has(SkipContentProcessing);
     this.usesShadowDOM = this.targetShadowDOM && hasShadowDOM;
   }
 
@@ -55,7 +58,7 @@ export class CustomElement extends ResourceType {
   }
 
   compile(compiler, resources, node, instruction){
-    if(!this.usesShadowDOM && node.hasChildNodes()){
+    if(!this.usesShadowDOM && !this.skipContentProcessing && node.hasChildNodes()){
       var fragment = document.createDocumentFragment(),
           currentChild = node.firstChild,
           nextSibling;
@@ -70,7 +73,7 @@ export class CustomElement extends ResourceType {
     }
 
     instruction.suppressBind = true;
-    
+
     return node;
   }
 
@@ -97,8 +100,8 @@ export class CustomElement extends ResourceType {
             var contentView = instruction.contentFactory.create(container, null, contentSelectorFactoryOptions);
 
             ContentSelector.applySelectors(
-              contentView, 
-              behaviorInstance.view.contentSelectors, 
+              contentView,
+              behaviorInstance.view.contentSelectors,
               (contentSelector, group) => contentSelector.add(group)
               );
 
