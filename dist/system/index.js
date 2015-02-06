@@ -1,7 +1,7 @@
 System.register(["aurelia-metadata", "./property", "./attached-behavior", "./children", "./custom-element", "./element-config", "./template-controller", "./view-strategy", "./resource-coordinator", "./resource-registry", "./view-compiler", "./view-engine", "./view-factory", "./view-slot", "./binding-language", "./composition-engine"], function (_export) {
   "use strict";
 
-  var Metadata, BehaviorProperty, OptionsProperty, AttachedBehavior, ChildObserver, CustomElement, UseShadowDOM, ElementConfig, TemplateController, UseView, NoView, Behavior;
+  var Metadata, BehaviorProperty, OptionsProperty, AttachedBehavior, ChildObserver, CustomElement, UseShadowDOM, SkipContentProcessing, ElementConfig, TemplateController, UseView, NoView, Behavior;
   return {
     setters: [function (_aureliaMetadata) {
       Metadata = _aureliaMetadata.Metadata;
@@ -20,9 +20,12 @@ System.register(["aurelia-metadata", "./property", "./attached-behavior", "./chi
     }, function (_customElement) {
       CustomElement = _customElement.CustomElement;
       UseShadowDOM = _customElement.UseShadowDOM;
+      SkipContentProcessing = _customElement.SkipContentProcessing;
       _export("CustomElement", _customElement.CustomElement);
 
       _export("UseShadowDOM", _customElement.UseShadowDOM);
+
+      _export("SkipContentProcessing", _customElement.SkipContentProcessing);
     }, function (_elementConfig) {
       ElementConfig = _elementConfig.ElementConfig;
       _export("ElementConfig", _elementConfig.ElementConfig);
@@ -74,6 +77,7 @@ System.register(["aurelia-metadata", "./property", "./attached-behavior", "./chi
       Metadata.configure.classHelper("templateController", TemplateController);
       Metadata.configure.classHelper("useView", UseView);
       Metadata.configure.classHelper("noView", NoView);
+      Metadata.configure.classHelper("skipContentProcessing", SkipContentProcessing);
     }
   };
 });

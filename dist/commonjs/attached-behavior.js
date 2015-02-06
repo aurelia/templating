@@ -62,6 +62,10 @@ var AttachedBehavior = exports.AttachedBehavior = (function (ResourceType) {
         var executionContext = instruction.executionContext || container.get(this.target),
             behaviorInstance = new BehaviorInstance(this, executionContext, instruction);
 
+        if (!(this.apiName in element)) {
+          element[this.apiName] = behaviorInstance.executionContext;
+        }
+
         if (this.childExpression) {
           bindings.push(this.childExpression.createBinding(element, behaviorInstance.executionContext));
         }

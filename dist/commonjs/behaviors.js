@@ -27,6 +27,9 @@ function configureBehavior(container, behavior, target, valuePropertyName) {
   behavior.handlesUnbind = "unbind" in proto;
   behavior.handlesAttached = "attached" in proto;
   behavior.handlesDetached = "detached" in proto;
+  behavior.apiName = behavior.name.replace(/-([a-z])/g, function (m, w) {
+    return w.toUpperCase();
+  });
 
   properties = meta.all(BehaviorProperty);
 

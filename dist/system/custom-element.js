@@ -1,7 +1,7 @@
 System.register(["aurelia-metadata", "./behavior-instance", "./behaviors", "./content-selector", "./view-engine", "./view-strategy", "./util"], function (_export) {
   "use strict";
 
-  var Metadata, Origin, ResourceType, BehaviorInstance, configureBehavior, ContentSelector, ViewEngine, ViewStrategy, hyphenate, _prototypeProperties, _inherits, defaultInstruction, contentSelectorFactoryOptions, hasShadowDOM, valuePropertyName, UseShadowDOM, CustomElement;
+  var Metadata, Origin, ResourceType, BehaviorInstance, configureBehavior, ContentSelector, ViewEngine, ViewStrategy, hyphenate, _prototypeProperties, _inherits, defaultInstruction, contentSelectorFactoryOptions, hasShadowDOM, valuePropertyName, UseShadowDOM, SkipContentProcessing, CustomElement;
   return {
     setters: [function (_aureliaMetadata) {
       Metadata = _aureliaMetadata.Metadata;
@@ -30,6 +30,7 @@ System.register(["aurelia-metadata", "./behavior-instance", "./behaviors", "./co
       hasShadowDOM = !!HTMLElement.prototype.createShadowRoot;
       valuePropertyName = "value";
       UseShadowDOM = _export("UseShadowDOM", function UseShadowDOM() {});
+      SkipContentProcessing = _export("SkipContentProcessing", function SkipContentProcessing() {});
       CustomElement = _export("CustomElement", (function (ResourceType) {
         function CustomElement(tagName) {
           this.name = tagName;
@@ -52,10 +53,12 @@ System.register(["aurelia-metadata", "./behavior-instance", "./behaviors", "./co
         }, {
           analyze: {
             value: function analyze(container, target) {
+              var meta = Metadata.on(target);
               configureBehavior(container, this, target, valuePropertyName);
 
               this.configured = true;
-              this.targetShadowDOM = Metadata.on(target).has(UseShadowDOM);
+              this.targetShadowDOM = meta.has(UseShadowDOM);
+              this.skipContentProcessing = meta.has(SkipContentProcessing);
               this.usesShadowDOM = this.targetShadowDOM && hasShadowDOM;
             },
             writable: true,
@@ -67,7 +70,10 @@ System.register(["aurelia-metadata", "./behavior-instance", "./behaviors", "./co
               var options;
 
               viewStrategy = viewStrategy || ViewStrategy.getDefault(target);
-              options = { targetShadowDOM: this.targetShadowDOM };
+              options = {
+                targetShadowDOM: this.targetShadowDOM,
+                beforeCompile: target.beforeCompile
+              };
 
               if (!viewStrategy.moduleId) {
                 viewStrategy.moduleId = Origin.get(target).moduleId;
@@ -90,7 +96,7 @@ System.register(["aurelia-metadata", "./behavior-instance", "./behaviors", "./co
           },
           compile: {
             value: function compile(compiler, resources, node, instruction) {
-              if (!this.usesShadowDOM && node.hasChildNodes()) {
+              if (!this.usesShadowDOM && !this.skipContentProcessing && node.hasChildNodes()) {
                 var fragment = document.createDocumentFragment(),
                     currentChild = node.firstChild,
                     nextSibling;
@@ -124,8 +130,11 @@ System.register(["aurelia-metadata", "./behavior-instance", "./behaviors", "./co
               }
 
               if (element) {
-                element.elementBehavior = behaviorInstance;
                 element.primaryBehavior = behaviorInstance;
+
+                if (!(this.apiName in element)) {
+                  element[this.apiName] = behaviorInstance.executionContext;
+                }
 
                 if (behaviorInstance.view) {
                   if (this.usesShadowDOM) {

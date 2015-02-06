@@ -23,6 +23,8 @@ define(["exports", "aurelia-metadata", "./behavior-instance", "./behaviors", "./
 
   var UseShadowDOM = exports.UseShadowDOM = function UseShadowDOM() {};
 
+  var SkipContentProcessing = exports.SkipContentProcessing = function SkipContentProcessing() {};
+
   var CustomElement = exports.CustomElement = (function (ResourceType) {
     function CustomElement(tagName) {
       this.name = tagName;
@@ -45,10 +47,12 @@ define(["exports", "aurelia-metadata", "./behavior-instance", "./behaviors", "./
     }, {
       analyze: {
         value: function analyze(container, target) {
+          var meta = Metadata.on(target);
           configureBehavior(container, this, target, valuePropertyName);
 
           this.configured = true;
-          this.targetShadowDOM = Metadata.on(target).has(UseShadowDOM);
+          this.targetShadowDOM = meta.has(UseShadowDOM);
+          this.skipContentProcessing = meta.has(SkipContentProcessing);
           this.usesShadowDOM = this.targetShadowDOM && hasShadowDOM;
         },
         writable: true,
@@ -60,7 +64,10 @@ define(["exports", "aurelia-metadata", "./behavior-instance", "./behaviors", "./
           var options;
 
           viewStrategy = viewStrategy || ViewStrategy.getDefault(target);
-          options = { targetShadowDOM: this.targetShadowDOM };
+          options = {
+            targetShadowDOM: this.targetShadowDOM,
+            beforeCompile: target.beforeCompile
+          };
 
           if (!viewStrategy.moduleId) {
             viewStrategy.moduleId = Origin.get(target).moduleId;
@@ -83,7 +90,7 @@ define(["exports", "aurelia-metadata", "./behavior-instance", "./behaviors", "./
       },
       compile: {
         value: function compile(compiler, resources, node, instruction) {
-          if (!this.usesShadowDOM && node.hasChildNodes()) {
+          if (!this.usesShadowDOM && !this.skipContentProcessing && node.hasChildNodes()) {
             var fragment = document.createDocumentFragment(),
                 currentChild = node.firstChild,
                 nextSibling;
@@ -117,8 +124,11 @@ define(["exports", "aurelia-metadata", "./behavior-instance", "./behaviors", "./
           }
 
           if (element) {
-            element.elementBehavior = behaviorInstance;
             element.primaryBehavior = behaviorInstance;
+
+            if (!(this.apiName in element)) {
+              element[this.apiName] = behaviorInstance.executionContext;
+            }
 
             if (behaviorInstance.view) {
               if (this.usesShadowDOM) {

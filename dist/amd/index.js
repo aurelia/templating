@@ -8,6 +8,7 @@ define(["exports", "aurelia-metadata", "./property", "./attached-behavior", "./c
   var ChildObserver = _children.ChildObserver;
   var CustomElement = _customElement.CustomElement;
   var UseShadowDOM = _customElement.UseShadowDOM;
+  var SkipContentProcessing = _customElement.SkipContentProcessing;
   var ElementConfig = _elementConfig.ElementConfig;
   var TemplateController = _templateController.TemplateController;
   var UseView = _viewStrategy.UseView;
@@ -21,6 +22,7 @@ define(["exports", "aurelia-metadata", "./property", "./attached-behavior", "./c
   exports.ChildObserver = _children.ChildObserver;
   exports.CustomElement = _customElement.CustomElement;
   exports.UseShadowDOM = _customElement.UseShadowDOM;
+  exports.SkipContentProcessing = _customElement.SkipContentProcessing;
   exports.ElementConfig = _elementConfig.ElementConfig;
   exports.TemplateController = _templateController.TemplateController;
   exports.ViewStrategy = _viewStrategy.ViewStrategy;
@@ -46,5 +48,6 @@ define(["exports", "aurelia-metadata", "./property", "./attached-behavior", "./c
   Metadata.configure.classHelper("templateController", TemplateController);
   Metadata.configure.classHelper("useView", UseView);
   Metadata.configure.classHelper("noView", NoView);
+  Metadata.configure.classHelper("skipContentProcessing", SkipContentProcessing);
   exports.__esModule = true;
 });

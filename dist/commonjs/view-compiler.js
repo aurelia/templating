@@ -72,6 +72,10 @@ var ViewCompiler = exports.ViewCompiler = (function () {
 
         targetShadowDOM = targetShadowDOM && hasShadowDOM;
 
+        if (options.beforeCompile) {
+          options.beforeCompile(templateOrFragment);
+        }
+
         if (templateOrFragment.content) {
           content = document.adoptNode(templateOrFragment.content, true);
         } else {

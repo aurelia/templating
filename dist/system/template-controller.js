@@ -92,7 +92,13 @@ System.register(["aurelia-metadata", "./behavior-instance", "./behaviors", "./ut
             value: function create(container, instruction, element) {
               var executionContext = instruction.executionContext || container.get(this.target),
                   behaviorInstance = new BehaviorInstance(this, executionContext, instruction);
+
               element.primaryBehavior = behaviorInstance;
+
+              if (!(this.apiName in element)) {
+                element[this.apiName] = behaviorInstance.executionContext;
+              }
+
               return behaviorInstance;
             },
             writable: true,

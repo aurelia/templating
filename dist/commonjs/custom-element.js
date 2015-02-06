@@ -24,6 +24,8 @@ var defaultInstruction = { suppressBind: false },
 
 var UseShadowDOM = exports.UseShadowDOM = function UseShadowDOM() {};
 
+var SkipContentProcessing = exports.SkipContentProcessing = function SkipContentProcessing() {};
+
 var CustomElement = exports.CustomElement = (function (ResourceType) {
   function CustomElement(tagName) {
     this.name = tagName;
@@ -46,10 +48,12 @@ var CustomElement = exports.CustomElement = (function (ResourceType) {
   }, {
     analyze: {
       value: function analyze(container, target) {
+        var meta = Metadata.on(target);
         configureBehavior(container, this, target, valuePropertyName);
 
         this.configured = true;
-        this.targetShadowDOM = Metadata.on(target).has(UseShadowDOM);
+        this.targetShadowDOM = meta.has(UseShadowDOM);
+        this.skipContentProcessing = meta.has(SkipContentProcessing);
         this.usesShadowDOM = this.targetShadowDOM && hasShadowDOM;
       },
       writable: true,
@@ -61,7 +65,10 @@ var CustomElement = exports.CustomElement = (function (ResourceType) {
         var options;
 
         viewStrategy = viewStrategy || ViewStrategy.getDefault(target);
-        options = { targetShadowDOM: this.targetShadowDOM };
+        options = {
+          targetShadowDOM: this.targetShadowDOM,
+          beforeCompile: target.beforeCompile
+        };
 
         if (!viewStrategy.moduleId) {
           viewStrategy.moduleId = Origin.get(target).moduleId;
@@ -84,7 +91,7 @@ var CustomElement = exports.CustomElement = (function (ResourceType) {
     },
     compile: {
       value: function compile(compiler, resources, node, instruction) {
-        if (!this.usesShadowDOM && node.hasChildNodes()) {
+        if (!this.usesShadowDOM && !this.skipContentProcessing && node.hasChildNodes()) {
           var fragment = document.createDocumentFragment(),
               currentChild = node.firstChild,
               nextSibling;
@@ -118,8 +125,11 @@ var CustomElement = exports.CustomElement = (function (ResourceType) {
         }
 
         if (element) {
-          element.elementBehavior = behaviorInstance;
           element.primaryBehavior = behaviorInstance;
+
+          if (!(this.apiName in element)) {
+            element[this.apiName] = behaviorInstance.executionContext;
+          }
 
           if (behaviorInstance.view) {
             if (this.usesShadowDOM) {
