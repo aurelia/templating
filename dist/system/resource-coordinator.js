@@ -107,6 +107,7 @@ System.register(["aurelia-loader", "aurelia-path", "aurelia-dependency-injection
           this.container = container;
           this.viewEngine = viewEngine;
           this.importedModules = {};
+          this.importedAnonymous = {};
           this.appResources = appResources;
           viewEngine.resourceCoordinator = this;
         }
@@ -122,14 +123,14 @@ System.register(["aurelia-loader", "aurelia-path", "aurelia-dependency-injection
         }, {
           getExistingModuleAnalysis: {
             value: function getExistingModuleAnalysis(id) {
-              return this.importedModules[id];
+              return this.importedModules[id] || this.importedAnonymous[id];
             },
             writable: true,
             configurable: true
           },
           loadViewModelInfo: {
             value: function loadViewModelInfo(moduleImport, moduleMember) {
-              return this._loadAndAnalyzeModuleForElement(moduleImport, moduleMember);
+              return this._loadAndAnalyzeModuleForElement(moduleImport, moduleMember, this.importedAnonymous, true);
             },
             writable: true,
             configurable: true
@@ -137,7 +138,7 @@ System.register(["aurelia-loader", "aurelia-path", "aurelia-dependency-injection
           loadElement: {
             value: function loadElement(moduleImport, moduleMember, viewStategy) {
               var _this = this;
-              return this._loadAndAnalyzeModuleForElement(moduleImport, moduleMember, this.importedModules).then(function (info) {
+              return this._loadAndAnalyzeModuleForElement(moduleImport, moduleMember, this.importedModules, false).then(function (info) {
                 var type = info.type;
 
                 if (type.isLoaded) {
@@ -153,9 +154,9 @@ System.register(["aurelia-loader", "aurelia-path", "aurelia-dependency-injection
             configurable: true
           },
           _loadAndAnalyzeModuleForElement: {
-            value: function _loadAndAnalyzeModuleForElement(moduleImport, moduleMember, cache) {
+            value: function _loadAndAnalyzeModuleForElement(moduleImport, moduleMember, cache, skipCacheLookup) {
               var _this = this;
-              var existing = cache && cache[moduleImport];
+              var existing = !skipCacheLookup && cache[moduleImport];
 
               if (existing) {
                 return Promise.resolve(existing.element);
@@ -187,9 +188,7 @@ System.register(["aurelia-loader", "aurelia-path", "aurelia-dependency-injection
                   }
                 }
 
-                if (cache) {
-                  cache[analysis.id] = analysis;
-                }
+                cache[analysis.id] = analysis;
 
                 return Promise.all(loads).then(function () {
                   return analysis.element;

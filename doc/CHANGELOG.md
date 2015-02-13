@@ -1,3 +1,11 @@
+### 0.8.11 (2015-02-13)
+
+
+#### Bug Fixes
+
+* **resource-coordinator:** regression in local auto-imports ([8ec09095](http://github.com/aurelia/templating/commit/8ec090957ef33afbf0388427b378b203937a99eb))
+
+
 ### 0.8.10 (2015-02-13)
 
 

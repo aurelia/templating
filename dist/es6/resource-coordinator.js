@@ -22,20 +22,21 @@ export class ResourceCoordinator {
 		this.container = container;
 		this.viewEngine = viewEngine;
 		this.importedModules = {};
+    this.importedAnonymous = {};
     this.appResources = appResources;
 		viewEngine.resourceCoordinator = this;
 	}
 
   getExistingModuleAnalysis(id){
-    return this.importedModules[id];
+    return this.importedModules[id] || this.importedAnonymous[id];
   }
 
   loadViewModelInfo(moduleImport, moduleMember){
-    return this._loadAndAnalyzeModuleForElement(moduleImport, moduleMember);
+    return this._loadAndAnalyzeModuleForElement(moduleImport, moduleMember, this.importedAnonymous, true);
   }
 
   loadElement(moduleImport, moduleMember, viewStategy){
-    return this._loadAndAnalyzeModuleForElement(moduleImport, moduleMember, this.importedModules).then(info => {
+    return this._loadAndAnalyzeModuleForElement(moduleImport, moduleMember, this.importedModules, false).then(info => {
       var type = info.type;
 
       if(type.isLoaded){
@@ -48,8 +49,8 @@ export class ResourceCoordinator {
     });
   }
 
-  _loadAndAnalyzeModuleForElement(moduleImport, moduleMember, cache){
-    var existing = cache && cache[moduleImport];
+  _loadAndAnalyzeModuleForElement(moduleImport, moduleMember, cache, skipCacheLookup){
+    var existing = !skipCacheLookup && cache[moduleImport];
 
     if(existing){
       return Promise.resolve(existing.element);
@@ -77,9 +78,7 @@ export class ResourceCoordinator {
         }
       }
 
-      if(cache){
-        cache[analysis.id] = analysis;
-      }
+      cache[analysis.id] = analysis;
 
       return Promise.all(loads).then(() => analysis.element);
     });
