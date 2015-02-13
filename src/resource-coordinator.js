@@ -22,17 +22,16 @@ export class ResourceCoordinator {
 		this.container = container;
 		this.viewEngine = viewEngine;
 		this.importedModules = {};
-    this.importedAnonymous = {};
     this.appResources = appResources;
 		viewEngine.resourceCoordinator = this;
 	}
 
   getExistingModuleAnalysis(id){
-    return this.importedModules[id] || this.importedAnonymous[id];
+    return this.importedModules[id];
   }
 
   loadViewModelInfo(moduleImport, moduleMember){
-    return this._loadAndAnalyzeModuleForElement(moduleImport, moduleMember, this.importedAnonymous);
+    return this._loadAndAnalyzeModuleForElement(moduleImport, moduleMember);
   }
 
   loadElement(moduleImport, moduleMember, viewStategy){
@@ -50,7 +49,7 @@ export class ResourceCoordinator {
   }
 
   _loadAndAnalyzeModuleForElement(moduleImport, moduleMember, cache){
-    var existing = cache[moduleImport];
+    var existing = cache && cache[moduleImport];
 
     if(existing){
       return Promise.resolve(existing.element);
@@ -78,14 +77,16 @@ export class ResourceCoordinator {
         }
       }
 
-      cache[analysis.id] = analysis;
+      if(cache){
+        cache[analysis.id] = analysis;
+      }
 
       return Promise.all(loads).then(() => analysis.element);
     });
   }
 
   importResources(imports, resourceManifestUrl){
-    var i, ii, current, annotation, existing, 
+    var i, ii, current, annotation, existing,
         lookup = {},
         finalModules = [],
         importIds = [], analysis, type;
@@ -96,7 +97,7 @@ export class ResourceCoordinator {
       current = imports[i];
       annotation = Origin.get(current);
 
-      if(!annotation){ 
+      if(!annotation){
         analysis = analyzeModule({'default':current});
         analysis.analyze(container);
         type = (analysis.element || analysis.resources[0]).type;
@@ -106,7 +107,7 @@ export class ResourceCoordinator {
         }else{
           annotation = new Origin(join(this.appResources.baseResourceUrl, type.name));
         }
-        
+
         Origin.set(current, annotation);
       }
 
@@ -215,7 +216,7 @@ class ResourceModule {
   }
 
   analyze(container){
-    var current = this.element, 
+    var current = this.element,
         resources = this.resources,
         i, ii;
 
@@ -258,7 +259,7 @@ function analyzeModule(moduleInstance, viewModelMember){
   if(typeof moduleInstance === 'function'){
     moduleInstance = {'default': moduleInstance};
   }
-      
+
   if(viewModelMember){
     viewModelType = moduleInstance[viewModelMember];
   }
