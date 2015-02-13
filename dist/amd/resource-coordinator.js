@@ -30,7 +30,6 @@ define(["exports", "aurelia-loader", "aurelia-path", "aurelia-dependency-injecti
       this.container = container;
       this.viewEngine = viewEngine;
       this.importedModules = {};
-      this.importedAnonymous = {};
       this.appResources = appResources;
       viewEngine.resourceCoordinator = this;
     }
@@ -46,14 +45,14 @@ define(["exports", "aurelia-loader", "aurelia-path", "aurelia-dependency-injecti
     }, {
       getExistingModuleAnalysis: {
         value: function getExistingModuleAnalysis(id) {
-          return this.importedModules[id] || this.importedAnonymous[id];
+          return this.importedModules[id];
         },
         writable: true,
         configurable: true
       },
       loadViewModelInfo: {
         value: function loadViewModelInfo(moduleImport, moduleMember) {
-          return this._loadAndAnalyzeModuleForElement(moduleImport, moduleMember, this.importedAnonymous);
+          return this._loadAndAnalyzeModuleForElement(moduleImport, moduleMember);
         },
         writable: true,
         configurable: true
@@ -79,7 +78,7 @@ define(["exports", "aurelia-loader", "aurelia-path", "aurelia-dependency-injecti
       _loadAndAnalyzeModuleForElement: {
         value: function _loadAndAnalyzeModuleForElement(moduleImport, moduleMember, cache) {
           var _this = this;
-          var existing = cache[moduleImport];
+          var existing = cache && cache[moduleImport];
 
           if (existing) {
             return Promise.resolve(existing.element);
@@ -111,7 +110,9 @@ define(["exports", "aurelia-loader", "aurelia-path", "aurelia-dependency-injecti
               }
             }
 
-            cache[analysis.id] = analysis;
+            if (cache) {
+              cache[analysis.id] = analysis;
+            }
 
             return Promise.all(loads).then(function () {
               return analysis.element;

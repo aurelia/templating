@@ -1,3 +1,12 @@
+### 0.8.10 (2015-02-13)
+
+
+#### Bug Fixes
+
+* **build:** add missing bower bump ([4484ea7f](http://github.com/aurelia/templating/commit/4484ea7f302d0faca3a0f48b218b9a0b8a00bd46))
+* **resource-coordinator:** do not cache dynamic view models ([a29f2bc2](http://github.com/aurelia/templating/commit/a29f2bc2a8a8c3fc40265b310646587ee0601d55))
+
+
 ### 0.8.9 (2015-02-06)
 
 
