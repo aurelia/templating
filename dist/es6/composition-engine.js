@@ -1,4 +1,5 @@
-import {Origin} from 'aurelia-metadata';
+import {Origin,Metadata} from 'aurelia-metadata';
+import {} from 'aurelia-dependency-injection';
 import {ViewStrategy, UseView} from './view-strategy';
 import {ResourceCoordinator} from './resource-coordinator';
 import {ViewEngine} from './view-engine';
@@ -13,7 +14,7 @@ export class CompositionEngine {
 
   activate(instruction){
     if(instruction.skipActivation || typeof instruction.viewModel.activate !== 'function'){
-      return Promise.resolve(); 
+      return Promise.resolve();
     }
 
     return instruction.viewModel.activate(instruction.model) || Promise.resolve();
@@ -71,10 +72,10 @@ export class CompositionEngine {
   createViewModel(instruction){
     var childContainer = instruction.childContainer || instruction.container.createChild();
 
-    instruction.viewModel = instruction.viewResources 
+    instruction.viewModel = instruction.viewResources
         ? instruction.viewResources.relativeToView(instruction.viewModel)
         : instruction.viewModel;
-      
+
     return this.resourceCoordinator.loadViewModelInfo(instruction.viewModel).then(viewModelInfo => {
       childContainer.autoRegister(viewModelInfo.value);
       instruction.viewModel = childContainer.viewModel = childContainer.get(viewModelInfo.value);

@@ -1,11 +1,12 @@
-System.register(["aurelia-metadata", "./view-strategy", "./resource-coordinator", "./view-engine", "./custom-element"], function (_export) {
+System.register(["aurelia-metadata", "aurelia-dependency-injection", "./view-strategy", "./resource-coordinator", "./view-engine", "./custom-element"], function (_export) {
   "use strict";
 
-  var Origin, ViewStrategy, UseView, ResourceCoordinator, ViewEngine, CustomElement, _prototypeProperties, CompositionEngine;
+  var Origin, Metadata, ViewStrategy, UseView, ResourceCoordinator, ViewEngine, CustomElement, _prototypeProperties, CompositionEngine;
   return {
     setters: [function (_aureliaMetadata) {
       Origin = _aureliaMetadata.Origin;
-    }, function (_viewStrategy) {
+      Metadata = _aureliaMetadata.Metadata;
+    }, function (_aureliaDependencyInjection) {}, function (_viewStrategy) {
       ViewStrategy = _viewStrategy.ViewStrategy;
       UseView = _viewStrategy.UseView;
     }, function (_resourceCoordinator) {

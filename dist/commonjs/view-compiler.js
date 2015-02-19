@@ -278,6 +278,10 @@ var ViewCompiler = exports.ViewCompiler = (function () {
             });
           }
 
+          if (elementInstruction && elementInstruction.type.skipContentProcessing) {
+            return node.nextSibling;
+          }
+
           var currentChild = node.firstChild;
           while (currentChild) {
             currentChild = this.compileNode(currentChild, resources, instructions, node, injectorId || parentInjectorId, targetLightDOM);

@@ -2,7 +2,12 @@
 
 var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
-var Origin = require("aurelia-metadata").Origin;
+var _aureliaMetadata = require("aurelia-metadata");
+
+var Origin = _aureliaMetadata.Origin;
+var Metadata = _aureliaMetadata.Metadata;
+require("aurelia-dependency-injection");
+
 var _viewStrategy = require("./view-strategy");
 
 var ViewStrategy = _viewStrategy.ViewStrategy;

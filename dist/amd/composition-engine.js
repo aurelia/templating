@@ -1,9 +1,10 @@
-define(["exports", "aurelia-metadata", "./view-strategy", "./resource-coordinator", "./view-engine", "./custom-element"], function (exports, _aureliaMetadata, _viewStrategy, _resourceCoordinator, _viewEngine, _customElement) {
+define(["exports", "aurelia-metadata", "aurelia-dependency-injection", "./view-strategy", "./resource-coordinator", "./view-engine", "./custom-element"], function (exports, _aureliaMetadata, _aureliaDependencyInjection, _viewStrategy, _resourceCoordinator, _viewEngine, _customElement) {
   "use strict";
 
   var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
   var Origin = _aureliaMetadata.Origin;
+  var Metadata = _aureliaMetadata.Metadata;
   var ViewStrategy = _viewStrategy.ViewStrategy;
   var UseView = _viewStrategy.UseView;
   var ResourceCoordinator = _resourceCoordinator.ResourceCoordinator;

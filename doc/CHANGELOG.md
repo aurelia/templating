@@ -1,3 +1,11 @@
+### 0.8.12 (2015-02-18)
+
+
+#### Bug Fixes
+
+* **view-compiler:** elements with skipped content should not be traversed ([56b585f9](http://github.com/aurelia/templating/commit/56b585f9deac272a09e31dfdfa1591a446f61452))
+
+
 ### 0.8.11 (2015-02-13)
 
 
