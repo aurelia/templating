@@ -1,4 +1,8 @@
 import {ContentSelector} from './content-selector';
+import {Animator} from './animator';
+
+// How to inject properly?
+var anim = new Animator();
 
 export class ViewSlot {
   constructor(anchor, anchorIsContainer, executionContext){
@@ -10,6 +14,9 @@ export class ViewSlot {
     this.isAttached = false;
 
     anchor.viewSlot = this;
+
+    // how to get a single instance without inject?
+    this.animator = anim;
   }
 
   transformChildNodesIntoView(){
@@ -64,6 +71,12 @@ export class ViewSlot {
     view[this.viewAddMethod](this.anchor);
     this.children.push(view);
 
+    if(view.firstChild.nodeType === 8 &&
+      view.firstChild.nextSibling !== undefined &&
+      view.firstChild.nextSibling.nodeType === 1) {
+      this.animator.enter(view.firstChild.nextSibling);
+    }
+
     if(this.isAttached){
       view.attached();
     }
@@ -94,37 +107,76 @@ export class ViewSlot {
   removeAt(index){
     var view = this.children[index];
 
-    view.removeNodes();
-    this.children.splice(index, 1);
+    var removeAction = () => {
+      view.removeNodes();
+      this.children.splice(index, 1);
 
-    if(this.isAttached){
-      view.detached();
+      if(this.isAttached){
+        view.detached();
+      }
+
+      return view;
+    };
+
+    if(view.firstChild.nodeType === 8 &&
+      view.firstChild.nextElementSibling !== undefined &&
+      view.firstChild.nextElementSibling.nodeType === 1) {
+      return this.animator.leave(view.firstChild.nextElementSibling).then( () => {
+        return removeAction();
+      })
+    } else {
+      return removeAction();
     }
-
-    return view;
   }
 
   removeAll(){
     var children = this.children,
-        ii = children.length,
-        i;
+      ii = children.length,
+      i;
 
-    for(i = 0; i < ii; ++i){
-      children[i].removeNodes();
-    }
+    var rmPromises = [];
 
-    if(this.isAttached){
-      for(i = 0; i < ii; ++i){
-        children[i].detached();
+    children.forEach( (child) => {
+      if(child.firstChild !== undefined &&
+        child.firstChild.nodeType === 8 &&
+        child.firstChild.nextElementSibling !== undefined &&
+        child.firstChild.nextElementSibling.nodeType === 1) {
+        rmPromises.push(this.animator.leave(child.firstChild.nextElementSibling).then( () => {
+          child.removeNodes();
+        }));
+      } else {
+        child.removeNodes();
       }
-    }
+    });
 
-    this.children = [];
+    var removeAction = () => {
+      if(this.isAttached){
+        for(i = 0; i < ii; ++i){
+          children[i].detached();
+        }
+      }
+
+      this.children = [];
+    };
+
+    if(rmPromises.length > 0) {
+      return Promise.all(rmPromises).then( () => {
+        removeAction();
+      });
+    } else {
+      removeAction();
+    }
   }
 
   swap(view){
-    this.removeAll();
-    this.add(view);
+    var removeResponse = this.removeAll();
+    if(removeResponse !== undefined) {
+      removeResponse.then(() => {
+        this.add(view);
+      });
+    } else {
+      this.add(view);
+    }
   }
 
   attached(){
