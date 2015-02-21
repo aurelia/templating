@@ -1,8 +1,8 @@
 import {ContentSelector} from './content-selector';
 import {Animator} from './animator';
 
-// How to inject properly?
-var anim = new Animator();
+// TODO: Remove when Framework invokes instance of Animator
+new Animator();
 
 export class ViewSlot {
   constructor(anchor, anchorIsContainer, executionContext){
@@ -14,9 +14,8 @@ export class ViewSlot {
     this.isAttached = false;
 
     anchor.viewSlot = this;
-
-    // how to get a single instance without inject?
-    this.animator = anim;
+    // TODO: Adapt to new instance obtainer provided by Framework
+    this.animator = Animator.instance;
   }
 
   transformChildNodesIntoView(){
@@ -71,12 +70,6 @@ export class ViewSlot {
     view[this.viewAddMethod](this.anchor);
     this.children.push(view);
 
-    if(view.firstChild.nodeType === 8 &&
-      view.firstChild.nextSibling !== undefined &&
-      view.firstChild.nextSibling.nodeType === 1) {
-      this.animator.enter(view.firstChild.nextSibling);
-    }
-
     if(this.isAttached){
       view.attached();
     }
@@ -97,6 +90,7 @@ export class ViewSlot {
 
   remove(view){
     view.removeNodes();
+
     this.children.splice(this.children.indexOf(view), 1);
 
     if(this.isAttached){
@@ -131,16 +125,16 @@ export class ViewSlot {
 
   removeAll(){
     var children = this.children,
-      ii = children.length,
-      i;
+        ii = children.length,
+        i;
 
     var rmPromises = [];
 
     children.forEach( (child) => {
       if(child.firstChild !== undefined &&
-        child.firstChild.nodeType === 8 &&
-        child.firstChild.nextElementSibling !== undefined &&
-        child.firstChild.nextElementSibling.nodeType === 1) {
+         child.firstChild.nodeType === 8 &&
+         child.firstChild.nextElementSibling !== undefined &&
+         child.firstChild.nextElementSibling.nodeType === 1) {
         rmPromises.push(this.animator.leave(child.firstChild.nextElementSibling).then( () => {
           child.removeNodes();
         }));
@@ -191,6 +185,11 @@ export class ViewSlot {
     children = this.children;
     for(i = 0, ii = children.length; i < ii; ++i){
       children[i].attached();
+      if(children[i].firstChild.nodeType === 8 &&
+         children[i].firstChild.nextSibling !== undefined &&
+         children[i].firstChild.nextSibling.nodeType === 1) {
+        this.animator.enter(children[i].firstChild.nextSibling);
+      }
     }
   }
 
