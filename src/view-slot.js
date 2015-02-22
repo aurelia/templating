@@ -72,6 +72,13 @@ export class ViewSlot {
 
     if(this.isAttached){
       view.attached();
+      // Animate page itself
+      if(view.firstChild.nodeType === 8 &&
+        view.firstChild.nextElementSibling !== undefined &&
+        view.firstChild.nextElementSibling.nodeType === 1 &&
+        view.firstChild.nextElementSibling.classList.contains('au-animate')) {
+        this.animator.enter(view.firstChild.nextElementSibling);
+      }
     }
   }
 
@@ -114,7 +121,8 @@ export class ViewSlot {
 
     if(view.firstChild.nodeType === 8 &&
       view.firstChild.nextElementSibling !== undefined &&
-      view.firstChild.nextElementSibling.nodeType === 1) {
+      view.firstChild.nextElementSibling.nodeType === 1 &&
+      view.firstChild.nextElementSibling.classList.contains('au-animate')) {
       return this.animator.leave(view.firstChild.nextElementSibling).then( () => {
         return removeAction();
       })
@@ -134,7 +142,8 @@ export class ViewSlot {
       if(child.firstChild !== undefined &&
          child.firstChild.nodeType === 8 &&
          child.firstChild.nextElementSibling !== undefined &&
-         child.firstChild.nextElementSibling.nodeType === 1) {
+         child.firstChild.nextElementSibling.nodeType === 1 &&
+         child.firstChild.nextElementSibling.classList.contains('au-animate')) {
         rmPromises.push(this.animator.leave(child.firstChild.nextElementSibling).then( () => {
           child.removeNodes();
         }));
@@ -186,9 +195,10 @@ export class ViewSlot {
     for(i = 0, ii = children.length; i < ii; ++i){
       children[i].attached();
       if(children[i].firstChild.nodeType === 8 &&
-         children[i].firstChild.nextSibling !== undefined &&
-         children[i].firstChild.nextSibling.nodeType === 1) {
-        this.animator.enter(children[i].firstChild.nextSibling);
+         children[i].firstChild.nextElementSibling !== undefined &&
+         children[i].firstChild.nextElementSibling.nodeType === 1 &&
+         children[i].firstChild.nextElementSibling.classList.contains('au-animate')) {
+        this.animator.enter(children[i].firstChild.nextElementSibling);
       }
     }
   }
