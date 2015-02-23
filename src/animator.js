@@ -5,8 +5,10 @@ export class Animator {
   }
 
   addMultipleEventListener(el, s, fn) {
-    var evts = s.split(' ');
-    for (var i=0, iLen=evts.length; i<iLen; i++) {
+    var evts = s.split(' '),
+        i, ii;
+
+    for (i = 0, ii = evts.length; i < ii; ++i) {
       el.addEventListener(evts[i], fn, false);
     }
   }
@@ -25,32 +27,22 @@ export class Animator {
   }
 
   move() {
-    return new Promise( (resolve, reject) => {
-      resolve(false);
-    });
+    return Promise.resolve(false);
   }
 
   enter(element) {
-    return new Promise( (resolve, reject) => {
-      resolve(false);
-    });
+    return Promise.resolve(false);
   }
 
   leave(element) {
-    return new Promise( (resolve, reject) => {
-      resolve(false);
-    });
+    return Promise.resolve(false);
   }
 
   removeClass(element, className) {
-    return new Promise( (resolve, reject) => {
-      resolve(false);
-    });
+    return Promise.resolve(false);
   }
 
   addClass(element, className) {
-    return new Promise( (resolve, reject) => {
-      resolve(false);
-    });
+    return Promise.resolve(false);
   }
 }
