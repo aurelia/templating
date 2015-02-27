@@ -1,21 +1,16 @@
 import {ContentSelector} from './content-selector';
 import {Animator} from './animator';
 
-// TODO: Remove when Framework invokes instance of Animator
-new Animator();
-
 export class ViewSlot {
-  constructor(anchor, anchorIsContainer, executionContext){
+  constructor(anchor, anchorIsContainer, executionContext, animator=Animator.instance){
     this.anchor = anchor;
     this.viewAddMethod = anchorIsContainer ? 'appendNodesTo' : 'insertNodesBefore';
     this.executionContext = executionContext;
+    this.animator = animator;
     this.children = [];
     this.isBound = false;
     this.isAttached = false;
-
     anchor.viewSlot = this;
-    // TODO: Adapt to new instance obtainer provided by Framework
-    this.animator = Animator.instance;
   }
 
   transformChildNodesIntoView(){
