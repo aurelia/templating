@@ -25,6 +25,7 @@ export {CompositionEngine} from './composition-engine';
 export {Animator} from './animator';
 
 export var Behavior = Metadata;
+export var Behaviour = Metadata;
 
 Metadata.configure.classHelper('withProperty', BehaviorProperty);
 Metadata.configure.classHelper('withOptions', OptionsProperty);
