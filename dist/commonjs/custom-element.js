@@ -4,30 +4,43 @@ var _prototypeProperties = function (child, staticProps, instanceProps) { if (st
 
 var _inherits = function (subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
 
+var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
 var _aureliaMetadata = require("aurelia-metadata");
 
 var Metadata = _aureliaMetadata.Metadata;
 var Origin = _aureliaMetadata.Origin;
 var ResourceType = _aureliaMetadata.ResourceType;
-var BehaviorInstance = require("./behavior-instance").BehaviorInstance;
-var configureBehavior = require("./behaviors").configureBehavior;
-var ContentSelector = require("./content-selector").ContentSelector;
-var ViewEngine = require("./view-engine").ViewEngine;
-var ViewStrategy = require("./view-strategy").ViewStrategy;
-var hyphenate = require("./util").hyphenate;
 
+var BehaviorInstance = require("./behavior-instance").BehaviorInstance;
+
+var configureBehavior = require("./behaviors").configureBehavior;
+
+var ContentSelector = require("./content-selector").ContentSelector;
+
+var ViewEngine = require("./view-engine").ViewEngine;
+
+var ViewStrategy = require("./view-strategy").ViewStrategy;
+
+var hyphenate = require("./util").hyphenate;
 
 var defaultInstruction = { suppressBind: false },
     contentSelectorFactoryOptions = { suppressBind: true },
     hasShadowDOM = !!HTMLElement.prototype.createShadowRoot,
     valuePropertyName = "value";
 
-var UseShadowDOM = exports.UseShadowDOM = function UseShadowDOM() {};
+var UseShadowDOM = exports.UseShadowDOM = function UseShadowDOM() {
+  _classCallCheck(this, UseShadowDOM);
+};
 
-var SkipContentProcessing = exports.SkipContentProcessing = function SkipContentProcessing() {};
+var SkipContentProcessing = exports.SkipContentProcessing = function SkipContentProcessing() {
+  _classCallCheck(this, SkipContentProcessing);
+};
 
 var CustomElement = exports.CustomElement = (function (ResourceType) {
   function CustomElement(tagName) {
+    _classCallCheck(this, CustomElement);
+
     this.name = tagName;
     this.properties = [];
     this.attributes = {};
@@ -62,6 +75,7 @@ var CustomElement = exports.CustomElement = (function (ResourceType) {
     load: {
       value: function load(container, target, viewStrategy) {
         var _this = this;
+
         var options;
 
         viewStrategy = viewStrategy || ViewStrategy.getDefault(target);
@@ -116,6 +130,7 @@ var CustomElement = exports.CustomElement = (function (ResourceType) {
       value: function create(container) {
         var instruction = arguments[1] === undefined ? defaultInstruction : arguments[1];
         var element = arguments[2] === undefined ? null : arguments[2];
+
         var executionContext = instruction.executionContext || container.get(this.target),
             behaviorInstance = new BehaviorInstance(this, executionContext, instruction),
             host;
@@ -167,4 +182,7 @@ var CustomElement = exports.CustomElement = (function (ResourceType) {
 
   return CustomElement;
 })(ResourceType);
-exports.__esModule = true;
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});

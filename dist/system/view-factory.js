@@ -1,8 +1,5 @@
 System.register(["aurelia-dependency-injection", "./view", "./view-slot", "./content-selector", "./resource-registry"], function (_export) {
-  "use strict";
-
-  var Container, View, ViewSlot, ContentSelector, ViewResources, _prototypeProperties, BoundViewFactory, defaultFactoryOptions, ViewFactory;
-
+  var Container, View, ViewSlot, ContentSelector, ViewResources, _prototypeProperties, _classCallCheck, BoundViewFactory, defaultFactoryOptions, ViewFactory;
 
   function elementContainerGet(key) {
     if (key === Element) {
@@ -106,10 +103,16 @@ System.register(["aurelia-dependency-injection", "./view", "./view-slot", "./con
       ViewResources = _resourceRegistry.ViewResources;
     }],
     execute: function () {
+      "use strict";
+
       _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+
+      _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
       BoundViewFactory = _export("BoundViewFactory", (function () {
         function BoundViewFactory(parentContainer, viewFactory, executionContext) {
+          _classCallCheck(this, BoundViewFactory);
+
           this.parentContainer = parentContainer;
           this.viewFactory = viewFactory;
           this.executionContext = executionContext;
@@ -139,6 +142,8 @@ System.register(["aurelia-dependency-injection", "./view", "./view-slot", "./con
       };
       ViewFactory = _export("ViewFactory", (function () {
         function ViewFactory(template, instructions, resources) {
+          _classCallCheck(this, ViewFactory);
+
           this.template = template;
           this.instructions = instructions;
           this.resources = resources;
@@ -148,6 +153,7 @@ System.register(["aurelia-dependency-injection", "./view", "./view-slot", "./con
           create: {
             value: function create(container, executionContext) {
               var options = arguments[2] === undefined ? defaultFactoryOptions : arguments[2];
+
               var fragment = this.template.cloneNode(true),
                   instructables = fragment.querySelectorAll(".au-target"),
                   instructions = this.instructions,

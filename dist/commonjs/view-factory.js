@@ -2,12 +2,17 @@
 
 var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
-var Container = require("aurelia-dependency-injection").Container;
-var View = require("./view").View;
-var ViewSlot = require("./view-slot").ViewSlot;
-var ContentSelector = require("./content-selector").ContentSelector;
-var ViewResources = require("./resource-registry").ViewResources;
+var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
+var Container = require("aurelia-dependency-injection").Container;
+
+var View = require("./view").View;
+
+var ViewSlot = require("./view-slot").ViewSlot;
+
+var ContentSelector = require("./content-selector").ContentSelector;
+
+var ViewResources = require("./resource-registry").ViewResources;
 
 function elementContainerGet(key) {
   if (key === Element) {
@@ -100,6 +105,8 @@ function applyInstructions(containers, executionContext, element, instruction, b
 
 var BoundViewFactory = exports.BoundViewFactory = (function () {
   function BoundViewFactory(parentContainer, viewFactory, executionContext) {
+    _classCallCheck(this, BoundViewFactory);
+
     this.parentContainer = parentContainer;
     this.viewFactory = viewFactory;
     this.executionContext = executionContext;
@@ -124,7 +131,6 @@ var BoundViewFactory = exports.BoundViewFactory = (function () {
   return BoundViewFactory;
 })();
 
-
 var defaultFactoryOptions = {
   systemControlled: false,
   suppressBind: false
@@ -132,6 +138,8 @@ var defaultFactoryOptions = {
 
 var ViewFactory = exports.ViewFactory = (function () {
   function ViewFactory(template, instructions, resources) {
+    _classCallCheck(this, ViewFactory);
+
     this.template = template;
     this.instructions = instructions;
     this.resources = resources;
@@ -141,6 +149,7 @@ var ViewFactory = exports.ViewFactory = (function () {
     create: {
       value: function create(container, executionContext) {
         var options = arguments[2] === undefined ? defaultFactoryOptions : arguments[2];
+
         var fragment = this.template.cloneNode(true),
             instructables = fragment.querySelectorAll(".au-target"),
             instructions = this.instructions,
@@ -174,4 +183,7 @@ var ViewFactory = exports.ViewFactory = (function () {
 
   return ViewFactory;
 })();
-exports.__esModule = true;
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});

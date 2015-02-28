@@ -4,22 +4,28 @@ var _interopRequireWildcard = function (obj) { return obj && obj.__esModule ? ob
 
 var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
+var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
 var LogManager = _interopRequireWildcard(require("aurelia-logging"));
 
 var Loader = require("aurelia-loader").Loader;
+
 var relativeToFile = require("aurelia-path").relativeToFile;
+
 var ViewCompiler = require("./view-compiler").ViewCompiler;
+
 var _resourceRegistry = require("./resource-registry");
 
 var ResourceRegistry = _resourceRegistry.ResourceRegistry;
 var ViewResources = _resourceRegistry.ViewResources;
-
 
 var importSplitter = /\s*,\s*/,
     logger = LogManager.getLogger("templating");
 
 var ViewEngine = exports.ViewEngine = (function () {
   function ViewEngine(loader, viewCompiler, appResources) {
+    _classCallCheck(this, ViewEngine);
+
     this.loader = loader;
     this.viewCompiler = viewCompiler;
     this.appResources = appResources;
@@ -38,6 +44,7 @@ var ViewEngine = exports.ViewEngine = (function () {
     loadViewFactory: {
       value: function loadViewFactory(url, compileOptions, associatedModuleId) {
         var _this = this;
+
         var existing = this.importedViews[url];
         if (existing) {
           return Promise.resolve(existing);
@@ -62,6 +69,7 @@ var ViewEngine = exports.ViewEngine = (function () {
     loadTemplateResources: {
       value: function loadTemplateResources(templateUrl, template, associatedModuleId) {
         var _this = this;
+
         var importIds,
             names,
             i,
@@ -123,4 +131,7 @@ var ViewEngine = exports.ViewEngine = (function () {
 
   return ViewEngine;
 })();
-exports.__esModule = true;
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});

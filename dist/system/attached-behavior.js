@@ -1,7 +1,6 @@
 System.register(["aurelia-metadata", "./behavior-instance", "./behaviors", "./util"], function (_export) {
-  "use strict";
+  var ResourceType, BehaviorInstance, configureBehavior, hyphenate, _prototypeProperties, _inherits, _classCallCheck, AttachedBehavior;
 
-  var ResourceType, BehaviorInstance, configureBehavior, hyphenate, _prototypeProperties, _inherits, AttachedBehavior;
   return {
     setters: [function (_aureliaMetadata) {
       ResourceType = _aureliaMetadata.ResourceType;
@@ -13,12 +12,18 @@ System.register(["aurelia-metadata", "./behavior-instance", "./behaviors", "./ut
       hyphenate = _util.hyphenate;
     }],
     execute: function () {
+      "use strict";
+
       _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
       _inherits = function (subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
 
+      _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
       AttachedBehavior = _export("AttachedBehavior", (function (ResourceType) {
         function AttachedBehavior(attribute) {
+          _classCallCheck(this, AttachedBehavior);
+
           this.name = attribute;
           this.properties = [];
           this.attributes = {};

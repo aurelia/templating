@@ -1,23 +1,32 @@
-System.register(["./content-selector"], function (_export) {
-  "use strict";
+System.register(["./content-selector", "./animator"], function (_export) {
+  var ContentSelector, Animator, _prototypeProperties, _classCallCheck, ViewSlot;
 
-  var ContentSelector, _prototypeProperties, ViewSlot;
   return {
     setters: [function (_contentSelector) {
       ContentSelector = _contentSelector.ContentSelector;
+    }, function (_animator) {
+      Animator = _animator.Animator;
     }],
     execute: function () {
+      "use strict";
+
       _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+
+      _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
       ViewSlot = _export("ViewSlot", (function () {
         function ViewSlot(anchor, anchorIsContainer, executionContext) {
+          var animator = arguments[3] === undefined ? Animator.instance : arguments[3];
+
+          _classCallCheck(this, ViewSlot);
+
           this.anchor = anchor;
           this.viewAddMethod = anchorIsContainer ? "appendNodesTo" : "insertNodesBefore";
           this.executionContext = executionContext;
+          this.animator = animator;
           this.children = [];
           this.isBound = false;
           this.isAttached = false;
-
           anchor.viewSlot = this;
         }
 
@@ -27,6 +36,9 @@ System.register(["./content-selector"], function (_export) {
               var parent = this.anchor;
 
               this.children.push({
+                fragment: parent,
+                firstChild: parent.firstChild,
+                lastChild: parent.lastChild,
                 removeNodes: function removeNodes() {
                   var last;
 
@@ -88,6 +100,11 @@ System.register(["./content-selector"], function (_export) {
 
               if (this.isAttached) {
                 view.attached();
+                // Animate page itself
+                var element = view.firstChild.nextElementSibling;
+                if (view.firstChild.nodeType === 8 && element !== undefined && element.nodeType === 1 && element.classList.contains("au-animate")) {
+                  this.animator.enter(element);
+                }
               }
             },
             writable: true,
@@ -112,6 +129,7 @@ System.register(["./content-selector"], function (_export) {
           remove: {
             value: function remove(view) {
               view.removeNodes();
+
               this.children.splice(this.children.indexOf(view), 1);
 
               if (this.isAttached) {
@@ -123,45 +141,87 @@ System.register(["./content-selector"], function (_export) {
           },
           removeAt: {
             value: function removeAt(index) {
+              var _this = this;
+
               var view = this.children[index];
 
-              view.removeNodes();
-              this.children.splice(index, 1);
+              var removeAction = function () {
+                view.removeNodes();
+                _this.children.splice(index, 1);
 
-              if (this.isAttached) {
-                view.detached();
+                if (_this.isAttached) {
+                  view.detached();
+                }
+
+                return view;
+              };
+
+              var element = view.firstChild.nextElementSibling;
+              if (view.firstChild.nodeType === 8 && element !== undefined && element.nodeType === 1 && element.classList.contains("au-animate")) {
+                return this.animator.leave(element).then(function () {
+                  return removeAction();
+                });
+              } else {
+                return removeAction();
               }
-
-              return view;
             },
             writable: true,
             configurable: true
           },
           removeAll: {
             value: function removeAll() {
+              var _this = this;
+
               var children = this.children,
                   ii = children.length,
                   i;
 
-              for (i = 0; i < ii; ++i) {
-                children[i].removeNodes();
-              }
+              var rmPromises = [];
 
-              if (this.isAttached) {
-                for (i = 0; i < ii; ++i) {
-                  children[i].detached();
+              children.forEach(function (child) {
+                var element = child.firstChild.nextElementSibling;
+                if (child.firstChild !== undefined && child.firstChild.nodeType === 8 && element !== undefined && element.nodeType === 1 && element.classList.contains("au-animate")) {
+                  rmPromises.push(_this.animator.leave(element).then(function () {
+                    child.removeNodes();
+                  }));
+                } else {
+                  child.removeNodes();
                 }
-              }
+              });
 
-              this.children = [];
+              var removeAction = function () {
+                if (_this.isAttached) {
+                  for (i = 0; i < ii; ++i) {
+                    children[i].detached();
+                  }
+                }
+
+                _this.children = [];
+              };
+
+              if (rmPromises.length > 0) {
+                return Promise.all(rmPromises).then(function () {
+                  removeAction();
+                });
+              } else {
+                removeAction();
+              }
             },
             writable: true,
             configurable: true
           },
           swap: {
             value: function swap(view) {
-              this.removeAll();
-              this.add(view);
+              var _this = this;
+
+              var removeResponse = this.removeAll();
+              if (removeResponse !== undefined) {
+                removeResponse.then(function () {
+                  _this.add(view);
+                });
+              } else {
+                this.add(view);
+              }
             },
             writable: true,
             configurable: true
@@ -179,6 +239,11 @@ System.register(["./content-selector"], function (_export) {
               children = this.children;
               for (i = 0, ii = children.length; i < ii; ++i) {
                 children[i].attached();
+
+                var element = children[i].firstChild.nextElementSibling;
+                if (children[i].firstChild.nodeType === 8 && element !== undefined && element.nodeType === 1 && element.classList.contains("au-animate")) {
+                  this.animator.enter(element);
+                }
               }
             },
             writable: true,

@@ -5,12 +5,17 @@ define(["exports", "aurelia-metadata", "./behavior-instance", "./behaviors", "./
 
   var _inherits = function (subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
 
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
   var ResourceType = _aureliaMetadata.ResourceType;
   var BehaviorInstance = _behaviorInstance.BehaviorInstance;
   var configureBehavior = _behaviors.configureBehavior;
   var hyphenate = _util.hyphenate;
+
   var TemplateController = exports.TemplateController = (function (ResourceType) {
     function TemplateController(attribute) {
+      _classCallCheck(this, TemplateController);
+
       this.name = attribute;
       this.properties = [];
       this.attributes = {};
@@ -62,8 +67,10 @@ define(["exports", "aurelia-metadata", "./behavior-instance", "./behaviors", "./
             if (node.parentNode) {
               node.parentNode.replaceChild(template, node);
             } else if (window.ShadowDOMPolyfill) {
+              //HACK: IE template element and shadow dom polyfills not quite right...
               ShadowDOMPolyfill.unwrap(parentNode).replaceChild(ShadowDOMPolyfill.unwrap(template), ShadowDOMPolyfill.unwrap(node));
             } else {
+              //HACK: same as above
               parentNode.replaceChild(template, node);
             }
 
@@ -100,5 +107,8 @@ define(["exports", "aurelia-metadata", "./behavior-instance", "./behaviors", "./
 
     return TemplateController;
   })(ResourceType);
-  exports.__esModule = true;
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
 });

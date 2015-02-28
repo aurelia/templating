@@ -4,12 +4,20 @@ var _prototypeProperties = function (child, staticProps, instanceProps) { if (st
 
 var _inherits = function (subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
 
+var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
 var ResourceType = require("aurelia-metadata").ResourceType;
+
 var BehaviorInstance = require("./behavior-instance").BehaviorInstance;
+
 var configureBehavior = require("./behaviors").configureBehavior;
+
 var hyphenate = require("./util").hyphenate;
+
 var TemplateController = exports.TemplateController = (function (ResourceType) {
   function TemplateController(attribute) {
+    _classCallCheck(this, TemplateController);
+
     this.name = attribute;
     this.properties = [];
     this.attributes = {};
@@ -61,8 +69,10 @@ var TemplateController = exports.TemplateController = (function (ResourceType) {
           if (node.parentNode) {
             node.parentNode.replaceChild(template, node);
           } else if (window.ShadowDOMPolyfill) {
+            //HACK: IE template element and shadow dom polyfills not quite right...
             ShadowDOMPolyfill.unwrap(parentNode).replaceChild(ShadowDOMPolyfill.unwrap(template), ShadowDOMPolyfill.unwrap(node));
           } else {
+            //HACK: same as above
             parentNode.replaceChild(template, node);
           }
 
@@ -99,4 +109,7 @@ var TemplateController = exports.TemplateController = (function (ResourceType) {
 
   return TemplateController;
 })(ResourceType);
-exports.__esModule = true;
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});

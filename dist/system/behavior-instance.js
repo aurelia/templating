@@ -1,14 +1,19 @@
 System.register([], function (_export) {
-  "use strict";
+  var _prototypeProperties, _classCallCheck, BehaviorInstance;
 
-  var _prototypeProperties, BehaviorInstance;
   return {
     setters: [],
     execute: function () {
+      "use strict";
+
       _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+
+      _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
       BehaviorInstance = _export("BehaviorInstance", (function () {
         function BehaviorInstance(behavior, executionContext, instruction) {
+          _classCallCheck(this, BehaviorInstance);
+
           this.behavior = behavior;
           this.executionContext = executionContext;
 

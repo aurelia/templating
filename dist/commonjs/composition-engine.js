@@ -2,21 +2,30 @@
 
 var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
+var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
 var _aureliaMetadata = require("aurelia-metadata");
 
 var Origin = _aureliaMetadata.Origin;
 var Metadata = _aureliaMetadata.Metadata;
+
 require("aurelia-dependency-injection");
 
 var _viewStrategy = require("./view-strategy");
 
 var ViewStrategy = _viewStrategy.ViewStrategy;
 var UseView = _viewStrategy.UseView;
+
 var ResourceCoordinator = require("./resource-coordinator").ResourceCoordinator;
+
 var ViewEngine = require("./view-engine").ViewEngine;
+
 var CustomElement = require("./custom-element").CustomElement;
+
 var CompositionEngine = exports.CompositionEngine = (function () {
   function CompositionEngine(resourceCoordinator, viewEngine) {
+    _classCallCheck(this, CompositionEngine);
+
     this.resourceCoordinator = resourceCoordinator;
     this.viewEngine = viewEngine;
   }
@@ -115,6 +124,7 @@ var CompositionEngine = exports.CompositionEngine = (function () {
     compose: {
       value: function compose(instruction) {
         var _this = this;
+
         instruction.childContainer = instruction.childContainer || instruction.container.createChild();
         instruction.view = ViewStrategy.normalize(instruction.view);
 
@@ -148,4 +158,7 @@ var CompositionEngine = exports.CompositionEngine = (function () {
 
   return CompositionEngine;
 })();
-exports.__esModule = true;
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});

@@ -1,7 +1,6 @@
 System.register(["aurelia-metadata", "aurelia-path"], function (_export) {
-  "use strict";
+  var Metadata, Origin, relativeToFile, _inherits, _prototypeProperties, _classCallCheck, ViewStrategy, UseView, ConventionalView, NoView;
 
-  var Metadata, Origin, relativeToFile, _inherits, _prototypeProperties, ViewStrategy, UseView, ConventionalView, NoView;
   return {
     setters: [function (_aureliaMetadata) {
       Metadata = _aureliaMetadata.Metadata;
@@ -10,12 +9,18 @@ System.register(["aurelia-metadata", "aurelia-path"], function (_export) {
       relativeToFile = _aureliaPath.relativeToFile;
     }],
     execute: function () {
+      "use strict";
+
       _inherits = function (subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
 
       _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
+      _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
       ViewStrategy = _export("ViewStrategy", (function () {
-        function ViewStrategy() {}
+        function ViewStrategy() {
+          _classCallCheck(this, ViewStrategy);
+        }
 
         _prototypeProperties(ViewStrategy, {
           normalize: {
@@ -78,6 +83,8 @@ System.register(["aurelia-metadata", "aurelia-path"], function (_export) {
       })());
       UseView = _export("UseView", (function (ViewStrategy) {
         function UseView(path) {
+          _classCallCheck(this, UseView);
+
           this.path = path;
         }
 
@@ -108,6 +115,8 @@ System.register(["aurelia-metadata", "aurelia-path"], function (_export) {
       })(ViewStrategy));
       ConventionalView = _export("ConventionalView", (function (ViewStrategy) {
         function ConventionalView(moduleId) {
+          _classCallCheck(this, ConventionalView);
+
           this.moduleId = moduleId;
           this.viewUrl = ConventionalView.convertModuleIdToViewUrl(moduleId);
         }
@@ -136,8 +145,10 @@ System.register(["aurelia-metadata", "aurelia-path"], function (_export) {
       })(ViewStrategy));
       NoView = _export("NoView", (function (ViewStrategy) {
         function NoView() {
-          if (Object.getPrototypeOf(NoView) !== null) {
-            Object.getPrototypeOf(NoView).apply(this, arguments);
+          _classCallCheck(this, NoView);
+
+          if (ViewStrategy != null) {
+            ViewStrategy.apply(this, arguments);
           }
         }
 

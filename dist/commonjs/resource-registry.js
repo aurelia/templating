@@ -6,8 +6,9 @@ var _inherits = function (subClass, superClass) { if (typeof superClass !== "fun
 
 var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
-var relativeToFile = require("aurelia-path").relativeToFile;
+var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
+var relativeToFile = require("aurelia-path").relativeToFile;
 
 function register(lookup, name, resource, type) {
   if (!name) {
@@ -28,6 +29,8 @@ function register(lookup, name, resource, type) {
 
 var ResourceRegistry = exports.ResourceRegistry = (function () {
   function ResourceRegistry() {
+    _classCallCheck(this, ResourceRegistry);
+
     this.attributes = {};
     this.elements = {};
     this.valueConverters = {};
@@ -83,8 +86,11 @@ var ResourceRegistry = exports.ResourceRegistry = (function () {
 
   return ResourceRegistry;
 })();
+
 var ViewResources = exports.ViewResources = (function (ResourceRegistry) {
   function ViewResources(parent, viewUrl) {
+    _classCallCheck(this, ViewResources);
+
     _get(Object.getPrototypeOf(ViewResources.prototype), "constructor", this).call(this);
     this.parent = parent;
     this.viewUrl = viewUrl;
@@ -133,4 +139,7 @@ var ViewResources = exports.ViewResources = (function (ResourceRegistry) {
 
   return ViewResources;
 })(ResourceRegistry);
-exports.__esModule = true;
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});

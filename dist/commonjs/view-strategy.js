@@ -4,13 +4,19 @@ var _inherits = function (subClass, superClass) { if (typeof superClass !== "fun
 
 var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
+var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
 var _aureliaMetadata = require("aurelia-metadata");
 
 var Metadata = _aureliaMetadata.Metadata;
 var Origin = _aureliaMetadata.Origin;
+
 var relativeToFile = require("aurelia-path").relativeToFile;
+
 var ViewStrategy = exports.ViewStrategy = (function () {
-  function ViewStrategy() {}
+  function ViewStrategy() {
+    _classCallCheck(this, ViewStrategy);
+  }
 
   _prototypeProperties(ViewStrategy, {
     normalize: {
@@ -71,8 +77,11 @@ var ViewStrategy = exports.ViewStrategy = (function () {
 
   return ViewStrategy;
 })();
+
 var UseView = exports.UseView = (function (ViewStrategy) {
   function UseView(path) {
+    _classCallCheck(this, UseView);
+
     this.path = path;
   }
 
@@ -101,8 +110,11 @@ var UseView = exports.UseView = (function (ViewStrategy) {
 
   return UseView;
 })(ViewStrategy);
+
 var ConventionalView = exports.ConventionalView = (function (ViewStrategy) {
   function ConventionalView(moduleId) {
+    _classCallCheck(this, ConventionalView);
+
     this.moduleId = moduleId;
     this.viewUrl = ConventionalView.convertModuleIdToViewUrl(moduleId);
   }
@@ -129,10 +141,13 @@ var ConventionalView = exports.ConventionalView = (function (ViewStrategy) {
 
   return ConventionalView;
 })(ViewStrategy);
+
 var NoView = exports.NoView = (function (ViewStrategy) {
   function NoView() {
-    if (Object.getPrototypeOf(NoView) !== null) {
-      Object.getPrototypeOf(NoView).apply(this, arguments);
+    _classCallCheck(this, NoView);
+
+    if (ViewStrategy != null) {
+      ViewStrategy.apply(this, arguments);
     }
   }
 
@@ -150,4 +165,7 @@ var NoView = exports.NoView = (function (ViewStrategy) {
 
   return NoView;
 })(ViewStrategy);
-exports.__esModule = true;
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});

@@ -3,6 +3,8 @@ define(["exports", "aurelia-loader", "aurelia-path", "aurelia-dependency-injecti
 
   var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
   var Loader = _aureliaLoader.Loader;
   var relativeToFile = _aureliaPath.relativeToFile;
   var join = _aureliaPath.join;
@@ -17,7 +19,6 @@ define(["exports", "aurelia-loader", "aurelia-path", "aurelia-dependency-injecti
   var ViewEngine = _viewEngine.ViewEngine;
   var ResourceRegistry = _resourceRegistry.ResourceRegistry;
 
-
   var id = 0;
 
   function nextId() {
@@ -26,6 +27,8 @@ define(["exports", "aurelia-loader", "aurelia-path", "aurelia-dependency-injecti
 
   var ResourceCoordinator = exports.ResourceCoordinator = (function () {
     function ResourceCoordinator(loader, container, viewEngine, appResources) {
+      _classCallCheck(this, ResourceCoordinator);
+
       this.loader = loader;
       this.container = container;
       this.viewEngine = viewEngine;
@@ -61,6 +64,7 @@ define(["exports", "aurelia-loader", "aurelia-path", "aurelia-dependency-injecti
       loadElement: {
         value: function loadElement(moduleImport, moduleMember, viewStategy) {
           var _this = this;
+
           return this._loadAndAnalyzeModuleForElement(moduleImport, moduleMember, this.importedModules, false).then(function (info) {
             var type = info.type;
 
@@ -79,6 +83,7 @@ define(["exports", "aurelia-loader", "aurelia-path", "aurelia-dependency-injecti
       _loadAndAnalyzeModuleForElement: {
         value: function _loadAndAnalyzeModuleForElement(moduleImport, moduleMember, cache, skipCacheLookup) {
           var _this = this;
+
           var existing = !skipCacheLookup && cache[moduleImport];
 
           if (existing) {
@@ -174,6 +179,7 @@ define(["exports", "aurelia-loader", "aurelia-path", "aurelia-dependency-injecti
       importResourcesFromModuleIds: {
         value: function importResourcesFromModuleIds(importIds) {
           var _this = this;
+
           return this.loader.loadAllModules(importIds).then(function (imports) {
             return _this.importResourcesFromModules(imports, importIds);
           });
@@ -260,8 +266,11 @@ define(["exports", "aurelia-loader", "aurelia-path", "aurelia-dependency-injecti
 
     return ResourceCoordinator;
   })();
+
   var ResourceModule = (function () {
     function ResourceModule(source, element, resources) {
+      _classCallCheck(this, ResourceModule);
+
       var i, ii, org;
 
       this.source = source;
@@ -396,5 +405,7 @@ define(["exports", "aurelia-loader", "aurelia-path", "aurelia-dependency-injecti
       type: Metadata.on(viewModelType).first(CustomElement) || new CustomElement()
     } : null, resources);
   }
-  exports.__esModule = true;
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
 });

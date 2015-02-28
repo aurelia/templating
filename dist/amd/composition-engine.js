@@ -3,6 +3,8 @@ define(["exports", "aurelia-metadata", "aurelia-dependency-injection", "./view-s
 
   var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
   var Origin = _aureliaMetadata.Origin;
   var Metadata = _aureliaMetadata.Metadata;
   var ViewStrategy = _viewStrategy.ViewStrategy;
@@ -10,8 +12,11 @@ define(["exports", "aurelia-metadata", "aurelia-dependency-injection", "./view-s
   var ResourceCoordinator = _resourceCoordinator.ResourceCoordinator;
   var ViewEngine = _viewEngine.ViewEngine;
   var CustomElement = _customElement.CustomElement;
+
   var CompositionEngine = exports.CompositionEngine = (function () {
     function CompositionEngine(resourceCoordinator, viewEngine) {
+      _classCallCheck(this, CompositionEngine);
+
       this.resourceCoordinator = resourceCoordinator;
       this.viewEngine = viewEngine;
     }
@@ -110,6 +115,7 @@ define(["exports", "aurelia-metadata", "aurelia-dependency-injection", "./view-s
       compose: {
         value: function compose(instruction) {
           var _this = this;
+
           instruction.childContainer = instruction.childContainer || instruction.container.createChild();
           instruction.view = ViewStrategy.normalize(instruction.view);
 
@@ -143,5 +149,8 @@ define(["exports", "aurelia-metadata", "aurelia-dependency-injection", "./view-s
 
     return CompositionEngine;
   })();
-  exports.__esModule = true;
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
 });

@@ -1,7 +1,6 @@
 System.register(["aurelia-metadata", "./behavior-instance", "./behaviors", "./util"], function (_export) {
-  "use strict";
+  var ResourceType, BehaviorInstance, configureBehavior, hyphenate, _prototypeProperties, _inherits, _classCallCheck, TemplateController;
 
-  var ResourceType, BehaviorInstance, configureBehavior, hyphenate, _prototypeProperties, _inherits, TemplateController;
   return {
     setters: [function (_aureliaMetadata) {
       ResourceType = _aureliaMetadata.ResourceType;
@@ -13,12 +12,18 @@ System.register(["aurelia-metadata", "./behavior-instance", "./behaviors", "./ut
       hyphenate = _util.hyphenate;
     }],
     execute: function () {
+      "use strict";
+
       _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
       _inherits = function (subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
 
+      _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
       TemplateController = _export("TemplateController", (function (ResourceType) {
         function TemplateController(attribute) {
+          _classCallCheck(this, TemplateController);
+
           this.name = attribute;
           this.properties = [];
           this.attributes = {};
@@ -70,8 +75,10 @@ System.register(["aurelia-metadata", "./behavior-instance", "./behaviors", "./ut
                 if (node.parentNode) {
                   node.parentNode.replaceChild(template, node);
                 } else if (window.ShadowDOMPolyfill) {
+                  //HACK: IE template element and shadow dom polyfills not quite right...
                   ShadowDOMPolyfill.unwrap(parentNode).replaceChild(ShadowDOMPolyfill.unwrap(template), ShadowDOMPolyfill.unwrap(node));
                 } else {
+                  //HACK: same as above
                   parentNode.replaceChild(template, node);
                 }
 

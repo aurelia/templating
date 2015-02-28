@@ -82,7 +82,7 @@ export class ViewCompiler {
         if(expression){
           var marker = document.createElement('au-marker');
           marker.className = 'au-target';
-          node.parentNode.insertBefore(marker, node);
+          (node.parentNode || parentNode).insertBefore(marker, node);
           node.textContent = ' ';
           instructions.push({ contentExpression:expression });
         }

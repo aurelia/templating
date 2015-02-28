@@ -26,7 +26,7 @@ export class BehaviorProperty {
   }
 
   define(taskQueue, behavior){
-    var that = this, 
+    var that = this,
         handlerName;
 
     this.taskQueue = taskQueue;
@@ -55,7 +55,7 @@ export class BehaviorProperty {
 
   createObserver(executionContext){
     var selfSubscriber = null;
-    
+
     if(this.changeHandler){
       selfSubscriber = (newValue, oldValue) => executionContext[this.changeHandler](newValue, oldValue);
     }
@@ -151,8 +151,8 @@ export class OptionsProperty extends BehaviorProperty {
     }
 
     observer = observerLookup[name] = new BehaviorPropertyObserver(
-        this.taskQueue, 
-        executionContext, 
+        this.taskQueue,
+        executionContext,
         name,
         selfSubscriber
         );

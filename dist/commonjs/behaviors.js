@@ -1,12 +1,19 @@
 "use strict";
 
 exports.configureBehavior = configureBehavior;
+
 var Metadata = require("aurelia-metadata").Metadata;
+
 var TaskQueue = require("aurelia-task-queue").TaskQueue;
+
 var ObserverLocator = require("aurelia-binding").ObserverLocator;
+
 var ChildObserver = require("./children").ChildObserver;
+
 var BehaviorProperty = require("./property").BehaviorProperty;
+
 var hyphenate = require("./util").hyphenate;
+
 function configureBehavior(container, behavior, target, valuePropertyName) {
   var proto = target.prototype,
       taskQueue = container.get(TaskQueue),
@@ -62,4 +69,7 @@ function configureBehavior(container, behavior, target, valuePropertyName) {
 
   behavior.childExpression = meta.first(ChildObserver);
 }
-exports.__esModule = true;
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});

@@ -8,6 +8,7 @@ define(["exports", "aurelia-metadata", "aurelia-task-queue", "aurelia-binding", 
   var ChildObserver = _children.ChildObserver;
   var BehaviorProperty = _property.BehaviorProperty;
   var hyphenate = _util.hyphenate;
+
   function configureBehavior(container, behavior, target, valuePropertyName) {
     var proto = target.prototype,
         taskQueue = container.get(TaskQueue),
@@ -63,5 +64,8 @@ define(["exports", "aurelia-metadata", "aurelia-task-queue", "aurelia-binding", 
 
     behavior.childExpression = meta.first(ChildObserver);
   }
-  exports.__esModule = true;
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
 });

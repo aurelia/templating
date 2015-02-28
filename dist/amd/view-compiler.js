@@ -3,10 +3,11 @@ define(["exports", "./resource-registry", "./view-factory", "./binding-language"
 
   var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
   var ResourceRegistry = _resourceRegistry.ResourceRegistry;
   var ViewFactory = _viewFactory.ViewFactory;
   var BindingLanguage = _bindingLanguage.BindingLanguage;
-
 
   var nextInjectorId = 0,
       defaultCompileOptions = { targetShadowDOM: false },
@@ -52,6 +53,8 @@ define(["exports", "./resource-registry", "./view-factory", "./binding-language"
 
   var ViewCompiler = exports.ViewCompiler = (function () {
     function ViewCompiler(bindingLanguage) {
+      _classCallCheck(this, ViewCompiler);
+
       this.bindingLanguage = bindingLanguage;
     }
 
@@ -67,6 +70,7 @@ define(["exports", "./resource-registry", "./view-factory", "./binding-language"
       compile: {
         value: function compile(templateOrFragment, resources) {
           var options = arguments[2] === undefined ? defaultCompileOptions : arguments[2];
+
           var instructions = [],
               targetShadowDOM = options.targetShadowDOM,
               content;
@@ -97,18 +101,21 @@ define(["exports", "./resource-registry", "./view-factory", "./binding-language"
         value: function compileNode(node, resources, instructions, parentNode, parentInjectorId, targetLightDOM) {
           switch (node.nodeType) {
             case 1:
+              //element node
               return this.compileElement(node, resources, instructions, parentNode, parentInjectorId, targetLightDOM);
             case 3:
+              //text node
               var expression = this.bindingLanguage.parseText(resources, node.textContent);
               if (expression) {
                 var marker = document.createElement("au-marker");
                 marker.className = "au-target";
-                node.parentNode.insertBefore(marker, node);
+                (node.parentNode || parentNode).insertBefore(marker, node);
                 node.textContent = " ";
                 instructions.push({ contentExpression: expression });
               }
               return node.nextSibling;
             case 11:
+              //document fragment node
               var currentChild = node.firstChild;
               while (currentChild) {
                 currentChild = this.compileNode(currentChild, resources, instructions, node, parentInjectorId, targetLightDOM);
@@ -174,25 +181,31 @@ define(["exports", "./resource-registry", "./view-factory", "./binding-language"
             elementProperty = null;
 
             if (type) {
-              knownAttribute = resources.mapAttribute(info.attrName);
+              //do we have an attached behavior?
+              knownAttribute = resources.mapAttribute(info.attrName); //map the local name to real name
               if (knownAttribute) {
                 property = type.attributes[knownAttribute];
 
                 if (property) {
-                  info.defaultBindingMode = property.defaultBindingMode;
+                  //if there's a defined property
+                  info.defaultBindingMode = property.defaultBindingMode; //set the default binding mode
 
                   if (!info.command && !info.expression) {
-                    info.command = property.hasOptions ? "options" : null;
+                    // if there is no command or detected expression
+                    info.command = property.hasOptions ? "options" : null; //and it is an optons property, set the options command
                   }
                 }
               }
             } else if (elementInstruction) {
+              //or if this is on a custom element
               elementProperty = elementInstruction.type.attributes[info.attrName];
               if (elementProperty) {
-                info.defaultBindingMode = elementProperty.defaultBindingMode;
+                //and this attribute is a custom property
+                info.defaultBindingMode = elementProperty.defaultBindingMode; //set the default binding mode
 
                 if (!info.command && !info.expression) {
-                  info.command = elementProperty.hasOptions ? "options" : null;
+                  // if there is no command or detected expression
+                  info.command = elementProperty.hasOptions ? "options" : null; //and it is an optons property, set the options command
                 }
               }
             }
@@ -204,45 +217,60 @@ define(["exports", "./resource-registry", "./view-factory", "./binding-language"
             }
 
             if (instruction) {
+              //HAS BINDINGS
               if (instruction.alteredAttr) {
                 type = resources.getAttribute(instruction.attrName);
               }
 
               if (instruction.discrete) {
+                //ref binding or listener binding
                 expressions.push(instruction);
               } else {
+                //attribute bindings
                 if (type) {
+                  //templator or attached behavior found
                   instruction.type = type;
                   configureProperties(instruction, resources);
 
                   if (type.liftsContent) {
+                    //template controller
                     instruction.originalAttrName = attrName;
                     liftingInstruction = instruction;
                     break;
                   } else {
+                    //attached behavior
                     behaviorInstructions.push(instruction);
                   }
                 } else if (elementProperty) {
+                  //custom element attribute
                   elementInstruction.attributes[info.attrName].targetProperty = elementProperty.name;
                 } else {
+                  //standard attribute binding
                   expressions.push(instruction.attributes[instruction.attrName]);
                 }
               }
             } else {
+              //NO BINDINGS
               if (type) {
+                //templator or attached behavior found
                 instruction = { attrName: attrName, type: type, attributes: {} };
                 instruction.attributes[resources.mapAttribute(attrName)] = attrValue;
 
                 if (type.liftsContent) {
+                  //template controller
                   instruction.originalAttrName = attrName;
                   liftingInstruction = instruction;
                   break;
                 } else {
+                  //attached behavior
                   behaviorInstructions.push(instruction);
                 }
               } else if (elementProperty) {
+                //custom element attribute
                 elementInstruction.attributes[attrName] = attrValue;
               }
+
+              //else; normal attribute; do nothing
             }
           }
 
@@ -298,5 +326,8 @@ define(["exports", "./resource-registry", "./view-factory", "./binding-language"
 
     return ViewCompiler;
   })();
-  exports.__esModule = true;
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
 });

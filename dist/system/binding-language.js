@@ -1,14 +1,19 @@
 System.register([], function (_export) {
-  "use strict";
+  var _prototypeProperties, _classCallCheck, BindingLanguage;
 
-  var _prototypeProperties, BindingLanguage;
   return {
     setters: [],
     execute: function () {
+      "use strict";
+
       _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
+      _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
       BindingLanguage = _export("BindingLanguage", (function () {
-        function BindingLanguage() {}
+        function BindingLanguage() {
+          _classCallCheck(this, BindingLanguage);
+        }
 
         _prototypeProperties(BindingLanguage, null, {
           inspectAttribute: {

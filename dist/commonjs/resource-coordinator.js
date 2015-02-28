@@ -2,24 +2,34 @@
 
 var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
+var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
 var Loader = require("aurelia-loader").Loader;
+
 var _aureliaPath = require("aurelia-path");
 
 var relativeToFile = _aureliaPath.relativeToFile;
 var join = _aureliaPath.join;
+
 var Container = require("aurelia-dependency-injection").Container;
+
 var _aureliaMetadata = require("aurelia-metadata");
 
 var Metadata = _aureliaMetadata.Metadata;
 var ResourceType = _aureliaMetadata.ResourceType;
 var Origin = _aureliaMetadata.Origin;
-var ValueConverter = require("aurelia-binding").ValueConverter;
-var CustomElement = require("./custom-element").CustomElement;
-var AttachedBehavior = require("./attached-behavior").AttachedBehavior;
-var TemplateController = require("./template-controller").TemplateController;
-var ViewEngine = require("./view-engine").ViewEngine;
-var ResourceRegistry = require("./resource-registry").ResourceRegistry;
 
+var ValueConverter = require("aurelia-binding").ValueConverter;
+
+var CustomElement = require("./custom-element").CustomElement;
+
+var AttachedBehavior = require("./attached-behavior").AttachedBehavior;
+
+var TemplateController = require("./template-controller").TemplateController;
+
+var ViewEngine = require("./view-engine").ViewEngine;
+
+var ResourceRegistry = require("./resource-registry").ResourceRegistry;
 
 var id = 0;
 
@@ -29,6 +39,8 @@ function nextId() {
 
 var ResourceCoordinator = exports.ResourceCoordinator = (function () {
   function ResourceCoordinator(loader, container, viewEngine, appResources) {
+    _classCallCheck(this, ResourceCoordinator);
+
     this.loader = loader;
     this.container = container;
     this.viewEngine = viewEngine;
@@ -64,6 +76,7 @@ var ResourceCoordinator = exports.ResourceCoordinator = (function () {
     loadElement: {
       value: function loadElement(moduleImport, moduleMember, viewStategy) {
         var _this = this;
+
         return this._loadAndAnalyzeModuleForElement(moduleImport, moduleMember, this.importedModules, false).then(function (info) {
           var type = info.type;
 
@@ -82,6 +95,7 @@ var ResourceCoordinator = exports.ResourceCoordinator = (function () {
     _loadAndAnalyzeModuleForElement: {
       value: function _loadAndAnalyzeModuleForElement(moduleImport, moduleMember, cache, skipCacheLookup) {
         var _this = this;
+
         var existing = !skipCacheLookup && cache[moduleImport];
 
         if (existing) {
@@ -177,6 +191,7 @@ var ResourceCoordinator = exports.ResourceCoordinator = (function () {
     importResourcesFromModuleIds: {
       value: function importResourcesFromModuleIds(importIds) {
         var _this = this;
+
         return this.loader.loadAllModules(importIds).then(function (imports) {
           return _this.importResourcesFromModules(imports, importIds);
         });
@@ -263,8 +278,11 @@ var ResourceCoordinator = exports.ResourceCoordinator = (function () {
 
   return ResourceCoordinator;
 })();
+
 var ResourceModule = (function () {
   function ResourceModule(source, element, resources) {
+    _classCallCheck(this, ResourceModule);
+
     var i, ii, org;
 
     this.source = source;
@@ -399,4 +417,6 @@ function analyzeModule(moduleInstance, viewModelMember) {
     type: Metadata.on(viewModelType).first(CustomElement) || new CustomElement()
   } : null, resources);
 }
-exports.__esModule = true;
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});

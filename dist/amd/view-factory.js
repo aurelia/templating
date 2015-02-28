@@ -3,12 +3,13 @@ define(["exports", "aurelia-dependency-injection", "./view", "./view-slot", "./c
 
   var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
   var Container = _aureliaDependencyInjection.Container;
   var View = _view.View;
   var ViewSlot = _viewSlot.ViewSlot;
   var ContentSelector = _contentSelector.ContentSelector;
   var ViewResources = _resourceRegistry.ViewResources;
-
 
   function elementContainerGet(key) {
     if (key === Element) {
@@ -101,6 +102,8 @@ define(["exports", "aurelia-dependency-injection", "./view", "./view-slot", "./c
 
   var BoundViewFactory = exports.BoundViewFactory = (function () {
     function BoundViewFactory(parentContainer, viewFactory, executionContext) {
+      _classCallCheck(this, BoundViewFactory);
+
       this.parentContainer = parentContainer;
       this.viewFactory = viewFactory;
       this.executionContext = executionContext;
@@ -125,7 +128,6 @@ define(["exports", "aurelia-dependency-injection", "./view", "./view-slot", "./c
     return BoundViewFactory;
   })();
 
-
   var defaultFactoryOptions = {
     systemControlled: false,
     suppressBind: false
@@ -133,6 +135,8 @@ define(["exports", "aurelia-dependency-injection", "./view", "./view-slot", "./c
 
   var ViewFactory = exports.ViewFactory = (function () {
     function ViewFactory(template, instructions, resources) {
+      _classCallCheck(this, ViewFactory);
+
       this.template = template;
       this.instructions = instructions;
       this.resources = resources;
@@ -142,6 +146,7 @@ define(["exports", "aurelia-dependency-injection", "./view", "./view-slot", "./c
       create: {
         value: function create(container, executionContext) {
           var options = arguments[2] === undefined ? defaultFactoryOptions : arguments[2];
+
           var fragment = this.template.cloneNode(true),
               instructables = fragment.querySelectorAll(".au-target"),
               instructions = this.instructions,
@@ -175,5 +180,8 @@ define(["exports", "aurelia-dependency-injection", "./view", "./view-slot", "./c
 
     return ViewFactory;
   })();
-  exports.__esModule = true;
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
 });

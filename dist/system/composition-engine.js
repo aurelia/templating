@@ -1,7 +1,6 @@
 System.register(["aurelia-metadata", "aurelia-dependency-injection", "./view-strategy", "./resource-coordinator", "./view-engine", "./custom-element"], function (_export) {
-  "use strict";
+  var Origin, Metadata, ViewStrategy, UseView, ResourceCoordinator, ViewEngine, CustomElement, _prototypeProperties, _classCallCheck, CompositionEngine;
 
-  var Origin, Metadata, ViewStrategy, UseView, ResourceCoordinator, ViewEngine, CustomElement, _prototypeProperties, CompositionEngine;
   return {
     setters: [function (_aureliaMetadata) {
       Origin = _aureliaMetadata.Origin;
@@ -17,10 +16,16 @@ System.register(["aurelia-metadata", "aurelia-dependency-injection", "./view-str
       CustomElement = _customElement.CustomElement;
     }],
     execute: function () {
+      "use strict";
+
       _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+
+      _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
       CompositionEngine = _export("CompositionEngine", (function () {
         function CompositionEngine(resourceCoordinator, viewEngine) {
+          _classCallCheck(this, CompositionEngine);
+
           this.resourceCoordinator = resourceCoordinator;
           this.viewEngine = viewEngine;
         }
@@ -119,6 +124,7 @@ System.register(["aurelia-metadata", "aurelia-dependency-injection", "./view-str
           compose: {
             value: function compose(instruction) {
               var _this = this;
+
               instruction.childContainer = instruction.childContainer || instruction.container.createChild();
               instruction.view = ViewStrategy.normalize(instruction.view);
 

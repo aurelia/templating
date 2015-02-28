@@ -1,7 +1,6 @@
 System.register(["aurelia-metadata", "./behavior-instance", "./behaviors", "./content-selector", "./view-engine", "./view-strategy", "./util"], function (_export) {
-  "use strict";
+  var Metadata, Origin, ResourceType, BehaviorInstance, configureBehavior, ContentSelector, ViewEngine, ViewStrategy, hyphenate, _prototypeProperties, _inherits, _classCallCheck, defaultInstruction, contentSelectorFactoryOptions, hasShadowDOM, valuePropertyName, UseShadowDOM, SkipContentProcessing, CustomElement;
 
-  var Metadata, Origin, ResourceType, BehaviorInstance, configureBehavior, ContentSelector, ViewEngine, ViewStrategy, hyphenate, _prototypeProperties, _inherits, defaultInstruction, contentSelectorFactoryOptions, hasShadowDOM, valuePropertyName, UseShadowDOM, SkipContentProcessing, CustomElement;
   return {
     setters: [function (_aureliaMetadata) {
       Metadata = _aureliaMetadata.Metadata;
@@ -21,18 +20,28 @@ System.register(["aurelia-metadata", "./behavior-instance", "./behaviors", "./co
       hyphenate = _util.hyphenate;
     }],
     execute: function () {
+      "use strict";
+
       _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
       _inherits = function (subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
+
+      _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
       defaultInstruction = { suppressBind: false };
       contentSelectorFactoryOptions = { suppressBind: true };
       hasShadowDOM = !!HTMLElement.prototype.createShadowRoot;
       valuePropertyName = "value";
-      UseShadowDOM = _export("UseShadowDOM", function UseShadowDOM() {});
-      SkipContentProcessing = _export("SkipContentProcessing", function SkipContentProcessing() {});
+      UseShadowDOM = _export("UseShadowDOM", function UseShadowDOM() {
+        _classCallCheck(this, UseShadowDOM);
+      });
+      SkipContentProcessing = _export("SkipContentProcessing", function SkipContentProcessing() {
+        _classCallCheck(this, SkipContentProcessing);
+      });
       CustomElement = _export("CustomElement", (function (ResourceType) {
         function CustomElement(tagName) {
+          _classCallCheck(this, CustomElement);
+
           this.name = tagName;
           this.properties = [];
           this.attributes = {};
@@ -67,6 +76,7 @@ System.register(["aurelia-metadata", "./behavior-instance", "./behaviors", "./co
           load: {
             value: function load(container, target, viewStrategy) {
               var _this = this;
+
               var options;
 
               viewStrategy = viewStrategy || ViewStrategy.getDefault(target);
@@ -121,6 +131,7 @@ System.register(["aurelia-metadata", "./behavior-instance", "./behaviors", "./co
             value: function create(container) {
               var instruction = arguments[1] === undefined ? defaultInstruction : arguments[1];
               var element = arguments[2] === undefined ? null : arguments[2];
+
               var executionContext = instruction.executionContext || container.get(this.target),
                   behaviorInstance = new BehaviorInstance(this, executionContext, instruction),
                   host;

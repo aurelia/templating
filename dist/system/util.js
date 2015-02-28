@@ -1,7 +1,6 @@
 System.register([], function (_export) {
-  "use strict";
-
   var capitalMatcher;
+
   _export("hyphenate", hyphenate);
 
   function addHyphenAndLower(char) {
@@ -11,9 +10,12 @@ System.register([], function (_export) {
   function hyphenate(name) {
     return (name.charAt(0).toLowerCase() + name.slice(1)).replace(capitalMatcher, addHyphenAndLower);
   }
+
   return {
     setters: [],
     execute: function () {
+      "use strict";
+
       capitalMatcher = /([A-Z])/g;
     }
   };

@@ -1,14 +1,15 @@
 import {ContentSelector} from './content-selector';
+import {Animator} from './animator';
 
 export class ViewSlot {
-  constructor(anchor, anchorIsContainer, executionContext){
+  constructor(anchor, anchorIsContainer, executionContext, animator=Animator.instance){
     this.anchor = anchor;
     this.viewAddMethod = anchorIsContainer ? 'appendNodesTo' : 'insertNodesBefore';
     this.executionContext = executionContext;
+    this.animator = animator;
     this.children = [];
     this.isBound = false;
     this.isAttached = false;
-
     anchor.viewSlot = this;
   }
 
@@ -16,6 +17,9 @@ export class ViewSlot {
     var parent = this.anchor;
 
     this.children.push({
+      fragment:parent,
+      firstChild:parent.firstChild,
+      lastChild:parent.lastChild,
       removeNodes(){
         var last;
 
@@ -66,6 +70,14 @@ export class ViewSlot {
 
     if(this.isAttached){
       view.attached();
+      // Animate page itself
+      var element = view.firstChild.nextElementSibling;
+      if(view.firstChild.nodeType === 8 &&
+        element !== undefined &&
+        element.nodeType === 1 &&
+        element.classList.contains('au-animate')) {
+        this.animator.enter(element);
+      }
     }
   }
 
@@ -84,6 +96,7 @@ export class ViewSlot {
 
   remove(view){
     view.removeNodes();
+
     this.children.splice(this.children.indexOf(view), 1);
 
     if(this.isAttached){
@@ -94,14 +107,28 @@ export class ViewSlot {
   removeAt(index){
     var view = this.children[index];
 
-    view.removeNodes();
-    this.children.splice(index, 1);
+    var removeAction = () => {
+      view.removeNodes();
+      this.children.splice(index, 1);
 
-    if(this.isAttached){
-      view.detached();
+      if(this.isAttached){
+        view.detached();
+      }
+
+      return view;
+    };
+
+    var element = view.firstChild.nextElementSibling;
+    if(view.firstChild.nodeType === 8 &&
+      element !== undefined &&
+      element.nodeType === 1 &&
+      element.classList.contains('au-animate')) {
+      return this.animator.leave(element).then( () => {
+        return removeAction();
+      })
+    } else {
+      return removeAction();
     }
-
-    return view;
   }
 
   removeAll(){
@@ -109,22 +136,51 @@ export class ViewSlot {
         ii = children.length,
         i;
 
-    for(i = 0; i < ii; ++i){
-      children[i].removeNodes();
-    }
+    var rmPromises = [];
 
-    if(this.isAttached){
-      for(i = 0; i < ii; ++i){
-        children[i].detached();
+    children.forEach( (child) => {
+      var element = child.firstChild.nextElementSibling;
+      if(child.firstChild !== undefined &&
+         child.firstChild.nodeType === 8 &&
+         element !== undefined &&
+         element.nodeType === 1 &&
+         element.classList.contains('au-animate')) {
+        rmPromises.push(this.animator.leave(element).then( () => {
+          child.removeNodes();
+        }));
+      } else {
+        child.removeNodes();
       }
-    }
+    });
 
-    this.children = [];
+    var removeAction = () => {
+      if(this.isAttached){
+        for(i = 0; i < ii; ++i){
+          children[i].detached();
+        }
+      }
+
+      this.children = [];
+    };
+
+    if(rmPromises.length > 0) {
+      return Promise.all(rmPromises).then( () => {
+        removeAction();
+      });
+    } else {
+      removeAction();
+    }
   }
 
   swap(view){
-    this.removeAll();
-    this.add(view);
+    var removeResponse = this.removeAll();
+    if(removeResponse !== undefined) {
+      removeResponse.then(() => {
+        this.add(view);
+      });
+    } else {
+      this.add(view);
+    }
   }
 
   attached(){
@@ -139,6 +195,14 @@ export class ViewSlot {
     children = this.children;
     for(i = 0, ii = children.length; i < ii; ++i){
       children[i].attached();
+
+      var element = children[i].firstChild.nextElementSibling;
+      if(children[i].firstChild.nodeType === 8 &&
+         element !== undefined &&
+         element.nodeType === 1 &&
+         element.classList.contains('au-animate')) {
+        this.animator.enter(element);
+      }
     }
   }
 
@@ -165,7 +229,7 @@ export class ViewSlot {
 
   contentSelectorAdd(view){
     ContentSelector.applySelectors(
-      view, 
+      view,
       this.contentSelectors,
       (contentSelector, group) => contentSelector.add(group)
       );
@@ -182,7 +246,7 @@ export class ViewSlot {
       this.add(view);
     } else{
       ContentSelector.applySelectors(
-        view, 
+        view,
         this.contentSelectors,
         (contentSelector, group) => contentSelector.insert(index, group)
       );
@@ -199,7 +263,7 @@ export class ViewSlot {
     var index = this.children.indexOf(view),
         contentSelectors = this.contentSelectors,
         i, ii;
-    
+
     for(i = 0, ii = contentSelectors.length; i < ii; ++i){
       contentSelectors[i].removeAt(index, view.fragment);
     }

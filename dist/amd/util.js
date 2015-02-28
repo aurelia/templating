@@ -11,5 +11,8 @@ define(["exports"], function (exports) {
   function hyphenate(name) {
     return (name.charAt(0).toLowerCase() + name.slice(1)).replace(capitalMatcher, addHyphenAndLower);
   }
-  exports.__esModule = true;
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
 });

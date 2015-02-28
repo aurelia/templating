@@ -1,4 +1,4 @@
-define(["exports", "aurelia-metadata", "./property", "./attached-behavior", "./children", "./custom-element", "./element-config", "./template-controller", "./view-strategy", "./resource-coordinator", "./resource-registry", "./view-compiler", "./view-engine", "./view-factory", "./view-slot", "./binding-language", "./composition-engine"], function (exports, _aureliaMetadata, _property, _attachedBehavior, _children, _customElement, _elementConfig, _templateController, _viewStrategy, _resourceCoordinator, _resourceRegistry, _viewCompiler, _viewEngine, _viewFactory, _viewSlot, _bindingLanguage, _compositionEngine) {
+define(["exports", "aurelia-metadata", "./property", "./attached-behavior", "./children", "./custom-element", "./element-config", "./template-controller", "./view-strategy", "./resource-coordinator", "./resource-registry", "./view-compiler", "./view-engine", "./view-factory", "./view-slot", "./binding-language", "./composition-engine", "./animator"], function (exports, _aureliaMetadata, _property, _attachedBehavior, _children, _customElement, _elementConfig, _templateController, _viewStrategy, _resourceCoordinator, _resourceRegistry, _viewCompiler, _viewEngine, _viewFactory, _viewSlot, _bindingLanguage, _compositionEngine, _animator) {
   "use strict";
 
   var Metadata = _aureliaMetadata.Metadata;
@@ -36,7 +36,9 @@ define(["exports", "aurelia-metadata", "./property", "./attached-behavior", "./c
   exports.ViewSlot = _viewSlot.ViewSlot;
   exports.BindingLanguage = _bindingLanguage.BindingLanguage;
   exports.CompositionEngine = _compositionEngine.CompositionEngine;
+  exports.Animator = _animator.Animator;
   var Behavior = exports.Behavior = Metadata;
+  var Behaviour = exports.Behaviour = Metadata;
 
   Metadata.configure.classHelper("withProperty", BehaviorProperty);
   Metadata.configure.classHelper("withOptions", OptionsProperty);
@@ -49,5 +51,7 @@ define(["exports", "aurelia-metadata", "./property", "./attached-behavior", "./c
   Metadata.configure.classHelper("useView", UseView);
   Metadata.configure.classHelper("noView", NoView);
   Metadata.configure.classHelper("skipContentProcessing", SkipContentProcessing);
-  exports.__esModule = true;
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
 });

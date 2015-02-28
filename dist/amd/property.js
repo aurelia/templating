@@ -5,12 +5,17 @@ define(["exports", "./util", "aurelia-binding"], function (exports, _util, _aure
 
   var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
   var hyphenate = _util.hyphenate;
   var ONE_WAY = _aureliaBinding.ONE_WAY;
   var TWO_WAY = _aureliaBinding.TWO_WAY;
   var ONE_TIME = _aureliaBinding.ONE_TIME;
+
   var BehaviorProperty = exports.BehaviorProperty = (function () {
     function BehaviorProperty(name, changeHandler, attribute, defaultValue, defaultBindingMode) {
+      _classCallCheck(this, BehaviorProperty);
+
       this.name = name;
       this.changeHandler = changeHandler;
       this.attribute = attribute || hyphenate(name);
@@ -63,10 +68,10 @@ define(["exports", "./util", "aurelia-binding"], function (exports, _util, _aure
           Object.defineProperty(behavior.target.prototype, this.name, {
             configurable: true,
             enumerable: true,
-            get: function () {
+            get: function get() {
               return this.__observers__[that.name].getValue();
             },
-            set: function (value) {
+            set: function set(value) {
               this.__observers__[that.name].setValue(value);
             }
           });
@@ -77,6 +82,7 @@ define(["exports", "./util", "aurelia-binding"], function (exports, _util, _aure
       createObserver: {
         value: function createObserver(executionContext) {
           var _this = this;
+
           var selfSubscriber = null;
 
           if (this.changeHandler) {
@@ -126,11 +132,14 @@ define(["exports", "./util", "aurelia-binding"], function (exports, _util, _aure
 
     return BehaviorProperty;
   })();
+
   var OptionsProperty = exports.OptionsProperty = (function (BehaviorProperty) {
     function OptionsProperty(attribute) {
       for (var _len = arguments.length, rest = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
         rest[_key - 1] = arguments[_key];
       }
+
+      _classCallCheck(this, OptionsProperty);
 
       if (typeof attribute === "string") {
         this.attribute = attribute;
@@ -243,8 +252,11 @@ define(["exports", "./util", "aurelia-binding"], function (exports, _util, _aure
 
     return OptionsProperty;
   })(BehaviorProperty);
+
   var BehaviorPropertyObserver = (function () {
     function BehaviorPropertyObserver(taskQueue, obj, propertyName, selfSubscriber) {
+      _classCallCheck(this, BehaviorPropertyObserver);
+
       this.taskQueue = taskQueue;
       this.obj = obj;
       this.propertyName = propertyName;
@@ -319,5 +331,7 @@ define(["exports", "./util", "aurelia-binding"], function (exports, _util, _aure
     return BehaviorPropertyObserver;
   })();
 
-  exports.__esModule = true;
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
 });

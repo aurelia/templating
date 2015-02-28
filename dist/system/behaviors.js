@@ -1,7 +1,6 @@
 System.register(["aurelia-metadata", "aurelia-task-queue", "aurelia-binding", "./children", "./property", "./util"], function (_export) {
-  "use strict";
-
   var Metadata, TaskQueue, ObserverLocator, ChildObserver, BehaviorProperty, hyphenate;
+
   _export("configureBehavior", configureBehavior);
 
   function configureBehavior(container, behavior, target, valuePropertyName) {
@@ -59,6 +58,7 @@ System.register(["aurelia-metadata", "aurelia-task-queue", "aurelia-binding", ".
 
     behavior.childExpression = meta.first(ChildObserver);
   }
+
   return {
     setters: [function (_aureliaMetadata) {
       Metadata = _aureliaMetadata.Metadata;
@@ -73,6 +73,8 @@ System.register(["aurelia-metadata", "aurelia-task-queue", "aurelia-binding", ".
     }, function (_util) {
       hyphenate = _util.hyphenate;
     }],
-    execute: function () {}
+    execute: function () {
+      "use strict";
+    }
   };
 });

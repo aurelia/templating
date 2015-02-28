@@ -2,8 +2,12 @@
 
 var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
+var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
 var BindingLanguage = exports.BindingLanguage = (function () {
-  function BindingLanguage() {}
+  function BindingLanguage() {
+    _classCallCheck(this, BindingLanguage);
+  }
 
   _prototypeProperties(BindingLanguage, null, {
     inspectAttribute: {
@@ -31,4 +35,7 @@ var BindingLanguage = exports.BindingLanguage = (function () {
 
   return BindingLanguage;
 })();
-exports.__esModule = true;
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});

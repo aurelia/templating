@@ -1,14 +1,22 @@
 System.register([], function (_export) {
-  "use strict";
+  var _prototypeProperties, _classCallCheck, View;
 
-  var _prototypeProperties, View;
   return {
     setters: [],
     execute: function () {
+      "use strict";
+
       _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+
+      _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
+      //NOTE: Adding a fragment to the document causes the nodes to be removed from the fragment.
+      //NOTE: Adding to the fragment, causes the nodes to be removed from the document.
 
       View = _export("View", (function () {
         function View(fragment, behaviors, bindings, children, systemControlled, contentSelectors) {
+          _classCallCheck(this, View);
+
           this.fragment = fragment;
           this.behaviors = behaviors;
           this.bindings = bindings;

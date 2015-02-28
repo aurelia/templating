@@ -3,6 +3,8 @@ define(["exports", "aurelia-logging", "aurelia-loader", "aurelia-path", "./view-
 
   var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
   var LogManager = _aureliaLogging;
   var Loader = _aureliaLoader.Loader;
   var relativeToFile = _aureliaPath.relativeToFile;
@@ -10,12 +12,13 @@ define(["exports", "aurelia-logging", "aurelia-loader", "aurelia-path", "./view-
   var ResourceRegistry = _resourceRegistry.ResourceRegistry;
   var ViewResources = _resourceRegistry.ViewResources;
 
-
   var importSplitter = /\s*,\s*/,
       logger = LogManager.getLogger("templating");
 
   var ViewEngine = exports.ViewEngine = (function () {
     function ViewEngine(loader, viewCompiler, appResources) {
+      _classCallCheck(this, ViewEngine);
+
       this.loader = loader;
       this.viewCompiler = viewCompiler;
       this.appResources = appResources;
@@ -34,6 +37,7 @@ define(["exports", "aurelia-logging", "aurelia-loader", "aurelia-path", "./view-
       loadViewFactory: {
         value: function loadViewFactory(url, compileOptions, associatedModuleId) {
           var _this = this;
+
           var existing = this.importedViews[url];
           if (existing) {
             return Promise.resolve(existing);
@@ -58,6 +62,7 @@ define(["exports", "aurelia-logging", "aurelia-loader", "aurelia-path", "./view-
       loadTemplateResources: {
         value: function loadTemplateResources(templateUrl, template, associatedModuleId) {
           var _this = this;
+
           var importIds,
               names,
               i,
@@ -119,5 +124,8 @@ define(["exports", "aurelia-logging", "aurelia-loader", "aurelia-path", "./view-
 
     return ViewEngine;
   })();
-  exports.__esModule = true;
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
 });

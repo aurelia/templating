@@ -3,8 +3,15 @@ define(["exports"], function (exports) {
 
   var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
+  //NOTE: Adding a fragment to the document causes the nodes to be removed from the fragment.
+  //NOTE: Adding to the fragment, causes the nodes to be removed from the document.
+
   var View = exports.View = (function () {
     function View(fragment, behaviors, bindings, children, systemControlled, contentSelectors) {
+      _classCallCheck(this, View);
+
       this.fragment = fragment;
       this.behaviors = behaviors;
       this.bindings = bindings;
@@ -209,5 +216,8 @@ define(["exports"], function (exports) {
 
     return View;
   })();
-  exports.__esModule = true;
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
 });

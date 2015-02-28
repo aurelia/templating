@@ -1,7 +1,6 @@
 System.register(["aurelia-logging", "aurelia-loader", "aurelia-path", "./view-compiler", "./resource-registry"], function (_export) {
-  "use strict";
+  var LogManager, Loader, relativeToFile, ViewCompiler, ResourceRegistry, ViewResources, _prototypeProperties, _classCallCheck, importSplitter, logger, ViewEngine;
 
-  var LogManager, Loader, relativeToFile, ViewCompiler, ResourceRegistry, ViewResources, _prototypeProperties, importSplitter, logger, ViewEngine;
   return {
     setters: [function (_aureliaLogging) {
       LogManager = _aureliaLogging;
@@ -16,12 +15,18 @@ System.register(["aurelia-logging", "aurelia-loader", "aurelia-path", "./view-co
       ViewResources = _resourceRegistry.ViewResources;
     }],
     execute: function () {
+      "use strict";
+
       _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+
+      _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
       importSplitter = /\s*,\s*/;
       logger = LogManager.getLogger("templating");
       ViewEngine = _export("ViewEngine", (function () {
         function ViewEngine(loader, viewCompiler, appResources) {
+          _classCallCheck(this, ViewEngine);
+
           this.loader = loader;
           this.viewCompiler = viewCompiler;
           this.appResources = appResources;
@@ -40,6 +45,7 @@ System.register(["aurelia-logging", "aurelia-loader", "aurelia-path", "./view-co
           loadViewFactory: {
             value: function loadViewFactory(url, compileOptions, associatedModuleId) {
               var _this = this;
+
               var existing = this.importedViews[url];
               if (existing) {
                 return Promise.resolve(existing);
@@ -64,6 +70,7 @@ System.register(["aurelia-logging", "aurelia-loader", "aurelia-path", "./view-co
           loadTemplateResources: {
             value: function loadTemplateResources(templateUrl, template, associatedModuleId) {
               var _this = this;
+
               var importIds,
                   names,
                   i,

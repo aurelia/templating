@@ -1,7 +1,6 @@
 System.register(["./util", "aurelia-binding"], function (_export) {
-  "use strict";
+  var hyphenate, ONE_WAY, TWO_WAY, ONE_TIME, _inherits, _prototypeProperties, _classCallCheck, BehaviorProperty, OptionsProperty, BehaviorPropertyObserver;
 
-  var hyphenate, ONE_WAY, TWO_WAY, ONE_TIME, _inherits, _prototypeProperties, BehaviorProperty, OptionsProperty, BehaviorPropertyObserver;
   return {
     setters: [function (_util) {
       hyphenate = _util.hyphenate;
@@ -11,12 +10,18 @@ System.register(["./util", "aurelia-binding"], function (_export) {
       ONE_TIME = _aureliaBinding.ONE_TIME;
     }],
     execute: function () {
+      "use strict";
+
       _inherits = function (subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
 
       _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
+      _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
       BehaviorProperty = _export("BehaviorProperty", (function () {
         function BehaviorProperty(name, changeHandler, attribute, defaultValue, defaultBindingMode) {
+          _classCallCheck(this, BehaviorProperty);
+
           this.name = name;
           this.changeHandler = changeHandler;
           this.attribute = attribute || hyphenate(name);
@@ -69,10 +74,10 @@ System.register(["./util", "aurelia-binding"], function (_export) {
               Object.defineProperty(behavior.target.prototype, this.name, {
                 configurable: true,
                 enumerable: true,
-                get: function () {
+                get: function get() {
                   return this.__observers__[that.name].getValue();
                 },
-                set: function (value) {
+                set: function set(value) {
                   this.__observers__[that.name].setValue(value);
                 }
               });
@@ -83,6 +88,7 @@ System.register(["./util", "aurelia-binding"], function (_export) {
           createObserver: {
             value: function createObserver(executionContext) {
               var _this = this;
+
               var selfSubscriber = null;
 
               if (this.changeHandler) {
@@ -137,6 +143,8 @@ System.register(["./util", "aurelia-binding"], function (_export) {
           for (var _len = arguments.length, rest = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
             rest[_key - 1] = arguments[_key];
           }
+
+          _classCallCheck(this, OptionsProperty);
 
           if (typeof attribute === "string") {
             this.attribute = attribute;
@@ -249,8 +257,11 @@ System.register(["./util", "aurelia-binding"], function (_export) {
 
         return OptionsProperty;
       })(BehaviorProperty));
+
       BehaviorPropertyObserver = (function () {
         function BehaviorPropertyObserver(taskQueue, obj, propertyName, selfSubscriber) {
+          _classCallCheck(this, BehaviorPropertyObserver);
+
           this.taskQueue = taskQueue;
           this.obj = obj;
           this.propertyName = propertyName;

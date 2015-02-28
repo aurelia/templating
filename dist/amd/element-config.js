@@ -5,12 +5,17 @@ define(["exports", "aurelia-metadata", "aurelia-binding"], function (exports, _a
 
   var _inherits = function (subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
 
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+
   var ResourceType = _aureliaMetadata.ResourceType;
   var EventManager = _aureliaBinding.EventManager;
+
   var ElementConfig = exports.ElementConfig = (function (ResourceType) {
     function ElementConfig() {
-      if (Object.getPrototypeOf(ElementConfig) !== null) {
-        Object.getPrototypeOf(ElementConfig).apply(this, arguments);
+      _classCallCheck(this, ElementConfig);
+
+      if (ResourceType != null) {
+        ResourceType.apply(this, arguments);
       }
     }
 
@@ -36,5 +41,8 @@ define(["exports", "aurelia-metadata", "aurelia-binding"], function (exports, _a
 
     return ElementConfig;
   })(ResourceType);
-  exports.__esModule = true;
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
 });

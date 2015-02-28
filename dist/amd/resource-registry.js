@@ -7,8 +7,9 @@ define(["exports", "aurelia-path"], function (exports, _aureliaPath) {
 
   var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
 
-  var relativeToFile = _aureliaPath.relativeToFile;
+  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
+  var relativeToFile = _aureliaPath.relativeToFile;
 
   function register(lookup, name, resource, type) {
     if (!name) {
@@ -29,6 +30,8 @@ define(["exports", "aurelia-path"], function (exports, _aureliaPath) {
 
   var ResourceRegistry = exports.ResourceRegistry = (function () {
     function ResourceRegistry() {
+      _classCallCheck(this, ResourceRegistry);
+
       this.attributes = {};
       this.elements = {};
       this.valueConverters = {};
@@ -84,8 +87,11 @@ define(["exports", "aurelia-path"], function (exports, _aureliaPath) {
 
     return ResourceRegistry;
   })();
+
   var ViewResources = exports.ViewResources = (function (ResourceRegistry) {
     function ViewResources(parent, viewUrl) {
+      _classCallCheck(this, ViewResources);
+
       _get(Object.getPrototypeOf(ViewResources.prototype), "constructor", this).call(this);
       this.parent = parent;
       this.viewUrl = viewUrl;
@@ -134,5 +140,8 @@ define(["exports", "aurelia-path"], function (exports, _aureliaPath) {
 
     return ViewResources;
   })(ResourceRegistry);
-  exports.__esModule = true;
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
 });

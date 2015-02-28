@@ -1,8 +1,5 @@
 System.register(["aurelia-loader", "aurelia-path", "aurelia-dependency-injection", "aurelia-metadata", "aurelia-binding", "./custom-element", "./attached-behavior", "./template-controller", "./view-engine", "./resource-registry"], function (_export) {
-  "use strict";
-
-  var Loader, relativeToFile, join, Container, Metadata, ResourceType, Origin, ValueConverter, CustomElement, AttachedBehavior, TemplateController, ViewEngine, ResourceRegistry, _prototypeProperties, id, ResourceCoordinator, ResourceModule;
-
+  var Loader, relativeToFile, join, Container, Metadata, ResourceType, Origin, ValueConverter, CustomElement, AttachedBehavior, TemplateController, ViewEngine, ResourceRegistry, _prototypeProperties, _classCallCheck, id, ResourceCoordinator, ResourceModule;
 
   function nextId() {
     return ++id;
@@ -98,11 +95,17 @@ System.register(["aurelia-loader", "aurelia-path", "aurelia-dependency-injection
       ResourceRegistry = _resourceRegistry.ResourceRegistry;
     }],
     execute: function () {
+      "use strict";
+
       _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+
+      _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
       id = 0;
       ResourceCoordinator = _export("ResourceCoordinator", (function () {
         function ResourceCoordinator(loader, container, viewEngine, appResources) {
+          _classCallCheck(this, ResourceCoordinator);
+
           this.loader = loader;
           this.container = container;
           this.viewEngine = viewEngine;
@@ -138,6 +141,7 @@ System.register(["aurelia-loader", "aurelia-path", "aurelia-dependency-injection
           loadElement: {
             value: function loadElement(moduleImport, moduleMember, viewStategy) {
               var _this = this;
+
               return this._loadAndAnalyzeModuleForElement(moduleImport, moduleMember, this.importedModules, false).then(function (info) {
                 var type = info.type;
 
@@ -156,6 +160,7 @@ System.register(["aurelia-loader", "aurelia-path", "aurelia-dependency-injection
           _loadAndAnalyzeModuleForElement: {
             value: function _loadAndAnalyzeModuleForElement(moduleImport, moduleMember, cache, skipCacheLookup) {
               var _this = this;
+
               var existing = !skipCacheLookup && cache[moduleImport];
 
               if (existing) {
@@ -251,6 +256,7 @@ System.register(["aurelia-loader", "aurelia-path", "aurelia-dependency-injection
           importResourcesFromModuleIds: {
             value: function importResourcesFromModuleIds(importIds) {
               var _this = this;
+
               return this.loader.loadAllModules(importIds).then(function (imports) {
                 return _this.importResourcesFromModules(imports, importIds);
               });
@@ -337,8 +343,11 @@ System.register(["aurelia-loader", "aurelia-path", "aurelia-dependency-injection
 
         return ResourceCoordinator;
       })());
+
       ResourceModule = (function () {
         function ResourceModule(source, element, resources) {
+          _classCallCheck(this, ResourceModule);
+
           var i, ii, org;
 
           this.source = source;
