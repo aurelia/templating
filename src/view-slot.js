@@ -17,6 +17,9 @@ export class ViewSlot {
     var parent = this.anchor;
 
     this.children.push({
+      fragment:parent,
+      firstChild:parent.firstChild,
+      lastChild:parent.lastChild,
       removeNodes(){
         var last;
 
