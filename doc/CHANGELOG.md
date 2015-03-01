@@ -1,3 +1,11 @@
+### 0.8.14 (2015-02-28)
+
+
+#### Bug Fixes
+
+* **package:** change jspm directories ([9ef08cfd](http://github.com/aurelia/templating/commit/9ef08cfd9596600b161ed7c686f53b15cfdaa5de))
+
+
 ### 0.8.13 (2015-02-28)
 
 
