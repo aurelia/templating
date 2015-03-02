@@ -149,8 +149,7 @@ export class OptionsProperty extends BehaviorProperty {
 
     if(changeHandlerName in executionContext){
       selfSubscriber = (newValue, oldValue) => executionContext[changeHandlerName](newValue, oldValue);
-    }
-    if ('dynamicPropertyChanged' in executionContext) {
+    } else if ('dynamicPropertyChanged' in executionContext) {
       selfSubscriber = (newValue, oldValue) => executionContext['dynamicPropertyChanged'](name, newValue, oldValue);
     }
 
