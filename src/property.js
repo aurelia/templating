@@ -118,6 +118,7 @@ export class OptionsProperty extends BehaviorProperty {
   define(taskQueue, behavior){
     var i, ii, properties = this.properties;
 
+    this.taskQueue = taskQueue;
     this.attribute = this.attribute || behavior.name;
 
     behavior.properties.push(this);
@@ -148,6 +149,9 @@ export class OptionsProperty extends BehaviorProperty {
 
     if(changeHandlerName in executionContext){
       selfSubscriber = (newValue, oldValue) => executionContext[changeHandlerName](newValue, oldValue);
+    }
+    if ('dynamicPropertyChanged' in executionContext) {
+      selfSubscriber = (newValue, oldValue) => executionContext['dynamicPropertyChanged'](name, newValue, oldValue);
     }
 
     observer = observerLookup[name] = new BehaviorPropertyObserver(
