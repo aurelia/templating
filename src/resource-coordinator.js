@@ -84,48 +84,15 @@ export class ResourceCoordinator {
     });
   }
 
-  importResources(imports, resourceManifestUrl){
-    var i, ii, current, annotation, existing,
-        lookup = {},
-        finalModules = [],
-        importIds = [], analysis, type;
+  importResourcesFromModuleIds(importIds, resourceManifestUrl){
+    var i, ii;
 
-    var container = this.container;
-
-    for(i = 0, ii = imports.length; i < ii; ++i){
-      current = imports[i];
-      annotation = Origin.get(current);
-
-      if(!annotation){
-        analysis = analyzeModule({'default':current});
-        analysis.analyze(container);
-        type = (analysis.element || analysis.resources[0]).type;
-
-        if(resourceManifestUrl){
-          annotation = new Origin(relativeToFile("./" + type.name, resourceManifestUrl));
-        }else{
-          annotation = new Origin(join(this.appResources.baseResourceUrl, type.name));
-        }
-
-        Origin.set(current, annotation);
+    if(resourceManifestUrl){
+      for(i = 0, ii = importIds.length; i < ii; ++i){
+        importIds[i] = join(resourceManifestUrl, importIds[i]);
       }
-
-      existing = lookup[annotation.moduleId];
-
-      if(!existing){
-        existing = {};
-        importIds.push(annotation.moduleId);
-        finalModules.push(existing);
-        lookup[annotation.moduleId] = existing;
-      }
-
-      existing[nextId()] = current;
     }
 
-    return this.importResourcesFromModules(finalModules, importIds);
-  }
-
-  importResourcesFromModuleIds(importIds){
     return this.loader.loadAllModules(importIds).then(imports => {
       return this.importResourcesFromModules(imports, importIds);
     });
