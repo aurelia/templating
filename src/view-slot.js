@@ -73,7 +73,7 @@ export class ViewSlot {
       // Animate page itself
       var element = view.firstChild.nextElementSibling;
       if(view.firstChild.nodeType === 8 &&
-        element !== undefined &&
+        element !== null &&
         element.nodeType === 1 &&
         element.classList.contains('au-animate')) {
         this.animator.enter(element);
@@ -120,7 +120,7 @@ export class ViewSlot {
 
     var element = view.firstChild.nextElementSibling;
     if(view.firstChild.nodeType === 8 &&
-      element !== undefined &&
+      element !== null &&
       element.nodeType === 1 &&
       element.classList.contains('au-animate')) {
       return this.animator.leave(element).then( () => {
@@ -142,7 +142,7 @@ export class ViewSlot {
       var element = child.firstChild.nextElementSibling;
       if(child.firstChild !== undefined &&
          child.firstChild.nodeType === 8 &&
-         element !== undefined &&
+         element !== null &&
          element.nodeType === 1 &&
          element.classList.contains('au-animate')) {
         rmPromises.push(this.animator.leave(element).then( () => {
@@ -198,7 +198,7 @@ export class ViewSlot {
 
       var element = children[i].firstChild.nextElementSibling;
       if(children[i].firstChild.nodeType === 8 &&
-         element !== undefined &&
+         element !== null &&
          element.nodeType === 1 &&
          element.classList.contains('au-animate')) {
         this.animator.enter(element);
