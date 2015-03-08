@@ -36,29 +36,16 @@ export class ViewEngine {
   loadTemplateResources(viewRegistryEntry, associatedModuleId){
     var resources = new ViewResources(this.appResources, viewRegistryEntry.id),
         dependencies = viewRegistryEntry.dependencies,
-        associatedModule, importIds, i, ii;
+        importIds, names;
 
     if(dependencies.length === 0 && !associatedModuleId){
       return Promise.resolve(resources);
     }
 
     importIds = dependencies.map(x => x.src);
+    names = dependencies.map(x => x.name);
     logger.debug(`importing resources for ${viewRegistryEntry.id}`, importIds);
 
-    return this.resourceCoordinator.importResourcesFromModuleIds(importIds).then(toRegister => {
-      for(i = 0, ii = toRegister.length; i < ii; ++i){
-        toRegister[i].register(resources, dependencies[i].name);
-      }
-
-      if(associatedModuleId){
-        associatedModule = this.resourceCoordinator.getExistingModuleAnalysis(associatedModuleId);
-
-        if(associatedModule){
-          associatedModule.register(resources);
-        }
-      }
-
-      return resources;
-    });
+    return this.resourceCoordinator.importViewResources(importIds, names, resources, associatedModuleId);
   }
 }

@@ -1,5 +1,4 @@
 import {Origin,Metadata} from 'aurelia-metadata';
-import {} from 'aurelia-dependency-injection';
 import {ViewStrategy, UseView} from './view-strategy';
 import {ResourceCoordinator} from './resource-coordinator';
 import {ViewEngine} from './view-engine';
@@ -35,8 +34,9 @@ export class CompositionEngine {
 
   createBehavior(instruction){
     var childContainer = instruction.childContainer,
-        viewModelInfo = instruction.viewModelInfo,
-        viewModel = instruction.viewModel;
+        viewModelResource = instruction.viewModelResource,
+        viewModel = instruction.viewModel,
+        metadata;
 
     return this.activate(instruction).then(() => {
       var doneLoading, viewStrategyFromViewModel, origin;
@@ -57,14 +57,20 @@ export class CompositionEngine {
         }
       }
 
-      if(viewModelInfo){
-        doneLoading = viewModelInfo.type.load(childContainer, viewModelInfo.value, instruction.view);
+      if(viewModelResource){
+        metadata = viewModelResource.metadata;
+        doneLoading = metadata.load(childContainer, viewModelResource.value, instruction.view, true);
       }else{
-        doneLoading = new CustomElement().load(childContainer, viewModel.constructor, instruction.view);
+        metadata = new CustomElement();
+        doneLoading = metadata.load(childContainer, viewModel.constructor, instruction.view, true);
       }
 
-      return doneLoading.then(behaviorType => {
-        return behaviorType.create(childContainer, {executionContext:viewModel, suppressBind:true});
+      return doneLoading.then(viewFactory => {
+        return metadata.create(childContainer, {
+          executionContext:viewModel,
+          viewFactory:viewFactory,
+          suppressBind:true
+        });
       });
     });
   }
@@ -76,10 +82,10 @@ export class CompositionEngine {
         ? instruction.viewResources.relativeToView(instruction.viewModel)
         : instruction.viewModel;
 
-    return this.resourceCoordinator.loadViewModelInfo(instruction.viewModel).then(viewModelInfo => {
-      childContainer.autoRegister(viewModelInfo.value);
-      instruction.viewModel = childContainer.viewModel = childContainer.get(viewModelInfo.value);
-      instruction.viewModelInfo = viewModelInfo;
+    return this.resourceCoordinator.importViewModelResource(instruction.viewModel).then(viewModelResource => {
+      childContainer.autoRegister(viewModelResource.value);
+      instruction.viewModel = childContainer.viewModel = childContainer.get(viewModelResource.value);
+      instruction.viewModelResource = viewModelResource;
       return instruction;
     });
   }
