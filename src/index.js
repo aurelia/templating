@@ -9,7 +9,6 @@ import {UseView, NoView} from './view-strategy';
 
 export {AttachedBehavior} from './attached-behavior';
 export {BehaviorProperty, OptionsProperty} from './property';
-export {ResourceCoordinator} from './resource-coordinator';
 export {ResourceRegistry, ViewResources} from './resource-registry';
 export {ChildObserver} from './children';
 export {CustomElement, UseShadowDOM, SkipContentProcessing} from './custom-element';

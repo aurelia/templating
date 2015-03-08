@@ -1,13 +1,11 @@
 import {Origin,Metadata} from 'aurelia-metadata';
 import {ViewStrategy, UseView} from './view-strategy';
-import {ResourceCoordinator} from './resource-coordinator';
 import {ViewEngine} from './view-engine';
 import {CustomElement} from './custom-element';
 
 export class CompositionEngine {
-  static inject(){ return [ResourceCoordinator, ViewEngine]; }
-  constructor(resourceCoordinator, viewEngine){
-    this.resourceCoordinator = resourceCoordinator;
+  static inject(){ return [ViewEngine]; }
+  constructor(viewEngine){
     this.viewEngine = viewEngine;
   }
 
@@ -82,7 +80,7 @@ export class CompositionEngine {
         ? instruction.viewResources.relativeToView(instruction.viewModel)
         : instruction.viewModel;
 
-    return this.resourceCoordinator.importViewModelResource(instruction.viewModel).then(viewModelResource => {
+    return this.viewEngine.importViewModelResource(instruction.viewModel).then(viewModelResource => {
       childContainer.autoRegister(viewModelResource.value);
       instruction.viewModel = childContainer.viewModel = childContainer.get(viewModelResource.value);
       instruction.viewModelResource = viewModelResource;

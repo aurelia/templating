@@ -1,87 +1,110 @@
 import * as LogManager from 'aurelia-logging';
+import {Origin} from 'aurelia-metadata';
 import {Loader} from 'aurelia-loader';
-import {relativeToFile} from 'aurelia-path';
+import {Container} from 'aurelia-dependency-injection';
 import {ViewCompiler} from './view-compiler';
 import {ResourceRegistry, ViewResources} from './resource-registry';
+import {ModuleAnalyzer} from './module-analyzer';
 
-var importSplitter = /\s*,\s*/,
-    logger = LogManager.getLogger('templating');
+var logger = LogManager.getLogger('templating');
 
 export class ViewEngine {
-  static inject() { return [Loader, ViewCompiler, ResourceRegistry]; }
-	constructor(loader, viewCompiler, appResources){
+  static inject() { return [Loader, Container, ViewCompiler, ModuleAnalyzer, ResourceRegistry]; }
+	constructor(loader, container, viewCompiler, moduleAnalyzer, appResources){
 		this.loader = loader;
+    this.container = container;
 		this.viewCompiler = viewCompiler;
+    this.moduleAnalyzer = moduleAnalyzer;
     this.appResources = appResources;
-    this.importedViews = {};
 	}
 
 	loadViewFactory(url, compileOptions, associatedModuleId){
-    var existing = this.importedViews[url];
-    if(existing){
-      return Promise.resolve(existing);
-    }
+    return this.loader.loadTemplate(url).then(viewRegistryEntry => {
+      if(viewRegistryEntry.isReady){
+        return viewRegistryEntry.factory;
+      }
 
-    return this.loader.loadTemplate(url).then(template => {
-      return this.loadTemplateResources(url, template, associatedModuleId).then(resources => {
-        existing = this.importedViews[url];
-        if(existing){
-          return existing;
+      return this.loadTemplateResources(viewRegistryEntry, associatedModuleId).then(resources => {
+        if(viewRegistryEntry.isReady){
+          return viewRegistryEntry.factory;
         }
 
-        var viewFactory = this.viewCompiler.compile(template, resources, compileOptions);
-        this.importedViews[url] = viewFactory;
+        viewRegistryEntry.setResources(resources);
+
+        var viewFactory = this.viewCompiler.compile(viewRegistryEntry.template, resources, compileOptions);
+        viewRegistryEntry.setFactory(viewFactory);
         return viewFactory;
       });
     });
   }
 
-  loadTemplateResources(templateUrl, template, associatedModuleId){
-    var importIds, names, i, ii, src, current,
-        registry = new ViewResources(this.appResources, templateUrl),
-        dxImportElements = template.content.querySelectorAll('import'),
-        associatedModule;
+  loadTemplateResources(viewRegistryEntry, associatedModuleId){
+    var resources = new ViewResources(this.appResources, viewRegistryEntry.id),
+        dependencies = viewRegistryEntry.dependencies,
+        importIds, names;
 
-    if(dxImportElements.length === 0 && !associatedModuleId){
-      return Promise.resolve(registry);
+    if(dependencies.length === 0 && !associatedModuleId){
+      return Promise.resolve(resources);
     }
 
-    importIds = new Array(dxImportElements.length);
-    names = new Array(dxImportElements.length);
+    importIds = dependencies.map(x => x.src);
+    names = dependencies.map(x => x.name);
+    logger.debug(`importing resources for ${viewRegistryEntry.id}`, importIds);
 
-    for(i = 0, ii = dxImportElements.length; i < ii; ++i){
-      current = dxImportElements[i];
-      src = current.getAttribute('from');
+    return this.importViewResources(importIds, names, resources, associatedModuleId);
+  }
 
-      if(!src){
-        throw new Error(`Import element in ${templateUrl} has no "from" attribute.`);
+  importViewModelResource(moduleImport, moduleMember){
+    return this.loader.loadModule(moduleImport).then(viewModelModule => {
+      var normalizedId = Origin.get(viewModelModule).moduleId,
+          resourceModule = this.moduleAnalyzer.analyze(normalizedId, viewModelModule, moduleMember);
+
+      if(!resourceModule.mainResource){
+        throw new Error(`No view model found in module "${moduleImport}".`);
       }
 
-      importIds[i] = src;
-      names[i] = current.getAttribute('as');
+      resourceModule.analyze(this.container);
 
-      if(current.parentNode){
-        current.parentNode.removeChild(current);
-      }
-    }
+      return resourceModule.mainResource;
+    });
+  }
 
-    importIds = importIds.map(x => relativeToFile(x, templateUrl));
-    logger.debug(`importing resources for ${templateUrl}`, importIds);
+  importViewResources(moduleIds, names, resources, associatedModuleId){
+    return this.loader.loadAllModules(moduleIds).then(imports => {
+      var i, ii, analysis, normalizedId, current, associatedModule,
+          container = this.container,
+          moduleAnalyzer = this.moduleAnalyzer,
+          allAnalysis = new Array(imports.length);
 
-    return this.resourceCoordinator.importResourcesFromModuleIds(importIds).then(toRegister => {
-      for(i = 0, ii = toRegister.length; i < ii; ++i){
-        toRegister[i].register(registry, names[i]);
+      //analyze and register all resources first
+      //this enables circular references for global refs
+      //and enables order independence
+      for(i = 0, ii = imports.length; i < ii; ++i){
+        current = imports[i];
+        normalizedId = Origin.get(current).moduleId;
+
+        analysis = moduleAnalyzer.analyze(normalizedId, current);
+        analysis.analyze(container);
+        analysis.register(resources, names[i]);
+
+        allAnalysis[i] = analysis;
       }
 
       if(associatedModuleId){
-        associatedModule = this.resourceCoordinator.getExistingModuleAnalysis(associatedModuleId);
+        associatedModule = moduleAnalyzer.getAnalysis(associatedModuleId);
 
         if(associatedModule){
-          associatedModule.register(registry);
+          associatedModule.register(resources);
         }
       }
 
-      return registry;
+      //cause compile/load of any associated views second
+      //as a result all globals have access to all other globals during compilation
+      for(i = 0, ii = allAnalysis.length; i < ii; ++i){
+        allAnalysis[i] = allAnalysis[i].load(container);
+      }
+
+      return Promise.all(allAnalysis).then(() => resources);
     });
   }
 }
