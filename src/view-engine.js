@@ -10,15 +10,15 @@ var logger = LogManager.getLogger('templating');
 
 export class ViewEngine {
   static inject() { return [Loader, Container, ViewCompiler, ModuleAnalyzer, ResourceRegistry]; }
-	constructor(loader, container, viewCompiler, moduleAnalyzer, appResources){
-		this.loader = loader;
+  constructor(loader, container, viewCompiler, moduleAnalyzer, appResources){
+    this.loader = loader;
     this.container = container;
-		this.viewCompiler = viewCompiler;
+    this.viewCompiler = viewCompiler;
     this.moduleAnalyzer = moduleAnalyzer;
     this.appResources = appResources;
-	}
+  }
 
-	loadViewFactory(url, compileOptions, associatedModuleId){
+  loadViewFactory(url, compileOptions, associatedModuleId){
     return this.loader.loadTemplate(url).then(viewRegistryEntry => {
       if(viewRegistryEntry.isReady){
         return viewRegistryEntry.factory;
