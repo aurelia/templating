@@ -18,15 +18,15 @@ function register(lookup, name, resource, type){
 }
 
 export class ResourceRegistry {
-	constructor(){
-		this.attributes = {};
+  constructor(){
+    this.attributes = {};
     this.elements = {};
     this.valueConverters = {};
     this.attributeMap = {};
     this.baseResourceUrl = '';
-	}
+  }
 
-	registerElement(tagName, behavior){
+  registerElement(tagName, behavior){
     register(this.elements, tagName, behavior, 'an Element');
   }
 
@@ -44,7 +44,7 @@ export class ResourceRegistry {
   }
 
   registerValueConverter(name, valueConverter){
-  	register(this.valueConverters, name, valueConverter, 'a ValueConverter');
+    register(this.valueConverters, name, valueConverter, 'a ValueConverter');
   }
 
   getValueConverter(name){
@@ -53,12 +53,12 @@ export class ResourceRegistry {
 }
 
 export class ViewResources extends ResourceRegistry {
-	constructor(parent, viewUrl){
-		super();
-		this.parent = parent;
+  constructor(parent, viewUrl){
+    super();
+    this.parent = parent;
     this.viewUrl = viewUrl;
     this.valueConverterLookupFunction = this.getValueConverter.bind(this);
-	}
+  }
 
   relativeToView(path){
     return relativeToFile(path, this.viewUrl);

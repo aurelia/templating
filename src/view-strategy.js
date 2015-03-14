@@ -45,17 +45,17 @@ export class ViewStrategy {
 }
 
 export class UseView extends ViewStrategy {
-	constructor(path){
-		this.path = path;
-	}
+  constructor(path){
+    this.path = path;
+  }
 
-	loadViewFactory(viewEngine, options){
+  loadViewFactory(viewEngine, options){
     if(!this.absolutePath && this.moduleId){
       this.absolutePath = relativeToFile(this.path, this.moduleId);
     }
 
-		return viewEngine.loadViewFactory(this.absolutePath || this.path, options, this.moduleId);
-	}
+    return viewEngine.loadViewFactory(this.absolutePath || this.path, options, this.moduleId);
+  }
 
   makeRelativeTo(file){
     this.absolutePath = relativeToFile(this.path, file);
@@ -63,14 +63,14 @@ export class UseView extends ViewStrategy {
 }
 
 export class ConventionalView extends ViewStrategy {
-	constructor(moduleId){
-		this.moduleId = moduleId;
+  constructor(moduleId){
+    this.moduleId = moduleId;
     this.viewUrl = ConventionalView.convertModuleIdToViewUrl(moduleId);
-	}
+  }
 
-	loadViewFactory(viewEngine, options){
-		return viewEngine.loadViewFactory(this.viewUrl, options, this.moduleId);
-	}
+  loadViewFactory(viewEngine, options){
+    return viewEngine.loadViewFactory(this.viewUrl, options, this.moduleId);
+  }
 
   static convertModuleIdToViewUrl(moduleId){
     return moduleId + '.html';
@@ -78,7 +78,7 @@ export class ConventionalView extends ViewStrategy {
 }
 
 export class NoView extends ViewStrategy {
-	loadViewFactory(){
-		return Promise.resolve(null);
-	}
+  loadViewFactory(){
+    return Promise.resolve(null);
+  }
 }
