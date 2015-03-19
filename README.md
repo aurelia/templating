@@ -26,6 +26,7 @@ This library is part of the [Aurelia](http://www.aurelia.io/) platform and conta
 * [aurelia-templating-binding](https://github.com/aurelia/templating-binding)
 * [aurelia-templating-resources](https://github.com/aurelia/templating-resources)
 * [aurelia-templating-router](https://github.com/aurelia/templating-router)
+* [aurelia-animator-css](https://github.com/aurelia/animator-css)
 
 ## Platform Support
 

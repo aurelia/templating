@@ -65,7 +65,8 @@
       "aurelia-framework",
       "aurelia-templating-binding",
       "aurelia-templating-resources",
-      "aurelia-templating-router"
+      "aurelia-templating-router",
+      "aurelia-animator-css"
     ],
     "documentation": {
       "links": [
