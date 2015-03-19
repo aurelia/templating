@@ -71,8 +71,10 @@ export class ViewSlot {
     if(this.isAttached){
       view.attached();
       // Animate page itself
-      var element = view.firstChild.nextElementSibling;
-      if(view.firstChild.nodeType === 8 &&
+      var element = view.firstChild ? view.firstChild.nextElementSibling : null;
+      if(view.firstChild !== undefined &&
+        view.firstChild !== null &&
+        view.firstChild.nodeType === 8 &&
         element !== null &&
         element.nodeType === 1 &&
         element.classList.contains('au-animate')) {
@@ -118,8 +120,10 @@ export class ViewSlot {
       return view;
     };
 
-    var element = view.firstChild.nextElementSibling;
-    if(view.firstChild.nodeType === 8 &&
+    var element = view.firstChild ? view.firstChild.nextElementSibling : null;
+    if(view.firstChild !== undefined &&
+      view.firstChild !== null &&
+      view.firstChild.nodeType === 8 &&
       element !== null &&
       element.nodeType === 1 &&
       element.classList.contains('au-animate')) {
@@ -139,8 +143,9 @@ export class ViewSlot {
     var rmPromises = [];
 
     children.forEach( (child) => {
-      var element = child.firstChild.nextElementSibling;
+      var element = child.firstChild ? child.firstChild.nextElementSibling : null;
       if(child.firstChild !== undefined &&
+         child.firstChild !== null &&
          child.firstChild.nodeType === 8 &&
          element !== null &&
          element.nodeType === 1 &&
@@ -196,8 +201,10 @@ export class ViewSlot {
     for(i = 0, ii = children.length; i < ii; ++i){
       children[i].attached();
 
-      var element = children[i].firstChild.nextElementSibling;
-      if(children[i].firstChild.nodeType === 8 &&
+      var element = children[i].firstChild ? children[i].firstChild.nextElementSibling : null;
+      if(children[i].firstChild !== undefined &&
+         children[i].firstChild !== null &&
+         children[i].firstChild.nodeType === 8 &&
          element !== null &&
          element.nodeType === 1 &&
          element.classList.contains('au-animate')) {
