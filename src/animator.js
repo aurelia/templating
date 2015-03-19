@@ -1,6 +1,6 @@
 export class Animator {
-  constructor() {
-    Animator.instance = this;
+  static configureDefault(container, animatorInstance){
+    container.registerInstance(Animator, Animator.instance = (animatorInstance || new Animator()));
   }
 
   move() {
