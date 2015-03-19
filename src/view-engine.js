@@ -1,12 +1,20 @@
 import * as LogManager from 'aurelia-logging';
 import {Origin} from 'aurelia-metadata';
-import {Loader} from 'aurelia-loader';
+import {Loader,TemplateRegistryEntry} from 'aurelia-loader';
 import {Container} from 'aurelia-dependency-injection';
 import {ViewCompiler} from './view-compiler';
 import {ResourceRegistry, ViewResources} from './resource-registry';
 import {ModuleAnalyzer} from './module-analyzer';
 
 var logger = LogManager.getLogger('templating');
+
+function ensureRegistryEntry(loader, urlOrRegistryEntry){
+  if(urlOrRegistryEntry instanceof TemplateRegistryEntry){
+    return Promise.resolve(urlOrRegistryEntry);
+  }
+
+  return loader.loadTemplate(urlOrRegistryEntry);
+}
 
 export class ViewEngine {
   static inject() { return [Loader, Container, ViewCompiler, ModuleAnalyzer, ResourceRegistry]; }
@@ -18,8 +26,8 @@ export class ViewEngine {
     this.appResources = appResources;
   }
 
-  loadViewFactory(url, compileOptions, associatedModuleId){
-    return this.loader.loadTemplate(url).then(viewRegistryEntry => {
+  loadViewFactory(urlOrRegistryEntry, compileOptions, associatedModuleId){
+    return ensureRegistryEntry(this.loader, urlOrRegistryEntry).then(viewRegistryEntry => {
       if(viewRegistryEntry.isReady){
         return viewRegistryEntry.factory;
       }

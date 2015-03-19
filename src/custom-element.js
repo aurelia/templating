@@ -42,7 +42,7 @@ export class CustomElement extends ResourceType {
   load(container, target, viewStrategy, transientView){
     var options;
 
-    viewStrategy = viewStrategy || ViewStrategy.getDefault(target);
+    viewStrategy = viewStrategy || this.viewStrategy || ViewStrategy.getDefault(target);
     options = {
       targetShadowDOM:this.targetShadowDOM,
       beforeCompile:target.beforeCompile
@@ -56,7 +56,7 @@ export class CustomElement extends ResourceType {
       if(!transientView){
         this.viewFactory = viewFactory;
       }
-      
+
       return viewFactory;
     });
   }

@@ -1,14 +1,15 @@
 import {Metadata, ResourceType} from 'aurelia-metadata';
+import {TemplateRegistryEntry} from 'aurelia-loader';
 import {ValueConverter} from 'aurelia-binding';
 import {CustomElement} from './custom-element';
 import {AttachedBehavior} from './attached-behavior';
 import {TemplateController} from './template-controller';
-import {ViewStrategy} from './view-strategy';
+import {ViewStrategy,TemplateRegistryViewStrategy} from './view-strategy';
 import {hyphenate} from './util';
 
 class ResourceModule {
-  constructor(){
-    this.id = '';
+  constructor(moduleId){
+    this.id = moduleId;
     this.moduleInstance = null;
     this.mainResource = null;
     this.resources = null;
@@ -19,6 +20,7 @@ class ResourceModule {
   analyze(container){
     var current = this.mainResource,
         resources = this.resources,
+        viewStrategy = this.viewStrategy,
         i, ii, metadata;
 
     if(this.isAnalyzed){
@@ -29,6 +31,7 @@ class ResourceModule {
 
     if(current){
       metadata = current.metadata;
+      metadata.viewStrategy = viewStrategy;
 
       if('analyze' in metadata && !metadata.isAnalyzed){
         metadata.isAnalyzed = true;
@@ -39,6 +42,7 @@ class ResourceModule {
     for(i = 0, ii = resources.length; i < ii; ++i){
       current = resources[i];
       metadata = current.metadata;
+      metadata.viewStrategy = viewStrategy;
 
       if('analyze' in metadata && !metadata.isAnalyzed){
         metadata.isAnalyzed = true;
@@ -138,7 +142,7 @@ export class ModuleAnalyzer {
       return resourceModule;
     }
 
-    resourceModule = new ResourceModule();
+    resourceModule = new ResourceModule(moduleId);
     this.cache[moduleId] = resourceModule;
 
     if(typeof moduleInstance === 'function'){
@@ -167,6 +171,8 @@ export class ModuleAnalyzer {
         }
       } else if(exportedValue instanceof ViewStrategy){
         viewStrategy = exportedValue;
+      } else if(exportedValue instanceof TemplateRegistryEntry){
+        viewStrategy = new TemplateRegistryViewStrategy(moduleId, exportedValue);
       } else {
         if(conventional = CustomElement.convention(key)){
           if(!mainResource){
@@ -197,7 +203,6 @@ export class ModuleAnalyzer {
       mainResource = new ResourceDescription(fallbackKey, fallbackValue, fallbackMetadata);
     }
 
-    resourceModule.id = moduleId;
     resourceModule.moduleInstance = moduleInstance;
     resourceModule.mainResource = mainResource;
     resourceModule.resources = resources;

@@ -3,7 +3,7 @@ import {relativeToFile} from 'aurelia-path';
 
 export class ViewStrategy {
   makeRelativeTo(baseUrl){}
-  
+
   loadViewFactory(viewEngine, options){
     throw new Error('A ViewStrategy must implement loadViewFactory(viewEngine, options).');
   }
@@ -29,7 +29,7 @@ export class ViewStrategy {
 
     annotation = Origin.get(target);
     strategy = Metadata.on(target).first(ViewStrategy);
-    
+
     if(!strategy){
       if(!annotation){
         throw new Error('Cannot determinte default view strategy for object.', target);
@@ -80,5 +80,20 @@ export class ConventionalView extends ViewStrategy {
 export class NoView extends ViewStrategy {
   loadViewFactory(){
     return Promise.resolve(null);
+  }
+}
+
+export class TemplateRegistryViewStrategy extends ViewStrategy {
+  constructor(moduleId, registryEntry){
+    this.moduleId = moduleId;
+    this.registryEntry = registryEntry;
+  }
+
+  loadViewFactory(viewEngine, options){
+    if(this.registryEntry.isReady){
+      return Promise.resolve(this.registryEntry.factory);
+    }
+
+    return viewEngine.loadViewFactory(this.registryEntry, options, this.moduleId);
   }
 }
