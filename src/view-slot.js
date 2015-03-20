@@ -72,8 +72,7 @@ export class ViewSlot {
       view.attached();
       // Animate page itself
       var element = view.firstChild ? view.firstChild.nextElementSibling : null;
-      if(view.firstChild !== undefined &&
-        view.firstChild !== null &&
+      if(view.firstChild !== null &&
         view.firstChild.nodeType === 8 &&
         element !== null &&
         element.nodeType === 1 &&
@@ -121,8 +120,7 @@ export class ViewSlot {
     };
 
     var element = view.firstChild ? view.firstChild.nextElementSibling : null;
-    if(view.firstChild !== undefined &&
-      view.firstChild !== null &&
+    if(view.firstChild !== null &&
       view.firstChild.nodeType === 8 &&
       element !== null &&
       element.nodeType === 1 &&
@@ -144,8 +142,7 @@ export class ViewSlot {
 
     children.forEach( (child) => {
       var element = child.firstChild ? child.firstChild.nextElementSibling : null;
-      if(child.firstChild !== undefined &&
-         child.firstChild !== null &&
+      if(child.firstChild !== null &&
          child.firstChild.nodeType === 8 &&
          element !== null &&
          element.nodeType === 1 &&
@@ -202,8 +199,7 @@ export class ViewSlot {
       children[i].attached();
 
       var element = children[i].firstChild ? children[i].firstChild.nextElementSibling : null;
-      if(children[i].firstChild !== undefined &&
-         children[i].firstChild !== null &&
+      if(children[i].firstChild !== null &&
          children[i].firstChild.nodeType === 8 &&
          element !== null &&
          element.nodeType === 1 &&
