@@ -99,7 +99,7 @@ export class View {
 
   insertNodesBefore(refNode){
     var parent = refNode.parentNode;
-    parent.insertBefore(this.fragment, refNode); 
+    parent.insertBefore(this.fragment, refNode);
   }
 
   appendNodesTo(parent){
@@ -169,7 +169,7 @@ export class View {
       children = this.children;
       for(i = 0, ii = children.length; i < ii; ++i){
         children[i].detached();
-      }   
+      }
     }
   }
 }

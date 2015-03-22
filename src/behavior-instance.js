@@ -2,6 +2,7 @@ export class BehaviorInstance {
   constructor(behavior, executionContext, instruction){
     this.behavior = behavior;
     this.executionContext = executionContext;
+    this.isAttached = false;
 
     var observerLookup = behavior.observerLocator.getObserversLookup(executionContext),
         handlesBind = behavior.handlesBind,
@@ -70,14 +71,32 @@ export class BehaviorInstance {
   }
 
   attached(){
+    if(this.isAttached){
+      return;
+    }
+
+    this.isAttached = true;
+
     if(this.behavior.handlesAttached){
       this.executionContext.attached();
+    }
+
+    if(this.view){
+      this.view.attached();
     }
   }
 
   detached(){
-    if(this.behavior.handlesDetached){
-      this.executionContext.detached();
+    if(this.isAttached){
+      this.isAttached = false;
+
+      if(this.view){
+        this.view.detached();
+      }
+
+      if(this.behavior.handlesDetached){
+        this.executionContext.detached();
+      }
     }
   }
 }
