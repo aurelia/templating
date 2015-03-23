@@ -71,7 +71,7 @@ export class ViewSlot {
     if(this.isAttached){
       view.attached();
       // Animate page itself
-      var element = view.firstChild ? view.firstChild.nextElementSibling : null;
+      var element = view.firstChild !== null ? view.firstChild.nextElementSibling : null;
       if(view.firstChild !== null &&
         view.firstChild.nodeType === 8 &&
         element !== null &&
@@ -119,7 +119,7 @@ export class ViewSlot {
       return view;
     };
 
-    var element = view.firstChild && view.firstChild.nextElementSibling ? view.firstChild.nextElementSibling : null;
+    var element = view.firstChild !== null && view.firstChild.nextElementSibling !== null ? view.firstChild.nextElementSibling : null;
     if(view.firstChild !== null &&
       view.firstChild.nodeType === 8 &&
       element !== null &&
@@ -140,14 +140,14 @@ export class ViewSlot {
 
     var rmPromises = [];
 
-    children.forEach( (child) => {
-      var element = child.firstChild ? child.firstChild.nextElementSibling : null;
+    children.forEach(child => {
+      var element = child.firstChild !== null ? child.firstChild.nextElementSibling : null;
       if(child.firstChild !== null &&
          child.firstChild.nodeType === 8 &&
          element !== null &&
          element.nodeType === 1 &&
          element.classList.contains('au-animate')) {
-        rmPromises.push(this.animator.leave(element).then( () => {
+        rmPromises.push(this.animator.leave(element).then(() => {
           child.removeNodes();
         }));
       } else {
@@ -166,7 +166,7 @@ export class ViewSlot {
     };
 
     if(rmPromises.length > 0) {
-      return Promise.all(rmPromises).then( () => {
+      return Promise.all(rmPromises).then(() => {
         removeAction();
       });
     } else {
@@ -186,7 +186,7 @@ export class ViewSlot {
   }
 
   attached(){
-    var i, ii, children;
+    var i, ii, children, child;
 
     if(this.isAttached){
       return;
@@ -196,11 +196,12 @@ export class ViewSlot {
 
     children = this.children;
     for(i = 0, ii = children.length; i < ii; ++i){
-      children[i].attached();
+      child = children[i];
+      child.attached();
 
-      var element = children[i].firstChild ? children[i].firstChild.nextElementSibling : null;
-      if(children[i].firstChild !== null &&
-         children[i].firstChild.nodeType === 8 &&
+      var element = child.firstChild !== null ? child.firstChild.nextElementSibling : null;
+      if(child.firstChild !== null &&
+        child.firstChild.nodeType === 8 &&
          element !== null &&
          element.nodeType === 1 &&
          element.classList.contains('au-animate')) {
