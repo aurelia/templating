@@ -119,7 +119,7 @@ export class ViewSlot {
       return view;
     };
 
-    var element = view.firstChild ? view.firstChild.nextElementSibling : null;
+    var element = view.firstChild && view.firstChild.nextElementSibling ? view.firstChild.nextElementSibling : null;
     if(view.firstChild !== null &&
       view.firstChild.nodeType === 8 &&
       element !== null &&
