@@ -71,10 +71,10 @@ export class ViewSlot {
     if(this.isAttached){
       view.attached();
       // Animate page itself
-      var element = view.firstChild !== null ? view.firstChild.nextElementSibling : null;
-      if(view.firstChild !== null &&
+      var element = view.firstChild ? view.firstChild.nextElementSibling : null;
+      if(view.firstChild &&
         view.firstChild.nodeType === 8 &&
-        element !== null &&
+        element &&
         element.nodeType === 1 &&
         element.classList.contains('au-animate')) {
         this.animator.enter(element);
@@ -119,10 +119,10 @@ export class ViewSlot {
       return view;
     };
 
-    var element = view.firstChild !== null && view.firstChild.nextElementSibling ? view.firstChild.nextElementSibling : null;
-    if(view.firstChild !== null &&
+    var element = view.firstChild && view.firstChild.nextElementSibling ? view.firstChild.nextElementSibling : null;
+    if(view.firstChild &&
       view.firstChild.nodeType === 8 &&
-      element !== null &&
+      element &&
       element.nodeType === 1 &&
       element.classList.contains('au-animate')) {
       return this.animator.leave(element).then( () => {
@@ -141,10 +141,10 @@ export class ViewSlot {
     var rmPromises = [];
 
     children.forEach(child => {
-      var element = child.firstChild !== null ? child.firstChild.nextElementSibling : null;
-      if(child.firstChild !== null &&
+      var element = child.firstChild ? child.firstChild.nextElementSibling : null;
+      if(child.firstChild &&
          child.firstChild.nodeType === 8 &&
-         element !== null &&
+         element &&
          element.nodeType === 1 &&
          element.classList.contains('au-animate')) {
         rmPromises.push(this.animator.leave(element).then(() => {
@@ -199,10 +199,10 @@ export class ViewSlot {
       child = children[i];
       child.attached();
 
-      var element = child.firstChild !== null ? child.firstChild.nextElementSibling : null;
-      if(child.firstChild !== null &&
+      var element = child.firstChild ? child.firstChild.nextElementSibling : null;
+      if(child.firstChild &&
         child.firstChild.nodeType === 8 &&
-         element !== null &&
+         element &&
          element.nodeType === 1 &&
          element.classList.contains('au-animate')) {
         this.animator.enter(element);
