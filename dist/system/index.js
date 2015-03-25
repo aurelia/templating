@@ -1,4 +1,4 @@
-System.register(["aurelia-metadata", "./property", "./attached-behavior", "./children", "./custom-element", "./element-config", "./template-controller", "./view-strategy", "./resource-coordinator", "./resource-registry", "./view-compiler", "./view-engine", "./view-factory", "./view-slot", "./binding-language", "./composition-engine", "./animator"], function (_export) {
+System.register(["aurelia-metadata", "./property", "./attached-behavior", "./children", "./custom-element", "./element-config", "./template-controller", "./view-strategy", "./resource-registry", "./view-compiler", "./view-engine", "./view-factory", "./view-slot", "./binding-language", "./composition-engine", "./animator"], function (_export) {
   var Metadata, BehaviorProperty, OptionsProperty, AttachedBehavior, ChildObserver, CustomElement, UseShadowDOM, SkipContentProcessing, ElementConfig, TemplateController, UseView, NoView, Behavior, Behaviour;
   return {
     setters: [function (_aureliaMetadata) {
@@ -47,8 +47,6 @@ System.register(["aurelia-metadata", "./property", "./attached-behavior", "./chi
       _export("ConventionalView", _viewStrategy.ConventionalView);
 
       _export("NoView", _viewStrategy.NoView);
-    }, function (_resourceCoordinator) {
-      _export("ResourceCoordinator", _resourceCoordinator.ResourceCoordinator);
     }, function (_resourceRegistry) {
       _export("ResourceRegistry", _resourceRegistry.ResourceRegistry);
 

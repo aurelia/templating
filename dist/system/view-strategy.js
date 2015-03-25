@@ -1,5 +1,5 @@
 System.register(["aurelia-metadata", "aurelia-path"], function (_export) {
-  var Metadata, Origin, relativeToFile, _inherits, _prototypeProperties, _classCallCheck, ViewStrategy, UseView, ConventionalView, NoView;
+  var Metadata, Origin, relativeToFile, _inherits, _prototypeProperties, _classCallCheck, ViewStrategy, UseView, ConventionalView, NoView, TemplateRegistryViewStrategy;
 
   return {
     setters: [function (_aureliaMetadata) {
@@ -165,6 +165,32 @@ System.register(["aurelia-metadata", "aurelia-path"], function (_export) {
         });
 
         return NoView;
+      })(ViewStrategy));
+      TemplateRegistryViewStrategy = _export("TemplateRegistryViewStrategy", (function (ViewStrategy) {
+        function TemplateRegistryViewStrategy(moduleId, registryEntry) {
+          _classCallCheck(this, TemplateRegistryViewStrategy);
+
+          this.moduleId = moduleId;
+          this.registryEntry = registryEntry;
+        }
+
+        _inherits(TemplateRegistryViewStrategy, ViewStrategy);
+
+        _prototypeProperties(TemplateRegistryViewStrategy, null, {
+          loadViewFactory: {
+            value: function loadViewFactory(viewEngine, options) {
+              if (this.registryEntry.isReady) {
+                return Promise.resolve(this.registryEntry.factory);
+              }
+
+              return viewEngine.loadViewFactory(this.registryEntry, options, this.moduleId);
+            },
+            writable: true,
+            configurable: true
+          }
+        });
+
+        return TemplateRegistryViewStrategy;
       })(ViewStrategy));
     }
   };

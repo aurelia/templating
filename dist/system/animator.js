@@ -13,44 +13,17 @@ System.register([], function (_export) {
       Animator = _export("Animator", (function () {
         function Animator() {
           _classCallCheck(this, Animator);
-
-          Animator.instance = this;
-          this.animationStack = [];
         }
 
-        _prototypeProperties(Animator, null, {
-          addMultipleEventListener: {
-            value: function addMultipleEventListener(el, s, fn) {
-              var evts = s.split(" "),
-                  i,
-                  ii;
-
-              for (i = 0, ii = evts.length; i < ii; ++i) {
-                el.addEventListener(evts[i], fn, false);
-              }
+        _prototypeProperties(Animator, {
+          configureDefault: {
+            value: function configureDefault(container, animatorInstance) {
+              container.registerInstance(Animator, Animator.instance = animatorInstance || new Animator());
             },
             writable: true,
             configurable: true
-          },
-          addAnimationToStack: {
-            value: function addAnimationToStack(animId) {
-              if (this.animationStack.indexOf(animId) < 0) {
-                this.animationStack.push(animId);
-              }
-            },
-            writable: true,
-            configurable: true
-          },
-          removeAnimationFromStack: {
-            value: function removeAnimationFromStack(animId) {
-              var idx = this.animationStack.indexOf(animId);
-              if (idx > -1) {
-                this.animationStack.splice(idx, 1);
-              }
-            },
-            writable: true,
-            configurable: true
-          },
+          }
+        }, {
           move: {
             value: function move() {
               return Promise.resolve(false);

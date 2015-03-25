@@ -9,31 +9,26 @@ var _aureliaMetadata = require("aurelia-metadata");
 var Origin = _aureliaMetadata.Origin;
 var Metadata = _aureliaMetadata.Metadata;
 
-require("aurelia-dependency-injection");
-
 var _viewStrategy = require("./view-strategy");
 
 var ViewStrategy = _viewStrategy.ViewStrategy;
 var UseView = _viewStrategy.UseView;
-
-var ResourceCoordinator = require("./resource-coordinator").ResourceCoordinator;
 
 var ViewEngine = require("./view-engine").ViewEngine;
 
 var CustomElement = require("./custom-element").CustomElement;
 
 var CompositionEngine = exports.CompositionEngine = (function () {
-  function CompositionEngine(resourceCoordinator, viewEngine) {
+  function CompositionEngine(viewEngine) {
     _classCallCheck(this, CompositionEngine);
 
-    this.resourceCoordinator = resourceCoordinator;
     this.viewEngine = viewEngine;
   }
 
   _prototypeProperties(CompositionEngine, {
     inject: {
       value: function inject() {
-        return [ResourceCoordinator, ViewEngine];
+        return [ViewEngine];
       },
       writable: true,
       configurable: true
@@ -69,8 +64,9 @@ var CompositionEngine = exports.CompositionEngine = (function () {
     createBehavior: {
       value: function createBehavior(instruction) {
         var childContainer = instruction.childContainer,
-            viewModelInfo = instruction.viewModelInfo,
-            viewModel = instruction.viewModel;
+            viewModelResource = instruction.viewModelResource,
+            viewModel = instruction.viewModel,
+            metadata;
 
         return this.activate(instruction).then(function () {
           var doneLoading, viewStrategyFromViewModel, origin;
@@ -91,14 +87,20 @@ var CompositionEngine = exports.CompositionEngine = (function () {
             }
           }
 
-          if (viewModelInfo) {
-            doneLoading = viewModelInfo.type.load(childContainer, viewModelInfo.value, instruction.view);
+          if (viewModelResource) {
+            metadata = viewModelResource.metadata;
+            doneLoading = metadata.load(childContainer, viewModelResource.value, instruction.view, true);
           } else {
-            doneLoading = new CustomElement().load(childContainer, viewModel.constructor, instruction.view);
+            metadata = new CustomElement();
+            doneLoading = metadata.load(childContainer, viewModel.constructor, instruction.view, true);
           }
 
-          return doneLoading.then(function (behaviorType) {
-            return behaviorType.create(childContainer, { executionContext: viewModel, suppressBind: true });
+          return doneLoading.then(function (viewFactory) {
+            return metadata.create(childContainer, {
+              executionContext: viewModel,
+              viewFactory: viewFactory,
+              suppressBind: true
+            });
           });
         });
       },
@@ -111,10 +113,10 @@ var CompositionEngine = exports.CompositionEngine = (function () {
 
         instruction.viewModel = instruction.viewResources ? instruction.viewResources.relativeToView(instruction.viewModel) : instruction.viewModel;
 
-        return this.resourceCoordinator.loadViewModelInfo(instruction.viewModel).then(function (viewModelInfo) {
-          childContainer.autoRegister(viewModelInfo.value);
-          instruction.viewModel = childContainer.viewModel = childContainer.get(viewModelInfo.value);
-          instruction.viewModelInfo = viewModelInfo;
+        return this.viewEngine.importViewModelResource(instruction.viewModel).then(function (viewModelResource) {
+          childContainer.autoRegister(viewModelResource.value);
+          instruction.viewModel = childContainer.viewModel = childContainer.get(viewModelResource.value);
+          instruction.viewModelResource = viewModelResource;
           return instruction;
         });
       },

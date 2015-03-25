@@ -71,9 +71,10 @@ export class ViewSlot {
     if(this.isAttached){
       view.attached();
       // Animate page itself
-      var element = view.firstChild.nextElementSibling;
-      if(view.firstChild.nodeType === 8 &&
-        element !== undefined &&
+      var element = view.firstChild ? view.firstChild.nextElementSibling : null;
+      if(view.firstChild &&
+        view.firstChild.nodeType === 8 &&
+        element &&
         element.nodeType === 1 &&
         element.classList.contains('au-animate')) {
         this.animator.enter(element);
@@ -118,9 +119,10 @@ export class ViewSlot {
       return view;
     };
 
-    var element = view.firstChild.nextElementSibling;
-    if(view.firstChild.nodeType === 8 &&
-      element !== undefined &&
+    var element = view.firstChild && view.firstChild.nextElementSibling ? view.firstChild.nextElementSibling : null;
+    if(view.firstChild &&
+      view.firstChild.nodeType === 8 &&
+      element &&
       element.nodeType === 1 &&
       element.classList.contains('au-animate')) {
       return this.animator.leave(element).then( () => {
@@ -138,14 +140,14 @@ export class ViewSlot {
 
     var rmPromises = [];
 
-    children.forEach( (child) => {
-      var element = child.firstChild.nextElementSibling;
-      if(child.firstChild !== undefined &&
+    children.forEach(child => {
+      var element = child.firstChild ? child.firstChild.nextElementSibling : null;
+      if(child.firstChild &&
          child.firstChild.nodeType === 8 &&
-         element !== undefined &&
+         element &&
          element.nodeType === 1 &&
          element.classList.contains('au-animate')) {
-        rmPromises.push(this.animator.leave(element).then( () => {
+        rmPromises.push(this.animator.leave(element).then(() => {
           child.removeNodes();
         }));
       } else {
@@ -164,7 +166,7 @@ export class ViewSlot {
     };
 
     if(rmPromises.length > 0) {
-      return Promise.all(rmPromises).then( () => {
+      return Promise.all(rmPromises).then(() => {
         removeAction();
       });
     } else {
@@ -184,7 +186,7 @@ export class ViewSlot {
   }
 
   attached(){
-    var i, ii, children;
+    var i, ii, children, child;
 
     if(this.isAttached){
       return;
@@ -194,11 +196,13 @@ export class ViewSlot {
 
     children = this.children;
     for(i = 0, ii = children.length; i < ii; ++i){
-      children[i].attached();
+      child = children[i];
+      child.attached();
 
-      var element = children[i].firstChild.nextElementSibling;
-      if(children[i].firstChild.nodeType === 8 &&
-         element !== undefined &&
+      var element = child.firstChild ? child.firstChild.nextElementSibling : null;
+      if(child.firstChild &&
+        child.firstChild.nodeType === 8 &&
+         element &&
          element.nodeType === 1 &&
          element.classList.contains('au-animate')) {
         this.animator.enter(element);

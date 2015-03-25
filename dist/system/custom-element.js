@@ -64,8 +64,6 @@ System.register(["aurelia-metadata", "./behavior-instance", "./behaviors", "./co
             value: function analyze(container, target) {
               var meta = Metadata.on(target);
               configureBehavior(container, this, target, valuePropertyName);
-
-              this.configured = true;
               this.targetShadowDOM = meta.has(UseShadowDOM);
               this.skipContentProcessing = meta.has(SkipContentProcessing);
               this.usesShadowDOM = this.targetShadowDOM && hasShadowDOM;
@@ -73,13 +71,20 @@ System.register(["aurelia-metadata", "./behavior-instance", "./behaviors", "./co
             writable: true,
             configurable: true
           },
+          register: {
+            value: function register(registry, name) {
+              registry.registerElement(name || this.name, this);
+            },
+            writable: true,
+            configurable: true
+          },
           load: {
-            value: function load(container, target, viewStrategy) {
+            value: function load(container, target, viewStrategy, transientView) {
               var _this = this;
 
               var options;
 
-              viewStrategy = viewStrategy || ViewStrategy.getDefault(target);
+              viewStrategy = viewStrategy || this.viewStrategy || ViewStrategy.getDefault(target);
               options = {
                 targetShadowDOM: this.targetShadowDOM,
                 beforeCompile: target.beforeCompile
@@ -90,16 +95,12 @@ System.register(["aurelia-metadata", "./behavior-instance", "./behaviors", "./co
               }
 
               return viewStrategy.loadViewFactory(container.get(ViewEngine), options).then(function (viewFactory) {
-                _this.viewFactory = viewFactory;
-                return _this;
+                if (!transientView) {
+                  _this.viewFactory = viewFactory;
+                }
+
+                return viewFactory;
               });
-            },
-            writable: true,
-            configurable: true
-          },
-          register: {
-            value: function register(registry, name) {
-              registry.registerElement(name || this.name, this);
             },
             writable: true,
             configurable: true
@@ -134,10 +135,11 @@ System.register(["aurelia-metadata", "./behavior-instance", "./behaviors", "./co
 
               var executionContext = instruction.executionContext || container.get(this.target),
                   behaviorInstance = new BehaviorInstance(this, executionContext, instruction),
+                  viewFactory = instruction.viewFactory || this.viewFactory,
                   host;
 
-              if (this.viewFactory) {
-                behaviorInstance.view = this.viewFactory.create(container, behaviorInstance.executionContext, instruction);
+              if (viewFactory) {
+                behaviorInstance.view = viewFactory.create(container, behaviorInstance.executionContext, instruction);
               }
 
               if (element) {

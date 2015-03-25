@@ -36,7 +36,6 @@ var NoView = _viewStrategy.NoView;
 exports.AttachedBehavior = _attachedBehavior.AttachedBehavior;
 exports.BehaviorProperty = _property.BehaviorProperty;
 exports.OptionsProperty = _property.OptionsProperty;
-exports.ResourceCoordinator = require("./resource-coordinator").ResourceCoordinator;
 
 var _resourceRegistry = require("./resource-registry");
 

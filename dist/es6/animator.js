@@ -1,29 +1,6 @@
 export class Animator {
-  constructor() {
-    Animator.instance = this;
-    this.animationStack = [];
-  }
-
-  addMultipleEventListener(el, s, fn) {
-    var evts = s.split(' '),
-        i, ii;
-
-    for (i = 0, ii = evts.length; i < ii; ++i) {
-      el.addEventListener(evts[i], fn, false);
-    }
-  }
-
-  addAnimationToStack(animId) {
-    if(this.animationStack.indexOf(animId) < 0) {
-      this.animationStack.push(animId);
-    }
-  }
-
-  removeAnimationFromStack(animId) {
-    var idx = this.animationStack.indexOf(animId);
-    if(idx > -1) {
-      this.animationStack.splice(idx, 1);
-    }
+  static configureDefault(container, animatorInstance){
+    container.registerInstance(Animator, Animator.instance = (animatorInstance || new Animator()));
   }
 
   move() {

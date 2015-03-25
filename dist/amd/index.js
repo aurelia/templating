@@ -1,4 +1,4 @@
-define(["exports", "aurelia-metadata", "./property", "./attached-behavior", "./children", "./custom-element", "./element-config", "./template-controller", "./view-strategy", "./resource-coordinator", "./resource-registry", "./view-compiler", "./view-engine", "./view-factory", "./view-slot", "./binding-language", "./composition-engine", "./animator"], function (exports, _aureliaMetadata, _property, _attachedBehavior, _children, _customElement, _elementConfig, _templateController, _viewStrategy, _resourceCoordinator, _resourceRegistry, _viewCompiler, _viewEngine, _viewFactory, _viewSlot, _bindingLanguage, _compositionEngine, _animator) {
+define(["exports", "aurelia-metadata", "./property", "./attached-behavior", "./children", "./custom-element", "./element-config", "./template-controller", "./view-strategy", "./resource-registry", "./view-compiler", "./view-engine", "./view-factory", "./view-slot", "./binding-language", "./composition-engine", "./animator"], function (exports, _aureliaMetadata, _property, _attachedBehavior, _children, _customElement, _elementConfig, _templateController, _viewStrategy, _resourceRegistry, _viewCompiler, _viewEngine, _viewFactory, _viewSlot, _bindingLanguage, _compositionEngine, _animator) {
   "use strict";
 
   var Metadata = _aureliaMetadata.Metadata;
@@ -16,7 +16,6 @@ define(["exports", "aurelia-metadata", "./property", "./attached-behavior", "./c
   exports.AttachedBehavior = _attachedBehavior.AttachedBehavior;
   exports.BehaviorProperty = _property.BehaviorProperty;
   exports.OptionsProperty = _property.OptionsProperty;
-  exports.ResourceCoordinator = _resourceCoordinator.ResourceCoordinator;
   exports.ResourceRegistry = _resourceRegistry.ResourceRegistry;
   exports.ViewResources = _resourceRegistry.ViewResources;
   exports.ChildObserver = _children.ChildObserver;

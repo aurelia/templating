@@ -1,15 +1,13 @@
-System.register(["aurelia-metadata", "aurelia-dependency-injection", "./view-strategy", "./resource-coordinator", "./view-engine", "./custom-element"], function (_export) {
-  var Origin, Metadata, ViewStrategy, UseView, ResourceCoordinator, ViewEngine, CustomElement, _prototypeProperties, _classCallCheck, CompositionEngine;
+System.register(["aurelia-metadata", "./view-strategy", "./view-engine", "./custom-element"], function (_export) {
+  var Origin, Metadata, ViewStrategy, UseView, ViewEngine, CustomElement, _prototypeProperties, _classCallCheck, CompositionEngine;
 
   return {
     setters: [function (_aureliaMetadata) {
       Origin = _aureliaMetadata.Origin;
       Metadata = _aureliaMetadata.Metadata;
-    }, function (_aureliaDependencyInjection) {}, function (_viewStrategy) {
+    }, function (_viewStrategy) {
       ViewStrategy = _viewStrategy.ViewStrategy;
       UseView = _viewStrategy.UseView;
-    }, function (_resourceCoordinator) {
-      ResourceCoordinator = _resourceCoordinator.ResourceCoordinator;
     }, function (_viewEngine) {
       ViewEngine = _viewEngine.ViewEngine;
     }, function (_customElement) {
@@ -23,17 +21,16 @@ System.register(["aurelia-metadata", "aurelia-dependency-injection", "./view-str
       _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
       CompositionEngine = _export("CompositionEngine", (function () {
-        function CompositionEngine(resourceCoordinator, viewEngine) {
+        function CompositionEngine(viewEngine) {
           _classCallCheck(this, CompositionEngine);
 
-          this.resourceCoordinator = resourceCoordinator;
           this.viewEngine = viewEngine;
         }
 
         _prototypeProperties(CompositionEngine, {
           inject: {
             value: function inject() {
-              return [ResourceCoordinator, ViewEngine];
+              return [ViewEngine];
             },
             writable: true,
             configurable: true
@@ -69,8 +66,9 @@ System.register(["aurelia-metadata", "aurelia-dependency-injection", "./view-str
           createBehavior: {
             value: function createBehavior(instruction) {
               var childContainer = instruction.childContainer,
-                  viewModelInfo = instruction.viewModelInfo,
-                  viewModel = instruction.viewModel;
+                  viewModelResource = instruction.viewModelResource,
+                  viewModel = instruction.viewModel,
+                  metadata;
 
               return this.activate(instruction).then(function () {
                 var doneLoading, viewStrategyFromViewModel, origin;
@@ -91,14 +89,20 @@ System.register(["aurelia-metadata", "aurelia-dependency-injection", "./view-str
                   }
                 }
 
-                if (viewModelInfo) {
-                  doneLoading = viewModelInfo.type.load(childContainer, viewModelInfo.value, instruction.view);
+                if (viewModelResource) {
+                  metadata = viewModelResource.metadata;
+                  doneLoading = metadata.load(childContainer, viewModelResource.value, instruction.view, true);
                 } else {
-                  doneLoading = new CustomElement().load(childContainer, viewModel.constructor, instruction.view);
+                  metadata = new CustomElement();
+                  doneLoading = metadata.load(childContainer, viewModel.constructor, instruction.view, true);
                 }
 
-                return doneLoading.then(function (behaviorType) {
-                  return behaviorType.create(childContainer, { executionContext: viewModel, suppressBind: true });
+                return doneLoading.then(function (viewFactory) {
+                  return metadata.create(childContainer, {
+                    executionContext: viewModel,
+                    viewFactory: viewFactory,
+                    suppressBind: true
+                  });
                 });
               });
             },
@@ -111,10 +115,10 @@ System.register(["aurelia-metadata", "aurelia-dependency-injection", "./view-str
 
               instruction.viewModel = instruction.viewResources ? instruction.viewResources.relativeToView(instruction.viewModel) : instruction.viewModel;
 
-              return this.resourceCoordinator.loadViewModelInfo(instruction.viewModel).then(function (viewModelInfo) {
-                childContainer.autoRegister(viewModelInfo.value);
-                instruction.viewModel = childContainer.viewModel = childContainer.get(viewModelInfo.value);
-                instruction.viewModelInfo = viewModelInfo;
+              return this.viewEngine.importViewModelResource(instruction.viewModel).then(function (viewModelResource) {
+                childContainer.autoRegister(viewModelResource.value);
+                instruction.viewModel = childContainer.viewModel = childContainer.get(viewModelResource.value);
+                instruction.viewModelResource = viewModelResource;
                 return instruction;
               });
             },

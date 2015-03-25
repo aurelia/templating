@@ -95,8 +95,8 @@ define(["exports", "./content-selector", "./animator"], function (exports, _cont
           if (this.isAttached) {
             view.attached();
             // Animate page itself
-            var element = view.firstChild.nextElementSibling;
-            if (view.firstChild.nodeType === 8 && element !== undefined && element.nodeType === 1 && element.classList.contains("au-animate")) {
+            var element = view.firstChild ? view.firstChild.nextElementSibling : null;
+            if (view.firstChild && view.firstChild.nodeType === 8 && element && element.nodeType === 1 && element.classList.contains("au-animate")) {
               this.animator.enter(element);
             }
           }
@@ -150,8 +150,8 @@ define(["exports", "./content-selector", "./animator"], function (exports, _cont
             return view;
           };
 
-          var element = view.firstChild.nextElementSibling;
-          if (view.firstChild.nodeType === 8 && element !== undefined && element.nodeType === 1 && element.classList.contains("au-animate")) {
+          var element = view.firstChild && view.firstChild.nextElementSibling ? view.firstChild.nextElementSibling : null;
+          if (view.firstChild && view.firstChild.nodeType === 8 && element && element.nodeType === 1 && element.classList.contains("au-animate")) {
             return this.animator.leave(element).then(function () {
               return removeAction();
             });
@@ -173,8 +173,8 @@ define(["exports", "./content-selector", "./animator"], function (exports, _cont
           var rmPromises = [];
 
           children.forEach(function (child) {
-            var element = child.firstChild.nextElementSibling;
-            if (child.firstChild !== undefined && child.firstChild.nodeType === 8 && element !== undefined && element.nodeType === 1 && element.classList.contains("au-animate")) {
+            var element = child.firstChild ? child.firstChild.nextElementSibling : null;
+            if (child.firstChild && child.firstChild.nodeType === 8 && element && element.nodeType === 1 && element.classList.contains("au-animate")) {
               rmPromises.push(_this.animator.leave(element).then(function () {
                 child.removeNodes();
               }));
@@ -222,7 +222,7 @@ define(["exports", "./content-selector", "./animator"], function (exports, _cont
       },
       attached: {
         value: function attached() {
-          var i, ii, children;
+          var i, ii, children, child;
 
           if (this.isAttached) {
             return;
@@ -232,10 +232,11 @@ define(["exports", "./content-selector", "./animator"], function (exports, _cont
 
           children = this.children;
           for (i = 0, ii = children.length; i < ii; ++i) {
-            children[i].attached();
+            child = children[i];
+            child.attached();
 
-            var element = children[i].firstChild.nextElementSibling;
-            if (children[i].firstChild.nodeType === 8 && element !== undefined && element.nodeType === 1 && element.classList.contains("au-animate")) {
+            var element = child.firstChild ? child.firstChild.nextElementSibling : null;
+            if (child.firstChild && child.firstChild.nodeType === 8 && element && element.nodeType === 1 && element.classList.contains("au-animate")) {
               this.animator.enter(element);
             }
           }

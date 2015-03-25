@@ -181,6 +181,7 @@ System.register(["./util", "aurelia-binding"], function (_export) {
                   ii,
                   properties = this.properties;
 
+              this.taskQueue = taskQueue;
               this.attribute = this.attribute || behavior.name;
 
               behavior.properties.push(this);
@@ -223,6 +224,10 @@ System.register(["./util", "aurelia-binding"], function (_export) {
               if (changeHandlerName in executionContext) {
                 selfSubscriber = function (newValue, oldValue) {
                   return executionContext[changeHandlerName](newValue, oldValue);
+                };
+              } else if ("dynamicPropertyChanged" in executionContext) {
+                selfSubscriber = function (newValue, oldValue) {
+                  return executionContext.dynamicPropertyChanged(name, newValue, oldValue);
                 };
               }
 

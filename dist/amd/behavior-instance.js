@@ -11,6 +11,7 @@ define(["exports"], function (exports) {
 
       this.behavior = behavior;
       this.executionContext = executionContext;
+      this.isAttached = false;
 
       var observerLookup = behavior.observerLocator.getObserversLookup(executionContext),
           handlesBind = behavior.handlesBind,
@@ -96,8 +97,18 @@ define(["exports"], function (exports) {
       },
       attached: {
         value: function attached() {
+          if (this.isAttached) {
+            return;
+          }
+
+          this.isAttached = true;
+
           if (this.behavior.handlesAttached) {
             this.executionContext.attached();
+          }
+
+          if (this.view) {
+            this.view.attached();
           }
         },
         writable: true,
@@ -105,8 +116,16 @@ define(["exports"], function (exports) {
       },
       detached: {
         value: function detached() {
-          if (this.behavior.handlesDetached) {
-            this.executionContext.detached();
+          if (this.isAttached) {
+            this.isAttached = false;
+
+            if (this.view) {
+              this.view.detached();
+            }
+
+            if (this.behavior.handlesDetached) {
+              this.executionContext.detached();
+            }
           }
         },
         writable: true,

@@ -1,3 +1,30 @@
+## 0.9.0 (2015-03-25)
+
+
+#### Bug Fixes
+
+* **animator:** remove unused code from interface ([986267f6](http://github.com/aurelia/templating/commit/986267f6e73211618a3c3f659955ba55489f5b3a))
+* **behavior:** not all attached/detached were cascaded ([31702e14](http://github.com/aurelia/templating/commit/31702e14f9da0bd844ef60d0dd375c7a375f3d7f), closes [#35](http://github.com/aurelia/templating/issues/35))
+* **property:** correct if/else branch for dynamic notifications ([9f79cbb0](http://github.com/aurelia/templating/commit/9f79cbb0c1594cff372d774dae5b5ebb470d72be))
+* **view:** first and last child should not be undefined ([43c076c5](http://github.com/aurelia/templating/commit/43c076c5882fe3dfea0c8ce3aeb5c7901bdf944f))
+* **view-slot:**
+  * Safari and IE are not spec compliant perhaps ([bc1ff2ba](http://github.com/aurelia/templating/commit/bc1ff2bae440e471accc088651f76701bc4311db))
+  * improve null checks and array access ([af290c1f](http://github.com/aurelia/templating/commit/af290c1f75f8a78019a35909e15988e7a0fd756e))
+  * add firstChild null checks ([d260bdb9](http://github.com/aurelia/templating/commit/d260bdb95e1772610c1083ca7ad6511fb5586d5a), closes [#34](http://github.com/aurelia/templating/issues/34))
+  * add firstChild null checks ([a49411dd](http://github.com/aurelia/templating/commit/a49411ddf7b830acf70034babf19de6ea38947ca), closes [#34](http://github.com/aurelia/templating/issues/34))
+  * correct null check against nextElementSibling ([9162eeb6](http://github.com/aurelia/templating/commit/9162eeb69bafe2d33b4e9e5e1d2715afbaa9301f))
+
+
+#### Features
+
+* **animator:** add mechanism for default animator configuration ([eb792bb1](http://github.com/aurelia/templating/commit/eb792bb11edfa78fec4fa8109da576d10c1b9d68))
+* **resources:**
+  * new, simplified and improved resource pipeline processing ([e6207812](http://github.com/aurelia/templating/commit/e620781248e53387e8a7ca16f778d931edbd7fba))
+  * leverage new template loader api ([ee6fea9d](http://github.com/aurelia/templating/commit/ee6fea9d6a279881ec99817c757842082a9c09f6))
+* **view-engine:** merge in and simplify resource coordinator ([a836fde9](http://github.com/aurelia/templating/commit/a836fde9efa1ed1efae983d94e13e2fa3872241f))
+* **view-strategy:** enable exported view strategy and registry to be used for view models ([03790f85](http://github.com/aurelia/templating/commit/03790f85959a0e541ed0daf7b8c28ad37201c25c), closes [#13](http://github.com/aurelia/templating/issues/13))
+
+
 ### 0.8.14 (2015-02-28)
 
 
@@ -294,4 +321,3 @@
 #### Bug Fixes
 
 * **package:** add missing polyfills ([bd751f7c](http://github.com/aurelia/templating/commit/bd751f7c2a40e7025ac35dfd563024f608c35474))
-

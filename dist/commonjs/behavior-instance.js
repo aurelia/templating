@@ -10,6 +10,7 @@ var BehaviorInstance = exports.BehaviorInstance = (function () {
 
     this.behavior = behavior;
     this.executionContext = executionContext;
+    this.isAttached = false;
 
     var observerLookup = behavior.observerLocator.getObserversLookup(executionContext),
         handlesBind = behavior.handlesBind,
@@ -95,8 +96,18 @@ var BehaviorInstance = exports.BehaviorInstance = (function () {
     },
     attached: {
       value: function attached() {
+        if (this.isAttached) {
+          return;
+        }
+
+        this.isAttached = true;
+
         if (this.behavior.handlesAttached) {
           this.executionContext.attached();
+        }
+
+        if (this.view) {
+          this.view.attached();
         }
       },
       writable: true,
@@ -104,8 +115,16 @@ var BehaviorInstance = exports.BehaviorInstance = (function () {
     },
     detached: {
       value: function detached() {
-        if (this.behavior.handlesDetached) {
-          this.executionContext.detached();
+        if (this.isAttached) {
+          this.isAttached = false;
+
+          if (this.view) {
+            this.view.detached();
+          }
+
+          if (this.behavior.handlesDetached) {
+            this.executionContext.detached();
+          }
         }
       },
       writable: true,

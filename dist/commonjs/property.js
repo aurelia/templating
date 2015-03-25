@@ -178,6 +178,7 @@ var OptionsProperty = exports.OptionsProperty = (function (BehaviorProperty) {
             ii,
             properties = this.properties;
 
+        this.taskQueue = taskQueue;
         this.attribute = this.attribute || behavior.name;
 
         behavior.properties.push(this);
@@ -220,6 +221,10 @@ var OptionsProperty = exports.OptionsProperty = (function (BehaviorProperty) {
         if (changeHandlerName in executionContext) {
           selfSubscriber = function (newValue, oldValue) {
             return executionContext[changeHandlerName](newValue, oldValue);
+          };
+        } else if ("dynamicPropertyChanged" in executionContext) {
+          selfSubscriber = function (newValue, oldValue) {
+            return executionContext.dynamicPropertyChanged(name, newValue, oldValue);
           };
         }
 

@@ -3,7 +3,7 @@ import {relativeToFile} from 'aurelia-path';
 
 export class ViewStrategy {
   makeRelativeTo(baseUrl){}
-  
+
   loadViewFactory(viewEngine, options){
     throw new Error('A ViewStrategy must implement loadViewFactory(viewEngine, options).');
   }
@@ -29,7 +29,7 @@ export class ViewStrategy {
 
     annotation = Origin.get(target);
     strategy = Metadata.on(target).first(ViewStrategy);
-    
+
     if(!strategy){
       if(!annotation){
         throw new Error('Cannot determinte default view strategy for object.', target);
@@ -45,17 +45,17 @@ export class ViewStrategy {
 }
 
 export class UseView extends ViewStrategy {
-	constructor(path){
-		this.path = path;
-	}
+  constructor(path){
+    this.path = path;
+  }
 
-	loadViewFactory(viewEngine, options){
+  loadViewFactory(viewEngine, options){
     if(!this.absolutePath && this.moduleId){
       this.absolutePath = relativeToFile(this.path, this.moduleId);
     }
 
-		return viewEngine.loadViewFactory(this.absolutePath || this.path, options, this.moduleId);
-	}
+    return viewEngine.loadViewFactory(this.absolutePath || this.path, options, this.moduleId);
+  }
 
   makeRelativeTo(file){
     this.absolutePath = relativeToFile(this.path, file);
@@ -63,14 +63,14 @@ export class UseView extends ViewStrategy {
 }
 
 export class ConventionalView extends ViewStrategy {
-	constructor(moduleId){
-		this.moduleId = moduleId;
+  constructor(moduleId){
+    this.moduleId = moduleId;
     this.viewUrl = ConventionalView.convertModuleIdToViewUrl(moduleId);
-	}
+  }
 
-	loadViewFactory(viewEngine, options){
-		return viewEngine.loadViewFactory(this.viewUrl, options, this.moduleId);
-	}
+  loadViewFactory(viewEngine, options){
+    return viewEngine.loadViewFactory(this.viewUrl, options, this.moduleId);
+  }
 
   static convertModuleIdToViewUrl(moduleId){
     return moduleId + '.html';
@@ -78,7 +78,22 @@ export class ConventionalView extends ViewStrategy {
 }
 
 export class NoView extends ViewStrategy {
-	loadViewFactory(){
-		return Promise.resolve(null);
-	}
+  loadViewFactory(){
+    return Promise.resolve(null);
+  }
+}
+
+export class TemplateRegistryViewStrategy extends ViewStrategy {
+  constructor(moduleId, registryEntry){
+    this.moduleId = moduleId;
+    this.registryEntry = registryEntry;
+  }
+
+  loadViewFactory(viewEngine, options){
+    if(this.registryEntry.isReady){
+      return Promise.resolve(this.registryEntry.factory);
+    }
+
+    return viewEngine.loadViewFactory(this.registryEntry, options, this.moduleId);
+  }
 }

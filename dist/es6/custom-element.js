@@ -30,17 +30,19 @@ export class CustomElement extends ResourceType {
   analyze(container, target){
     var meta = Metadata.on(target);
     configureBehavior(container, this, target, valuePropertyName);
-
-    this.configured = true;
     this.targetShadowDOM = meta.has(UseShadowDOM);
     this.skipContentProcessing = meta.has(SkipContentProcessing);
     this.usesShadowDOM = this.targetShadowDOM && hasShadowDOM;
   }
 
-  load(container, target, viewStrategy){
+  register(registry, name){
+    registry.registerElement(name || this.name, this);
+  }
+
+  load(container, target, viewStrategy, transientView){
     var options;
 
-    viewStrategy = viewStrategy || ViewStrategy.getDefault(target);
+    viewStrategy = viewStrategy || this.viewStrategy || ViewStrategy.getDefault(target);
     options = {
       targetShadowDOM:this.targetShadowDOM,
       beforeCompile:target.beforeCompile
@@ -51,13 +53,12 @@ export class CustomElement extends ResourceType {
     }
 
     return viewStrategy.loadViewFactory(container.get(ViewEngine), options).then(viewFactory => {
-      this.viewFactory = viewFactory;
-      return this;
-    });
-  }
+      if(!transientView){
+        this.viewFactory = viewFactory;
+      }
 
-  register(registry, name){
-    registry.registerElement(name || this.name, this);
+      return viewFactory;
+    });
   }
 
   compile(compiler, resources, node, instruction){
@@ -83,10 +84,11 @@ export class CustomElement extends ResourceType {
   create(container, instruction=defaultInstruction, element=null){
     var executionContext = instruction.executionContext || container.get(this.target),
         behaviorInstance = new BehaviorInstance(this, executionContext, instruction),
+        viewFactory = instruction.viewFactory || this.viewFactory,
         host;
 
-    if(this.viewFactory){
-      behaviorInstance.view = this.viewFactory.create(container, behaviorInstance.executionContext, instruction);
+    if(viewFactory){
+      behaviorInstance.view = viewFactory.create(container, behaviorInstance.executionContext, instruction);
     }
 
     if(element){

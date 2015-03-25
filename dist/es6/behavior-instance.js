@@ -1,9 +1,10 @@
 export class BehaviorInstance {
-	constructor(behavior, executionContext, instruction){
-		this.behavior = behavior;
-		this.executionContext = executionContext;
+  constructor(behavior, executionContext, instruction){
+    this.behavior = behavior;
+    this.executionContext = executionContext;
+    this.isAttached = false;
 
-		var observerLookup = behavior.observerLocator.getObserversLookup(executionContext),
+    var observerLookup = behavior.observerLocator.getObserversLookup(executionContext),
         handlesBind = behavior.handlesBind,
         attributes = instruction.attributes,
         boundProperties = this.boundProperties = [],
@@ -13,7 +14,7 @@ export class BehaviorInstance {
     for(i = 0, ii = properties.length; i < ii; ++i){
       properties[i].initialize(executionContext, observerLookup, attributes, handlesBind, boundProperties);
     }
-	}
+  }
 
   created(context){
     if(this.behavior.handlesCreated){
@@ -21,8 +22,8 @@ export class BehaviorInstance {
     }
   }
 
-	bind(context){
-		var skipSelfSubscriber = this.behavior.handlesBind,
+  bind(context){
+    var skipSelfSubscriber = this.behavior.handlesBind,
         boundProperties = this.boundProperties,
         i, ii, x, observer, selfSubscriber;
 
@@ -50,9 +51,9 @@ export class BehaviorInstance {
     if(this.view){
       this.view.bind(this.executionContext);
     }
-	}
+  }
 
-	unbind(){
+  unbind(){
     var boundProperties = this.boundProperties,
         i, ii;
 
@@ -67,17 +68,35 @@ export class BehaviorInstance {
     for(i = 0, ii = boundProperties.length; i < ii; ++i){
       boundProperties[i].binding.unbind();
     }
-	}
+  }
 
   attached(){
+    if(this.isAttached){
+      return;
+    }
+
+    this.isAttached = true;
+
     if(this.behavior.handlesAttached){
       this.executionContext.attached();
+    }
+
+    if(this.view){
+      this.view.attached();
     }
   }
 
   detached(){
-    if(this.behavior.handlesDetached){
-      this.executionContext.detached();
+    if(this.isAttached){
+      this.isAttached = false;
+
+      if(this.view){
+        this.view.detached();
+      }
+
+      if(this.behavior.handlesDetached){
+        this.executionContext.detached();
+      }
     }
   }
 }
