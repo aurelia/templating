@@ -44,7 +44,7 @@ export class ViewStrategy {
   }
 }
 
-export class UseView extends ViewStrategy {
+export class UseViewStrategy extends ViewStrategy {
   constructor(path){
     this.path = path;
   }
@@ -62,10 +62,10 @@ export class UseView extends ViewStrategy {
   }
 }
 
-export class ConventionalView extends ViewStrategy {
+export class ConventionalViewStrategy extends ViewStrategy {
   constructor(moduleId){
     this.moduleId = moduleId;
-    this.viewUrl = ConventionalView.convertModuleIdToViewUrl(moduleId);
+    this.viewUrl = ConventionalViewStrategy.convertModuleIdToViewUrl(moduleId);
   }
 
   loadViewFactory(viewEngine, options){
@@ -77,7 +77,7 @@ export class ConventionalView extends ViewStrategy {
   }
 }
 
-export class NoView extends ViewStrategy {
+export class NoViewStrategy extends ViewStrategy {
   loadViewFactory(){
     return Promise.resolve(null);
   }
