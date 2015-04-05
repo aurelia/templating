@@ -35,15 +35,13 @@ export function customAttribute(name){
 
 Decorators.configure.parameterizedDecorator('customAttribute', customAttribute);
 
-export function templateController(){
-  return function(target){
-    var resource = Metadata.on(target).firstOrAdd(HtmlBehaviorResource);
-    resource.liftsContent = true;
-    return target;
-  }
+export function templateController(target){
+  var resource = Metadata.on(target).firstOrAdd(HtmlBehaviorResource);
+  resource.liftsContent = true;
+  return target;
 }
 
-Decorators.configure.parameterizedDecorator('templateController', templateController);
+Decorators.configure.simpleDecorator('templateController', templateController);
 
 export function bindableProperty(nameOrConfig){
   return function(target){
@@ -58,15 +56,13 @@ export function bindableProperty(nameOrConfig){
 
 Decorators.configure.parameterizedDecorator('bindableProperty', bindableProperty);
 
-export function dynamicOptions(){
-  return function(target){
-    var resource = Metadata.on(target).firstOrAdd(HtmlBehaviorResource);
-    resource.hasDynamicOptions = true;
-    return target;
-  }
+export function dynamicOptions(target){
+  var resource = Metadata.on(target).firstOrAdd(HtmlBehaviorResource);
+  resource.hasDynamicOptions = true;
+  return target;
 }
 
-Decorators.configure.parameterizedDecorator('dynamicOptions', dynamicOptions);
+Decorators.configure.simpleDecorator('dynamicOptions', dynamicOptions);
 
 export function syncChildren(property, changeHandler, selector){
   return function(target){
@@ -78,25 +74,21 @@ export function syncChildren(property, changeHandler, selector){
 
 Decorators.configure.parameterizedDecorator('syncChildren', syncChildren);
 
-export function useShadowDOM(){
-  return function(target){
-    var resource = Metadata.on(target).firstOrAdd(HtmlBehaviorResource);
-    resource.useShadowDOM = true;
-    return target;
-  }
+export function useShadowDOM(target){
+  var resource = Metadata.on(target).firstOrAdd(HtmlBehaviorResource);
+  resource.useShadowDOM = true;
+  return target;
 }
 
-Decorators.configure.parameterizedDecorator('useShadowDOM', useShadowDOM);
+Decorators.configure.simpleDecorator('useShadowDOM', useShadowDOM);
 
-export function skipContentProcessing(){
-  return function(target){
-    var resource = Metadata.on(target).firstOrAdd(HtmlBehaviorResource);
-    resource.skipContentProcessing = true;
-    return target;
-  }
+export function skipContentProcessing(target){
+  var resource = Metadata.on(target).firstOrAdd(HtmlBehaviorResource);
+  resource.skipContentProcessing = true;
+  return target;
 }
 
-Decorators.configure.parameterizedDecorator('skipContentProcessing', skipContentProcessing);
+Decorators.configure.simpleDecorator('skipContentProcessing', skipContentProcessing);
 
 export function useView(path){
   return function(target){
@@ -107,20 +99,16 @@ export function useView(path){
 
 Decorators.configure.parameterizedDecorator('useView', useView);
 
-export function noView(){
-  return function(target){
-    Metadata.on(target).add(new NoViewStrategy());
-    return target;
-  }
+export function noView(target){
+  Metadata.on(target).add(new NoViewStrategy());
+  return target;
 }
 
-Decorators.configure.parameterizedDecorator('noView', noView);
+Decorators.configure.simpleDecorator('noView', noView);
 
 export function elementConfig(){
-  return function(target){
-    Metadata.on(target).add(new ElementConfigResource());
-    return target;
-  }
+  Metadata.on(target).add(new ElementConfigResource());
+  return target;
 }
 
-Decorators.configure.parameterizedDecorator('elementConfig', elementConfig);
+Decorators.configure.simpleDecorator('elementConfig', elementConfig);
