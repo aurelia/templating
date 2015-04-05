@@ -41,16 +41,16 @@ export class BindableProperty {
   }
 
   defineOn(target, behavior){
-    var that = this;
+    var name = this.name;
 
-    Object.defineProperty(target.prototype, prop.name, {
+    Object.defineProperty(target.prototype, name, {
       configurable: true,
       enumerable: true,
       get: function(){
-        return getObserver(behavior, this, that.name).getValue();
+        return getObserver(behavior, this, name).getValue();
       },
       set: function(value){
-        getObserver(behavior, this, that.name).setValue(value);
+        getObserver(behavior, this, name).setValue(value);
       }
     });
   }
