@@ -35,7 +35,7 @@ export class ViewStrategy {
         throw new Error('Cannot determinte default view strategy for object.', target);
       }
 
-      strategy = new ConventionalView(annotation.moduleId);
+      strategy = new ConventionalViewStrategy(annotation.moduleId);
     }else if(annotation){
       strategy.moduleId = annotation.moduleId;
     }
