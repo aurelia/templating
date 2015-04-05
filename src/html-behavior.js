@@ -65,16 +65,16 @@ export class HtmlBehaviorResource extends ResourceType {
           'value',
           'valueChanged' in proto ? 'valueChanged' : null,
           attributeName
-        ).registerWith(target, behavior);
+        ).registerWith(target, this);
       }
 
       if(properties.length === 1){ //default for custom attributes
         current = properties[0];
         current.isDynamic = hasDynamicOptions;
-        current.defineOn(target, behavior);
+        current.defineOn(target, this);
       } else{ //custom attribute with options
         for(i = 0, ii = properties.length; i < ii; ++i){
-          properties[i].defineOn(target, behavior);
+          properties[i].defineOn(target, this);
         }
 
         current = new BehaviorProperty(
@@ -84,11 +84,11 @@ export class HtmlBehaviorResource extends ResourceType {
         );
 
         current.hasOptions = true;
-        current.registerWith(target, behavior);
+        current.registerWith(target, this);
       }
     }else{
       for(i = 0, ii = properties.length; i < ii; ++i){
-        properties[i].defineOn(target, behavior);
+        properties[i].defineOn(target, this);
       }
     }
   }
