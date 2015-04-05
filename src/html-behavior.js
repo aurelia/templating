@@ -61,7 +61,7 @@ export class HtmlBehaviorResource extends ResourceType {
 
     if(attributeName !== null){
       if(properties.length === 0){ //default for custom attributes
-        new BehaviorProperty(
+        new BindableProperty(
           'value',
           'valueChanged' in proto ? 'valueChanged' : null,
           attributeName
@@ -77,7 +77,7 @@ export class HtmlBehaviorResource extends ResourceType {
           properties[i].defineOn(target, this);
         }
 
-        current = new BehaviorProperty(
+        current = new BindableProperty(
           'value',
           'valueChanged' in proto ? 'valueChanged' : null,
           attributeName
