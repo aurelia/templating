@@ -66,7 +66,7 @@ export class BindableProperty {
       selfSubscriber = (newValue, oldValue) => executionContext[this.changeHandler](newValue, oldValue);
     }
 
-    return new BehaviorPropertyObserver(behavior.taskQueue, executionContext, this.name, selfSubscriber);
+    return new BehaviorPropertyObserver(this.owner.taskQueue, executionContext, this.name, selfSubscriber);
   }
 
   initialize(executionContext, observerLookup, attributes, behaviorHandlesBind, boundProperties){

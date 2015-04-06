@@ -174,6 +174,16 @@ export class ModuleAnalyzer {
       resourceTypeMeta = allMetadata.first(ResourceType);
 
       if(resourceTypeMeta){
+        if(resourceTypeMeta.attributeName === null && resourceTypeMeta.elementName === null){
+          //no customeElement or customAttribute but behavior added by other metadata
+          HtmlBehaviorResource.convention(key, resourceTypeMeta);
+        }
+
+        if(resourceTypeMeta.attributeName === null && resourceTypeMeta.elementName === null){
+          //no convention and no customeElement or customAttribute but behavior added by other metadata
+          resourceTypeMeta.elementName = hyphenate(key);
+        }
+
         if(!mainResource && resourceTypeMeta instanceof HtmlBehaviorResource && resourceTypeMeta.elementName !== null){
           mainResource = new ResourceDescription(key, exportedValue, allMetadata, resourceTypeMeta);
         }else{

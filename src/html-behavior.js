@@ -6,6 +6,7 @@ import {ViewEngine} from './view-engine';
 import {ContentSelector} from './content-selector';
 import {hyphenate} from './util';
 import {BindableProperty} from './bindable-property';
+import {BehaviorInstance} from './behavior-instance';
 
 var defaultInstruction = { suppressBind:false },
     contentSelectorFactoryOptions = { suppressBind:true },
