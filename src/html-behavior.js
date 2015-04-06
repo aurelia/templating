@@ -62,11 +62,11 @@ export class HtmlBehaviorResource extends ResourceType {
 
     if(attributeName !== null){
       if(properties.length === 0){ //default for custom attributes
-        new BindableProperty(
-          'value',
-          'valueChanged' in proto ? 'valueChanged' : null,
-          attributeName
-        ).registerWith(target, this);
+        new BindableProperty({
+          name:'value',
+          changeHandler:'valueChanged' in proto ? 'valueChanged' : null,
+          attribute:attributeName
+        }).registerWith(target, this);
       }
 
       if(properties.length === 1){ //default for custom attributes
@@ -78,11 +78,11 @@ export class HtmlBehaviorResource extends ResourceType {
           properties[i].defineOn(target, this);
         }
 
-        current = new BindableProperty(
-          'value',
-          'valueChanged' in proto ? 'valueChanged' : null,
-          attributeName
-        );
+        current = new BindableProperty({
+          name:'value',
+          changeHandler:'valueChanged' in proto ? 'valueChanged' : null,
+          attribute:attributeName
+        });
 
         current.hasOptions = true;
         current.registerWith(target, this);
