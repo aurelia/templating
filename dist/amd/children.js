@@ -36,7 +36,6 @@ define(["exports"], function (exports) {
       this.selector = selector;
       this.target = target;
       this.property = property;
-      this.target = target;
       this.behavior = behavior;
       this.changeHandler = changeHandler;
       this.observer = new MutationObserver(this.onChange.bind(this));

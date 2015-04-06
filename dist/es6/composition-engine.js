@@ -1,7 +1,7 @@
 import {Origin,Metadata} from 'aurelia-metadata';
 import {ViewStrategy, UseView} from './view-strategy';
 import {ViewEngine} from './view-engine';
-import {CustomElement} from './custom-element';
+import {HtmlBehaviorResource} from './html-behavior';
 
 export class CompositionEngine {
   static inject(){ return [ViewEngine]; }
@@ -59,7 +59,8 @@ export class CompositionEngine {
         metadata = viewModelResource.metadata;
         doneLoading = metadata.load(childContainer, viewModelResource.value, instruction.view, true);
       }else{
-        metadata = new CustomElement();
+        metadata = new HtmlBehaviorResource();
+        metadata.elementName = 'dynamic-element';
         doneLoading = metadata.load(childContainer, viewModel.constructor, instruction.view, true);
       }
 

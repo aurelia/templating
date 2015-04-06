@@ -1,33 +1,20 @@
-define(["exports", "aurelia-metadata", "./property", "./attached-behavior", "./children", "./custom-element", "./element-config", "./template-controller", "./view-strategy", "./resource-registry", "./view-compiler", "./view-engine", "./view-factory", "./view-slot", "./binding-language", "./composition-engine", "./animator"], function (exports, _aureliaMetadata, _property, _attachedBehavior, _children, _customElement, _elementConfig, _templateController, _viewStrategy, _resourceRegistry, _viewCompiler, _viewEngine, _viewFactory, _viewSlot, _bindingLanguage, _compositionEngine, _animator) {
+define(["exports", "./html-behavior", "./bindable-property", "./resource-registry", "./children", "./element-config", "./view-strategy", "./view-compiler", "./view-engine", "./view-factory", "./view-slot", "./binding-language", "./composition-engine", "./animator", "./decorators"], function (exports, _htmlBehavior, _bindableProperty, _resourceRegistry, _children, _elementConfig, _viewStrategy, _viewCompiler, _viewEngine, _viewFactory, _viewSlot, _bindingLanguage, _compositionEngine, _animator, _decorators) {
   "use strict";
 
-  var Metadata = _aureliaMetadata.Metadata;
-  var BehaviorProperty = _property.BehaviorProperty;
-  var OptionsProperty = _property.OptionsProperty;
-  var AttachedBehavior = _attachedBehavior.AttachedBehavior;
-  var ChildObserver = _children.ChildObserver;
-  var CustomElement = _customElement.CustomElement;
-  var UseShadowDOM = _customElement.UseShadowDOM;
-  var SkipContentProcessing = _customElement.SkipContentProcessing;
-  var ElementConfig = _elementConfig.ElementConfig;
-  var TemplateController = _templateController.TemplateController;
-  var UseView = _viewStrategy.UseView;
-  var NoView = _viewStrategy.NoView;
-  exports.AttachedBehavior = _attachedBehavior.AttachedBehavior;
-  exports.BehaviorProperty = _property.BehaviorProperty;
-  exports.OptionsProperty = _property.OptionsProperty;
+  var _interopRequireWildcard = function (obj) { return obj && obj.__esModule ? obj : { "default": obj }; };
+
+  var _defaults = function (obj, defaults) { var keys = Object.getOwnPropertyNames(defaults); for (var i = 0; i < keys.length; i++) { var key = keys[i]; var value = Object.getOwnPropertyDescriptor(defaults, key); if (value && value.configurable && obj[key] === undefined) { Object.defineProperty(obj, key, value); } } return obj; };
+
+  exports.HtmlBehaviorResource = _htmlBehavior.HtmlBehaviorResource;
+  exports.BindableProperty = _bindableProperty.BindableProperty;
   exports.ResourceRegistry = _resourceRegistry.ResourceRegistry;
   exports.ViewResources = _resourceRegistry.ViewResources;
   exports.ChildObserver = _children.ChildObserver;
-  exports.CustomElement = _customElement.CustomElement;
-  exports.UseShadowDOM = _customElement.UseShadowDOM;
-  exports.SkipContentProcessing = _customElement.SkipContentProcessing;
-  exports.ElementConfig = _elementConfig.ElementConfig;
-  exports.TemplateController = _templateController.TemplateController;
+  exports.ElementConfigResource = _elementConfig.ElementConfigResource;
   exports.ViewStrategy = _viewStrategy.ViewStrategy;
-  exports.UseView = _viewStrategy.UseView;
-  exports.ConventionalView = _viewStrategy.ConventionalView;
-  exports.NoView = _viewStrategy.NoView;
+  exports.UseViewStrategy = _viewStrategy.UseViewStrategy;
+  exports.ConventionalViewStrategy = _viewStrategy.ConventionalViewStrategy;
+  exports.NoViewStrategy = _viewStrategy.NoViewStrategy;
   exports.ViewCompiler = _viewCompiler.ViewCompiler;
   exports.ViewEngine = _viewEngine.ViewEngine;
   exports.ViewFactory = _viewFactory.ViewFactory;
@@ -36,20 +23,9 @@ define(["exports", "aurelia-metadata", "./property", "./attached-behavior", "./c
   exports.BindingLanguage = _bindingLanguage.BindingLanguage;
   exports.CompositionEngine = _compositionEngine.CompositionEngine;
   exports.Animator = _animator.Animator;
-  var Behavior = exports.Behavior = Metadata;
-  var Behaviour = exports.Behaviour = Metadata;
 
-  Metadata.configure.classHelper("withProperty", BehaviorProperty);
-  Metadata.configure.classHelper("withOptions", OptionsProperty);
-  Metadata.configure.classHelper("attachedBehavior", AttachedBehavior);
-  Metadata.configure.classHelper("syncChildren", ChildObserver);
-  Metadata.configure.classHelper("customElement", CustomElement);
-  Metadata.configure.classHelper("useShadowDOM", UseShadowDOM);
-  Metadata.configure.classHelper("elementConfig", ElementConfig);
-  Metadata.configure.classHelper("templateController", TemplateController);
-  Metadata.configure.classHelper("useView", UseView);
-  Metadata.configure.classHelper("noView", NoView);
-  Metadata.configure.classHelper("skipContentProcessing", SkipContentProcessing);
+  _defaults(exports, _interopRequireWildcard(_decorators));
+
   Object.defineProperty(exports, "__esModule", {
     value: true
   });

@@ -21,6 +21,8 @@ define(["exports"], function (exports) {
           i,
           ii;
 
+      behavior.ensurePropertiesDefined(executionContext, observerLookup);
+
       for (i = 0, ii = properties.length; i < ii; ++i) {
         properties[i].initialize(executionContext, observerLookup, attributes, handlesBind, boundProperties);
       }

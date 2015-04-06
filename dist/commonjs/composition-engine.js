@@ -16,7 +16,7 @@ var UseView = _viewStrategy.UseView;
 
 var ViewEngine = require("./view-engine").ViewEngine;
 
-var CustomElement = require("./custom-element").CustomElement;
+var HtmlBehaviorResource = require("./html-behavior").HtmlBehaviorResource;
 
 var CompositionEngine = exports.CompositionEngine = (function () {
   function CompositionEngine(viewEngine) {
@@ -91,7 +91,8 @@ var CompositionEngine = exports.CompositionEngine = (function () {
             metadata = viewModelResource.metadata;
             doneLoading = metadata.load(childContainer, viewModelResource.value, instruction.view, true);
           } else {
-            metadata = new CustomElement();
+            metadata = new HtmlBehaviorResource();
+            metadata.elementName = "dynamic-element";
             doneLoading = metadata.load(childContainer, viewModel.constructor, instruction.view, true);
           }
 

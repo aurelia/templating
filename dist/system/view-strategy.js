@@ -1,5 +1,5 @@
 System.register(["aurelia-metadata", "aurelia-path"], function (_export) {
-  var Metadata, Origin, relativeToFile, _inherits, _prototypeProperties, _classCallCheck, ViewStrategy, UseView, ConventionalView, NoView, TemplateRegistryViewStrategy;
+  var Metadata, Origin, relativeToFile, _inherits, _prototypeProperties, _classCallCheck, ViewStrategy, UseViewStrategy, ConventionalViewStrategy, NoViewStrategy, TemplateRegistryViewStrategy;
 
   return {
     setters: [function (_aureliaMetadata) {
@@ -54,7 +54,7 @@ System.register(["aurelia-metadata", "aurelia-path"], function (_export) {
                   throw new Error("Cannot determinte default view strategy for object.", target);
                 }
 
-                strategy = new ConventionalView(annotation.moduleId);
+                strategy = new ConventionalViewStrategy(annotation.moduleId);
               } else if (annotation) {
                 strategy.moduleId = annotation.moduleId;
               }
@@ -81,16 +81,16 @@ System.register(["aurelia-metadata", "aurelia-path"], function (_export) {
 
         return ViewStrategy;
       })());
-      UseView = _export("UseView", (function (ViewStrategy) {
-        function UseView(path) {
-          _classCallCheck(this, UseView);
+      UseViewStrategy = _export("UseViewStrategy", (function (ViewStrategy) {
+        function UseViewStrategy(path) {
+          _classCallCheck(this, UseViewStrategy);
 
           this.path = path;
         }
 
-        _inherits(UseView, ViewStrategy);
+        _inherits(UseViewStrategy, ViewStrategy);
 
-        _prototypeProperties(UseView, null, {
+        _prototypeProperties(UseViewStrategy, null, {
           loadViewFactory: {
             value: function loadViewFactory(viewEngine, options) {
               if (!this.absolutePath && this.moduleId) {
@@ -111,19 +111,19 @@ System.register(["aurelia-metadata", "aurelia-path"], function (_export) {
           }
         });
 
-        return UseView;
+        return UseViewStrategy;
       })(ViewStrategy));
-      ConventionalView = _export("ConventionalView", (function (ViewStrategy) {
-        function ConventionalView(moduleId) {
-          _classCallCheck(this, ConventionalView);
+      ConventionalViewStrategy = _export("ConventionalViewStrategy", (function (ViewStrategy) {
+        function ConventionalViewStrategy(moduleId) {
+          _classCallCheck(this, ConventionalViewStrategy);
 
           this.moduleId = moduleId;
-          this.viewUrl = ConventionalView.convertModuleIdToViewUrl(moduleId);
+          this.viewUrl = ConventionalViewStrategy.convertModuleIdToViewUrl(moduleId);
         }
 
-        _inherits(ConventionalView, ViewStrategy);
+        _inherits(ConventionalViewStrategy, ViewStrategy);
 
-        _prototypeProperties(ConventionalView, {
+        _prototypeProperties(ConventionalViewStrategy, {
           convertModuleIdToViewUrl: {
             value: function convertModuleIdToViewUrl(moduleId) {
               return moduleId + ".html";
@@ -141,20 +141,20 @@ System.register(["aurelia-metadata", "aurelia-path"], function (_export) {
           }
         });
 
-        return ConventionalView;
+        return ConventionalViewStrategy;
       })(ViewStrategy));
-      NoView = _export("NoView", (function (ViewStrategy) {
-        function NoView() {
-          _classCallCheck(this, NoView);
+      NoViewStrategy = _export("NoViewStrategy", (function (ViewStrategy) {
+        function NoViewStrategy() {
+          _classCallCheck(this, NoViewStrategy);
 
           if (ViewStrategy != null) {
             ViewStrategy.apply(this, arguments);
           }
         }
 
-        _inherits(NoView, ViewStrategy);
+        _inherits(NoViewStrategy, ViewStrategy);
 
-        _prototypeProperties(NoView, null, {
+        _prototypeProperties(NoViewStrategy, null, {
           loadViewFactory: {
             value: function loadViewFactory() {
               return Promise.resolve(null);
@@ -164,7 +164,7 @@ System.register(["aurelia-metadata", "aurelia-path"], function (_export) {
           }
         });
 
-        return NoView;
+        return NoViewStrategy;
       })(ViewStrategy));
       TemplateRegistryViewStrategy = _export("TemplateRegistryViewStrategy", (function (ViewStrategy) {
         function TemplateRegistryViewStrategy(moduleId, registryEntry) {

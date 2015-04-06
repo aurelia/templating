@@ -48,7 +48,7 @@ define(["exports", "aurelia-metadata", "aurelia-path"], function (exports, _aure
               throw new Error("Cannot determinte default view strategy for object.", target);
             }
 
-            strategy = new ConventionalView(annotation.moduleId);
+            strategy = new ConventionalViewStrategy(annotation.moduleId);
           } else if (annotation) {
             strategy.moduleId = annotation.moduleId;
           }
@@ -76,16 +76,16 @@ define(["exports", "aurelia-metadata", "aurelia-path"], function (exports, _aure
     return ViewStrategy;
   })();
 
-  var UseView = exports.UseView = (function (ViewStrategy) {
-    function UseView(path) {
-      _classCallCheck(this, UseView);
+  var UseViewStrategy = exports.UseViewStrategy = (function (ViewStrategy) {
+    function UseViewStrategy(path) {
+      _classCallCheck(this, UseViewStrategy);
 
       this.path = path;
     }
 
-    _inherits(UseView, ViewStrategy);
+    _inherits(UseViewStrategy, ViewStrategy);
 
-    _prototypeProperties(UseView, null, {
+    _prototypeProperties(UseViewStrategy, null, {
       loadViewFactory: {
         value: function loadViewFactory(viewEngine, options) {
           if (!this.absolutePath && this.moduleId) {
@@ -106,20 +106,20 @@ define(["exports", "aurelia-metadata", "aurelia-path"], function (exports, _aure
       }
     });
 
-    return UseView;
+    return UseViewStrategy;
   })(ViewStrategy);
 
-  var ConventionalView = exports.ConventionalView = (function (ViewStrategy) {
-    function ConventionalView(moduleId) {
-      _classCallCheck(this, ConventionalView);
+  var ConventionalViewStrategy = exports.ConventionalViewStrategy = (function (ViewStrategy) {
+    function ConventionalViewStrategy(moduleId) {
+      _classCallCheck(this, ConventionalViewStrategy);
 
       this.moduleId = moduleId;
-      this.viewUrl = ConventionalView.convertModuleIdToViewUrl(moduleId);
+      this.viewUrl = ConventionalViewStrategy.convertModuleIdToViewUrl(moduleId);
     }
 
-    _inherits(ConventionalView, ViewStrategy);
+    _inherits(ConventionalViewStrategy, ViewStrategy);
 
-    _prototypeProperties(ConventionalView, {
+    _prototypeProperties(ConventionalViewStrategy, {
       convertModuleIdToViewUrl: {
         value: function convertModuleIdToViewUrl(moduleId) {
           return moduleId + ".html";
@@ -137,21 +137,21 @@ define(["exports", "aurelia-metadata", "aurelia-path"], function (exports, _aure
       }
     });
 
-    return ConventionalView;
+    return ConventionalViewStrategy;
   })(ViewStrategy);
 
-  var NoView = exports.NoView = (function (ViewStrategy) {
-    function NoView() {
-      _classCallCheck(this, NoView);
+  var NoViewStrategy = exports.NoViewStrategy = (function (ViewStrategy) {
+    function NoViewStrategy() {
+      _classCallCheck(this, NoViewStrategy);
 
       if (ViewStrategy != null) {
         ViewStrategy.apply(this, arguments);
       }
     }
 
-    _inherits(NoView, ViewStrategy);
+    _inherits(NoViewStrategy, ViewStrategy);
 
-    _prototypeProperties(NoView, null, {
+    _prototypeProperties(NoViewStrategy, null, {
       loadViewFactory: {
         value: function loadViewFactory() {
           return Promise.resolve(null);
@@ -161,7 +161,7 @@ define(["exports", "aurelia-metadata", "aurelia-path"], function (exports, _aure
       }
     });
 
-    return NoView;
+    return NoViewStrategy;
   })(ViewStrategy);
 
   var TemplateRegistryViewStrategy = exports.TemplateRegistryViewStrategy = (function (ViewStrategy) {

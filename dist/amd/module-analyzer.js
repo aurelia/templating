@@ -1,4 +1,4 @@
-define(["exports", "aurelia-metadata", "aurelia-loader", "aurelia-binding", "./custom-element", "./attached-behavior", "./template-controller", "./view-strategy", "./util"], function (exports, _aureliaMetadata, _aureliaLoader, _aureliaBinding, _customElement, _attachedBehavior, _templateController, _viewStrategy, _util) {
+define(["exports", "aurelia-metadata", "aurelia-loader", "aurelia-binding", "./html-behavior", "./view-strategy", "./util"], function (exports, _aureliaMetadata, _aureliaLoader, _aureliaBinding, _htmlBehavior, _viewStrategy, _util) {
   "use strict";
 
   var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
@@ -8,10 +8,8 @@ define(["exports", "aurelia-metadata", "aurelia-loader", "aurelia-binding", "./c
   var Metadata = _aureliaMetadata.Metadata;
   var ResourceType = _aureliaMetadata.ResourceType;
   var TemplateRegistryEntry = _aureliaLoader.TemplateRegistryEntry;
-  var ValueConverter = _aureliaBinding.ValueConverter;
-  var CustomElement = _customElement.CustomElement;
-  var AttachedBehavior = _attachedBehavior.AttachedBehavior;
-  var TemplateController = _templateController.TemplateController;
+  var ValueConverterResource = _aureliaBinding.ValueConverterResource;
+  var HtmlBehaviorResource = _htmlBehavior.HtmlBehaviorResource;
   var ViewStrategy = _viewStrategy.ViewStrategy;
   var TemplateRegistryViewStrategy = _viewStrategy.TemplateRegistryViewStrategy;
   var hyphenate = _util.hyphenate;
@@ -143,12 +141,24 @@ define(["exports", "aurelia-metadata", "aurelia-loader", "aurelia-binding", "./c
       resourceTypeMeta = allMetadata.first(ResourceType);
 
       if (!resourceTypeMeta) {
-        resourceTypeMeta = new CustomElement(hyphenate(key));
+        resourceTypeMeta = new HtmlBehaviorResource();
+        resourceTypeMeta.elementName = hyphenate(key);
         allMetadata.add(resourceTypeMeta);
       }
     }
 
-    if (!resourceTypeMeta.name) {
+    if (resourceTypeMeta instanceof HtmlBehaviorResource) {
+      if (resourceTypeMeta.elementName === undefined) {
+        //customeElement()
+        resourceTypeMeta.elementName = hyphenate(key);
+      } else if (resourceTypeMeta.attributeName === undefined) {
+        //customAttribute()
+        resourceTypeMeta.attributeName = hyphenate(key);
+      } else if (resourceTypeMeta.attributeName === null && resourceTypeMeta.elementName === null) {
+        //no customeElement or customAttribute but behavior added by other metadata
+        HtmlBehaviorResource.convention(key, resourceTypeMeta);
+      }
+    } else if (!resourceTypeMeta.name) {
       resourceTypeMeta.name = hyphenate(key);
     }
 
@@ -213,7 +223,17 @@ define(["exports", "aurelia-metadata", "aurelia-loader", "aurelia-binding", "./c
             resourceTypeMeta = allMetadata.first(ResourceType);
 
             if (resourceTypeMeta) {
-              if (!mainResource && resourceTypeMeta instanceof CustomElement) {
+              if (resourceTypeMeta.attributeName === null && resourceTypeMeta.elementName === null) {
+                //no customeElement or customAttribute but behavior added by other metadata
+                HtmlBehaviorResource.convention(key, resourceTypeMeta);
+              }
+
+              if (resourceTypeMeta.attributeName === null && resourceTypeMeta.elementName === null) {
+                //no convention and no customeElement or customAttribute but behavior added by other metadata
+                resourceTypeMeta.elementName = hyphenate(key);
+              }
+
+              if (!mainResource && resourceTypeMeta instanceof HtmlBehaviorResource && resourceTypeMeta.elementName !== null) {
                 mainResource = new ResourceDescription(key, exportedValue, allMetadata, resourceTypeMeta);
               } else {
                 resources.push(new ResourceDescription(key, exportedValue, allMetadata, resourceTypeMeta));
@@ -223,21 +243,15 @@ define(["exports", "aurelia-metadata", "aurelia-loader", "aurelia-binding", "./c
             } else if (exportedValue instanceof TemplateRegistryEntry) {
               viewStrategy = new TemplateRegistryViewStrategy(moduleId, exportedValue);
             } else {
-              if (conventional = CustomElement.convention(key)) {
-                if (!mainResource) {
+              if (conventional = HtmlBehaviorResource.convention(key)) {
+                if (conventional.elementName !== null && !mainResource) {
                   mainResource = new ResourceDescription(key, exportedValue, allMetadata, conventional);
                 } else {
                   resources.push(new ResourceDescription(key, exportedValue, allMetadata, conventional));
                 }
 
                 allMetadata.add(conventional);
-              } else if (conventional = AttachedBehavior.convention(key)) {
-                resources.push(new ResourceDescription(key, exportedValue, allMetadata, conventional));
-                allMetadata.add(conventional);
-              } else if (conventional = TemplateController.convention(key)) {
-                resources.push(new ResourceDescription(key, exportedValue, allMetadata, conventional));
-                allMetadata.add(conventional);
-              } else if (conventional = ValueConverter.convention(key)) {
+              } else if (conventional = ValueConverterResource.convention(key)) {
                 resources.push(new ResourceDescription(key, exportedValue, allMetadata, conventional));
                 allMetadata.add(conventional);
               } else if (!fallbackValue) {

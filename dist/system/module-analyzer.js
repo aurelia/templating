@@ -1,5 +1,5 @@
-System.register(["aurelia-metadata", "aurelia-loader", "aurelia-binding", "./custom-element", "./attached-behavior", "./template-controller", "./view-strategy", "./util"], function (_export) {
-  var Metadata, ResourceType, TemplateRegistryEntry, ValueConverter, CustomElement, AttachedBehavior, TemplateController, ViewStrategy, TemplateRegistryViewStrategy, hyphenate, _prototypeProperties, _classCallCheck, ResourceModule, ResourceDescription, ModuleAnalyzer;
+System.register(["aurelia-metadata", "aurelia-loader", "aurelia-binding", "./html-behavior", "./view-strategy", "./util"], function (_export) {
+  var Metadata, ResourceType, TemplateRegistryEntry, ValueConverterResource, HtmlBehaviorResource, ViewStrategy, TemplateRegistryViewStrategy, hyphenate, _prototypeProperties, _classCallCheck, ResourceModule, ResourceDescription, ModuleAnalyzer;
 
   return {
     setters: [function (_aureliaMetadata) {
@@ -8,13 +8,9 @@ System.register(["aurelia-metadata", "aurelia-loader", "aurelia-binding", "./cus
     }, function (_aureliaLoader) {
       TemplateRegistryEntry = _aureliaLoader.TemplateRegistryEntry;
     }, function (_aureliaBinding) {
-      ValueConverter = _aureliaBinding.ValueConverter;
-    }, function (_customElement) {
-      CustomElement = _customElement.CustomElement;
-    }, function (_attachedBehavior) {
-      AttachedBehavior = _attachedBehavior.AttachedBehavior;
-    }, function (_templateController) {
-      TemplateController = _templateController.TemplateController;
+      ValueConverterResource = _aureliaBinding.ValueConverterResource;
+    }, function (_htmlBehavior) {
+      HtmlBehaviorResource = _htmlBehavior.HtmlBehaviorResource;
     }, function (_viewStrategy) {
       ViewStrategy = _viewStrategy.ViewStrategy;
       TemplateRegistryViewStrategy = _viewStrategy.TemplateRegistryViewStrategy;
@@ -155,12 +151,24 @@ System.register(["aurelia-metadata", "aurelia-loader", "aurelia-binding", "./cus
           resourceTypeMeta = allMetadata.first(ResourceType);
 
           if (!resourceTypeMeta) {
-            resourceTypeMeta = new CustomElement(hyphenate(key));
+            resourceTypeMeta = new HtmlBehaviorResource();
+            resourceTypeMeta.elementName = hyphenate(key);
             allMetadata.add(resourceTypeMeta);
           }
         }
 
-        if (!resourceTypeMeta.name) {
+        if (resourceTypeMeta instanceof HtmlBehaviorResource) {
+          if (resourceTypeMeta.elementName === undefined) {
+            //customeElement()
+            resourceTypeMeta.elementName = hyphenate(key);
+          } else if (resourceTypeMeta.attributeName === undefined) {
+            //customAttribute()
+            resourceTypeMeta.attributeName = hyphenate(key);
+          } else if (resourceTypeMeta.attributeName === null && resourceTypeMeta.elementName === null) {
+            //no customeElement or customAttribute but behavior added by other metadata
+            HtmlBehaviorResource.convention(key, resourceTypeMeta);
+          }
+        } else if (!resourceTypeMeta.name) {
           resourceTypeMeta.name = hyphenate(key);
         }
 
@@ -225,7 +233,17 @@ System.register(["aurelia-metadata", "aurelia-loader", "aurelia-binding", "./cus
                 resourceTypeMeta = allMetadata.first(ResourceType);
 
                 if (resourceTypeMeta) {
-                  if (!mainResource && resourceTypeMeta instanceof CustomElement) {
+                  if (resourceTypeMeta.attributeName === null && resourceTypeMeta.elementName === null) {
+                    //no customeElement or customAttribute but behavior added by other metadata
+                    HtmlBehaviorResource.convention(key, resourceTypeMeta);
+                  }
+
+                  if (resourceTypeMeta.attributeName === null && resourceTypeMeta.elementName === null) {
+                    //no convention and no customeElement or customAttribute but behavior added by other metadata
+                    resourceTypeMeta.elementName = hyphenate(key);
+                  }
+
+                  if (!mainResource && resourceTypeMeta instanceof HtmlBehaviorResource && resourceTypeMeta.elementName !== null) {
                     mainResource = new ResourceDescription(key, exportedValue, allMetadata, resourceTypeMeta);
                   } else {
                     resources.push(new ResourceDescription(key, exportedValue, allMetadata, resourceTypeMeta));
@@ -235,21 +253,15 @@ System.register(["aurelia-metadata", "aurelia-loader", "aurelia-binding", "./cus
                 } else if (exportedValue instanceof TemplateRegistryEntry) {
                   viewStrategy = new TemplateRegistryViewStrategy(moduleId, exportedValue);
                 } else {
-                  if (conventional = CustomElement.convention(key)) {
-                    if (!mainResource) {
+                  if (conventional = HtmlBehaviorResource.convention(key)) {
+                    if (conventional.elementName !== null && !mainResource) {
                       mainResource = new ResourceDescription(key, exportedValue, allMetadata, conventional);
                     } else {
                       resources.push(new ResourceDescription(key, exportedValue, allMetadata, conventional));
                     }
 
                     allMetadata.add(conventional);
-                  } else if (conventional = AttachedBehavior.convention(key)) {
-                    resources.push(new ResourceDescription(key, exportedValue, allMetadata, conventional));
-                    allMetadata.add(conventional);
-                  } else if (conventional = TemplateController.convention(key)) {
-                    resources.push(new ResourceDescription(key, exportedValue, allMetadata, conventional));
-                    allMetadata.add(conventional);
-                  } else if (conventional = ValueConverter.convention(key)) {
+                  } else if (conventional = ValueConverterResource.convention(key)) {
                     resources.push(new ResourceDescription(key, exportedValue, allMetadata, conventional));
                     allMetadata.add(conventional);
                   } else if (!fallbackValue) {

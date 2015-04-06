@@ -1,5 +1,5 @@
-System.register(["aurelia-metadata", "./view-strategy", "./view-engine", "./custom-element"], function (_export) {
-  var Origin, Metadata, ViewStrategy, UseView, ViewEngine, CustomElement, _prototypeProperties, _classCallCheck, CompositionEngine;
+System.register(["aurelia-metadata", "./view-strategy", "./view-engine", "./html-behavior"], function (_export) {
+  var Origin, Metadata, ViewStrategy, UseView, ViewEngine, HtmlBehaviorResource, _prototypeProperties, _classCallCheck, CompositionEngine;
 
   return {
     setters: [function (_aureliaMetadata) {
@@ -10,8 +10,8 @@ System.register(["aurelia-metadata", "./view-strategy", "./view-engine", "./cust
       UseView = _viewStrategy.UseView;
     }, function (_viewEngine) {
       ViewEngine = _viewEngine.ViewEngine;
-    }, function (_customElement) {
-      CustomElement = _customElement.CustomElement;
+    }, function (_htmlBehavior) {
+      HtmlBehaviorResource = _htmlBehavior.HtmlBehaviorResource;
     }],
     execute: function () {
       "use strict";
@@ -93,7 +93,8 @@ System.register(["aurelia-metadata", "./view-strategy", "./view-engine", "./cust
                   metadata = viewModelResource.metadata;
                   doneLoading = metadata.load(childContainer, viewModelResource.value, instruction.view, true);
                 } else {
-                  metadata = new CustomElement();
+                  metadata = new HtmlBehaviorResource();
+                  metadata.elementName = "dynamic-element";
                   doneLoading = metadata.load(childContainer, viewModel.constructor, instruction.view, true);
                 }
 

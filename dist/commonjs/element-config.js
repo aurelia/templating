@@ -10,18 +10,18 @@ var ResourceType = require("aurelia-metadata").ResourceType;
 
 var EventManager = require("aurelia-binding").EventManager;
 
-var ElementConfig = exports.ElementConfig = (function (ResourceType) {
-  function ElementConfig() {
-    _classCallCheck(this, ElementConfig);
+var ElementConfigResource = exports.ElementConfigResource = (function (ResourceType) {
+  function ElementConfigResource() {
+    _classCallCheck(this, ElementConfigResource);
 
     if (ResourceType != null) {
       ResourceType.apply(this, arguments);
     }
   }
 
-  _inherits(ElementConfig, ResourceType);
+  _inherits(ElementConfigResource, ResourceType);
 
-  _prototypeProperties(ElementConfig, null, {
+  _prototypeProperties(ElementConfigResource, null, {
     load: {
       value: function load(container, target) {
         var config = new target(),
@@ -39,7 +39,7 @@ var ElementConfig = exports.ElementConfig = (function (ResourceType) {
     }
   });
 
-  return ElementConfig;
+  return ElementConfigResource;
 })(ResourceType);
 
 Object.defineProperty(exports, "__esModule", {

@@ -1,5 +1,5 @@
 System.register(["aurelia-metadata", "aurelia-binding"], function (_export) {
-  var ResourceType, EventManager, _prototypeProperties, _inherits, _classCallCheck, ElementConfig;
+  var ResourceType, EventManager, _prototypeProperties, _inherits, _classCallCheck, ElementConfigResource;
 
   return {
     setters: [function (_aureliaMetadata) {
@@ -16,18 +16,18 @@ System.register(["aurelia-metadata", "aurelia-binding"], function (_export) {
 
       _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
-      ElementConfig = _export("ElementConfig", (function (ResourceType) {
-        function ElementConfig() {
-          _classCallCheck(this, ElementConfig);
+      ElementConfigResource = _export("ElementConfigResource", (function (ResourceType) {
+        function ElementConfigResource() {
+          _classCallCheck(this, ElementConfigResource);
 
           if (ResourceType != null) {
             ResourceType.apply(this, arguments);
           }
         }
 
-        _inherits(ElementConfig, ResourceType);
+        _inherits(ElementConfigResource, ResourceType);
 
-        _prototypeProperties(ElementConfig, null, {
+        _prototypeProperties(ElementConfigResource, null, {
           load: {
             value: function load(container, target) {
               var config = new target(),
@@ -45,7 +45,7 @@ System.register(["aurelia-metadata", "aurelia-binding"], function (_export) {
           }
         });
 
-        return ElementConfig;
+        return ElementConfigResource;
       })(ResourceType));
     }
   };

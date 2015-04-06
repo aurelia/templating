@@ -1,4 +1,4 @@
-define(["exports", "aurelia-metadata", "./view-strategy", "./view-engine", "./custom-element"], function (exports, _aureliaMetadata, _viewStrategy, _viewEngine, _customElement) {
+define(["exports", "aurelia-metadata", "./view-strategy", "./view-engine", "./html-behavior"], function (exports, _aureliaMetadata, _viewStrategy, _viewEngine, _htmlBehavior) {
   "use strict";
 
   var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
@@ -10,7 +10,7 @@ define(["exports", "aurelia-metadata", "./view-strategy", "./view-engine", "./cu
   var ViewStrategy = _viewStrategy.ViewStrategy;
   var UseView = _viewStrategy.UseView;
   var ViewEngine = _viewEngine.ViewEngine;
-  var CustomElement = _customElement.CustomElement;
+  var HtmlBehaviorResource = _htmlBehavior.HtmlBehaviorResource;
 
   var CompositionEngine = exports.CompositionEngine = (function () {
     function CompositionEngine(viewEngine) {
@@ -85,7 +85,8 @@ define(["exports", "aurelia-metadata", "./view-strategy", "./view-engine", "./cu
               metadata = viewModelResource.metadata;
               doneLoading = metadata.load(childContainer, viewModelResource.value, instruction.view, true);
             } else {
-              metadata = new CustomElement();
+              metadata = new HtmlBehaviorResource();
+              metadata.elementName = "dynamic-element";
               doneLoading = metadata.load(childContainer, viewModel.constructor, instruction.view, true);
             }
 
