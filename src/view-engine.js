@@ -1,3 +1,4 @@
+import core from 'core-js';
 import * as LogManager from 'aurelia-logging';
 import {Origin} from 'aurelia-metadata';
 import {Loader,TemplateRegistryEntry} from 'aurelia-loader';

@@ -1,3 +1,4 @@
+import core from 'core-js';
 import {Metadata, Decorators} from 'aurelia-metadata';
 import {BindableProperty} from './bindable-property';
 import {ChildObserver} from './children';

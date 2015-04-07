@@ -1,3 +1,4 @@
+import core from 'core-js';
 import {hyphenate} from './util';
 import {ONE_WAY,TWO_WAY,ONE_TIME} from 'aurelia-binding';
 

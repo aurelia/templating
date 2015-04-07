@@ -14,6 +14,7 @@ var defaultInstruction = { suppressBind:false },
 
 export class HtmlBehaviorResource extends ResourceType {
   constructor(){
+    super();
     this.elementName = null;
     this.attributeName = null;
     this.liftsContent = false;
