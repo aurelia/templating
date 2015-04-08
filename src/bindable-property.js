@@ -76,7 +76,7 @@ export class BindableProperty {
     if(this.hasOptions){
       return;
     } else if(this.isDynamic){
-      for(key in attributes){
+      for(let key in attributes){
         this.createDynamicProperty(executionContext, observerLookup, behaviorHandlesBind, key, attributes[key], boundProperties);
       }
     }else{
