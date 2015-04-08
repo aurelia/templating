@@ -69,7 +69,7 @@ export function bindable(nameOrConfigOrTarget, key, descriptor){
   }
 
   if(key){ //placed on a property initializer without parens
-    var target = nameOrConfigOrTarget;
+    var target = nameOrConfigOrTarget.constructor;
     nameOrConfigOrTarget = null;
     return deco(target, key, descriptor);
   }

@@ -6,7 +6,7 @@ function getObserver(behavior, instance, name){
   var lookup = instance.__observers__;
 
   if(lookup === undefined){
-    lookup = behavior.observerLocator.getObserversLookup(this);
+    lookup = behavior.observerLocator.getObserversLookup(instance);
     behavior.ensurePropertiesDefined(instance, lookup);
   }
 
