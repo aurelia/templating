@@ -50,7 +50,7 @@ export function templateController(target){
 
 Decorators.configure.simpleDecorator('templateController', templateController);
 
-export function bindableProperty(nameOrConfigOrTarget, key, descriptor){
+export function bindable(nameOrConfigOrTarget, key, descriptor){
   var deco = function(target, key, descriptor){
     var resource = Metadata.on(target).firstOrAdd(HtmlBehaviorResource),
         prop;
@@ -77,7 +77,7 @@ export function bindableProperty(nameOrConfigOrTarget, key, descriptor){
   return deco; //placed on a class
 }
 
-Decorators.configure.parameterizedDecorator('bindableProperty', bindableProperty);
+Decorators.configure.parameterizedDecorator('bindable', bindable);
 
 export function dynamicOptions(target){
   var deco = function(target){
