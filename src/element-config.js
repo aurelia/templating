@@ -7,6 +7,7 @@ export class ElementConfigResource extends ResourceType {
         eventManager = container.get(EventManager);
 
     eventManager.registerElementConfig(config);
+    return Promise.resolve(this);
   }
 
   register(){}
