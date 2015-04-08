@@ -107,7 +107,7 @@ export function noView(target){
 
 Decorators.configure.simpleDecorator('noView', noView);
 
-export function elementConfig(){
+export function elementConfig(target){
   Metadata.on(target).add(new ElementConfigResource());
   return target;
 }
