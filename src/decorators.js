@@ -45,13 +45,17 @@ export function templateController(target){
 Decorators.configure.simpleDecorator('templateController', templateController);
 
 export function bindableProperty(nameOrConfig){
-  return function(target){
+  return function(target, key, descriptor){
     var resource = Metadata.on(target).firstOrAdd(HtmlBehaviorResource),
-        prop = new BindableProperty(nameOrConfig);
+        prop;
 
+    if(key){
+      nameOrConfig = nameOrConfig || {};
+      nameOrConfig.name = key;
+    }
+
+    prop = new BindableProperty(nameOrConfig);
     prop.registerWith(target, resource);
-
-    return target;
   }
 }
 
