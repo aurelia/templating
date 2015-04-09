@@ -10,7 +10,7 @@ Object.defineProperty(exports, '__esModule', {
 
 var _Origin$Metadata = require('aurelia-metadata');
 
-var _ViewStrategy$UseView = require('./view-strategy');
+var _ViewStrategy$UseViewStrategy = require('./view-strategy');
 
 var _ViewEngine = require('./view-engine');
 
@@ -59,7 +59,7 @@ var CompositionEngine = (function () {
 
         if ('getViewStrategy' in viewModel && !instruction.view) {
           viewStrategyFromViewModel = true;
-          instruction.view = _ViewStrategy$UseView.ViewStrategy.normalize(viewModel.getViewStrategy());
+          instruction.view = _ViewStrategy$UseViewStrategy.ViewStrategy.normalize(viewModel.getViewStrategy());
         }
 
         if (instruction.view) {
@@ -111,7 +111,7 @@ var CompositionEngine = (function () {
       var _this = this;
 
       instruction.childContainer = instruction.childContainer || instruction.container.createChild();
-      instruction.view = _ViewStrategy$UseView.ViewStrategy.normalize(instruction.view);
+      instruction.view = _ViewStrategy$UseViewStrategy.ViewStrategy.normalize(instruction.view);
 
       if (instruction.viewModel) {
         if (typeof instruction.viewModel === 'string') {

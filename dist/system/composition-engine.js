@@ -1,5 +1,5 @@
 System.register(['aurelia-metadata', './view-strategy', './view-engine', './html-behavior'], function (_export) {
-  var Origin, Metadata, ViewStrategy, UseView, ViewEngine, HtmlBehaviorResource, _classCallCheck, _createClass, CompositionEngine;
+  var Origin, Metadata, ViewStrategy, UseViewStrategy, ViewEngine, HtmlBehaviorResource, _classCallCheck, _createClass, CompositionEngine;
 
   return {
     setters: [function (_aureliaMetadata) {
@@ -7,7 +7,7 @@ System.register(['aurelia-metadata', './view-strategy', './view-engine', './html
       Metadata = _aureliaMetadata.Metadata;
     }, function (_viewStrategy) {
       ViewStrategy = _viewStrategy.ViewStrategy;
-      UseView = _viewStrategy.UseView;
+      UseViewStrategy = _viewStrategy.UseViewStrategy;
     }, function (_viewEngine) {
       ViewEngine = _viewEngine.ViewEngine;
     }, function (_htmlBehavior) {

@@ -92,7 +92,7 @@ System.register(['aurelia-metadata', 'aurelia-binding', 'aurelia-task-queue', '.
 
               if (properties.length === 1) {
                 current = properties[0];
-                current.isDynamic = this.hasDynamicOptions;
+                current.isDynamic = current.hasOptions = this.hasDynamicOptions;
                 current.defineOn(target, this);
               } else {
                 for (i = 0, ii = properties.length; i < ii; ++i) {

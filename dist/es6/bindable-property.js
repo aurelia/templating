@@ -58,7 +58,7 @@ export class BindableProperty {
   createObserver(executionContext){
     var selfSubscriber = null;
 
-    if(this.hasOptions || this.isDynamic){
+    if(this.hasOptions){
       return;
     }
 
@@ -72,13 +72,11 @@ export class BindableProperty {
   initialize(executionContext, observerLookup, attributes, behaviorHandlesBind, boundProperties){
     var selfSubscriber, observer, attribute;
 
-    if(this.hasOptions){
-      return;
-    } else if(this.isDynamic){
+    if(this.isDynamic){
       for(let key in attributes){
         this.createDynamicProperty(executionContext, observerLookup, behaviorHandlesBind, key, attributes[key], boundProperties);
       }
-    }else{
+    } else if(!this.hasOptions){
       observer = observerLookup[this.name];
 
       if(attributes !== undefined){

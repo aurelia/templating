@@ -82,7 +82,7 @@ System.register(['core-js', './util', 'aurelia-binding'], function (_export) {
 
             var selfSubscriber = null;
 
-            if (this.hasOptions || this.isDynamic) {
+            if (this.hasOptions) {
               return;
             }
 
@@ -99,13 +99,11 @@ System.register(['core-js', './util', 'aurelia-binding'], function (_export) {
           value: function initialize(executionContext, observerLookup, attributes, behaviorHandlesBind, boundProperties) {
             var selfSubscriber, observer, attribute;
 
-            if (this.hasOptions) {
-              return;
-            } else if (this.isDynamic) {
+            if (this.isDynamic) {
               for (var key in attributes) {
                 this.createDynamicProperty(executionContext, observerLookup, behaviorHandlesBind, key, attributes[key], boundProperties);
               }
-            } else {
+            } else if (!this.hasOptions) {
               observer = observerLookup[this.name];
 
               if (attributes !== undefined) {

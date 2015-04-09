@@ -1,3 +1,12 @@
+### 0.10.1 (2015-04-09)
+
+
+#### Bug Fixes
+
+* **CompositionEngine:** fix UseViewStrategy import ([5d2cd5c4](http://github.com/aurelia/templating/commit/5d2cd5c41670a8da62b9a9185edf1117e6d43b6e))
+* **bindable-property:** regression in dynamic options for custom attributes ([7debc4b0](http://github.com/aurelia/templating/commit/7debc4b0312409b978b772791cce426a10dce5c3))
+
+
 ## 0.10.0 (2015-04-09)
 
 
