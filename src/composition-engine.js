@@ -1,5 +1,5 @@
 import {Origin,Metadata} from 'aurelia-metadata';
-import {ViewStrategy, UseView} from './view-strategy';
+import {ViewStrategy, UseViewStrategy} from './view-strategy';
 import {ViewEngine} from './view-engine';
 import {HtmlBehaviorResource} from './html-behavior';
 
