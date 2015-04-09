@@ -1,35 +1,40 @@
-System.register(["aurelia-metadata", "./bindable-property", "./children", "./element-config", "./view-strategy", "./html-behavior"], function (_export) {
-  var Metadata, Decorators, BindableProperty, ChildObserver, ElementConfigResource, UseViewStrategy, NoViewStrategy, HtmlBehaviorResource;
+System.register(['core-js', 'aurelia-metadata', './bindable-property', './children', './element-config', './view-strategy', './html-behavior'], function (_export) {
+  var core, Metadata, Decorators, BindableProperty, ChildObserver, ElementConfigResource, UseViewStrategy, NoViewStrategy, HtmlBehaviorResource;
 
-  _export("behavior", behavior);
+  _export('behavior', behavior);
 
-  _export("customElement", customElement);
+  _export('customElement', customElement);
 
-  _export("customAttribute", customAttribute);
+  _export('customAttribute', customAttribute);
 
-  _export("templateController", templateController);
+  _export('templateController', templateController);
 
-  _export("bindableProperty", bindableProperty);
+  _export('bindable', bindable);
 
-  _export("dynamicOptions", dynamicOptions);
+  _export('dynamicOptions', dynamicOptions);
 
-  _export("syncChildren", syncChildren);
+  _export('syncChildren', syncChildren);
 
-  _export("useShadowDOM", useShadowDOM);
+  _export('useShadowDOM', useShadowDOM);
 
-  _export("skipContentProcessing", skipContentProcessing);
+  _export('skipContentProcessing', skipContentProcessing);
 
-  _export("useView", useView);
+  _export('useView', useView);
 
-  _export("noView", noView);
+  _export('noView', noView);
 
-  _export("elementConfig", elementConfig);
+  _export('elementConfig', elementConfig);
 
   function behavior(override) {
     return function (target) {
-      var resource = Metadata.on(target).firstOrAdd(HtmlBehaviorResource);
-      Object.assign(resource, override);
-      return target;
+      var meta = Metadata.on(target);
+
+      if (override instanceof HtmlBehaviorResource) {
+        meta.add(override);
+      } else {
+        var resource = meta.firstOrAdd(HtmlBehaviorResource);
+        Object.assign(resource, override);
+      }
     };
   }
 
@@ -37,7 +42,6 @@ System.register(["aurelia-metadata", "./bindable-property", "./children", "./ele
     return function (target) {
       var resource = Metadata.on(target).firstOrAdd(HtmlBehaviorResource);
       resource.elementName = name;
-      return target;
     };
   }
 
@@ -45,72 +49,105 @@ System.register(["aurelia-metadata", "./bindable-property", "./children", "./ele
     return function (target) {
       var resource = Metadata.on(target).firstOrAdd(HtmlBehaviorResource);
       resource.attributeName = name;
-      return target;
     };
   }
 
   function templateController(target) {
-    var resource = Metadata.on(target).firstOrAdd(HtmlBehaviorResource);
-    resource.liftsContent = true;
-    return target;
+    var deco = function deco(target) {
+      var resource = Metadata.on(target).firstOrAdd(HtmlBehaviorResource);
+      resource.liftsContent = true;
+    };
+
+    return target ? deco(target) : deco;
   }
 
-  function bindableProperty(nameOrConfig) {
-    return function (target) {
+  function bindable(nameOrConfigOrTarget, key, descriptor) {
+    var deco = function deco(target, key, descriptor) {
       var resource = Metadata.on(target).firstOrAdd(HtmlBehaviorResource),
-          prop = new BindableProperty(nameOrConfig);
+          prop;
 
+      if (key) {
+        nameOrConfigOrTarget = nameOrConfigOrTarget || {};
+        nameOrConfigOrTarget.name = key;
+      }
+
+      prop = new BindableProperty(nameOrConfigOrTarget);
       prop.registerWith(target, resource);
-
-      return target;
     };
+
+    if (!nameOrConfigOrTarget) {
+      return deco;
+    }
+
+    if (key) {
+      var target = nameOrConfigOrTarget.constructor;
+      nameOrConfigOrTarget = null;
+      return deco(target, key, descriptor);
+    }
+
+    return deco;
   }
 
   function dynamicOptions(target) {
-    var resource = Metadata.on(target).firstOrAdd(HtmlBehaviorResource);
-    resource.hasDynamicOptions = true;
-    return target;
+    var deco = function deco(target) {
+      var resource = Metadata.on(target).firstOrAdd(HtmlBehaviorResource);
+      resource.hasDynamicOptions = true;
+    };
+
+    return target ? deco(target) : deco;
   }
 
   function syncChildren(property, changeHandler, selector) {
     return function (target) {
       var resource = Metadata.on(target).firstOrAdd(HtmlBehaviorResource);
       resource.childExpression = new ChildObserver(property, changeHandler, selector);
-      return target;
     };
   }
 
   function useShadowDOM(target) {
-    var resource = Metadata.on(target).firstOrAdd(HtmlBehaviorResource);
-    resource.useShadowDOM = true;
-    return target;
+    var deco = function deco(target) {
+      var resource = Metadata.on(target).firstOrAdd(HtmlBehaviorResource);
+      resource.useShadowDOM = true;
+    };
+
+    return target ? deco(target) : deco;
   }
 
   function skipContentProcessing(target) {
-    var resource = Metadata.on(target).firstOrAdd(HtmlBehaviorResource);
-    resource.skipContentProcessing = true;
-    return target;
+    var deco = function deco(target) {
+      var resource = Metadata.on(target).firstOrAdd(HtmlBehaviorResource);
+      resource.skipContentProcessing = true;
+    };
+
+    return target ? deco(target) : deco;
   }
 
   function useView(path) {
     return function (target) {
       Metadata.on(target).add(new UseViewStrategy(path));
-      return target;
     };
   }
 
   function noView(target) {
-    Metadata.on(target).add(new NoViewStrategy());
-    return target;
+    var deco = function deco(target) {
+      Metadata.on(target).add(new NoViewStrategy());
+    };
+
+    return target ? deco(target) : deco;
   }
 
-  function elementConfig() {
-    Metadata.on(target).add(new ElementConfigResource());
-    return target;
+  function elementConfig(target) {
+    var deco = function deco(target) {
+      Metadata.on(target).add(new ElementConfigResource());
+    };
+
+    return target ? deco(target) : deco;
   }
 
   return {
-    setters: [function (_aureliaMetadata) {
+    setters: [function (_coreJs) {
+      core = _coreJs['default'];
+    }, function (_aureliaMetadata) {
       Metadata = _aureliaMetadata.Metadata;
       Decorators = _aureliaMetadata.Decorators;
     }, function (_bindableProperty) {
@@ -126,31 +163,31 @@ System.register(["aurelia-metadata", "./bindable-property", "./children", "./ele
       HtmlBehaviorResource = _htmlBehavior.HtmlBehaviorResource;
     }],
     execute: function () {
-      "use strict";
+      'use strict';
 
-      Decorators.configure.parameterizedDecorator("behavior", behavior);
+      Decorators.configure.parameterizedDecorator('behavior', behavior);
 
-      Decorators.configure.parameterizedDecorator("customElement", customElement);
+      Decorators.configure.parameterizedDecorator('customElement', customElement);
 
-      Decorators.configure.parameterizedDecorator("customAttribute", customAttribute);
+      Decorators.configure.parameterizedDecorator('customAttribute', customAttribute);
 
-      Decorators.configure.simpleDecorator("templateController", templateController);
+      Decorators.configure.simpleDecorator('templateController', templateController);
 
-      Decorators.configure.parameterizedDecorator("bindableProperty", bindableProperty);
+      Decorators.configure.parameterizedDecorator('bindable', bindable);
 
-      Decorators.configure.simpleDecorator("dynamicOptions", dynamicOptions);
+      Decorators.configure.simpleDecorator('dynamicOptions', dynamicOptions);
 
-      Decorators.configure.parameterizedDecorator("syncChildren", syncChildren);
+      Decorators.configure.parameterizedDecorator('syncChildren', syncChildren);
 
-      Decorators.configure.simpleDecorator("useShadowDOM", useShadowDOM);
+      Decorators.configure.simpleDecorator('useShadowDOM', useShadowDOM);
 
-      Decorators.configure.simpleDecorator("skipContentProcessing", skipContentProcessing);
+      Decorators.configure.simpleDecorator('skipContentProcessing', skipContentProcessing);
 
-      Decorators.configure.parameterizedDecorator("useView", useView);
+      Decorators.configure.parameterizedDecorator('useView', useView);
 
-      Decorators.configure.simpleDecorator("noView", noView);
+      Decorators.configure.simpleDecorator('noView', noView);
 
-      Decorators.configure.simpleDecorator("elementConfig", elementConfig);
+      Decorators.configure.simpleDecorator('elementConfig', elementConfig);
     }
   };
 });

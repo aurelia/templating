@@ -1,16 +1,16 @@
 System.register([], function (_export) {
-  var _prototypeProperties, _classCallCheck, BehaviorInstance;
+  var _classCallCheck, _createClass, BehaviorInstance;
 
   return {
     setters: [],
     execute: function () {
       "use strict";
 
-      _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
-
       _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
-      BehaviorInstance = _export("BehaviorInstance", (function () {
+      _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+      BehaviorInstance = (function () {
         function BehaviorInstance(behavior, executionContext, instruction) {
           _classCallCheck(this, BehaviorInstance);
 
@@ -33,115 +33,106 @@ System.register([], function (_export) {
           }
         }
 
-        _prototypeProperties(BehaviorInstance, null, {
-          created: {
-            value: function created(context) {
-              if (this.behavior.handlesCreated) {
-                this.executionContext.created(context);
-              }
-            },
-            writable: true,
-            configurable: true
-          },
-          bind: {
-            value: function bind(context) {
-              var skipSelfSubscriber = this.behavior.handlesBind,
-                  boundProperties = this.boundProperties,
-                  i,
-                  ii,
-                  x,
-                  observer,
-                  selfSubscriber;
+        _createClass(BehaviorInstance, [{
+          key: "created",
+          value: function created(context) {
+            if (this.behavior.handlesCreated) {
+              this.executionContext.created(context);
+            }
+          }
+        }, {
+          key: "bind",
+          value: function bind(context) {
+            var skipSelfSubscriber = this.behavior.handlesBind,
+                boundProperties = this.boundProperties,
+                i,
+                ii,
+                x,
+                observer,
+                selfSubscriber;
 
-              for (i = 0, ii = boundProperties.length; i < ii; ++i) {
-                x = boundProperties[i];
-                observer = x.observer;
-                selfSubscriber = observer.selfSubscriber;
-                observer.publishing = false;
-
-                if (skipSelfSubscriber) {
-                  observer.selfSubscriber = null;
-                }
-
-                x.binding.bind(context);
-                observer.call();
-
-                observer.publishing = true;
-                observer.selfSubscriber = selfSubscriber;
-              }
+            for (i = 0, ii = boundProperties.length; i < ii; ++i) {
+              x = boundProperties[i];
+              observer = x.observer;
+              selfSubscriber = observer.selfSubscriber;
+              observer.publishing = false;
 
               if (skipSelfSubscriber) {
-                this.executionContext.bind(context);
+                observer.selfSubscriber = null;
               }
 
-              if (this.view) {
-                this.view.bind(this.executionContext);
-              }
-            },
-            writable: true,
-            configurable: true
-          },
-          unbind: {
-            value: function unbind() {
-              var boundProperties = this.boundProperties,
-                  i,
-                  ii;
+              x.binding.bind(context);
+              observer.call();
 
-              if (this.view) {
-                this.view.unbind();
-              }
+              observer.publishing = true;
+              observer.selfSubscriber = selfSubscriber;
+            }
 
-              if (this.behavior.handlesUnbind) {
-                this.executionContext.unbind();
-              }
+            if (skipSelfSubscriber) {
+              this.executionContext.bind(context);
+            }
 
-              for (i = 0, ii = boundProperties.length; i < ii; ++i) {
-                boundProperties[i].binding.unbind();
-              }
-            },
-            writable: true,
-            configurable: true
-          },
-          attached: {
-            value: function attached() {
-              if (this.isAttached) {
-                return;
-              }
-
-              this.isAttached = true;
-
-              if (this.behavior.handlesAttached) {
-                this.executionContext.attached();
-              }
-
-              if (this.view) {
-                this.view.attached();
-              }
-            },
-            writable: true,
-            configurable: true
-          },
-          detached: {
-            value: function detached() {
-              if (this.isAttached) {
-                this.isAttached = false;
-
-                if (this.view) {
-                  this.view.detached();
-                }
-
-                if (this.behavior.handlesDetached) {
-                  this.executionContext.detached();
-                }
-              }
-            },
-            writable: true,
-            configurable: true
+            if (this.view) {
+              this.view.bind(this.executionContext);
+            }
           }
-        });
+        }, {
+          key: "unbind",
+          value: function unbind() {
+            var boundProperties = this.boundProperties,
+                i,
+                ii;
+
+            if (this.view) {
+              this.view.unbind();
+            }
+
+            if (this.behavior.handlesUnbind) {
+              this.executionContext.unbind();
+            }
+
+            for (i = 0, ii = boundProperties.length; i < ii; ++i) {
+              boundProperties[i].binding.unbind();
+            }
+          }
+        }, {
+          key: "attached",
+          value: function attached() {
+            if (this.isAttached) {
+              return;
+            }
+
+            this.isAttached = true;
+
+            if (this.behavior.handlesAttached) {
+              this.executionContext.attached();
+            }
+
+            if (this.view) {
+              this.view.attached();
+            }
+          }
+        }, {
+          key: "detached",
+          value: function detached() {
+            if (this.isAttached) {
+              this.isAttached = false;
+
+              if (this.view) {
+                this.view.detached();
+              }
+
+              if (this.behavior.handlesDetached) {
+                this.executionContext.detached();
+              }
+            }
+          }
+        }]);
 
         return BehaviorInstance;
-      })());
+      })();
+
+      _export("BehaviorInstance", BehaviorInstance);
     }
   };
 });

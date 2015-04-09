@@ -1,42 +1,46 @@
-"use strict";
+'use strict';
 
-var _interopRequireWildcard = function (obj) { return obj && obj.__esModule ? obj : { "default": obj }; };
+var _interopRequireWildcard = function (obj) { return obj && obj.__esModule ? obj : { 'default': obj }; };
 
-var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } };
 
-var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-var LogManager = _interopRequireWildcard(require("aurelia-logging"));
+Object.defineProperty(exports, '__esModule', {
+  value: true
+});
 
-var Origin = require("aurelia-metadata").Origin;
+var _core = require('core-js');
 
-var _aureliaLoader = require("aurelia-loader");
+var _core2 = _interopRequireWildcard(_core);
 
-var Loader = _aureliaLoader.Loader;
-var TemplateRegistryEntry = _aureliaLoader.TemplateRegistryEntry;
+var _import = require('aurelia-logging');
 
-var Container = require("aurelia-dependency-injection").Container;
+var LogManager = _interopRequireWildcard(_import);
 
-var ViewCompiler = require("./view-compiler").ViewCompiler;
+var _Origin = require('aurelia-metadata');
 
-var _resourceRegistry = require("./resource-registry");
+var _Loader$TemplateRegistryEntry = require('aurelia-loader');
 
-var ResourceRegistry = _resourceRegistry.ResourceRegistry;
-var ViewResources = _resourceRegistry.ViewResources;
+var _Container = require('aurelia-dependency-injection');
 
-var ModuleAnalyzer = require("./module-analyzer").ModuleAnalyzer;
+var _ViewCompiler = require('./view-compiler');
 
-var logger = LogManager.getLogger("templating");
+var _ResourceRegistry$ViewResources = require('./resource-registry');
+
+var _ModuleAnalyzer = require('./module-analyzer');
+
+var logger = LogManager.getLogger('templating');
 
 function ensureRegistryEntry(loader, urlOrRegistryEntry) {
-  if (urlOrRegistryEntry instanceof TemplateRegistryEntry) {
+  if (urlOrRegistryEntry instanceof _Loader$TemplateRegistryEntry.TemplateRegistryEntry) {
     return Promise.resolve(urlOrRegistryEntry);
   }
 
   return loader.loadTemplate(urlOrRegistryEntry);
 }
 
-var ViewEngine = exports.ViewEngine = (function () {
+var ViewEngine = (function () {
   function ViewEngine(loader, container, viewCompiler, moduleAnalyzer, appResources) {
     _classCallCheck(this, ViewEngine);
 
@@ -47,140 +51,121 @@ var ViewEngine = exports.ViewEngine = (function () {
     this.appResources = appResources;
   }
 
-  _prototypeProperties(ViewEngine, {
-    inject: {
-      value: function inject() {
-        return [Loader, Container, ViewCompiler, ModuleAnalyzer, ResourceRegistry];
-      },
-      writable: true,
-      configurable: true
-    }
-  }, {
-    loadViewFactory: {
-      value: function loadViewFactory(urlOrRegistryEntry, compileOptions, associatedModuleId) {
-        var _this = this;
+  _createClass(ViewEngine, [{
+    key: 'loadViewFactory',
+    value: function loadViewFactory(urlOrRegistryEntry, compileOptions, associatedModuleId) {
+      var _this = this;
 
-        return ensureRegistryEntry(this.loader, urlOrRegistryEntry).then(function (viewRegistryEntry) {
+      return ensureRegistryEntry(this.loader, urlOrRegistryEntry).then(function (viewRegistryEntry) {
+        if (viewRegistryEntry.isReady) {
+          return viewRegistryEntry.factory;
+        }
+
+        return _this.loadTemplateResources(viewRegistryEntry, associatedModuleId).then(function (resources) {
           if (viewRegistryEntry.isReady) {
             return viewRegistryEntry.factory;
           }
 
-          return _this.loadTemplateResources(viewRegistryEntry, associatedModuleId).then(function (resources) {
-            if (viewRegistryEntry.isReady) {
-              return viewRegistryEntry.factory;
-            }
+          viewRegistryEntry.setResources(resources);
 
-            viewRegistryEntry.setResources(resources);
-
-            var viewFactory = _this.viewCompiler.compile(viewRegistryEntry.template, resources, compileOptions);
-            viewRegistryEntry.setFactory(viewFactory);
-            return viewFactory;
-          });
+          var viewFactory = _this.viewCompiler.compile(viewRegistryEntry.template, resources, compileOptions);
+          viewRegistryEntry.setFactory(viewFactory);
+          return viewFactory;
         });
-      },
-      writable: true,
-      configurable: true
-    },
-    loadTemplateResources: {
-      value: function loadTemplateResources(viewRegistryEntry, associatedModuleId) {
-        var resources = new ViewResources(this.appResources, viewRegistryEntry.id),
-            dependencies = viewRegistryEntry.dependencies,
-            importIds,
-            names;
+      });
+    }
+  }, {
+    key: 'loadTemplateResources',
+    value: function loadTemplateResources(viewRegistryEntry, associatedModuleId) {
+      var resources = new _ResourceRegistry$ViewResources.ViewResources(this.appResources, viewRegistryEntry.id),
+          dependencies = viewRegistryEntry.dependencies,
+          importIds,
+          names;
 
-        if (dependencies.length === 0 && !associatedModuleId) {
-          return Promise.resolve(resources);
+      if (dependencies.length === 0 && !associatedModuleId) {
+        return Promise.resolve(resources);
+      }
+
+      importIds = dependencies.map(function (x) {
+        return x.src;
+      });
+      names = dependencies.map(function (x) {
+        return x.name;
+      });
+      logger.debug('importing resources for ' + viewRegistryEntry.id, importIds);
+
+      return this.importViewResources(importIds, names, resources, associatedModuleId);
+    }
+  }, {
+    key: 'importViewModelResource',
+    value: function importViewModelResource(moduleImport, moduleMember) {
+      var _this2 = this;
+
+      return this.loader.loadModule(moduleImport).then(function (viewModelModule) {
+        var normalizedId = _Origin.Origin.get(viewModelModule).moduleId,
+            resourceModule = _this2.moduleAnalyzer.analyze(normalizedId, viewModelModule, moduleMember);
+
+        if (!resourceModule.mainResource) {
+          throw new Error('No view model found in module "' + moduleImport + '".');
         }
 
-        importIds = dependencies.map(function (x) {
-          return x.src;
-        });
-        names = dependencies.map(function (x) {
-          return x.name;
-        });
-        logger.debug("importing resources for " + viewRegistryEntry.id, importIds);
+        resourceModule.analyze(_this2.container);
 
-        return this.importViewResources(importIds, names, resources, associatedModuleId);
-      },
-      writable: true,
-      configurable: true
-    },
-    importViewModelResource: {
-      value: function importViewModelResource(moduleImport, moduleMember) {
-        var _this = this;
-
-        return this.loader.loadModule(moduleImport).then(function (viewModelModule) {
-          var normalizedId = Origin.get(viewModelModule).moduleId,
-              resourceModule = _this.moduleAnalyzer.analyze(normalizedId, viewModelModule, moduleMember);
-
-          if (!resourceModule.mainResource) {
-            throw new Error("No view model found in module \"" + moduleImport + "\".");
-          }
-
-          resourceModule.analyze(_this.container);
-
-          return resourceModule.mainResource;
-        });
-      },
-      writable: true,
-      configurable: true
-    },
-    importViewResources: {
-      value: function importViewResources(moduleIds, names, resources, associatedModuleId) {
-        var _this = this;
-
-        return this.loader.loadAllModules(moduleIds).then(function (imports) {
-          var i,
-              ii,
-              analysis,
-              normalizedId,
-              current,
-              associatedModule,
-              container = _this.container,
-              moduleAnalyzer = _this.moduleAnalyzer,
-              allAnalysis = new Array(imports.length);
-
-          //analyze and register all resources first
-          //this enables circular references for global refs
-          //and enables order independence
-          for (i = 0, ii = imports.length; i < ii; ++i) {
-            current = imports[i];
-            normalizedId = Origin.get(current).moduleId;
-
-            analysis = moduleAnalyzer.analyze(normalizedId, current);
-            analysis.analyze(container);
-            analysis.register(resources, names[i]);
-
-            allAnalysis[i] = analysis;
-          }
-
-          if (associatedModuleId) {
-            associatedModule = moduleAnalyzer.getAnalysis(associatedModuleId);
-
-            if (associatedModule) {
-              associatedModule.register(resources);
-            }
-          }
-
-          //cause compile/load of any associated views second
-          //as a result all globals have access to all other globals during compilation
-          for (i = 0, ii = allAnalysis.length; i < ii; ++i) {
-            allAnalysis[i] = allAnalysis[i].load(container);
-          }
-
-          return Promise.all(allAnalysis).then(function () {
-            return resources;
-          });
-        });
-      },
-      writable: true,
-      configurable: true
+        return resourceModule.mainResource;
+      });
     }
-  });
+  }, {
+    key: 'importViewResources',
+    value: function importViewResources(moduleIds, names, resources, associatedModuleId) {
+      var _this3 = this;
+
+      return this.loader.loadAllModules(moduleIds).then(function (imports) {
+        var i,
+            ii,
+            analysis,
+            normalizedId,
+            current,
+            associatedModule,
+            container = _this3.container,
+            moduleAnalyzer = _this3.moduleAnalyzer,
+            allAnalysis = new Array(imports.length);
+
+        for (i = 0, ii = imports.length; i < ii; ++i) {
+          current = imports[i];
+          normalizedId = _Origin.Origin.get(current).moduleId;
+
+          analysis = moduleAnalyzer.analyze(normalizedId, current);
+          analysis.analyze(container);
+          analysis.register(resources, names[i]);
+
+          allAnalysis[i] = analysis;
+        }
+
+        if (associatedModuleId) {
+          associatedModule = moduleAnalyzer.getAnalysis(associatedModuleId);
+
+          if (associatedModule) {
+            associatedModule.register(resources);
+          }
+        }
+
+        for (i = 0, ii = allAnalysis.length; i < ii; ++i) {
+          allAnalysis[i] = allAnalysis[i].load(container);
+        }
+
+        return Promise.all(allAnalysis).then(function () {
+          return resources;
+        });
+      });
+    }
+  }], [{
+    key: 'inject',
+    value: function inject() {
+      return [_Loader$TemplateRegistryEntry.Loader, _Container.Container, _ViewCompiler.ViewCompiler, _ModuleAnalyzer.ModuleAnalyzer, _ResourceRegistry$ViewResources.ResourceRegistry];
+    }
+  }]);
 
   return ViewEngine;
 })();
 
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
+exports.ViewEngine = ViewEngine;

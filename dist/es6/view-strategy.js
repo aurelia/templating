@@ -46,6 +46,7 @@ export class ViewStrategy {
 
 export class UseViewStrategy extends ViewStrategy {
   constructor(path){
+    super();
     this.path = path;
   }
 
@@ -64,6 +65,7 @@ export class UseViewStrategy extends ViewStrategy {
 
 export class ConventionalViewStrategy extends ViewStrategy {
   constructor(moduleId){
+    super();
     this.moduleId = moduleId;
     this.viewUrl = ConventionalViewStrategy.convertModuleIdToViewUrl(moduleId);
   }
@@ -85,6 +87,7 @@ export class NoViewStrategy extends ViewStrategy {
 
 export class TemplateRegistryViewStrategy extends ViewStrategy {
   constructor(moduleId, registryEntry){
+    super();
     this.moduleId = moduleId;
     this.registryEntry = registryEntry;
   }

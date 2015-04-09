@@ -14,6 +14,7 @@ var defaultInstruction = { suppressBind:false },
 
 export class HtmlBehaviorResource extends ResourceType {
   constructor(){
+    super();
     this.elementName = null;
     this.attributeName = null;
     this.liftsContent = false;
@@ -130,7 +131,7 @@ export class HtmlBehaviorResource extends ResourceType {
     }
   }
 
-  compile(compiler, resources, node, instruction){
+  compile(compiler, resources, node, instruction, parentNode){
     if(this.liftsContent){
       if(!instruction.viewFactory){
         var template = document.createElement('template'),

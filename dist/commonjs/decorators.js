@@ -1,10 +1,15 @@
-"use strict";
+'use strict';
 
+var _interopRequireWildcard = function (obj) { return obj && obj.__esModule ? obj : { 'default': obj }; };
+
+Object.defineProperty(exports, '__esModule', {
+  value: true
+});
 exports.behavior = behavior;
 exports.customElement = customElement;
 exports.customAttribute = customAttribute;
 exports.templateController = templateController;
-exports.bindableProperty = bindableProperty;
+exports.bindable = bindable;
 exports.dynamicOptions = dynamicOptions;
 exports.syncChildren = syncChildren;
 exports.useShadowDOM = useShadowDOM;
@@ -13,131 +18,161 @@ exports.useView = useView;
 exports.noView = noView;
 exports.elementConfig = elementConfig;
 
-var _aureliaMetadata = require("aurelia-metadata");
+var _core = require('core-js');
 
-var Metadata = _aureliaMetadata.Metadata;
-var Decorators = _aureliaMetadata.Decorators;
+var _core2 = _interopRequireWildcard(_core);
 
-var BindableProperty = require("./bindable-property").BindableProperty;
+var _Metadata$Decorators = require('aurelia-metadata');
 
-var ChildObserver = require("./children").ChildObserver;
+var _BindableProperty = require('./bindable-property');
 
-var ElementConfigResource = require("./element-config").ElementConfigResource;
+var _ChildObserver = require('./children');
 
-var _viewStrategy = require("./view-strategy");
+var _ElementConfigResource = require('./element-config');
 
-var UseViewStrategy = _viewStrategy.UseViewStrategy;
-var NoViewStrategy = _viewStrategy.NoViewStrategy;
+var _UseViewStrategy$NoViewStrategy = require('./view-strategy');
 
-var HtmlBehaviorResource = require("./html-behavior").HtmlBehaviorResource;
+var _HtmlBehaviorResource = require('./html-behavior');
 
 function behavior(override) {
   return function (target) {
-    var resource = Metadata.on(target).firstOrAdd(HtmlBehaviorResource);
-    Object.assign(resource, override);
-    return target;
+    var meta = _Metadata$Decorators.Metadata.on(target);
+
+    if (override instanceof _HtmlBehaviorResource.HtmlBehaviorResource) {
+      meta.add(override);
+    } else {
+      var resource = meta.firstOrAdd(_HtmlBehaviorResource.HtmlBehaviorResource);
+      Object.assign(resource, override);
+    }
   };
 }
 
-Decorators.configure.parameterizedDecorator("behavior", behavior);
+_Metadata$Decorators.Decorators.configure.parameterizedDecorator('behavior', behavior);
 
 function customElement(name) {
   return function (target) {
-    var resource = Metadata.on(target).firstOrAdd(HtmlBehaviorResource);
+    var resource = _Metadata$Decorators.Metadata.on(target).firstOrAdd(_HtmlBehaviorResource.HtmlBehaviorResource);
     resource.elementName = name;
-    return target;
   };
 }
 
-Decorators.configure.parameterizedDecorator("customElement", customElement);
+_Metadata$Decorators.Decorators.configure.parameterizedDecorator('customElement', customElement);
 
 function customAttribute(name) {
   return function (target) {
-    var resource = Metadata.on(target).firstOrAdd(HtmlBehaviorResource);
+    var resource = _Metadata$Decorators.Metadata.on(target).firstOrAdd(_HtmlBehaviorResource.HtmlBehaviorResource);
     resource.attributeName = name;
-    return target;
   };
 }
 
-Decorators.configure.parameterizedDecorator("customAttribute", customAttribute);
+_Metadata$Decorators.Decorators.configure.parameterizedDecorator('customAttribute', customAttribute);
 
 function templateController(target) {
-  var resource = Metadata.on(target).firstOrAdd(HtmlBehaviorResource);
-  resource.liftsContent = true;
-  return target;
-}
-
-Decorators.configure.simpleDecorator("templateController", templateController);
-
-function bindableProperty(nameOrConfig) {
-  return function (target) {
-    var resource = Metadata.on(target).firstOrAdd(HtmlBehaviorResource),
-        prop = new BindableProperty(nameOrConfig);
-
-    prop.registerWith(target, resource);
-
-    return target;
+  var deco = function deco(target) {
+    var resource = _Metadata$Decorators.Metadata.on(target).firstOrAdd(_HtmlBehaviorResource.HtmlBehaviorResource);
+    resource.liftsContent = true;
   };
+
+  return target ? deco(target) : deco;
 }
 
-Decorators.configure.parameterizedDecorator("bindableProperty", bindableProperty);
+_Metadata$Decorators.Decorators.configure.simpleDecorator('templateController', templateController);
+
+function bindable(nameOrConfigOrTarget, key, descriptor) {
+  var deco = function deco(target, key, descriptor) {
+    var resource = _Metadata$Decorators.Metadata.on(target).firstOrAdd(_HtmlBehaviorResource.HtmlBehaviorResource),
+        prop;
+
+    if (key) {
+      nameOrConfigOrTarget = nameOrConfigOrTarget || {};
+      nameOrConfigOrTarget.name = key;
+    }
+
+    prop = new _BindableProperty.BindableProperty(nameOrConfigOrTarget);
+    prop.registerWith(target, resource);
+  };
+
+  if (!nameOrConfigOrTarget) {
+    return deco;
+  }
+
+  if (key) {
+    var target = nameOrConfigOrTarget.constructor;
+    nameOrConfigOrTarget = null;
+    return deco(target, key, descriptor);
+  }
+
+  return deco;
+}
+
+_Metadata$Decorators.Decorators.configure.parameterizedDecorator('bindable', bindable);
 
 function dynamicOptions(target) {
-  var resource = Metadata.on(target).firstOrAdd(HtmlBehaviorResource);
-  resource.hasDynamicOptions = true;
-  return target;
+  var deco = function deco(target) {
+    var resource = _Metadata$Decorators.Metadata.on(target).firstOrAdd(_HtmlBehaviorResource.HtmlBehaviorResource);
+    resource.hasDynamicOptions = true;
+  };
+
+  return target ? deco(target) : deco;
 }
 
-Decorators.configure.simpleDecorator("dynamicOptions", dynamicOptions);
+_Metadata$Decorators.Decorators.configure.simpleDecorator('dynamicOptions', dynamicOptions);
 
 function syncChildren(property, changeHandler, selector) {
   return function (target) {
-    var resource = Metadata.on(target).firstOrAdd(HtmlBehaviorResource);
-    resource.childExpression = new ChildObserver(property, changeHandler, selector);
-    return target;
+    var resource = _Metadata$Decorators.Metadata.on(target).firstOrAdd(_HtmlBehaviorResource.HtmlBehaviorResource);
+    resource.childExpression = new _ChildObserver.ChildObserver(property, changeHandler, selector);
   };
 }
 
-Decorators.configure.parameterizedDecorator("syncChildren", syncChildren);
+_Metadata$Decorators.Decorators.configure.parameterizedDecorator('syncChildren', syncChildren);
 
 function useShadowDOM(target) {
-  var resource = Metadata.on(target).firstOrAdd(HtmlBehaviorResource);
-  resource.useShadowDOM = true;
-  return target;
+  var deco = function deco(target) {
+    var resource = _Metadata$Decorators.Metadata.on(target).firstOrAdd(_HtmlBehaviorResource.HtmlBehaviorResource);
+    resource.useShadowDOM = true;
+  };
+
+  return target ? deco(target) : deco;
 }
 
-Decorators.configure.simpleDecorator("useShadowDOM", useShadowDOM);
+_Metadata$Decorators.Decorators.configure.simpleDecorator('useShadowDOM', useShadowDOM);
 
 function skipContentProcessing(target) {
-  var resource = Metadata.on(target).firstOrAdd(HtmlBehaviorResource);
-  resource.skipContentProcessing = true;
-  return target;
+  var deco = function deco(target) {
+    var resource = _Metadata$Decorators.Metadata.on(target).firstOrAdd(_HtmlBehaviorResource.HtmlBehaviorResource);
+    resource.skipContentProcessing = true;
+  };
+
+  return target ? deco(target) : deco;
 }
 
-Decorators.configure.simpleDecorator("skipContentProcessing", skipContentProcessing);
+_Metadata$Decorators.Decorators.configure.simpleDecorator('skipContentProcessing', skipContentProcessing);
 
 function useView(path) {
   return function (target) {
-    Metadata.on(target).add(new UseViewStrategy(path));
-    return target;
+    _Metadata$Decorators.Metadata.on(target).add(new _UseViewStrategy$NoViewStrategy.UseViewStrategy(path));
   };
 }
 
-Decorators.configure.parameterizedDecorator("useView", useView);
+_Metadata$Decorators.Decorators.configure.parameterizedDecorator('useView', useView);
 
 function noView(target) {
-  Metadata.on(target).add(new NoViewStrategy());
-  return target;
+  var deco = function deco(target) {
+    _Metadata$Decorators.Metadata.on(target).add(new _UseViewStrategy$NoViewStrategy.NoViewStrategy());
+  };
+
+  return target ? deco(target) : deco;
 }
 
-Decorators.configure.simpleDecorator("noView", noView);
+_Metadata$Decorators.Decorators.configure.simpleDecorator('noView', noView);
 
-function elementConfig() {
-  Metadata.on(target).add(new ElementConfigResource());
-  return target;
+function elementConfig(target) {
+  var deco = function deco(target) {
+    _Metadata$Decorators.Metadata.on(target).add(new _ElementConfigResource.ElementConfigResource());
+  };
+
+  return target ? deco(target) : deco;
 }
 
-Decorators.configure.simpleDecorator("elementConfig", elementConfig);
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
+_Metadata$Decorators.Decorators.configure.simpleDecorator('elementConfig', elementConfig);

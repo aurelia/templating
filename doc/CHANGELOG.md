@@ -1,3 +1,38 @@
+## 0.10.0 (2015-04-09)
+
+
+#### Bug Fixes
+
+* **BindableProperty:** added missing declaration ([0f0d0567](http://github.com/aurelia/templating/commit/0f0d0567c492aa997516ffc0e975b9fb8ac83449))
+* **ChildObserverBinder:** remove dup target assign ([cb2f343a](http://github.com/aurelia/templating/commit/cb2f343a5aaacd08d959be7b7eafca2f6f89113a))
+* **Decorators:** add missing parameter target ([7ccd5cee](http://github.com/aurelia/templating/commit/7ccd5cee89c5bce345618fecefbe8e42252acd16))
+* **ElementConfigResource:** return promise in load ([89b52cb1](http://github.com/aurelia/templating/commit/89b52cb166e9ac0952de6e7aec87c9cfc9751828))
+* **all:**
+  * update compiler and improve core-js integration ([b43caf77](http://github.com/aurelia/templating/commit/b43caf77237a53d064183f317c632cd8d88d3c32))
+  * bugs related to new behavior and decorator implementation ([65b7abde](http://github.com/aurelia/templating/commit/65b7abde78f4bb839eec9a8afbb06e2e0329c02a))
+* **bindable-property:**
+  * incorrect property names in ctor ([6c55c587](http://github.com/aurelia/templating/commit/6c55c5871f31501725df91a74b34384729901464))
+  * remove invalid reference ([b5d2faee](http://github.com/aurelia/templating/commit/b5d2faeebde136662cdcf17be9d342bda1f41c58))
+* **decorators:**
+  * resolve issue with initializer targeted bindable decorator ([41819464](http://github.com/aurelia/templating/commit/41819464cadfb682dca913de8a23676da2013a7c))
+  * more robust implementations to handle user variance ([c5fb9ef9](http://github.com/aurelia/templating/commit/c5fb9ef9ab4158381e631b7e84e65b4dba355ccf))
+  * parameterless decorators should not return a function ([b3cb56e1](http://github.com/aurelia/templating/commit/b3cb56e1bb74cbd95dc0868a50f57cab1a456fe1))
+* **html-behavior:**
+  * add missing parameter to compile method ([c51fe1ee](http://github.com/aurelia/templating/commit/c51fe1eeab67b2a733cca7f1d110269ecabae4bc))
+  * incorrect bindable property args ([df58e653](http://github.com/aurelia/templating/commit/df58e65318620b3499ead5525a5fc4468933e121))
+  * bad dynamic options ref ([d0b122f7](http://github.com/aurelia/templating/commit/d0b122f7c9293c442e0891e918646efd0212361f))
+  * incorrect property reference ([5d66373d](http://github.com/aurelia/templating/commit/5d66373d764d203b448d9d60b96f11e12f7b6562))
+  * remove invalid reference ([3b02673c](http://github.com/aurelia/templating/commit/3b02673c009af030bc7c4cc7e6abb595b835a1b1))
+* **view-strategy:** typo from rename ([c7cc8617](http://github.com/aurelia/templating/commit/c7cc861787e22e638d92270e94ddca3b57cb9ac2))
+
+
+#### Features
+
+* **all:** new decorator and behavior model ([7c7bc578](http://github.com/aurelia/templating/commit/7c7bc578313e23be4e773c9aa46d19b9f3c1c943))
+* **bindableProperty:** enable decorator to work with ES7 property initializers ([773c5eed](http://github.com/aurelia/templating/commit/773c5eed3e4c0b841aeb913dcf17095572b0710f))
+* **decorators:** rename bindableProperty to bindable ([b3f8a3b9](http://github.com/aurelia/templating/commit/b3f8a3b9b09528d43e947c141d0a199738fb1226))
+
+
 ## 0.9.0 (2015-03-25)
 
 

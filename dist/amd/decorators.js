@@ -1,11 +1,16 @@
-define(["exports", "aurelia-metadata", "./bindable-property", "./children", "./element-config", "./view-strategy", "./html-behavior"], function (exports, _aureliaMetadata, _bindableProperty, _children, _elementConfig, _viewStrategy, _htmlBehavior) {
-  "use strict";
+define(['exports', 'core-js', 'aurelia-metadata', './bindable-property', './children', './element-config', './view-strategy', './html-behavior'], function (exports, _coreJs, _aureliaMetadata, _bindableProperty, _children, _elementConfig, _viewStrategy, _htmlBehavior) {
+  'use strict';
 
+  var _interopRequire = function (obj) { return obj && obj.__esModule ? obj['default'] : obj; };
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
   exports.behavior = behavior;
   exports.customElement = customElement;
   exports.customAttribute = customAttribute;
   exports.templateController = templateController;
-  exports.bindableProperty = bindableProperty;
+  exports.bindable = bindable;
   exports.dynamicOptions = dynamicOptions;
   exports.syncChildren = syncChildren;
   exports.useShadowDOM = useShadowDOM;
@@ -13,123 +18,149 @@ define(["exports", "aurelia-metadata", "./bindable-property", "./children", "./e
   exports.useView = useView;
   exports.noView = noView;
   exports.elementConfig = elementConfig;
-  var Metadata = _aureliaMetadata.Metadata;
-  var Decorators = _aureliaMetadata.Decorators;
-  var BindableProperty = _bindableProperty.BindableProperty;
-  var ChildObserver = _children.ChildObserver;
-  var ElementConfigResource = _elementConfig.ElementConfigResource;
-  var UseViewStrategy = _viewStrategy.UseViewStrategy;
-  var NoViewStrategy = _viewStrategy.NoViewStrategy;
-  var HtmlBehaviorResource = _htmlBehavior.HtmlBehaviorResource;
+
+  var _core = _interopRequire(_coreJs);
 
   function behavior(override) {
     return function (target) {
-      var resource = Metadata.on(target).firstOrAdd(HtmlBehaviorResource);
-      Object.assign(resource, override);
-      return target;
+      var meta = _aureliaMetadata.Metadata.on(target);
+
+      if (override instanceof _htmlBehavior.HtmlBehaviorResource) {
+        meta.add(override);
+      } else {
+        var resource = meta.firstOrAdd(_htmlBehavior.HtmlBehaviorResource);
+        Object.assign(resource, override);
+      }
     };
   }
 
-  Decorators.configure.parameterizedDecorator("behavior", behavior);
+  _aureliaMetadata.Decorators.configure.parameterizedDecorator('behavior', behavior);
 
   function customElement(name) {
     return function (target) {
-      var resource = Metadata.on(target).firstOrAdd(HtmlBehaviorResource);
+      var resource = _aureliaMetadata.Metadata.on(target).firstOrAdd(_htmlBehavior.HtmlBehaviorResource);
       resource.elementName = name;
-      return target;
     };
   }
 
-  Decorators.configure.parameterizedDecorator("customElement", customElement);
+  _aureliaMetadata.Decorators.configure.parameterizedDecorator('customElement', customElement);
 
   function customAttribute(name) {
     return function (target) {
-      var resource = Metadata.on(target).firstOrAdd(HtmlBehaviorResource);
+      var resource = _aureliaMetadata.Metadata.on(target).firstOrAdd(_htmlBehavior.HtmlBehaviorResource);
       resource.attributeName = name;
-      return target;
     };
   }
 
-  Decorators.configure.parameterizedDecorator("customAttribute", customAttribute);
+  _aureliaMetadata.Decorators.configure.parameterizedDecorator('customAttribute', customAttribute);
 
   function templateController(target) {
-    var resource = Metadata.on(target).firstOrAdd(HtmlBehaviorResource);
-    resource.liftsContent = true;
-    return target;
-  }
-
-  Decorators.configure.simpleDecorator("templateController", templateController);
-
-  function bindableProperty(nameOrConfig) {
-    return function (target) {
-      var resource = Metadata.on(target).firstOrAdd(HtmlBehaviorResource),
-          prop = new BindableProperty(nameOrConfig);
-
-      prop.registerWith(target, resource);
-
-      return target;
+    var deco = function deco(target) {
+      var resource = _aureliaMetadata.Metadata.on(target).firstOrAdd(_htmlBehavior.HtmlBehaviorResource);
+      resource.liftsContent = true;
     };
+
+    return target ? deco(target) : deco;
   }
 
-  Decorators.configure.parameterizedDecorator("bindableProperty", bindableProperty);
+  _aureliaMetadata.Decorators.configure.simpleDecorator('templateController', templateController);
+
+  function bindable(nameOrConfigOrTarget, key, descriptor) {
+    var deco = function deco(target, key, descriptor) {
+      var resource = _aureliaMetadata.Metadata.on(target).firstOrAdd(_htmlBehavior.HtmlBehaviorResource),
+          prop;
+
+      if (key) {
+        nameOrConfigOrTarget = nameOrConfigOrTarget || {};
+        nameOrConfigOrTarget.name = key;
+      }
+
+      prop = new _bindableProperty.BindableProperty(nameOrConfigOrTarget);
+      prop.registerWith(target, resource);
+    };
+
+    if (!nameOrConfigOrTarget) {
+      return deco;
+    }
+
+    if (key) {
+      var target = nameOrConfigOrTarget.constructor;
+      nameOrConfigOrTarget = null;
+      return deco(target, key, descriptor);
+    }
+
+    return deco;
+  }
+
+  _aureliaMetadata.Decorators.configure.parameterizedDecorator('bindable', bindable);
 
   function dynamicOptions(target) {
-    var resource = Metadata.on(target).firstOrAdd(HtmlBehaviorResource);
-    resource.hasDynamicOptions = true;
-    return target;
+    var deco = function deco(target) {
+      var resource = _aureliaMetadata.Metadata.on(target).firstOrAdd(_htmlBehavior.HtmlBehaviorResource);
+      resource.hasDynamicOptions = true;
+    };
+
+    return target ? deco(target) : deco;
   }
 
-  Decorators.configure.simpleDecorator("dynamicOptions", dynamicOptions);
+  _aureliaMetadata.Decorators.configure.simpleDecorator('dynamicOptions', dynamicOptions);
 
   function syncChildren(property, changeHandler, selector) {
     return function (target) {
-      var resource = Metadata.on(target).firstOrAdd(HtmlBehaviorResource);
-      resource.childExpression = new ChildObserver(property, changeHandler, selector);
-      return target;
+      var resource = _aureliaMetadata.Metadata.on(target).firstOrAdd(_htmlBehavior.HtmlBehaviorResource);
+      resource.childExpression = new _children.ChildObserver(property, changeHandler, selector);
     };
   }
 
-  Decorators.configure.parameterizedDecorator("syncChildren", syncChildren);
+  _aureliaMetadata.Decorators.configure.parameterizedDecorator('syncChildren', syncChildren);
 
   function useShadowDOM(target) {
-    var resource = Metadata.on(target).firstOrAdd(HtmlBehaviorResource);
-    resource.useShadowDOM = true;
-    return target;
+    var deco = function deco(target) {
+      var resource = _aureliaMetadata.Metadata.on(target).firstOrAdd(_htmlBehavior.HtmlBehaviorResource);
+      resource.useShadowDOM = true;
+    };
+
+    return target ? deco(target) : deco;
   }
 
-  Decorators.configure.simpleDecorator("useShadowDOM", useShadowDOM);
+  _aureliaMetadata.Decorators.configure.simpleDecorator('useShadowDOM', useShadowDOM);
 
   function skipContentProcessing(target) {
-    var resource = Metadata.on(target).firstOrAdd(HtmlBehaviorResource);
-    resource.skipContentProcessing = true;
-    return target;
+    var deco = function deco(target) {
+      var resource = _aureliaMetadata.Metadata.on(target).firstOrAdd(_htmlBehavior.HtmlBehaviorResource);
+      resource.skipContentProcessing = true;
+    };
+
+    return target ? deco(target) : deco;
   }
 
-  Decorators.configure.simpleDecorator("skipContentProcessing", skipContentProcessing);
+  _aureliaMetadata.Decorators.configure.simpleDecorator('skipContentProcessing', skipContentProcessing);
 
   function useView(path) {
     return function (target) {
-      Metadata.on(target).add(new UseViewStrategy(path));
-      return target;
+      _aureliaMetadata.Metadata.on(target).add(new _viewStrategy.UseViewStrategy(path));
     };
   }
 
-  Decorators.configure.parameterizedDecorator("useView", useView);
+  _aureliaMetadata.Decorators.configure.parameterizedDecorator('useView', useView);
 
   function noView(target) {
-    Metadata.on(target).add(new NoViewStrategy());
-    return target;
+    var deco = function deco(target) {
+      _aureliaMetadata.Metadata.on(target).add(new _viewStrategy.NoViewStrategy());
+    };
+
+    return target ? deco(target) : deco;
   }
 
-  Decorators.configure.simpleDecorator("noView", noView);
+  _aureliaMetadata.Decorators.configure.simpleDecorator('noView', noView);
 
-  function elementConfig() {
-    Metadata.on(target).add(new ElementConfigResource());
-    return target;
+  function elementConfig(target) {
+    var deco = function deco(target) {
+      _aureliaMetadata.Metadata.on(target).add(new _elementConfig.ElementConfigResource());
+    };
+
+    return target ? deco(target) : deco;
   }
 
-  Decorators.configure.simpleDecorator("elementConfig", elementConfig);
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
+  _aureliaMetadata.Decorators.configure.simpleDecorator('elementConfig', elementConfig);
 });

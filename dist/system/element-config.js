@@ -1,5 +1,5 @@
-System.register(["aurelia-metadata", "aurelia-binding"], function (_export) {
-  var ResourceType, EventManager, _prototypeProperties, _inherits, _classCallCheck, ElementConfigResource;
+System.register(['aurelia-metadata', 'aurelia-binding'], function (_export) {
+  var ResourceType, EventManager, _classCallCheck, _createClass, _inherits, ElementConfigResource;
 
   return {
     setters: [function (_aureliaMetadata) {
@@ -8,45 +8,43 @@ System.register(["aurelia-metadata", "aurelia-binding"], function (_export) {
       EventManager = _aureliaBinding.EventManager;
     }],
     execute: function () {
-      "use strict";
+      'use strict';
 
-      _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+      _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } };
 
-      _inherits = function (subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
+      _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-      _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
+      _inherits = function (subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
 
-      ElementConfigResource = _export("ElementConfigResource", (function (ResourceType) {
+      ElementConfigResource = (function (_ResourceType) {
         function ElementConfigResource() {
           _classCallCheck(this, ElementConfigResource);
 
-          if (ResourceType != null) {
-            ResourceType.apply(this, arguments);
+          if (_ResourceType != null) {
+            _ResourceType.apply(this, arguments);
           }
         }
 
-        _inherits(ElementConfigResource, ResourceType);
+        _inherits(ElementConfigResource, _ResourceType);
 
-        _prototypeProperties(ElementConfigResource, null, {
-          load: {
-            value: function load(container, target) {
-              var config = new target(),
-                  eventManager = container.get(EventManager);
+        _createClass(ElementConfigResource, [{
+          key: 'load',
+          value: function load(container, target) {
+            var config = new target(),
+                eventManager = container.get(EventManager);
 
-              eventManager.registerElementConfig(config);
-            },
-            writable: true,
-            configurable: true
-          },
-          register: {
-            value: function register() {},
-            writable: true,
-            configurable: true
+            eventManager.registerElementConfig(config);
+            return Promise.resolve(this);
           }
-        });
+        }, {
+          key: 'register',
+          value: function register() {}
+        }]);
 
         return ElementConfigResource;
-      })(ResourceType));
+      })(ResourceType);
+
+      _export('ElementConfigResource', ElementConfigResource);
     }
   };
 });
