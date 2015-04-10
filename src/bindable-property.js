@@ -62,7 +62,7 @@ export class BindableProperty {
       return;
     }
 
-    if(this.changeHandler !== undefined){
+    if(this.changeHandler !== undefined && this.changeHandler !== null){
       selfSubscriber = (newValue, oldValue) => executionContext[this.changeHandler](newValue, oldValue);
     }
 
