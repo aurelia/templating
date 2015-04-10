@@ -4,7 +4,7 @@ import {TaskQueue} from 'aurelia-task-queue';
 import {ViewStrategy} from './view-strategy';
 import {ViewEngine} from './view-engine';
 import {ContentSelector} from './content-selector';
-import {hyphenate} from './util';
+import {hyphenate, swapLinksWithStyleContent} from './util';
 import {BindableProperty} from './bindable-property';
 import {BehaviorInstance} from './behavior-instance';
 
@@ -109,13 +109,22 @@ export class HtmlBehaviorResource extends ResourceType {
         viewStrategy.moduleId = Origin.get(target).moduleId;
       }
 
-      return viewStrategy.loadViewFactory(container.get(ViewEngine), options).then(viewFactory => {
-        if(!transientView){
-          this.viewFactory = viewFactory;
-        }
+      return viewStrategy.loadViewFactory(container.get(ViewEngine), options)
+        .then(viewFactory => {
+          if(!transientView){
+            this.viewFactory = viewFactory;
+          }
 
-        return viewFactory;
-      });
+          return viewFactory;
+        })
+        // inline stylesheets on shadowDOM elements
+        .then( viewFactory => {
+          if(this.targetShadowDOM){
+            return swapLinksWithStyleContent(viewFactory.template)
+              .then(template => viewFactory);
+          }
+          return viewFactory;
+        });
     }
 
     return Promise.resolve(this);
