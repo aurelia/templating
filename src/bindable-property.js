@@ -93,7 +93,7 @@ export class BindableProperty {
           observer.call();
         }else if(attribute){
           boundProperties.push({observer:observer, binding:attribute.createBinding(executionContext)});
-        }else if(this.defaultValue){
+        }else if(this.defaultValue !== undefined){
           executionContext[this.name] = this.defaultValue;
           observer.call();
         }
