@@ -72,7 +72,8 @@ export class HtmlBehaviorResource extends ResourceType {
 
       if(properties.length === 1){ //default for custom attributes
         current = properties[0];
-        current.isDynamic = current.hasOptions = this.hasDynamicOptions;
+        current.isDynamic = this.hasDynamicOptions;
+        current.hasOptions = current.isDynamic || current.name !== 'value';
         current.defineOn(target, this);
       } else{ //custom attribute with options
         for(i = 0, ii = properties.length; i < ii; ++i){
