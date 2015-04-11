@@ -70,8 +70,9 @@ export class HtmlBehaviorResource extends ResourceType {
         }).registerWith(target, this);
       }
 
-      if(properties.length === 1){ //default for custom attributes
-        current = properties[0];
+      current = properties[0];
+
+      if(properties.length === 1 && current.name === 'value'){ //default for custom attributes
         current.isDynamic = current.hasOptions = this.hasDynamicOptions;
         current.defineOn(target, this);
       } else{ //custom attribute with options

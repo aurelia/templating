@@ -36,6 +36,7 @@ define(['exports', 'core-js', './util', 'aurelia-binding'], function (exports, _
 
       this.attribute = this.attribute || _util.hyphenate(this.name);
       this.defaultBindingMode = this.defaultBindingMode || _aureliaBinding.ONE_WAY;
+      this.changeHandler = this.changeHandler || null;
       this.owner = null;
     }
 
@@ -52,7 +53,7 @@ define(['exports', 'core-js', './util', 'aurelia-binding'], function (exports, _
         var name = this.name,
             handlerName;
 
-        if (this.changeHandler === undefined) {
+        if (this.changeHandler === null) {
           handlerName = name + 'Changed';
           if (handlerName in target.prototype) {
             this.changeHandler = handlerName;
@@ -81,7 +82,7 @@ define(['exports', 'core-js', './util', 'aurelia-binding'], function (exports, _
           return;
         }
 
-        if (this.changeHandler !== undefined) {
+        if (this.changeHandler !== null) {
           selfSubscriber = function (newValue, oldValue) {
             return executionContext[_this.changeHandler](newValue, oldValue);
           };
@@ -114,7 +115,7 @@ define(['exports', 'core-js', './util', 'aurelia-binding'], function (exports, _
               observer.call();
             } else if (attribute) {
               boundProperties.push({ observer: observer, binding: attribute.createBinding(executionContext) });
-            } else if (this.defaultValue) {
+            } else if (this.defaultValue !== undefined) {
               executionContext[this.name] = this.defaultValue;
               observer.call();
             }

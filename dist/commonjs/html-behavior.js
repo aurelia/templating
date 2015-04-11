@@ -86,8 +86,9 @@ var HtmlBehaviorResource = (function (_ResourceType) {
           }).registerWith(target, this);
         }
 
-        if (properties.length === 1) {
-          current = properties[0];
+        current = properties[0];
+
+        if (properties.length === 1 && current.name === 'value') {
           current.isDynamic = current.hasOptions = this.hasDynamicOptions;
           current.defineOn(target, this);
         } else {

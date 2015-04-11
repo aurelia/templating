@@ -41,6 +41,7 @@ var BindableProperty = (function () {
 
     this.attribute = this.attribute || _hyphenate.hyphenate(this.name);
     this.defaultBindingMode = this.defaultBindingMode || _ONE_WAY$TWO_WAY$ONE_TIME.ONE_WAY;
+    this.changeHandler = this.changeHandler || null;
     this.owner = null;
   }
 
@@ -57,7 +58,7 @@ var BindableProperty = (function () {
       var name = this.name,
           handlerName;
 
-      if (this.changeHandler === undefined) {
+      if (this.changeHandler === null) {
         handlerName = name + 'Changed';
         if (handlerName in target.prototype) {
           this.changeHandler = handlerName;
@@ -86,7 +87,7 @@ var BindableProperty = (function () {
         return;
       }
 
-      if (this.changeHandler !== undefined) {
+      if (this.changeHandler !== null) {
         selfSubscriber = function (newValue, oldValue) {
           return executionContext[_this.changeHandler](newValue, oldValue);
         };
@@ -119,7 +120,7 @@ var BindableProperty = (function () {
             observer.call();
           } else if (attribute) {
             boundProperties.push({ observer: observer, binding: attribute.createBinding(executionContext) });
-          } else if (this.defaultValue) {
+          } else if (this.defaultValue !== undefined) {
             executionContext[this.name] = this.defaultValue;
             observer.call();
           }

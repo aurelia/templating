@@ -23,6 +23,7 @@ export class BindableProperty {
 
     this.attribute = this.attribute || hyphenate(this.name);
     this.defaultBindingMode = this.defaultBindingMode || ONE_WAY;
+    this.changeHandler = this.changeHandler || null;
     this.owner = null;
   }
 
@@ -36,7 +37,7 @@ export class BindableProperty {
     var name = this.name,
         handlerName;
 
-    if(this.changeHandler === undefined){
+    if(this.changeHandler === null){
       handlerName = name + 'Changed';
       if(handlerName in target.prototype){
         this.changeHandler = handlerName;
@@ -62,7 +63,7 @@ export class BindableProperty {
       return;
     }
 
-    if(this.changeHandler !== undefined){
+    if(this.changeHandler !== null){
       selfSubscriber = (newValue, oldValue) => executionContext[this.changeHandler](newValue, oldValue);
     }
 
@@ -92,7 +93,7 @@ export class BindableProperty {
           observer.call();
         }else if(attribute){
           boundProperties.push({observer:observer, binding:attribute.createBinding(executionContext)});
-        }else if(this.defaultValue){
+        }else if(this.defaultValue !== undefined){
           executionContext[this.name] = this.defaultValue;
           observer.call();
         }

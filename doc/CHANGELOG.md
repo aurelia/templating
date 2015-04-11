@@ -1,3 +1,15 @@
+### 0.10.2 (2015-04-11)
+
+
+#### Bug Fixes
+
+* **bindable-property:**
+  * set default if not undefined ([98e479ad](http://github.com/aurelia/templating/commit/98e479ad621197db2335340cc7bea052e658bf76))
+  * ensure changeHandler is always defined, but null by default ([6de4f87e](http://github.com/aurelia/templating/commit/6de4f87e5115819eaa1dc5ff2fab1febfd07ff8a))
+* **html-behavior:** custom attrs with one property that is not value should be options ([8486dc45](http://github.com/aurelia/templating/commit/8486dc45a0196ffffbf2c2b9663cab538cfaf22b))
+* **html-bheavior:** incorrect identification of options attributes ([ebef7461](http://github.com/aurelia/templating/commit/ebef746164c90feb1d9861f1a599eb4fb0925a25))
+
+
 ### 0.10.1 (2015-04-09)
 
 
