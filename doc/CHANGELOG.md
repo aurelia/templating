@@ -1,3 +1,11 @@
+### 0.10.3 (2015-04-12)
+
+
+#### Bug Fixes
+
+* **view-strategy:** typo in view strategy normalization ([831489ee](http://github.com/aurelia/templating/commit/831489ee838b586ac8ec5a3be9afb43649e2a6fa), closes [#54](http://github.com/aurelia/templating/issues/54))
+
+
 ### 0.10.2 (2015-04-11)
 
 

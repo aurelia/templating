@@ -30,7 +30,7 @@ define(['exports', 'aurelia-metadata', 'aurelia-path'], function (exports, _aure
       key: 'normalize',
       value: function normalize(value) {
         if (typeof value === 'string') {
-          value = new UseView(value);
+          value = new UseViewStrategy(value);
         }
 
         if (value && !(value instanceof ViewStrategy)) {
