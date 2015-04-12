@@ -10,7 +10,7 @@ export class ViewStrategy {
 
   static normalize(value){
     if(typeof value === 'string'){
-      value = new UseView(value);
+      value = new UseViewStrategy(value);
     }
 
     if(value && !(value instanceof ViewStrategy)){
