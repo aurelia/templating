@@ -1,7 +1,7 @@
 import {Origin,Metadata} from 'aurelia-metadata';
 import {ViewStrategy, UseViewStrategy} from './view-strategy';
 import {ViewEngine} from './view-engine';
-import {HtmlBehaviorResource} from './html-behavior';
+import {HtmlBehaviorResource} from './view-engine';
 
 export class CompositionEngine {
   static inject(){ return [ViewEngine]; }
