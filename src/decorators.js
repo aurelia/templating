@@ -4,7 +4,7 @@ import {BindableProperty} from './bindable-property';
 import {ChildObserver} from './children';
 import {ElementConfigResource} from './element-config';
 import {UseViewStrategy, NoViewStrategy} from './view-strategy';
-import {HtmlBehaviorResource} from './html-behavior';
+import {HtmlBehaviorResource} from './view-engine';
 
 export function behavior(override){
   return function(target){
