@@ -1,4 +1,4 @@
-export {HtmlBehaviorResource} from './html-behavior';
+export {HtmlBehaviorResource} from './view-engine';
 export {BindableProperty} from './bindable-property';
 export {ResourceRegistry, ViewResources} from './resource-registry';
 export {ChildObserver} from './children';
