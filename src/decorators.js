@@ -52,16 +52,17 @@ Decorators.configure.simpleDecorator('templateController', templateController);
 
 export function bindable(nameOrConfigOrTarget, key, descriptor){
   var deco = function(target, key, descriptor){
-    var resource = Metadata.on(target).firstOrAdd(HtmlBehaviorResource),
+    var actualTarget = key ? target.constructor : target, //is it on a property or a class?
+        resource = Metadata.on(actualTarget).firstOrAdd(HtmlBehaviorResource),
         prop;
 
-    if(key){
+    if(key){ //is it on a property or a class?
       nameOrConfigOrTarget = nameOrConfigOrTarget || {};
       nameOrConfigOrTarget.name = key;
     }
 
     prop = new BindableProperty(nameOrConfigOrTarget);
-    prop.registerWith(target, resource);
+    prop.registerWith(actualTarget, resource);
   };
 
   if(!nameOrConfigOrTarget){ //placed on property initializer with parens
@@ -69,7 +70,7 @@ export function bindable(nameOrConfigOrTarget, key, descriptor){
   }
 
   if(key){ //placed on a property initializer without parens
-    var target = nameOrConfigOrTarget.constructor;
+    var target = nameOrConfigOrTarget;
     nameOrConfigOrTarget = null;
     return deco(target, key, descriptor);
   }
