@@ -103,7 +103,7 @@ Decorators.configure.parameterizedDecorator('syncChildren', syncChildren);
 export function useShadowDOM(target){
   var deco = function(target){
     var resource = Metadata.on(target).firstOrAdd(HtmlBehaviorResource);
-    resource.useShadowDOM = true;
+    resource.targetShadowDOM = true;
   };
 
   return target ? deco(target) : deco;
