@@ -51,7 +51,7 @@ Decorators.configure.simpleDecorator('templateController', templateController);
 export function bindable(nameOrConfigOrTarget, key, descriptor){
   var deco = function(target, key, descriptor){
     var actualTarget = key ? target.constructor : target, //is it on a property or a class?
-        resource = Metadata.getOrCreateOwn(Metadata.resource, HtmlBehaviorResource, target),
+        resource = Metadata.getOrCreateOwn(Metadata.resource, HtmlBehaviorResource, actualTarget),
         prop;
 
     if(key){ //is it on a property or a class?
