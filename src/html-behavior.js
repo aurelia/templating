@@ -1,4 +1,4 @@
-import {Metadata, Origin, ResourceType} from 'aurelia-metadata';
+import {Origin} from 'aurelia-metadata';
 import {ObserverLocator} from 'aurelia-binding';
 import {TaskQueue} from 'aurelia-task-queue';
 import {ViewStrategy} from './view-strategy';
@@ -12,9 +12,8 @@ var defaultInstruction = { suppressBind:false },
     contentSelectorFactoryOptions = { suppressBind:true },
     hasShadowDOM = !!HTMLElement.prototype.createShadowRoot;
 
-export class HtmlBehaviorResource extends ResourceType {
+export class HtmlBehaviorResource {
   constructor(){
-    super();
     this.elementName = null;
     this.attributeName = null;
     this.liftsContent = false;

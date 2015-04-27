@@ -1,4 +1,4 @@
-import {Metadata, ResourceType} from 'aurelia-metadata';
+import {Metadata} from 'aurelia-metadata';
 import {TemplateRegistryEntry} from 'aurelia-loader';
 import {ValueConverterResource} from 'aurelia-binding';
 import {HtmlBehaviorResource} from './html-behavior';
@@ -99,18 +99,14 @@ class ResourceModule {
 }
 
 class ResourceDescription {
-  constructor(key, exportedValue, allMetadata, resourceTypeMeta){
+  constructor(key, exportedValue, resourceTypeMeta){
     if(!resourceTypeMeta){
-      if(!allMetadata){
-        allMetadata = Metadata.on(exportedValue);
-      }
-
-      resourceTypeMeta = allMetadata.first(ResourceType);
+      resourceTypeMeta = Metadata.get(Metadata.resource, exportedValue);
 
       if(!resourceTypeMeta){
         resourceTypeMeta = new HtmlBehaviorResource();
         resourceTypeMeta.elementName = hyphenate(key);
-        allMetadata.add(resourceTypeMeta);
+        Reflect.defineMetadata(Metadata.resource, resourceTypeMeta, exportedValue);
       }
     }
 
@@ -144,7 +140,7 @@ export class ModuleAnalyzer {
   }
 
   analyze(moduleId, moduleInstance, viewModelMember){
-    var mainResource, fallbackValue, fallbackKey, fallbackMetadata, resourceTypeMeta, key, allMetadata,
+    var mainResource, fallbackValue, fallbackKey, resourceTypeMeta, key,
         exportedValue, resources = [], conventional, viewStrategy, resourceModule;
 
     resourceModule = this.cache[moduleId];
@@ -170,8 +166,7 @@ export class ModuleAnalyzer {
         continue;
       }
 
-      allMetadata = Metadata.on(exportedValue);
-      resourceTypeMeta = allMetadata.first(ResourceType);
+      resourceTypeMeta = Metadata.get(Metadata.resource, exportedValue);
 
       if(resourceTypeMeta){
         if(resourceTypeMeta.attributeName === null && resourceTypeMeta.elementName === null){
@@ -185,9 +180,9 @@ export class ModuleAnalyzer {
         }
 
         if(!mainResource && resourceTypeMeta instanceof HtmlBehaviorResource && resourceTypeMeta.elementName !== null){
-          mainResource = new ResourceDescription(key, exportedValue, allMetadata, resourceTypeMeta);
+          mainResource = new ResourceDescription(key, exportedValue, resourceTypeMeta);
         }else{
-          resources.push(new ResourceDescription(key, exportedValue, allMetadata, resourceTypeMeta));
+          resources.push(new ResourceDescription(key, exportedValue, resourceTypeMeta));
         }
       } else if(exportedValue instanceof ViewStrategy){
         viewStrategy = exportedValue;
@@ -196,25 +191,24 @@ export class ModuleAnalyzer {
       } else {
         if(conventional = HtmlBehaviorResource.convention(key)){
           if(conventional.elementName !== null && !mainResource){
-            mainResource = new ResourceDescription(key, exportedValue, allMetadata, conventional);
+            mainResource = new ResourceDescription(key, exportedValue, conventional);
           }else{
-            resources.push(new ResourceDescription(key, exportedValue, allMetadata, conventional));
+            resources.push(new ResourceDescription(key, exportedValue, conventional));
           }
 
-          allMetadata.add(conventional);
+          Reflect.defineMetadata(Metadata.resource, conventional, exportedValue);
         } else if(conventional = ValueConverterResource.convention(key)) {
-          resources.push(new ResourceDescription(key, exportedValue, allMetadata, conventional));
-          allMetadata.add(conventional);
+          resources.push(new ResourceDescription(key, exportedValue, conventional));
+          Reflect.defineMetadata(Metadata.resource, conventional, exportedValue);
         } else if(!fallbackValue){
           fallbackValue = exportedValue;
           fallbackKey = key;
-          fallbackMetadata = allMetadata;
         }
       }
     }
 
     if(!mainResource && fallbackValue){
-      mainResource = new ResourceDescription(fallbackKey, fallbackValue, fallbackMetadata);
+      mainResource = new ResourceDescription(fallbackKey, fallbackValue);
     }
 
     resourceModule.moduleInstance = moduleInstance;
