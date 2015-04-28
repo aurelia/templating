@@ -1,6 +1,6 @@
 import core from 'core-js';
 import {hyphenate} from './util';
-import {ONE_WAY,TWO_WAY,ONE_TIME} from 'aurelia-binding';
+import {bindingMode} from 'aurelia-binding';
 
 function getObserver(behavior, instance, name){
   var lookup = instance.__observers__;
@@ -22,7 +22,7 @@ export class BindableProperty {
     }
 
     this.attribute = this.attribute || hyphenate(this.name);
-    this.defaultBindingMode = this.defaultBindingMode || ONE_WAY;
+    this.defaultBindingMode = this.defaultBindingMode || bindingMode.oneWay;
     this.changeHandler = this.changeHandler || null;
     this.owner = null;
   }
