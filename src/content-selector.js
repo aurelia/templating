@@ -17,7 +17,7 @@ function findInsertionPoint(groups, index){
     index--;
   }
 
-  return insertionPoint || anchor;
+  return insertionPoint;
 }
 
 export class ContentSelector {
