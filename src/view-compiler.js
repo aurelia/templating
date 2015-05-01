@@ -51,7 +51,7 @@ export class ViewCompiler {
   compile(templateOrFragment, resources, options=defaultCompileOptions){
     var instructions = [],
         targetShadowDOM = options.targetShadowDOM,
-        content;
+        content, template;
 
     targetShadowDOM = targetShadowDOM && hasShadowDOM;
 
@@ -59,6 +59,19 @@ export class ViewCompiler {
       options.beforeCompile(templateOrFragment);
     }
 
+    if(typeof templateOrFragment === 'string'){
+      template = document.createElement('template');
+      template.innerHTML = templateOrFragment;
+      if(!hasTemplateElement){
+        template.content = document.createDocumentFragment();
+        while(template.firstChild){
+          template.content.appendChild(template.firstChild);
+        }
+      }
+      
+      templateOrFragment = template;
+    }
+    
     if(templateOrFragment.content){
       content = document.adoptNode(templateOrFragment.content, true);
     }else{
