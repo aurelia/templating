@@ -3,9 +3,7 @@ define(['exports', 'core-js', 'aurelia-metadata', './bindable-property', './chil
 
   var _interopRequire = function (obj) { return obj && obj.__esModule ? obj['default'] : obj; };
 
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
+  exports.__esModule = true;
   exports.behavior = behavior;
   exports.customElement = customElement;
   exports.customAttribute = customAttribute;
@@ -15,6 +13,7 @@ define(['exports', 'core-js', 'aurelia-metadata', './bindable-property', './chil
   exports.syncChildren = syncChildren;
   exports.useShadowDOM = useShadowDOM;
   exports.skipContentProcessing = skipContentProcessing;
+  exports.viewStrategy = viewStrategy;
   exports.useView = useView;
   exports.noView = noView;
   exports.elementConfig = elementConfig;
@@ -23,12 +22,10 @@ define(['exports', 'core-js', 'aurelia-metadata', './bindable-property', './chil
 
   function behavior(override) {
     return function (target) {
-      var meta = _aureliaMetadata.Metadata.on(target);
-
       if (override instanceof _htmlBehavior.HtmlBehaviorResource) {
-        meta.add(override);
+        Reflect.defineMetadata(_aureliaMetadata.Metadata.resource, override, target);
       } else {
-        var resource = meta.firstOrAdd(_htmlBehavior.HtmlBehaviorResource);
+        var resource = _aureliaMetadata.Metadata.getOrCreateOwn(_aureliaMetadata.Metadata.resource, _htmlBehavior.HtmlBehaviorResource, target);
         Object.assign(resource, override);
       }
     };
@@ -38,7 +35,7 @@ define(['exports', 'core-js', 'aurelia-metadata', './bindable-property', './chil
 
   function customElement(name) {
     return function (target) {
-      var resource = _aureliaMetadata.Metadata.on(target).firstOrAdd(_htmlBehavior.HtmlBehaviorResource);
+      var resource = _aureliaMetadata.Metadata.getOrCreateOwn(_aureliaMetadata.Metadata.resource, _htmlBehavior.HtmlBehaviorResource, target);
       resource.elementName = name;
     };
   }
@@ -47,7 +44,7 @@ define(['exports', 'core-js', 'aurelia-metadata', './bindable-property', './chil
 
   function customAttribute(name) {
     return function (target) {
-      var resource = _aureliaMetadata.Metadata.on(target).firstOrAdd(_htmlBehavior.HtmlBehaviorResource);
+      var resource = _aureliaMetadata.Metadata.getOrCreateOwn(_aureliaMetadata.Metadata.resource, _htmlBehavior.HtmlBehaviorResource, target);
       resource.attributeName = name;
     };
   }
@@ -56,7 +53,7 @@ define(['exports', 'core-js', 'aurelia-metadata', './bindable-property', './chil
 
   function templateController(target) {
     var deco = function deco(target) {
-      var resource = _aureliaMetadata.Metadata.on(target).firstOrAdd(_htmlBehavior.HtmlBehaviorResource);
+      var resource = _aureliaMetadata.Metadata.getOrCreateOwn(_aureliaMetadata.Metadata.resource, _htmlBehavior.HtmlBehaviorResource, target);
       resource.liftsContent = true;
     };
 
@@ -67,7 +64,8 @@ define(['exports', 'core-js', 'aurelia-metadata', './bindable-property', './chil
 
   function bindable(nameOrConfigOrTarget, key, descriptor) {
     var deco = function deco(target, key, descriptor) {
-      var resource = _aureliaMetadata.Metadata.on(target).firstOrAdd(_htmlBehavior.HtmlBehaviorResource),
+      var actualTarget = key ? target.constructor : target,
+          resource = _aureliaMetadata.Metadata.getOrCreateOwn(_aureliaMetadata.Metadata.resource, _htmlBehavior.HtmlBehaviorResource, actualTarget),
           prop;
 
       if (key) {
@@ -76,7 +74,7 @@ define(['exports', 'core-js', 'aurelia-metadata', './bindable-property', './chil
       }
 
       prop = new _bindableProperty.BindableProperty(nameOrConfigOrTarget);
-      prop.registerWith(target, resource);
+      prop.registerWith(actualTarget, resource);
     };
 
     if (!nameOrConfigOrTarget) {
@@ -84,7 +82,7 @@ define(['exports', 'core-js', 'aurelia-metadata', './bindable-property', './chil
     }
 
     if (key) {
-      var target = nameOrConfigOrTarget.constructor;
+      var target = nameOrConfigOrTarget;
       nameOrConfigOrTarget = null;
       return deco(target, key, descriptor);
     }
@@ -96,7 +94,7 @@ define(['exports', 'core-js', 'aurelia-metadata', './bindable-property', './chil
 
   function dynamicOptions(target) {
     var deco = function deco(target) {
-      var resource = _aureliaMetadata.Metadata.on(target).firstOrAdd(_htmlBehavior.HtmlBehaviorResource);
+      var resource = _aureliaMetadata.Metadata.getOrCreateOwn(_aureliaMetadata.Metadata.resource, _htmlBehavior.HtmlBehaviorResource, target);
       resource.hasDynamicOptions = true;
     };
 
@@ -107,7 +105,7 @@ define(['exports', 'core-js', 'aurelia-metadata', './bindable-property', './chil
 
   function syncChildren(property, changeHandler, selector) {
     return function (target) {
-      var resource = _aureliaMetadata.Metadata.on(target).firstOrAdd(_htmlBehavior.HtmlBehaviorResource);
+      var resource = _aureliaMetadata.Metadata.getOrCreateOwn(_aureliaMetadata.Metadata.resource, _htmlBehavior.HtmlBehaviorResource, target);
       resource.childExpression = new _children.ChildObserver(property, changeHandler, selector);
     };
   }
@@ -116,8 +114,8 @@ define(['exports', 'core-js', 'aurelia-metadata', './bindable-property', './chil
 
   function useShadowDOM(target) {
     var deco = function deco(target) {
-      var resource = _aureliaMetadata.Metadata.on(target).firstOrAdd(_htmlBehavior.HtmlBehaviorResource);
-      resource.useShadowDOM = true;
+      var resource = _aureliaMetadata.Metadata.getOrCreateOwn(_aureliaMetadata.Metadata.resource, _htmlBehavior.HtmlBehaviorResource, target);
+      resource.targetShadowDOM = true;
     };
 
     return target ? deco(target) : deco;
@@ -127,7 +125,7 @@ define(['exports', 'core-js', 'aurelia-metadata', './bindable-property', './chil
 
   function skipContentProcessing(target) {
     var deco = function deco(target) {
-      var resource = _aureliaMetadata.Metadata.on(target).firstOrAdd(_htmlBehavior.HtmlBehaviorResource);
+      var resource = _aureliaMetadata.Metadata.getOrCreateOwn(_aureliaMetadata.Metadata.resource, _htmlBehavior.HtmlBehaviorResource, target);
       resource.skipContentProcessing = true;
     };
 
@@ -136,17 +134,23 @@ define(['exports', 'core-js', 'aurelia-metadata', './bindable-property', './chil
 
   _aureliaMetadata.Decorators.configure.simpleDecorator('skipContentProcessing', skipContentProcessing);
 
-  function useView(path) {
+  function viewStrategy(strategy) {
     return function (target) {
-      _aureliaMetadata.Metadata.on(target).add(new _viewStrategy.UseViewStrategy(path));
+      Reflect.defineMetadata(_viewStrategy.ViewStrategy.metadataKey, strategy, target);
     };
+  }
+
+  _aureliaMetadata.Decorators.configure.parameterizedDecorator('viewStrategy', useView);
+
+  function useView(path) {
+    return viewStrategy(new _viewStrategy.UseViewStrategy(path));
   }
 
   _aureliaMetadata.Decorators.configure.parameterizedDecorator('useView', useView);
 
   function noView(target) {
     var deco = function deco(target) {
-      _aureliaMetadata.Metadata.on(target).add(new _viewStrategy.NoViewStrategy());
+      Reflect.defineMetadata(_viewStrategy.ViewStrategy.metadataKey, new _viewStrategy.NoViewStrategy(), target);
     };
 
     return target ? deco(target) : deco;
@@ -156,7 +160,7 @@ define(['exports', 'core-js', 'aurelia-metadata', './bindable-property', './chil
 
   function elementConfig(target) {
     var deco = function deco(target) {
-      _aureliaMetadata.Metadata.on(target).add(new _elementConfig.ElementConfigResource());
+      Reflect.defineMetadata(_aureliaMetadata.Metadata.resource, new _elementConfig.ElementConfigResource(), target);
     };
 
     return target ? deco(target) : deco;

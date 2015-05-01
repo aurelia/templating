@@ -1,5 +1,5 @@
 System.register(['core-js'], function (_export) {
-  var core, _classCallCheck, _createClass, proto, placeholder, ContentSelector;
+  var core, _classCallCheck, proto, placeholder, ContentSelector;
 
   function findInsertionPoint(groups, index) {
     var insertionPoint;
@@ -9,7 +9,7 @@ System.register(['core-js'], function (_export) {
       index--;
     }
 
-    return insertionPoint || anchor;
+    return insertionPoint;
   }
 
   return {
@@ -20,8 +20,6 @@ System.register(['core-js'], function (_export) {
       'use strict';
 
       _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } };
-
-      _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
       if (Element && !Element.prototype.matches) {
         proto = Element.prototype;
@@ -41,20 +39,71 @@ System.register(['core-js'], function (_export) {
           this.groups = [];
         }
 
-        _createClass(ContentSelector, [{
-          key: 'copyForViewSlot',
-          value: function copyForViewSlot() {
-            return new ContentSelector(this.anchor, this.selector);
+        ContentSelector.applySelectors = function applySelectors(view, contentSelectors, callback) {
+          var currentChild = view.fragment.firstChild,
+              contentMap = new Map(),
+              nextSibling,
+              i,
+              ii,
+              contentSelector;
+
+          while (currentChild) {
+            nextSibling = currentChild.nextSibling;
+
+            if (currentChild.viewSlot) {
+              var viewSlotSelectors = contentSelectors.map(function (x) {
+                return x.copyForViewSlot();
+              });
+              currentChild.viewSlot.installContentSelectors(viewSlotSelectors);
+            } else {
+              for (i = 0, ii = contentSelectors.length; i < ii; i++) {
+                contentSelector = contentSelectors[i];
+                if (contentSelector.matches(currentChild)) {
+                  var elements = contentMap.get(contentSelector);
+                  if (!elements) {
+                    elements = [];
+                    contentMap.set(contentSelector, elements);
+                  }
+
+                  elements.push(currentChild);
+                  break;
+                }
+              }
+            }
+
+            currentChild = nextSibling;
           }
-        }, {
-          key: 'matches',
-          value: function matches(node) {
-            return this.all || node.nodeType === 1 && node.matches(this.selector);
+
+          for (i = 0, ii = contentSelectors.length; i < ii; ++i) {
+            contentSelector = contentSelectors[i];
+            callback(contentSelector, contentMap.get(contentSelector) || placeholder);
           }
-        }, {
-          key: 'add',
-          value: function add(group) {
-            var anchor = this.anchor,
+        };
+
+        ContentSelector.prototype.copyForViewSlot = function copyForViewSlot() {
+          return new ContentSelector(this.anchor, this.selector);
+        };
+
+        ContentSelector.prototype.matches = function matches(node) {
+          return this.all || node.nodeType === 1 && node.matches(this.selector);
+        };
+
+        ContentSelector.prototype.add = function add(group) {
+          var anchor = this.anchor,
+              parent = anchor.parentNode,
+              i,
+              ii;
+
+          for (i = 0, ii = group.length; i < ii; ++i) {
+            parent.insertBefore(group[i], anchor);
+          }
+
+          this.groups.push(group);
+        };
+
+        ContentSelector.prototype.insert = function insert(index, group) {
+          if (group.length) {
+            var anchor = findInsertionPoint(this.groups, index) || this.anchor,
                 parent = anchor.parentNode,
                 i,
                 ii;
@@ -62,81 +111,22 @@ System.register(['core-js'], function (_export) {
             for (i = 0, ii = group.length; i < ii; ++i) {
               parent.insertBefore(group[i], anchor);
             }
-
-            this.groups.push(group);
           }
-        }, {
-          key: 'insert',
-          value: function insert(index, group) {
-            if (group.length) {
-              var anchor = findInsertionPoint(this.groups, index) || this.anchor,
-                  parent = anchor.parentNode,
-                  i,
-                  ii;
 
-              for (i = 0, ii = group.length; i < ii; ++i) {
-                parent.insertBefore(group[i], anchor);
-              }
-            }
+          this.groups.splice(index, 0, group);
+        };
 
-            this.groups.splice(index, 0, group);
+        ContentSelector.prototype.removeAt = function removeAt(index, fragment) {
+          var group = this.groups[index],
+              i,
+              ii;
+
+          for (i = 0, ii = group.length; i < ii; ++i) {
+            fragment.appendChild(group[i]);
           }
-        }, {
-          key: 'removeAt',
-          value: function removeAt(index, fragment) {
-            var group = this.groups[index],
-                i,
-                ii;
 
-            for (i = 0, ii = group.length; i < ii; ++i) {
-              fragment.appendChild(group[i]);
-            }
-
-            this.groups.splice(index, 1);
-          }
-        }], [{
-          key: 'applySelectors',
-          value: function applySelectors(view, contentSelectors, callback) {
-            var currentChild = view.fragment.firstChild,
-                contentMap = new Map(),
-                nextSibling,
-                i,
-                ii,
-                contentSelector;
-
-            while (currentChild) {
-              nextSibling = currentChild.nextSibling;
-
-              if (currentChild.viewSlot) {
-                var viewSlotSelectors = contentSelectors.map(function (x) {
-                  return x.copyForViewSlot();
-                });
-                currentChild.viewSlot.installContentSelectors(viewSlotSelectors);
-              } else {
-                for (i = 0, ii = contentSelectors.length; i < ii; i++) {
-                  contentSelector = contentSelectors[i];
-                  if (contentSelector.matches(currentChild)) {
-                    var elements = contentMap.get(contentSelector);
-                    if (!elements) {
-                      elements = [];
-                      contentMap.set(contentSelector, elements);
-                    }
-
-                    elements.push(currentChild);
-                    break;
-                  }
-                }
-              }
-
-              currentChild = nextSibling;
-            }
-
-            for (i = 0, ii = contentSelectors.length; i < ii; ++i) {
-              contentSelector = contentSelectors[i];
-              callback(contentSelector, contentMap.get(contentSelector) || placeholder);
-            }
-          }
-        }]);
+          this.groups.splice(index, 1);
+        };
 
         return ContentSelector;
       })();

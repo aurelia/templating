@@ -1,10 +1,8 @@
 'use strict';
 
-var _interopRequireWildcard = function (obj) { return obj && obj.__esModule ? obj : { 'default': obj }; };
+var _interopRequireDefault = function (obj) { return obj && obj.__esModule ? obj : { 'default': obj }; };
 
-Object.defineProperty(exports, '__esModule', {
-  value: true
-});
+exports.__esModule = true;
 exports.behavior = behavior;
 exports.customElement = customElement;
 exports.customAttribute = customAttribute;
@@ -14,13 +12,14 @@ exports.dynamicOptions = dynamicOptions;
 exports.syncChildren = syncChildren;
 exports.useShadowDOM = useShadowDOM;
 exports.skipContentProcessing = skipContentProcessing;
+exports.viewStrategy = viewStrategy;
 exports.useView = useView;
 exports.noView = noView;
 exports.elementConfig = elementConfig;
 
 var _core = require('core-js');
 
-var _core2 = _interopRequireWildcard(_core);
+var _core2 = _interopRequireDefault(_core);
 
 var _Metadata$Decorators = require('aurelia-metadata');
 
@@ -30,18 +29,16 @@ var _ChildObserver = require('./children');
 
 var _ElementConfigResource = require('./element-config');
 
-var _UseViewStrategy$NoViewStrategy = require('./view-strategy');
+var _ViewStrategy$UseViewStrategy$NoViewStrategy = require('./view-strategy');
 
 var _HtmlBehaviorResource = require('./html-behavior');
 
 function behavior(override) {
   return function (target) {
-    var meta = _Metadata$Decorators.Metadata.on(target);
-
     if (override instanceof _HtmlBehaviorResource.HtmlBehaviorResource) {
-      meta.add(override);
+      Reflect.defineMetadata(_Metadata$Decorators.Metadata.resource, override, target);
     } else {
-      var resource = meta.firstOrAdd(_HtmlBehaviorResource.HtmlBehaviorResource);
+      var resource = _Metadata$Decorators.Metadata.getOrCreateOwn(_Metadata$Decorators.Metadata.resource, _HtmlBehaviorResource.HtmlBehaviorResource, target);
       Object.assign(resource, override);
     }
   };
@@ -51,7 +48,7 @@ _Metadata$Decorators.Decorators.configure.parameterizedDecorator('behavior', beh
 
 function customElement(name) {
   return function (target) {
-    var resource = _Metadata$Decorators.Metadata.on(target).firstOrAdd(_HtmlBehaviorResource.HtmlBehaviorResource);
+    var resource = _Metadata$Decorators.Metadata.getOrCreateOwn(_Metadata$Decorators.Metadata.resource, _HtmlBehaviorResource.HtmlBehaviorResource, target);
     resource.elementName = name;
   };
 }
@@ -60,7 +57,7 @@ _Metadata$Decorators.Decorators.configure.parameterizedDecorator('customElement'
 
 function customAttribute(name) {
   return function (target) {
-    var resource = _Metadata$Decorators.Metadata.on(target).firstOrAdd(_HtmlBehaviorResource.HtmlBehaviorResource);
+    var resource = _Metadata$Decorators.Metadata.getOrCreateOwn(_Metadata$Decorators.Metadata.resource, _HtmlBehaviorResource.HtmlBehaviorResource, target);
     resource.attributeName = name;
   };
 }
@@ -69,7 +66,7 @@ _Metadata$Decorators.Decorators.configure.parameterizedDecorator('customAttribut
 
 function templateController(target) {
   var deco = function deco(target) {
-    var resource = _Metadata$Decorators.Metadata.on(target).firstOrAdd(_HtmlBehaviorResource.HtmlBehaviorResource);
+    var resource = _Metadata$Decorators.Metadata.getOrCreateOwn(_Metadata$Decorators.Metadata.resource, _HtmlBehaviorResource.HtmlBehaviorResource, target);
     resource.liftsContent = true;
   };
 
@@ -80,7 +77,8 @@ _Metadata$Decorators.Decorators.configure.simpleDecorator('templateController', 
 
 function bindable(nameOrConfigOrTarget, key, descriptor) {
   var deco = function deco(target, key, descriptor) {
-    var resource = _Metadata$Decorators.Metadata.on(target).firstOrAdd(_HtmlBehaviorResource.HtmlBehaviorResource),
+    var actualTarget = key ? target.constructor : target,
+        resource = _Metadata$Decorators.Metadata.getOrCreateOwn(_Metadata$Decorators.Metadata.resource, _HtmlBehaviorResource.HtmlBehaviorResource, actualTarget),
         prop;
 
     if (key) {
@@ -89,7 +87,7 @@ function bindable(nameOrConfigOrTarget, key, descriptor) {
     }
 
     prop = new _BindableProperty.BindableProperty(nameOrConfigOrTarget);
-    prop.registerWith(target, resource);
+    prop.registerWith(actualTarget, resource);
   };
 
   if (!nameOrConfigOrTarget) {
@@ -97,7 +95,7 @@ function bindable(nameOrConfigOrTarget, key, descriptor) {
   }
 
   if (key) {
-    var target = nameOrConfigOrTarget.constructor;
+    var target = nameOrConfigOrTarget;
     nameOrConfigOrTarget = null;
     return deco(target, key, descriptor);
   }
@@ -109,7 +107,7 @@ _Metadata$Decorators.Decorators.configure.parameterizedDecorator('bindable', bin
 
 function dynamicOptions(target) {
   var deco = function deco(target) {
-    var resource = _Metadata$Decorators.Metadata.on(target).firstOrAdd(_HtmlBehaviorResource.HtmlBehaviorResource);
+    var resource = _Metadata$Decorators.Metadata.getOrCreateOwn(_Metadata$Decorators.Metadata.resource, _HtmlBehaviorResource.HtmlBehaviorResource, target);
     resource.hasDynamicOptions = true;
   };
 
@@ -120,7 +118,7 @@ _Metadata$Decorators.Decorators.configure.simpleDecorator('dynamicOptions', dyna
 
 function syncChildren(property, changeHandler, selector) {
   return function (target) {
-    var resource = _Metadata$Decorators.Metadata.on(target).firstOrAdd(_HtmlBehaviorResource.HtmlBehaviorResource);
+    var resource = _Metadata$Decorators.Metadata.getOrCreateOwn(_Metadata$Decorators.Metadata.resource, _HtmlBehaviorResource.HtmlBehaviorResource, target);
     resource.childExpression = new _ChildObserver.ChildObserver(property, changeHandler, selector);
   };
 }
@@ -129,8 +127,8 @@ _Metadata$Decorators.Decorators.configure.parameterizedDecorator('syncChildren',
 
 function useShadowDOM(target) {
   var deco = function deco(target) {
-    var resource = _Metadata$Decorators.Metadata.on(target).firstOrAdd(_HtmlBehaviorResource.HtmlBehaviorResource);
-    resource.useShadowDOM = true;
+    var resource = _Metadata$Decorators.Metadata.getOrCreateOwn(_Metadata$Decorators.Metadata.resource, _HtmlBehaviorResource.HtmlBehaviorResource, target);
+    resource.targetShadowDOM = true;
   };
 
   return target ? deco(target) : deco;
@@ -140,7 +138,7 @@ _Metadata$Decorators.Decorators.configure.simpleDecorator('useShadowDOM', useSha
 
 function skipContentProcessing(target) {
   var deco = function deco(target) {
-    var resource = _Metadata$Decorators.Metadata.on(target).firstOrAdd(_HtmlBehaviorResource.HtmlBehaviorResource);
+    var resource = _Metadata$Decorators.Metadata.getOrCreateOwn(_Metadata$Decorators.Metadata.resource, _HtmlBehaviorResource.HtmlBehaviorResource, target);
     resource.skipContentProcessing = true;
   };
 
@@ -149,17 +147,23 @@ function skipContentProcessing(target) {
 
 _Metadata$Decorators.Decorators.configure.simpleDecorator('skipContentProcessing', skipContentProcessing);
 
-function useView(path) {
+function viewStrategy(strategy) {
   return function (target) {
-    _Metadata$Decorators.Metadata.on(target).add(new _UseViewStrategy$NoViewStrategy.UseViewStrategy(path));
+    Reflect.defineMetadata(_ViewStrategy$UseViewStrategy$NoViewStrategy.ViewStrategy.metadataKey, strategy, target);
   };
+}
+
+_Metadata$Decorators.Decorators.configure.parameterizedDecorator('viewStrategy', useView);
+
+function useView(path) {
+  return viewStrategy(new _ViewStrategy$UseViewStrategy$NoViewStrategy.UseViewStrategy(path));
 }
 
 _Metadata$Decorators.Decorators.configure.parameterizedDecorator('useView', useView);
 
 function noView(target) {
   var deco = function deco(target) {
-    _Metadata$Decorators.Metadata.on(target).add(new _UseViewStrategy$NoViewStrategy.NoViewStrategy());
+    Reflect.defineMetadata(_ViewStrategy$UseViewStrategy$NoViewStrategy.ViewStrategy.metadataKey, new _ViewStrategy$UseViewStrategy$NoViewStrategy.NoViewStrategy(), target);
   };
 
   return target ? deco(target) : deco;
@@ -169,7 +173,7 @@ _Metadata$Decorators.Decorators.configure.simpleDecorator('noView', noView);
 
 function elementConfig(target) {
   var deco = function deco(target) {
-    _Metadata$Decorators.Metadata.on(target).add(new _ElementConfigResource.ElementConfigResource());
+    Reflect.defineMetadata(_Metadata$Decorators.Metadata.resource, new _ElementConfigResource.ElementConfigResource(), target);
   };
 
   return target ? deco(target) : deco;

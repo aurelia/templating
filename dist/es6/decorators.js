@@ -3,17 +3,15 @@ import {Metadata, Decorators} from 'aurelia-metadata';
 import {BindableProperty} from './bindable-property';
 import {ChildObserver} from './children';
 import {ElementConfigResource} from './element-config';
-import {UseViewStrategy, NoViewStrategy} from './view-strategy';
+import {ViewStrategy, UseViewStrategy, NoViewStrategy} from './view-strategy';
 import {HtmlBehaviorResource} from './html-behavior';
 
 export function behavior(override){
   return function(target){
-    var meta = Metadata.on(target);
-
     if(override instanceof HtmlBehaviorResource){
-      meta.add(override);
+      Reflect.defineMetadata(Metadata.resource, override, target);
     }else{
-      var resource = meta.firstOrAdd(HtmlBehaviorResource);
+      var resource = Metadata.getOrCreateOwn(Metadata.resource, HtmlBehaviorResource, target);
       Object.assign(resource, override);
     }
   }
@@ -23,7 +21,7 @@ Decorators.configure.parameterizedDecorator('behavior', behavior);
 
 export function customElement(name){
   return function(target){
-    var resource = Metadata.on(target).firstOrAdd(HtmlBehaviorResource);
+    var resource = Metadata.getOrCreateOwn(Metadata.resource, HtmlBehaviorResource, target);
     resource.elementName = name;
   }
 }
@@ -32,7 +30,7 @@ Decorators.configure.parameterizedDecorator('customElement', customElement);
 
 export function customAttribute(name){
   return function(target){
-    var resource = Metadata.on(target).firstOrAdd(HtmlBehaviorResource);
+    var resource = Metadata.getOrCreateOwn(Metadata.resource, HtmlBehaviorResource, target);
     resource.attributeName = name;
   }
 }
@@ -41,7 +39,7 @@ Decorators.configure.parameterizedDecorator('customAttribute', customAttribute);
 
 export function templateController(target){
   var deco = function(target){
-    var resource = Metadata.on(target).firstOrAdd(HtmlBehaviorResource);
+    var resource = Metadata.getOrCreateOwn(Metadata.resource, HtmlBehaviorResource, target);
     resource.liftsContent = true;
   };
 
@@ -52,16 +50,17 @@ Decorators.configure.simpleDecorator('templateController', templateController);
 
 export function bindable(nameOrConfigOrTarget, key, descriptor){
   var deco = function(target, key, descriptor){
-    var resource = Metadata.on(target).firstOrAdd(HtmlBehaviorResource),
+    var actualTarget = key ? target.constructor : target, //is it on a property or a class?
+        resource = Metadata.getOrCreateOwn(Metadata.resource, HtmlBehaviorResource, actualTarget),
         prop;
 
-    if(key){
+    if(key){ //is it on a property or a class?
       nameOrConfigOrTarget = nameOrConfigOrTarget || {};
       nameOrConfigOrTarget.name = key;
     }
 
     prop = new BindableProperty(nameOrConfigOrTarget);
-    prop.registerWith(target, resource);
+    prop.registerWith(actualTarget, resource);
   };
 
   if(!nameOrConfigOrTarget){ //placed on property initializer with parens
@@ -69,7 +68,7 @@ export function bindable(nameOrConfigOrTarget, key, descriptor){
   }
 
   if(key){ //placed on a property initializer without parens
-    var target = nameOrConfigOrTarget.constructor;
+    var target = nameOrConfigOrTarget;
     nameOrConfigOrTarget = null;
     return deco(target, key, descriptor);
   }
@@ -81,7 +80,7 @@ Decorators.configure.parameterizedDecorator('bindable', bindable);
 
 export function dynamicOptions(target){
   var deco = function(target){
-    var resource = Metadata.on(target).firstOrAdd(HtmlBehaviorResource);
+    var resource = Metadata.getOrCreateOwn(Metadata.resource, HtmlBehaviorResource, target);
     resource.hasDynamicOptions = true;
   };
 
@@ -92,7 +91,7 @@ Decorators.configure.simpleDecorator('dynamicOptions', dynamicOptions);
 
 export function syncChildren(property, changeHandler, selector){
   return function(target){
-    var resource = Metadata.on(target).firstOrAdd(HtmlBehaviorResource);
+    var resource = Metadata.getOrCreateOwn(Metadata.resource, HtmlBehaviorResource, target);
     resource.childExpression = new ChildObserver(property, changeHandler, selector);
   }
 }
@@ -101,8 +100,8 @@ Decorators.configure.parameterizedDecorator('syncChildren', syncChildren);
 
 export function useShadowDOM(target){
   var deco = function(target){
-    var resource = Metadata.on(target).firstOrAdd(HtmlBehaviorResource);
-    resource.useShadowDOM = true;
+    var resource = Metadata.getOrCreateOwn(Metadata.resource, HtmlBehaviorResource, target);
+    resource.targetShadowDOM = true;
   };
 
   return target ? deco(target) : deco;
@@ -112,7 +111,7 @@ Decorators.configure.simpleDecorator('useShadowDOM', useShadowDOM);
 
 export function skipContentProcessing(target){
   var deco = function(target){
-    var resource = Metadata.on(target).firstOrAdd(HtmlBehaviorResource);
+    var resource = Metadata.getOrCreateOwn(Metadata.resource, HtmlBehaviorResource, target);
     resource.skipContentProcessing = true;
   };
 
@@ -121,17 +120,23 @@ export function skipContentProcessing(target){
 
 Decorators.configure.simpleDecorator('skipContentProcessing', skipContentProcessing);
 
-export function useView(path){
+export function viewStrategy(strategy){
   return function(target){
-    Metadata.on(target).add(new UseViewStrategy(path));
+    Reflect.defineMetadata(ViewStrategy.metadataKey, strategy, target);
   }
+}
+
+Decorators.configure.parameterizedDecorator('viewStrategy', useView);
+
+export function useView(path){
+  return viewStrategy(new UseViewStrategy(path));
 }
 
 Decorators.configure.parameterizedDecorator('useView', useView);
 
 export function noView(target){
   var deco = function(target){
-    Metadata.on(target).add(new NoViewStrategy());
+    Reflect.defineMetadata(ViewStrategy.metadataKey, new NoViewStrategy(), target);
   };
 
   return target ? deco(target) : deco;
@@ -141,7 +146,7 @@ Decorators.configure.simpleDecorator('noView', noView);
 
 export function elementConfig(target){
   var deco = function(target){
-    Metadata.on(target).add(new ElementConfigResource());
+    Reflect.defineMetadata(Metadata.resource, new ElementConfigResource(), target);
   };
 
   return target ? deco(target) : deco;

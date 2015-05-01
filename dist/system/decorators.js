@@ -1,5 +1,5 @@
 System.register(['core-js', 'aurelia-metadata', './bindable-property', './children', './element-config', './view-strategy', './html-behavior'], function (_export) {
-  var core, Metadata, Decorators, BindableProperty, ChildObserver, ElementConfigResource, UseViewStrategy, NoViewStrategy, HtmlBehaviorResource;
+  var core, Metadata, Decorators, BindableProperty, ChildObserver, ElementConfigResource, ViewStrategy, UseViewStrategy, NoViewStrategy, HtmlBehaviorResource;
 
   _export('behavior', behavior);
 
@@ -19,6 +19,8 @@ System.register(['core-js', 'aurelia-metadata', './bindable-property', './childr
 
   _export('skipContentProcessing', skipContentProcessing);
 
+  _export('viewStrategy', viewStrategy);
+
   _export('useView', useView);
 
   _export('noView', noView);
@@ -27,12 +29,10 @@ System.register(['core-js', 'aurelia-metadata', './bindable-property', './childr
 
   function behavior(override) {
     return function (target) {
-      var meta = Metadata.on(target);
-
       if (override instanceof HtmlBehaviorResource) {
-        meta.add(override);
+        Reflect.defineMetadata(Metadata.resource, override, target);
       } else {
-        var resource = meta.firstOrAdd(HtmlBehaviorResource);
+        var resource = Metadata.getOrCreateOwn(Metadata.resource, HtmlBehaviorResource, target);
         Object.assign(resource, override);
       }
     };
@@ -40,21 +40,21 @@ System.register(['core-js', 'aurelia-metadata', './bindable-property', './childr
 
   function customElement(name) {
     return function (target) {
-      var resource = Metadata.on(target).firstOrAdd(HtmlBehaviorResource);
+      var resource = Metadata.getOrCreateOwn(Metadata.resource, HtmlBehaviorResource, target);
       resource.elementName = name;
     };
   }
 
   function customAttribute(name) {
     return function (target) {
-      var resource = Metadata.on(target).firstOrAdd(HtmlBehaviorResource);
+      var resource = Metadata.getOrCreateOwn(Metadata.resource, HtmlBehaviorResource, target);
       resource.attributeName = name;
     };
   }
 
   function templateController(target) {
     var deco = function deco(target) {
-      var resource = Metadata.on(target).firstOrAdd(HtmlBehaviorResource);
+      var resource = Metadata.getOrCreateOwn(Metadata.resource, HtmlBehaviorResource, target);
       resource.liftsContent = true;
     };
 
@@ -63,7 +63,8 @@ System.register(['core-js', 'aurelia-metadata', './bindable-property', './childr
 
   function bindable(nameOrConfigOrTarget, key, descriptor) {
     var deco = function deco(target, key, descriptor) {
-      var resource = Metadata.on(target).firstOrAdd(HtmlBehaviorResource),
+      var actualTarget = key ? target.constructor : target,
+          resource = Metadata.getOrCreateOwn(Metadata.resource, HtmlBehaviorResource, actualTarget),
           prop;
 
       if (key) {
@@ -72,7 +73,7 @@ System.register(['core-js', 'aurelia-metadata', './bindable-property', './childr
       }
 
       prop = new BindableProperty(nameOrConfigOrTarget);
-      prop.registerWith(target, resource);
+      prop.registerWith(actualTarget, resource);
     };
 
     if (!nameOrConfigOrTarget) {
@@ -80,7 +81,7 @@ System.register(['core-js', 'aurelia-metadata', './bindable-property', './childr
     }
 
     if (key) {
-      var target = nameOrConfigOrTarget.constructor;
+      var target = nameOrConfigOrTarget;
       nameOrConfigOrTarget = null;
       return deco(target, key, descriptor);
     }
@@ -90,7 +91,7 @@ System.register(['core-js', 'aurelia-metadata', './bindable-property', './childr
 
   function dynamicOptions(target) {
     var deco = function deco(target) {
-      var resource = Metadata.on(target).firstOrAdd(HtmlBehaviorResource);
+      var resource = Metadata.getOrCreateOwn(Metadata.resource, HtmlBehaviorResource, target);
       resource.hasDynamicOptions = true;
     };
 
@@ -99,15 +100,15 @@ System.register(['core-js', 'aurelia-metadata', './bindable-property', './childr
 
   function syncChildren(property, changeHandler, selector) {
     return function (target) {
-      var resource = Metadata.on(target).firstOrAdd(HtmlBehaviorResource);
+      var resource = Metadata.getOrCreateOwn(Metadata.resource, HtmlBehaviorResource, target);
       resource.childExpression = new ChildObserver(property, changeHandler, selector);
     };
   }
 
   function useShadowDOM(target) {
     var deco = function deco(target) {
-      var resource = Metadata.on(target).firstOrAdd(HtmlBehaviorResource);
-      resource.useShadowDOM = true;
+      var resource = Metadata.getOrCreateOwn(Metadata.resource, HtmlBehaviorResource, target);
+      resource.targetShadowDOM = true;
     };
 
     return target ? deco(target) : deco;
@@ -115,22 +116,26 @@ System.register(['core-js', 'aurelia-metadata', './bindable-property', './childr
 
   function skipContentProcessing(target) {
     var deco = function deco(target) {
-      var resource = Metadata.on(target).firstOrAdd(HtmlBehaviorResource);
+      var resource = Metadata.getOrCreateOwn(Metadata.resource, HtmlBehaviorResource, target);
       resource.skipContentProcessing = true;
     };
 
     return target ? deco(target) : deco;
   }
 
-  function useView(path) {
+  function viewStrategy(strategy) {
     return function (target) {
-      Metadata.on(target).add(new UseViewStrategy(path));
+      Reflect.defineMetadata(ViewStrategy.metadataKey, strategy, target);
     };
+  }
+
+  function useView(path) {
+    return viewStrategy(new UseViewStrategy(path));
   }
 
   function noView(target) {
     var deco = function deco(target) {
-      Metadata.on(target).add(new NoViewStrategy());
+      Reflect.defineMetadata(ViewStrategy.metadataKey, new NoViewStrategy(), target);
     };
 
     return target ? deco(target) : deco;
@@ -138,7 +143,7 @@ System.register(['core-js', 'aurelia-metadata', './bindable-property', './childr
 
   function elementConfig(target) {
     var deco = function deco(target) {
-      Metadata.on(target).add(new ElementConfigResource());
+      Reflect.defineMetadata(Metadata.resource, new ElementConfigResource(), target);
     };
 
     return target ? deco(target) : deco;
@@ -157,6 +162,7 @@ System.register(['core-js', 'aurelia-metadata', './bindable-property', './childr
     }, function (_elementConfig) {
       ElementConfigResource = _elementConfig.ElementConfigResource;
     }, function (_viewStrategy) {
+      ViewStrategy = _viewStrategy.ViewStrategy;
       UseViewStrategy = _viewStrategy.UseViewStrategy;
       NoViewStrategy = _viewStrategy.NoViewStrategy;
     }, function (_htmlBehavior) {
@@ -182,6 +188,8 @@ System.register(['core-js', 'aurelia-metadata', './bindable-property', './childr
       Decorators.configure.simpleDecorator('useShadowDOM', useShadowDOM);
 
       Decorators.configure.simpleDecorator('skipContentProcessing', skipContentProcessing);
+
+      Decorators.configure.parameterizedDecorator('viewStrategy', useView);
 
       Decorators.configure.parameterizedDecorator('useView', useView);
 

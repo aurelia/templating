@@ -3,11 +3,7 @@ define(['exports', 'aurelia-dependency-injection', './view', './view-slot', './c
 
   var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } };
 
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
+  exports.__esModule = true;
 
   function elementContainerGet(key) {
     if (key === Element) {
@@ -108,17 +104,14 @@ define(['exports', 'aurelia-dependency-injection', './view', './view-slot', './c
       this.factoryOptions = { behaviorInstance: false };
     }
 
-    _createClass(BoundViewFactory, [{
-      key: 'create',
-      value: function create(executionContext) {
-        var childContainer = this.parentContainer.createChild(),
-            context = executionContext || this.executionContext;
+    BoundViewFactory.prototype.create = function create(executionContext) {
+      var childContainer = this.parentContainer.createChild(),
+          context = executionContext || this.executionContext;
 
-        this.factoryOptions.systemControlled = !executionContext;
+      this.factoryOptions.systemControlled = !executionContext;
 
-        return this.viewFactory.create(childContainer, context, this.factoryOptions);
-      }
-    }]);
+      return this.viewFactory.create(childContainer, context, this.factoryOptions);
+    };
 
     return BoundViewFactory;
   })();
@@ -139,38 +132,35 @@ define(['exports', 'aurelia-dependency-injection', './view', './view-slot', './c
       this.resources = resources;
     }
 
-    _createClass(ViewFactory, [{
-      key: 'create',
-      value: function create(container, executionContext) {
-        var options = arguments[2] === undefined ? defaultFactoryOptions : arguments[2];
+    ViewFactory.prototype.create = function create(container, executionContext) {
+      var options = arguments[2] === undefined ? defaultFactoryOptions : arguments[2];
 
-        var fragment = this.template.cloneNode(true),
-            instructables = fragment.querySelectorAll('.au-target'),
-            instructions = this.instructions,
-            resources = this.resources,
-            behaviors = [],
-            bindings = [],
-            children = [],
-            contentSelectors = [],
-            containers = { root: container },
-            i,
-            ii,
-            view;
+      var fragment = this.template.cloneNode(true),
+          instructables = fragment.querySelectorAll('.au-target'),
+          instructions = this.instructions,
+          resources = this.resources,
+          behaviors = [],
+          bindings = [],
+          children = [],
+          contentSelectors = [],
+          containers = { root: container },
+          i,
+          ii,
+          view;
 
-        for (i = 0, ii = instructables.length; i < ii; ++i) {
-          applyInstructions(containers, executionContext, instructables[i], instructions[i], behaviors, bindings, children, contentSelectors, resources);
-        }
-
-        view = new _view.View(fragment, behaviors, bindings, children, options.systemControlled, contentSelectors);
-        view.created(executionContext);
-
-        if (!options.suppressBind) {
-          view.bind(executionContext);
-        }
-
-        return view;
+      for (i = 0, ii = instructables.length; i < ii; ++i) {
+        applyInstructions(containers, executionContext, instructables[i], instructions[i], behaviors, bindings, children, contentSelectors, resources);
       }
-    }]);
+
+      view = new _view.View(fragment, behaviors, bindings, children, options.systemControlled, contentSelectors);
+      view.created(executionContext);
+
+      if (!options.suppressBind) {
+        view.bind(executionContext);
+      }
+
+      return view;
+    };
 
     return ViewFactory;
   })();

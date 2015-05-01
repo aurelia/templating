@@ -1,3 +1,21 @@
+## 0.11.0 (2015-04-30)
+
+
+#### Bug Fixes
+
+* **bindable:** problem with options object when place on a prop initializer ([8d23f132](http://github.com/aurelia/templating/commit/8d23f1329c7f689a36ebded56a37164255999212))
+* **composition-engine:** ensure analysis of existing vm instances ([a6803f62](http://github.com/aurelia/templating/commit/a6803f620f8ed0fedac4dcb09a71001be48bc97e))
+* **content-selector:** remove undefined variable ([6450a816](http://github.com/aurelia/templating/commit/6450a8165d9b3d76209098095440054030076839), closes [#48](http://github.com/aurelia/templating/issues/48))
+* **decorators:** typo in bindable caused incorrect metadata define ([9f683df7](http://github.com/aurelia/templating/commit/9f683df715cf261a2c7e4056228e3319fa0121ec))
+* **templating:** update to new bindingMode API ([95192b2f](http://github.com/aurelia/templating/commit/95192b2f7b3d465481f0efde4daadadc460ebf2d))
+* **useShadowDOM:** set correct property on behavior ([a2cd7ac8](http://github.com/aurelia/templating/commit/a2cd7ac852b4a4319200b336cb7a4c6b5d6fc8e8), closes [#62](http://github.com/aurelia/templating/issues/62))
+
+
+#### Features
+
+* **all:** switch to new es7 metadata api ([bbe21bbe](http://github.com/aurelia/templating/commit/bbe21bbebf207e8d2059cca6e0dd6e1576da1e21))
+
+
 ### 0.10.3 (2015-04-12)
 
 
