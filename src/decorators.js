@@ -60,7 +60,7 @@ export function bindable(nameOrConfigOrTarget, key, descriptor){
     }
 
     prop = new BindableProperty(nameOrConfigOrTarget);
-    prop.registerWith(actualTarget, resource);
+    return prop.registerWith(actualTarget, resource, descriptor);
   };
 
   if(!nameOrConfigOrTarget){ //placed on property initializer with parens
