@@ -74,7 +74,7 @@ define(['exports', 'core-js', 'aurelia-metadata', './bindable-property', './chil
       }
 
       prop = new _bindableProperty.BindableProperty(nameOrConfigOrTarget);
-      prop.registerWith(actualTarget, resource);
+      return prop.registerWith(actualTarget, resource, descriptor);
     };
 
     if (!nameOrConfigOrTarget) {

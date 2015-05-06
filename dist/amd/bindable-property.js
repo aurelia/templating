@@ -36,10 +36,44 @@ define(['exports', 'core-js', './util', 'aurelia-binding'], function (exports, _
       this.owner = null;
     }
 
-    BindableProperty.prototype.registerWith = function registerWith(target, behavior) {
+    BindableProperty.prototype.registerWith = function registerWith(target, behavior, descriptor) {
       behavior.properties.push(this);
       behavior.attributes[this.attribute] = this;
       this.owner = behavior;
+
+      if (descriptor) {
+        this.descriptor = descriptor;
+        return this.configureDescriptor(behavior, descriptor);
+      }
+    };
+
+    BindableProperty.prototype.configureDescriptor = function configureDescriptor(behavior, descriptor) {
+      var name = this.name;
+
+      descriptor.configurable = true;
+      descriptor.enumerable = true;
+
+      if (descriptor.initializer) {
+        this.defaultValue = descriptor.initializer;
+        delete descriptor.initializer;
+        delete descriptor.writable;
+      }
+
+      if (descriptor.value) {
+        this.defaultValue = descriptor.value;
+        delete descriptor.value;
+        delete descriptor.writable;
+      }
+
+      descriptor.get = function () {
+        return getObserver(behavior, this, name).getValue();
+      };
+
+      descriptor.set = function (value) {
+        getObserver(behavior, this, name).setValue(value);
+      };
+
+      return descriptor;
     };
 
     BindableProperty.prototype.defineOn = function defineOn(target, behavior) {
@@ -53,22 +87,17 @@ define(['exports', 'core-js', './util', 'aurelia-binding'], function (exports, _
         }
       }
 
-      Object.defineProperty(target.prototype, name, {
-        configurable: true,
-        enumerable: true,
-        get: function get() {
-          return getObserver(behavior, this, name).getValue();
-        },
-        set: function set(value) {
-          getObserver(behavior, this, name).setValue(value);
-        }
-      });
+      if (!this.descriptor) {
+        Object.defineProperty(target.prototype, name, this.configureDescriptor(behavior, {}));
+      }
     };
 
     BindableProperty.prototype.createObserver = function createObserver(executionContext) {
       var _this = this;
 
-      var selfSubscriber = null;
+      var selfSubscriber = null,
+          defaultValue = this.defaultValue,
+          initialValue;
 
       if (this.hasOptions) {
         return;
@@ -80,11 +109,18 @@ define(['exports', 'core-js', './util', 'aurelia-binding'], function (exports, _
         };
       }
 
-      return new BehaviorPropertyObserver(this.owner.taskQueue, executionContext, this.name, selfSubscriber);
+      if (defaultValue !== undefined) {
+        initialValue = typeof defaultValue === 'function' ? defaultValue.call(executionContext) : defaultValue;
+      }
+
+      return new BehaviorPropertyObserver(this.owner.taskQueue, executionContext, this.name, selfSubscriber, initialValue);
     };
 
     BindableProperty.prototype.initialize = function initialize(executionContext, observerLookup, attributes, behaviorHandlesBind, boundProperties) {
-      var selfSubscriber, observer, attribute;
+      var selfSubscriber,
+          observer,
+          attribute,
+          defaultValue = this.defaultValue;
 
       if (this.isDynamic) {
         for (var key in attributes) {
@@ -106,8 +142,7 @@ define(['exports', 'core-js', './util', 'aurelia-binding'], function (exports, _
             observer.call();
           } else if (attribute) {
             boundProperties.push({ observer: observer, binding: attribute.createBinding(executionContext) });
-          } else if (this.defaultValue !== undefined) {
-            executionContext[this.name] = this.defaultValue;
+          } else if (defaultValue !== undefined) {
             observer.call();
           }
 
@@ -165,7 +200,7 @@ define(['exports', 'core-js', './util', 'aurelia-binding'], function (exports, _
   exports.BindableProperty = BindableProperty;
 
   var BehaviorPropertyObserver = (function () {
-    function BehaviorPropertyObserver(taskQueue, obj, propertyName, selfSubscriber) {
+    function BehaviorPropertyObserver(taskQueue, obj, propertyName, selfSubscriber, initialValue) {
       _classCallCheck(this, BehaviorPropertyObserver);
 
       this.taskQueue = taskQueue;
@@ -175,6 +210,7 @@ define(['exports', 'core-js', './util', 'aurelia-binding'], function (exports, _
       this.notqueued = true;
       this.publishing = false;
       this.selfSubscriber = selfSubscriber;
+      this.currentValue = this.oldValue = initialValue;
     }
 
     BehaviorPropertyObserver.prototype.getValue = function getValue() {

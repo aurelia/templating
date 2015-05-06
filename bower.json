@@ -1,6 +1,6 @@
 {
   "name": "aurelia-templating",
-  "version": "0.11.0",
+  "version": "0.11.1",
   "description": "An extensible HTML templating engine supporting databinding, custom elements, attached behaviors and more.",
   "keywords": [
     "aurelia",
@@ -19,13 +19,13 @@
     "url": "http://github.com/aurelia/templating"
   },
   "dependencies": {
-    "aurelia-binding": "^0.6.0",
-    "aurelia-dependency-injection": "^0.7.0",
+    "aurelia-binding": "^0.6.1",
+    "aurelia-dependency-injection": "^0.7.1",
     "aurelia-html-template-element": "^0.2.0",
     "aurelia-loader": "^0.6.0",
     "aurelia-logging": "^0.4.0",
     "aurelia-metadata": "^0.5.0",
-    "aurelia-path": "^0.6.0",
+    "aurelia-path": "^0.6.1",
     "aurelia-task-queue": "^0.4.0",
     "core-js": "zloirock/core-js"
   }

@@ -1,3 +1,12 @@
+### 0.11.1 (2015-05-06)
+
+
+#### Bug Fixes
+
+* **bindable:** errors related to property definition ([9d26ad1d](http://github.com/aurelia/templating/commit/9d26ad1d601d54cfa61d3575ec0d15d8b6b26bf0))
+* **useshadowdom-noview:** Create an empty shadow root when @noView is used ([66775dda](http://github.com/aurelia/templating/commit/66775ddae911c0ca15398fca9b853e30829e9de1))
+
+
 ## 0.11.0 (2015-04-30)
 
 

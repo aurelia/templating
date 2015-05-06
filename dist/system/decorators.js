@@ -73,7 +73,7 @@ System.register(['core-js', 'aurelia-metadata', './bindable-property', './childr
       }
 
       prop = new BindableProperty(nameOrConfigOrTarget);
-      prop.registerWith(actualTarget, resource);
+      return prop.registerWith(actualTarget, resource, descriptor);
     };
 
     if (!nameOrConfigOrTarget) {

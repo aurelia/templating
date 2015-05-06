@@ -87,7 +87,7 @@ function bindable(nameOrConfigOrTarget, key, descriptor) {
     }
 
     prop = new _BindableProperty.BindableProperty(nameOrConfigOrTarget);
-    prop.registerWith(actualTarget, resource);
+    return prop.registerWith(actualTarget, resource, descriptor);
   };
 
   if (!nameOrConfigOrTarget) {

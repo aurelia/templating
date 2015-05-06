@@ -217,12 +217,14 @@ System.register(['aurelia-metadata', 'aurelia-binding', 'aurelia-task-queue', '.
             if (element) {
               element.primaryBehavior = behaviorInstance;
 
-              if (behaviorInstance.view) {
-                if (this.usesShadowDOM) {
-                  host = element.createShadowRoot();
-                } else {
-                  host = element;
+              if (this.usesShadowDOM) {
+                host = element.createShadowRoot();
+              } else {
+                host = element;
+              }
 
+              if (behaviorInstance.view) {
+                if (!this.usesShadowDOM) {
                   if (instruction.contentFactory) {
                     var contentView = instruction.contentFactory.create(container, null, contentSelectorFactoryOptions);
 

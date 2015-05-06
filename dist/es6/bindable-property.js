@@ -27,10 +27,44 @@ export class BindableProperty {
     this.owner = null;
   }
 
-  registerWith(target, behavior){
+  registerWith(target, behavior, descriptor){
     behavior.properties.push(this);
     behavior.attributes[this.attribute] = this;
     this.owner = behavior;
+
+    if(descriptor){
+      this.descriptor = descriptor;
+      return this.configureDescriptor(behavior, descriptor);
+    }
+  }
+
+  configureDescriptor(behavior, descriptor){
+    var name = this.name;
+
+    descriptor.configurable = true;
+    descriptor.enumerable = true;
+
+    if(descriptor.initializer){
+      this.defaultValue = descriptor.initializer;
+      delete descriptor.initializer;
+      delete descriptor.writable;
+    }
+
+    if(descriptor.value){
+      this.defaultValue = descriptor.value;
+      delete descriptor.value;
+      delete descriptor.writable;
+    }
+
+    descriptor.get = function(){
+      return getObserver(behavior, this, name).getValue();
+    };
+
+    descriptor.set = function(value){
+      getObserver(behavior, this, name).setValue(value);
+    };
+
+    return descriptor;
   }
 
   defineOn(target, behavior){
@@ -44,20 +78,13 @@ export class BindableProperty {
       }
     }
 
-    Object.defineProperty(target.prototype, name, {
-      configurable: true,
-      enumerable: true,
-      get: function(){
-        return getObserver(behavior, this, name).getValue();
-      },
-      set: function(value){
-        getObserver(behavior, this, name).setValue(value);
-      }
-    });
+    if(!this.descriptor){
+      Object.defineProperty(target.prototype, name, this.configureDescriptor(behavior, {}));
+    }
   }
 
   createObserver(executionContext){
-    var selfSubscriber = null;
+    var selfSubscriber = null, defaultValue = this.defaultValue, initialValue;
 
     if(this.hasOptions){
       return;
@@ -67,11 +94,15 @@ export class BindableProperty {
       selfSubscriber = (newValue, oldValue) => executionContext[this.changeHandler](newValue, oldValue);
     }
 
-    return new BehaviorPropertyObserver(this.owner.taskQueue, executionContext, this.name, selfSubscriber);
+    if(defaultValue !== undefined){
+      initialValue = typeof defaultValue === 'function' ? defaultValue.call(executionContext) : defaultValue;
+    }
+
+    return new BehaviorPropertyObserver(this.owner.taskQueue, executionContext, this.name, selfSubscriber, initialValue);
   }
 
   initialize(executionContext, observerLookup, attributes, behaviorHandlesBind, boundProperties){
-    var selfSubscriber, observer, attribute;
+    var selfSubscriber, observer, attribute, defaultValue = this.defaultValue;
 
     if(this.isDynamic){
       for(let key in attributes){
@@ -93,8 +124,7 @@ export class BindableProperty {
           observer.call();
         }else if(attribute){
           boundProperties.push({observer:observer, binding:attribute.createBinding(executionContext)});
-        }else if(this.defaultValue !== undefined){
-          executionContext[this.name] = this.defaultValue;
+        }else if(defaultValue !== undefined){
           observer.call();
         }
 
@@ -147,7 +177,7 @@ export class BindableProperty {
 }
 
 class BehaviorPropertyObserver {
-  constructor(taskQueue, obj, propertyName, selfSubscriber){
+  constructor(taskQueue, obj, propertyName, selfSubscriber, initialValue){
     this.taskQueue = taskQueue;
     this.obj = obj;
     this.propertyName = propertyName;
@@ -155,6 +185,7 @@ class BehaviorPropertyObserver {
     this.notqueued = true;
     this.publishing = false;
     this.selfSubscriber = selfSubscriber;
+    this.currentValue = this.oldValue = initialValue;
   }
 
   getValue(){
