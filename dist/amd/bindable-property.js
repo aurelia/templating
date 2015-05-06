@@ -53,13 +53,13 @@ define(['exports', 'core-js', './util', 'aurelia-binding'], function (exports, _
       descriptor.configurable = true;
       descriptor.enumerable = true;
 
-      if (descriptor.initializer) {
+      if ('initializer' in descriptor) {
         this.defaultValue = descriptor.initializer;
         delete descriptor.initializer;
         delete descriptor.writable;
       }
 
-      if (descriptor.value) {
+      if ('value' in descriptor) {
         this.defaultValue = descriptor.value;
         delete descriptor.value;
         delete descriptor.writable;

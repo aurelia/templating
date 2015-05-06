@@ -1,3 +1,11 @@
+### 0.11.2 (2015-05-06)
+
+
+#### Bug Fixes
+
+* **bindable-property:** use in operator to check for prop definition ([13bac7b9](http://github.com/aurelia/templating/commit/13bac7b9f6288549e3b187d6a6e5b0251fa24a72))
+
+
 ### 0.11.1 (2015-05-06)
 
 
