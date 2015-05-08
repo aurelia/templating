@@ -10,7 +10,19 @@ function elementContainerGet(key){
   }
 
   if(key === BoundViewFactory){
-    return this.boundViewFactory || (this.boundViewFactory = new BoundViewFactory(this, this.instruction.viewFactory, this.executionContext));
+    if(this.boundViewFactory){
+      return this.boundViewFactory;
+    }
+
+    var factory = this.instruction.viewFactory,
+        partReplacements = this.partReplacements;
+
+    if(partReplacements){
+      factory = partReplacements[factory.part] || factory;
+    }
+
+    factory.partReplacements = partReplacements;
+    return this.boundViewFactory = new BoundViewFactory(this, factory, this.executionContext);
   }
 
   if(key === ViewSlot){
@@ -29,7 +41,7 @@ function elementContainerGet(key){
   return this.superGet(key);
 }
 
-function createElementContainer(parent, element, instruction, executionContext, children, resources){
+function createElementContainer(parent, element, instruction, executionContext, children, partReplacements, resources){
   var container = parent.createChild(),
                   providers,
                   i;
@@ -39,6 +51,7 @@ function createElementContainer(parent, element, instruction, executionContext, 
   container.executionContext = executionContext;
   container.children = children;
   container.viewResources = resources;
+  container.partReplacements = partReplacements;
 
   providers = instruction.providers;
   i = providers.length;
@@ -54,7 +67,7 @@ function createElementContainer(parent, element, instruction, executionContext, 
 }
 
 function applyInstructions(containers, executionContext, element, instruction,
-  behaviors, bindings, children, contentSelectors, resources){
+  behaviors, bindings, children, contentSelectors, partReplacements, resources){
   var behaviorInstructions = instruction.behaviorInstructions,
       expressions = instruction.expressions,
       elementContainer, i, ii, current, instance;
@@ -78,12 +91,13 @@ function applyInstructions(containers, executionContext, element, instruction,
         instruction,
         executionContext,
         children,
+        partReplacements,
         resources
         );
 
     for(i = 0, ii = behaviorInstructions.length; i < ii; ++i){
       current = behaviorInstructions[i];
-      instance = current.type.create(elementContainer, current, element, bindings);
+      instance = current.type.create(elementContainer, current, element, bindings, current.partReplacements);
 
       if(instance.contentView){
         children.push(instance.contentView);
@@ -138,11 +152,12 @@ export class ViewFactory{
         children = [],
         contentSelectors = [],
         containers = { root:container },
+        partReplacements = options.partReplacements || this.partReplacements,
         i, ii, view;
 
     for(i = 0, ii = instructables.length; i < ii; ++i){
       applyInstructions(containers, executionContext, instructables[i],
-        instructions[i], behaviors, bindings, children, contentSelectors, resources);
+        instructions[i], behaviors, bindings, children, contentSelectors, partReplacements, resources);
     }
 
     view = new View(fragment, behaviors, bindings, children, options.systemControlled, contentSelectors);
