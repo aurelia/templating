@@ -250,9 +250,19 @@ export class HtmlBehaviorResource {
           }
 
           behaviorInstance.view.appendNodesTo(host);
+        }else if(this.childExpression){
+          bindings.push(this.childExpression.createBinding(element, behaviorInstance.executionContext));
         }
       }else if(behaviorInstance.view){
+        //dynamic element with view
         behaviorInstance.view.owner = behaviorInstance;
+
+        if(this.childExpression){
+          behaviorInstance.view.addBinding(this.childExpression.createBinding(instruction.host, behaviorInstance.executionContext));
+        }
+      }else if(this.childExpression){
+        //dynamic element without view
+        bindings.push(this.childExpression.createBinding(instruction.host, behaviorInstance.executionContext));
       }
     } else if(this.childExpression){
       //custom attribute
