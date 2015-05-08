@@ -14,13 +14,15 @@ function elementContainerGet(key){
       return this.boundViewFactory;
     }
 
-    var factory;
+    var factory = this.instruction.viewFactory,
+        partReplacements = this.partReplacements;
 
-    if(this.partReplacements){
-      factory = this.partReplacements[this.instruction.viewFactory.part];
+    if(partReplacements){
+      factory = partReplacements[factory.part] || factory;
     }
 
-    return this.boundViewFactory = new BoundViewFactory(this, factory || this.instruction.viewFactory, this.executionContext);
+    factory.partReplacements = partReplacements;
+    return this.boundViewFactory = new BoundViewFactory(this, factory, this.executionContext);
   }
 
   if(key === ViewSlot){
@@ -150,7 +152,7 @@ export class ViewFactory{
         children = [],
         contentSelectors = [],
         containers = { root:container },
-        partReplacements = options.partReplacements,
+        partReplacements = options.partReplacements || this.partReplacements,
         i, ii, view;
 
     for(i = 0, ii = instructables.length; i < ii; ++i){
