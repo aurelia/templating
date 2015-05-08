@@ -4,7 +4,8 @@ import {BindingLanguage} from './binding-language';
 
 var nextInjectorId = 0,
     defaultCompileOptions = { targetShadowDOM:false },
-    hasShadowDOM = !!HTMLElement.prototype.createShadowRoot;
+    hasShadowDOM = !!HTMLElement.prototype.createShadowRoot,
+    needsTemplateFixup = !('content' in document.createElement('template'));
 
 function getNextInjectorId(){
   return ++nextInjectorId;
@@ -51,12 +52,26 @@ export class ViewCompiler {
   compile(templateOrFragment, resources, options=defaultCompileOptions){
     var instructions = [],
         targetShadowDOM = options.targetShadowDOM,
-        content, part, factory;
+        content, part, factory, temp;
 
     targetShadowDOM = targetShadowDOM && hasShadowDOM;
 
     if(options.beforeCompile){
       options.beforeCompile(templateOrFragment);
+    }
+
+    if(typeof templateOrFragment === 'string'){
+      temp = document.createElement('template');
+      temp.innerHTML = templateOrFragment;
+
+      if(needsTemplateFixup){
+        temp.content = document.createDocumentFragment();
+        while(temp.firstChild){
+          temp.content.appendChild(temp.firstChild);
+        }
+      }
+
+      templateOrFragment = temp;
     }
 
     if(templateOrFragment.content){
