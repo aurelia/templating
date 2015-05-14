@@ -16,6 +16,7 @@ export class HtmlBehaviorResource {
   constructor(){
     this.elementName = null;
     this.attributeName = null;
+    this.attributeDefaultBindingMode = undefined;
     this.liftsContent = false;
     this.targetShadowDOM = false;
     this.skipContentProcessing = false;
@@ -46,6 +47,7 @@ export class HtmlBehaviorResource {
     var proto = target.prototype,
         properties = this.properties,
         attributeName = this.attributeName,
+        attributeDefaultBindingMode = this.attributeDefaultBindingMode,
         i, ii, current;
 
     this.observerLocator = container.get(ObserverLocator);
@@ -65,7 +67,8 @@ export class HtmlBehaviorResource {
         new BindableProperty({
           name:'value',
           changeHandler:'valueChanged' in proto ? 'valueChanged' : null,
-          attribute:attributeName
+          attribute:attributeName,
+          defaultBindingMode: attributeDefaultBindingMode
         }).registerWith(target, this);
       }
 
@@ -82,7 +85,8 @@ export class HtmlBehaviorResource {
         current = new BindableProperty({
           name:'value',
           changeHandler:'valueChanged' in proto ? 'valueChanged' : null,
-          attribute:attributeName
+          attribute:attributeName,
+          defaultBindingMode: attributeDefaultBindingMode
         });
 
         current.hasOptions = true;

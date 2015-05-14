@@ -28,10 +28,11 @@ export function customElement(name){
 
 Decorators.configure.parameterizedDecorator('customElement', customElement);
 
-export function customAttribute(name){
+export function customAttribute(name, defaultBindingMode){
   return function(target){
     var resource = Metadata.getOrCreateOwn(Metadata.resource, HtmlBehaviorResource, target);
     resource.attributeName = name;
+    resource.attributeDefaultBindingMode = defaultBindingMode;
   }
 }
 
