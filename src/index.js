@@ -8,6 +8,7 @@ export {ViewCompiler} from './view-compiler';
 export {ViewEngine} from './view-engine';
 export {ViewFactory, BoundViewFactory} from './view-factory';
 export {ViewSlot} from './view-slot';
+export {View} from './view';
 export {BindingLanguage} from './binding-language';
 export {CompositionEngine} from './composition-engine';
 export {Animator} from './animator';
