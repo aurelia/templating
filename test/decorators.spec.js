@@ -24,4 +24,11 @@ describe('decorators', () => {
         expect(resource.attributeName).toBe('test');
         expect(resource.attributeDefaultBindingMode).toBe(bindingMode.twoWay);
     });
+
+    it('should validate behavior names', () => {
+      expect(() => customAttribute('fooBar')).toThrow();
+      expect(() => customElement('fooBar')).toThrow();
+      expect(() => customAttribute('foo')).not.toThrow();
+      expect(() => customAttribute('foo-bar')).not.toThrow();
+    });
 });
