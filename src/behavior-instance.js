@@ -4,7 +4,7 @@ export class BehaviorInstance {
     this.executionContext = executionContext;
     this.isAttached = false;
 
-    var observerLookup = behavior.observerLocator.getObserversLookup(executionContext),
+    var observerLookup = behavior.observerLocator.getOrCreateObserversLookup(executionContext),
         handlesBind = behavior.handlesBind,
         attributes = instruction.attributes,
         boundProperties = this.boundProperties = [],
