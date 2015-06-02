@@ -79,11 +79,19 @@ function applyInstructions(containers, executionContext, element, instruction,
   }
 
   if(instruction.contentSelector){
-    contentSelectors.push(new ContentSelector(element, instruction.selector));
+    var commentAnchor = document.createComment('anchor');
+    element.parentNode.replaceChild(commentAnchor, element);
+    contentSelectors.push(new ContentSelector(commentAnchor, instruction.selector));
     return;
   }
 
   if(behaviorInstructions.length){
+    if(element.tagName === 'TEMPLATE'){
+      var commentAnchor = document.createComment('anchor');
+      element.parentNode.replaceChild(commentAnchor, element);
+      element = commentAnchor;
+    }
+
     containers[instruction.injectorId] = elementContainer =
       createElementContainer(
         containers[instruction.parentInjectorId],
