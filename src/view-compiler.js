@@ -149,6 +149,7 @@ export class ViewCompiler {
       type = resources.getElement(tagName);
       if(type){
         elementInstruction = {type:type, attributes:{}};
+        elementInstruction.anchorIsContainer = !node.hasAttribute('containerless') && !type.containerless;
         behaviorInstructions.push(elementInstruction);
       }
     }
@@ -260,7 +261,8 @@ export class ViewCompiler {
       if(expressions.length || behaviorInstructions.length){
         makeIntoInstructionTarget(node);
         instructions.push({
-          anchorIsContainer: true,
+          anchorIsContainer: elementInstruction ? elementInstruction.anchorIsContainer : true,
+          isCustomElement: !!elementInstruction,
           injectorId: injectorId,
           parentInjectorId: parentInjectorId,
           expressions: expressions,

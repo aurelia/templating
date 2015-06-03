@@ -129,6 +129,17 @@ export function skipContentProcessing(target){
 
 Decorators.configure.simpleDecorator('skipContentProcessing', skipContentProcessing);
 
+export function containerless(target){
+  var deco = function(target){
+    var resource = Metadata.getOrCreateOwn(Metadata.resource, HtmlBehaviorResource, target);
+    resource.containerless = true;
+  };
+
+  return target ? deco(target) : deco;
+}
+
+Decorators.configure.simpleDecorator('containerless', containerless);
+
 export function viewStrategy(strategy){
   return function(target){
     Reflect.defineMetadata(ViewStrategy.metadataKey, strategy, target);

@@ -66,6 +66,21 @@ function createElementContainer(parent, element, instruction, executionContext, 
   return container;
 }
 
+function makeElementIntoAnchor(element, isCustomElement){
+  var anchor = document.createComment('anchor');
+
+  if(isCustomElement){
+    anchor.attributes = element.attributes;
+    anchor.hasAttribute = function(name) { return element.hasAttribute(name); };
+    anchor.getAttribute = function(name){ return element.getAttribute(name); };
+    anchor.setAttribute = function(name, value) { element.setAttribute(name, value); };
+  }
+
+  element.parentNode.replaceChild(anchor, element);
+
+  return anchor;
+}
+
 function applyInstructions(containers, executionContext, element, instruction,
   behaviors, bindings, children, contentSelectors, partReplacements, resources){
   var behaviorInstructions = instruction.behaviorInstructions,
@@ -86,10 +101,8 @@ function applyInstructions(containers, executionContext, element, instruction,
   }
 
   if(behaviorInstructions.length){
-    if(element.tagName === 'TEMPLATE'){
-      var commentAnchor = document.createComment('anchor');
-      element.parentNode.replaceChild(commentAnchor, element);
-      element = commentAnchor;
+    if(!instruction.anchorIsContainer){
+      element = makeElementIntoAnchor(element, instruction.isCustomElement);
     }
 
     containers[instruction.injectorId] = elementContainer =

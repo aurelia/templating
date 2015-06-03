@@ -23,6 +23,7 @@ export class HtmlBehaviorResource {
     this.usesShadowDOM = false;
     this.childExpression = null;
     this.hasDynamicOptions = false;
+    this.containerless = false;
     this.properties = [];
     this.attributes = {};
   }
@@ -249,11 +250,15 @@ export class HtmlBehaviorResource {
             }
           }
 
-          if(this.childExpression){
-            behaviorInstance.view.addBinding(this.childExpression.createBinding(host, behaviorInstance.executionContext));
-          }
+          if(instruction.anchorIsContainer){
+            if(this.childExpression){
+              behaviorInstance.view.addBinding(this.childExpression.createBinding(host, behaviorInstance.executionContext));
+            }
 
-          behaviorInstance.view.appendNodesTo(host);
+            behaviorInstance.view.appendNodesTo(host);
+          }else{
+            behaviorInstance.view.insertNodesBefore(host);
+          }
         }else if(this.childExpression){
           bindings.push(this.childExpression.createBinding(element, behaviorInstance.executionContext));
         }
