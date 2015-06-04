@@ -29,17 +29,12 @@ export class ViewEngine {
 
   loadViewFactory(urlOrRegistryEntry, compileOptions, associatedModuleId){
     return ensureRegistryEntry(this.loader, urlOrRegistryEntry).then(viewRegistryEntry => {
-      if(viewRegistryEntry.isReady){
-        return viewRegistryEntry.factory;
+      if(viewRegistryEntry.onReady){
+        return viewRegistryEntry.onReady;
       }
 
-      return this.loadTemplateResources(viewRegistryEntry, associatedModuleId).then(resources => {
-        if(viewRegistryEntry.isReady){
-          return viewRegistryEntry.factory;
-        }
-
+      return viewRegistryEntry.onReady = this.loadTemplateResources(viewRegistryEntry, associatedModuleId).then(resources => {
         viewRegistryEntry.setResources(resources);
-
         var viewFactory = this.viewCompiler.compile(viewRegistryEntry.template, resources, compileOptions);
         viewRegistryEntry.setFactory(viewFactory);
         return viewFactory;
