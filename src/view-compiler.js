@@ -77,6 +77,7 @@ export class ViewCompiler {
     if(templateOrFragment.content){
       part = templateOrFragment.getAttribute('part');
       content = document.adoptNode(templateOrFragment.content, true);
+      //TODO: read in element instructions
     }else{
       content = templateOrFragment;
     }

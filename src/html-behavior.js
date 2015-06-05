@@ -223,7 +223,9 @@ export class HtmlBehaviorResource {
       viewFactory = instruction.viewFactory || this.viewFactory;
 
       if(viewFactory){
+        //TODO: apply element instructions? var results = viewFactory.applyElementInstructions(container, behaviorInstance.executionContext, element);
         behaviorInstance.view = viewFactory.create(container, behaviorInstance.executionContext, instruction);
+        //TODO: register results with view
       }
 
       if(element){
