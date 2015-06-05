@@ -1,4 +1,4 @@
-export const bindingMode = {
+export const animationEvent = {
   enterBegin:   'animation:enter:begin',
   enterActive:  'animation:enter:active',
   enterDone:    'animation:enter:done',
