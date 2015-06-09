@@ -282,11 +282,11 @@ export class HtmlBehaviorResource {
     }
 
     if(element){
-      if(!(this.apiName in element){
+      if(!(this.apiName in element)){
         element[this.apiName] = executionContext;
       }
 
-      if(!(this.htmlName in element){
+      if(!(this.htmlName in element)){
         element[this.htmlName] = behaviorInstance;
       }
     }

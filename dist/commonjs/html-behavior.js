@@ -79,7 +79,8 @@ var HtmlBehaviorResource = (function () {
     this.handlesUnbind = 'unbind' in proto;
     this.handlesAttached = 'attached' in proto;
     this.handlesDetached = 'detached' in proto;
-    this.apiName = (this.elementName || this.attributeName).replace(/-([a-z])/g, function (m, w) {
+    this.htmlName = this.elementName || this.attributeName;
+    this.apiName = this.htmlName.replace(/-([a-z])/g, function (m, w) {
       return w.toUpperCase();
     });
 
@@ -246,7 +247,7 @@ var HtmlBehaviorResource = (function () {
       viewFactory = instruction.viewFactory || this.viewFactory;
 
       if (viewFactory) {
-        behaviorInstance.view = viewFactory.create(container, behaviorInstance.executionContext, instruction);
+        behaviorInstance.view = viewFactory.create(container, executionContext, instruction);
       }
 
       if (element) {
@@ -273,7 +274,7 @@ var HtmlBehaviorResource = (function () {
 
           if (instruction.anchorIsContainer) {
             if (this.childExpression) {
-              behaviorInstance.view.addBinding(this.childExpression.createBinding(host, behaviorInstance.executionContext));
+              behaviorInstance.view.addBinding(this.childExpression.createBinding(host, executionContext));
             }
 
             behaviorInstance.view.appendNodesTo(host);
@@ -281,23 +282,29 @@ var HtmlBehaviorResource = (function () {
             behaviorInstance.view.insertNodesBefore(host);
           }
         } else if (this.childExpression) {
-          bindings.push(this.childExpression.createBinding(element, behaviorInstance.executionContext));
+          bindings.push(this.childExpression.createBinding(element, executionContext));
         }
       } else if (behaviorInstance.view) {
         behaviorInstance.view.owner = behaviorInstance;
 
         if (this.childExpression) {
-          behaviorInstance.view.addBinding(this.childExpression.createBinding(instruction.host, behaviorInstance.executionContext));
+          behaviorInstance.view.addBinding(this.childExpression.createBinding(instruction.host, executionContext));
         }
       } else if (this.childExpression) {
-        bindings.push(this.childExpression.createBinding(instruction.host, behaviorInstance.executionContext));
+        bindings.push(this.childExpression.createBinding(instruction.host, executionContext));
       }
     } else if (this.childExpression) {
-      bindings.push(this.childExpression.createBinding(element, behaviorInstance.executionContext));
+      bindings.push(this.childExpression.createBinding(element, executionContext));
     }
 
-    if (element && !(this.apiName in element)) {
-      element[this.apiName] = behaviorInstance.executionContext;
+    if (element) {
+      if (!(this.apiName in element)) {
+        element[this.apiName] = executionContext;
+      }
+
+      if (!(this.htmlName in element)) {
+        element[this.htmlName] = behaviorInstance;
+      }
     }
 
     return behaviorInstance;

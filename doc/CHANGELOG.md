@@ -1,3 +1,11 @@
+### 0.12.1 (2015-06-09)
+
+
+#### Bug Fixes
+
+* **html-behavior:** add htmlName to element with behavior instance reference ([6e224d78](http://github.com/aurelia/templating/commit/6e224d785306c818143c6aab4589717862c154f8))
+
+
 ## 0.12.0 (2015-06-08)
 
 
