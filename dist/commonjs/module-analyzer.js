@@ -1,20 +1,20 @@
 'use strict';
 
-var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } };
-
 exports.__esModule = true;
 
-var _Metadata = require('aurelia-metadata');
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-var _TemplateRegistryEntry = require('aurelia-loader');
+var _aureliaMetadata = require('aurelia-metadata');
 
-var _ValueConverterResource = require('aurelia-binding');
+var _aureliaLoader = require('aurelia-loader');
 
-var _HtmlBehaviorResource = require('./html-behavior');
+var _aureliaBinding = require('aurelia-binding');
 
-var _ViewStrategy$TemplateRegistryViewStrategy = require('./view-strategy');
+var _htmlBehavior = require('./html-behavior');
 
-var _hyphenate = require('./util');
+var _viewStrategy = require('./view-strategy');
+
+var _util = require('./util');
 
 var ResourceModule = (function () {
   function ResourceModule(moduleId) {
@@ -46,8 +46,7 @@ var ResourceModule = (function () {
       metadata = current.metadata;
       metadata.viewStrategy = viewStrategy;
 
-      if ('analyze' in metadata && !metadata.isAnalyzed) {
-        metadata.isAnalyzed = true;
+      if ('analyze' in metadata) {
         metadata.analyze(container, current.value);
       }
     }
@@ -57,8 +56,7 @@ var ResourceModule = (function () {
       metadata = current.metadata;
       metadata.viewStrategy = viewStrategy;
 
-      if ('analyze' in metadata && !metadata.isAnalyzed) {
-        metadata.isAnalyzed = true;
+      if ('analyze' in metadata) {
         metadata.analyze(container, current.value);
       }
     }
@@ -81,25 +79,21 @@ var ResourceModule = (function () {
   };
 
   ResourceModule.prototype.load = function load(container) {
+    if (this.onLoaded) {
+      return this.onLoaded;
+    }
+
     var current = this.mainResource,
         resources = this.resources,
         i,
         ii,
         metadata,
-        loads;
-
-    if (this.isLoaded) {
-      return Promise.resolve();
-    }
-
-    this.isLoaded = true;
-    loads = [];
+        loads = [];
 
     if (current) {
       metadata = current.metadata;
 
-      if ('load' in metadata && !metadata.isLoaded) {
-        metadata.isLoaded = true;
+      if ('load' in metadata) {
         loads.push(metadata.load(container, current.value));
       }
     }
@@ -108,13 +102,13 @@ var ResourceModule = (function () {
       current = resources[i];
       metadata = current.metadata;
 
-      if ('load' in metadata && !metadata.isLoaded) {
-        metadata.isLoaded = true;
+      if ('load' in metadata) {
         loads.push(metadata.load(container, current.value));
       }
     }
 
-    return Promise.all(loads);
+    this.onLoaded = Promise.all(loads);
+    return this.onLoaded;
   };
 
   return ResourceModule;
@@ -124,25 +118,25 @@ var ResourceDescription = function ResourceDescription(key, exportedValue, resou
   _classCallCheck(this, ResourceDescription);
 
   if (!resourceTypeMeta) {
-    resourceTypeMeta = _Metadata.Metadata.get(_Metadata.Metadata.resource, exportedValue);
+    resourceTypeMeta = _aureliaMetadata.Metadata.get(_aureliaMetadata.Metadata.resource, exportedValue);
 
     if (!resourceTypeMeta) {
-      resourceTypeMeta = new _HtmlBehaviorResource.HtmlBehaviorResource();
-      resourceTypeMeta.elementName = _hyphenate.hyphenate(key);
-      Reflect.defineMetadata(_Metadata.Metadata.resource, resourceTypeMeta, exportedValue);
+      resourceTypeMeta = new _htmlBehavior.HtmlBehaviorResource();
+      resourceTypeMeta.elementName = (0, _util.hyphenate)(key);
+      Reflect.defineMetadata(_aureliaMetadata.Metadata.resource, resourceTypeMeta, exportedValue);
     }
   }
 
-  if (resourceTypeMeta instanceof _HtmlBehaviorResource.HtmlBehaviorResource) {
+  if (resourceTypeMeta instanceof _htmlBehavior.HtmlBehaviorResource) {
     if (resourceTypeMeta.elementName === undefined) {
-      resourceTypeMeta.elementName = _hyphenate.hyphenate(key);
+      resourceTypeMeta.elementName = (0, _util.hyphenate)(key);
     } else if (resourceTypeMeta.attributeName === undefined) {
-      resourceTypeMeta.attributeName = _hyphenate.hyphenate(key);
+      resourceTypeMeta.attributeName = (0, _util.hyphenate)(key);
     } else if (resourceTypeMeta.attributeName === null && resourceTypeMeta.elementName === null) {
-      _HtmlBehaviorResource.HtmlBehaviorResource.convention(key, resourceTypeMeta);
+      _htmlBehavior.HtmlBehaviorResource.convention(key, resourceTypeMeta);
     }
   } else if (!resourceTypeMeta.name) {
-    resourceTypeMeta.name = _hyphenate.hyphenate(key);
+    resourceTypeMeta.name = (0, _util.hyphenate)(key);
   }
 
   this.metadata = resourceTypeMeta;
@@ -195,38 +189,38 @@ var ModuleAnalyzer = (function () {
         continue;
       }
 
-      resourceTypeMeta = _Metadata.Metadata.get(_Metadata.Metadata.resource, exportedValue);
+      resourceTypeMeta = _aureliaMetadata.Metadata.get(_aureliaMetadata.Metadata.resource, exportedValue);
 
       if (resourceTypeMeta) {
         if (resourceTypeMeta.attributeName === null && resourceTypeMeta.elementName === null) {
-          _HtmlBehaviorResource.HtmlBehaviorResource.convention(key, resourceTypeMeta);
+          _htmlBehavior.HtmlBehaviorResource.convention(key, resourceTypeMeta);
         }
 
         if (resourceTypeMeta.attributeName === null && resourceTypeMeta.elementName === null) {
-          resourceTypeMeta.elementName = _hyphenate.hyphenate(key);
+          resourceTypeMeta.elementName = (0, _util.hyphenate)(key);
         }
 
-        if (!mainResource && resourceTypeMeta instanceof _HtmlBehaviorResource.HtmlBehaviorResource && resourceTypeMeta.elementName !== null) {
+        if (!mainResource && resourceTypeMeta instanceof _htmlBehavior.HtmlBehaviorResource && resourceTypeMeta.elementName !== null) {
           mainResource = new ResourceDescription(key, exportedValue, resourceTypeMeta);
         } else {
           resources.push(new ResourceDescription(key, exportedValue, resourceTypeMeta));
         }
-      } else if (exportedValue instanceof _ViewStrategy$TemplateRegistryViewStrategy.ViewStrategy) {
+      } else if (exportedValue instanceof _viewStrategy.ViewStrategy) {
         viewStrategy = exportedValue;
-      } else if (exportedValue instanceof _TemplateRegistryEntry.TemplateRegistryEntry) {
-        viewStrategy = new _ViewStrategy$TemplateRegistryViewStrategy.TemplateRegistryViewStrategy(moduleId, exportedValue);
+      } else if (exportedValue instanceof _aureliaLoader.TemplateRegistryEntry) {
+        viewStrategy = new _viewStrategy.TemplateRegistryViewStrategy(moduleId, exportedValue);
       } else {
-        if (conventional = _HtmlBehaviorResource.HtmlBehaviorResource.convention(key)) {
+        if (conventional = _htmlBehavior.HtmlBehaviorResource.convention(key)) {
           if (conventional.elementName !== null && !mainResource) {
             mainResource = new ResourceDescription(key, exportedValue, conventional);
           } else {
             resources.push(new ResourceDescription(key, exportedValue, conventional));
           }
 
-          Reflect.defineMetadata(_Metadata.Metadata.resource, conventional, exportedValue);
-        } else if (conventional = _ValueConverterResource.ValueConverterResource.convention(key)) {
+          Reflect.defineMetadata(_aureliaMetadata.Metadata.resource, conventional, exportedValue);
+        } else if (conventional = _aureliaBinding.ValueConverterResource.convention(key)) {
           resources.push(new ResourceDescription(key, exportedValue, conventional));
-          Reflect.defineMetadata(_Metadata.Metadata.resource, conventional, exportedValue);
+          Reflect.defineMetadata(_aureliaMetadata.Metadata.resource, conventional, exportedValue);
         } else if (!fallbackValue) {
           fallbackValue = exportedValue;
           fallbackKey = key;

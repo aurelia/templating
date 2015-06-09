@@ -1,4 +1,6 @@
-System.register(['./html-behavior', './bindable-property', './resource-registry', './children', './element-config', './view-strategy', './view-compiler', './view-engine', './view-factory', './view-slot', './binding-language', './composition-engine', './animator', './decorators'], function (_export) {
+System.register(['./html-behavior', './bindable-property', './resource-registry', './children', './element-config', './view-strategy', './view-compiler', './view-engine', './view-factory', './view-slot', './view', './binding-language', './composition-engine', './animator', './decorators'], function (_export) {
+  'use strict';
+
   return {
     setters: [function (_htmlBehavior) {
       _export('HtmlBehaviorResource', _htmlBehavior.HtmlBehaviorResource);
@@ -30,6 +32,8 @@ System.register(['./html-behavior', './bindable-property', './resource-registry'
       _export('BoundViewFactory', _viewFactory.BoundViewFactory);
     }, function (_viewSlot) {
       _export('ViewSlot', _viewSlot.ViewSlot);
+    }, function (_view) {
+      _export('View', _view.View);
     }, function (_bindingLanguage) {
       _export('BindingLanguage', _bindingLanguage.BindingLanguage);
     }, function (_compositionEngine) {
@@ -41,8 +45,6 @@ System.register(['./html-behavior', './bindable-property', './resource-registry'
         _export(_key, _decorators[_key]);
       }
     }],
-    execute: function () {
-      'use strict';
-    }
+    execute: function () {}
   };
 });

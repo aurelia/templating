@@ -1,13 +1,13 @@
 define(['exports', 'core-js', 'aurelia-logging', 'aurelia-metadata', 'aurelia-loader', 'aurelia-dependency-injection', './view-compiler', './resource-registry', './module-analyzer'], function (exports, _coreJs, _aureliaLogging, _aureliaMetadata, _aureliaLoader, _aureliaDependencyInjection, _viewCompiler, _resourceRegistry, _moduleAnalyzer) {
   'use strict';
 
-  var _interopRequire = function (obj) { return obj && obj.__esModule ? obj['default'] : obj; };
-
-  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } };
-
   exports.__esModule = true;
 
-  var _core = _interopRequire(_coreJs);
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  var _core = _interopRequireDefault(_coreJs);
 
   var logger = _aureliaLogging.getLogger('templating');
 
@@ -38,17 +38,12 @@ define(['exports', 'core-js', 'aurelia-logging', 'aurelia-metadata', 'aurelia-lo
       var _this = this;
 
       return ensureRegistryEntry(this.loader, urlOrRegistryEntry).then(function (viewRegistryEntry) {
-        if (viewRegistryEntry.isReady) {
-          return viewRegistryEntry.factory;
+        if (viewRegistryEntry.onReady) {
+          return viewRegistryEntry.onReady;
         }
 
-        return _this.loadTemplateResources(viewRegistryEntry, associatedModuleId).then(function (resources) {
-          if (viewRegistryEntry.isReady) {
-            return viewRegistryEntry.factory;
-          }
-
+        return viewRegistryEntry.onReady = _this.loadTemplateResources(viewRegistryEntry, associatedModuleId).then(function (resources) {
           viewRegistryEntry.setResources(resources);
-
           var viewFactory = _this.viewCompiler.compile(viewRegistryEntry.template, resources, compileOptions);
           viewRegistryEntry.setFactory(viewFactory);
           return viewFactory;

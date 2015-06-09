@@ -1,16 +1,16 @@
 'use strict';
 
-var _inherits = function (subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
-
-var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } };
+exports.__esModule = true;
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-exports.__esModule = true;
+function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-var _Metadata$Origin = require('aurelia-metadata');
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-var _relativeToFile = require('aurelia-path');
+var _aureliaMetadata = require('aurelia-metadata');
+
+var _aureliaPath = require('aurelia-path');
 
 var ViewStrategy = (function () {
   function ViewStrategy() {
@@ -38,8 +38,8 @@ var ViewStrategy = (function () {
       target = target.constructor;
     }
 
-    annotation = _Metadata$Origin.Origin.get(target);
-    strategy = _Metadata$Origin.Metadata.get(ViewStrategy.metadataKey, target);
+    annotation = _aureliaMetadata.Origin.get(target);
+    strategy = _aureliaMetadata.Metadata.get(ViewStrategy.metadataKey, target);
 
     if (!strategy) {
       if (!annotation) {
@@ -77,14 +77,14 @@ var UseViewStrategy = (function (_ViewStrategy) {
 
   UseViewStrategy.prototype.loadViewFactory = function loadViewFactory(viewEngine, options) {
     if (!this.absolutePath && this.moduleId) {
-      this.absolutePath = _relativeToFile.relativeToFile(this.path, this.moduleId);
+      this.absolutePath = (0, _aureliaPath.relativeToFile)(this.path, this.moduleId);
     }
 
     return viewEngine.loadViewFactory(this.absolutePath || this.path, options, this.moduleId);
   };
 
   UseViewStrategy.prototype.makeRelativeTo = function makeRelativeTo(file) {
-    this.absolutePath = _relativeToFile.relativeToFile(this.path, file);
+    this.absolutePath = (0, _aureliaPath.relativeToFile)(this.path, file);
   };
 
   return UseViewStrategy;

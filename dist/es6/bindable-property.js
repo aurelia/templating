@@ -6,7 +6,7 @@ function getObserver(behavior, instance, name){
   var lookup = instance.__observers__;
 
   if(lookup === undefined){
-    lookup = behavior.observerLocator.getObserversLookup(instance);
+    lookup = behavior.observerLocator.getOrCreateObserversLookup(instance);
     behavior.ensurePropertiesDefined(instance, lookup);
   }
 
@@ -62,6 +62,10 @@ export class BindableProperty {
 
     descriptor.set = function(value){
       getObserver(behavior, this, name).setValue(value);
+    };
+
+    descriptor.get.getObserver = function(obj){
+      return getObserver(behavior, obj, name);
     };
 
     return descriptor;

@@ -1,9 +1,9 @@
-define(['exports', './content-selector', './animator'], function (exports, _contentSelector, _animator) {
+define(['exports', './content-selector', './animator', './util'], function (exports, _contentSelector, _animator, _util) {
   'use strict';
 
-  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } };
-
   exports.__esModule = true;
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
   var ViewSlot = (function () {
     function ViewSlot(anchor, anchorIsContainer, executionContext) {
@@ -81,7 +81,7 @@ define(['exports', './content-selector', './animator'], function (exports, _cont
       if (this.isAttached) {
         view.attached();
 
-        var element = view.firstChild ? view.firstChild.nextElementSibling : null;
+        var element = view.firstChild ? (0, _util.nextElementSibling)(view.firstChild) : null;
         if (view.firstChild && view.firstChild.nodeType === 8 && element && element.nodeType === 1 && element.classList.contains('au-animate')) {
           this.animator.enter(element);
         }
@@ -127,7 +127,7 @@ define(['exports', './content-selector', './animator'], function (exports, _cont
         return view;
       };
 
-      var element = view.firstChild && view.firstChild.nextElementSibling ? view.firstChild.nextElementSibling : null;
+      var element = view.firstChild ? (0, _util.nextElementSibling)(view.firstChild) : null;
       if (view.firstChild && view.firstChild.nodeType === 8 && element && element.nodeType === 1 && element.classList.contains('au-animate')) {
         return this.animator.leave(element).then(function () {
           return removeAction();
@@ -147,7 +147,7 @@ define(['exports', './content-selector', './animator'], function (exports, _cont
       var rmPromises = [];
 
       children.forEach(function (child) {
-        var element = child.firstChild ? child.firstChild.nextElementSibling : null;
+        var element = child.firstChild ? (0, _util.nextElementSibling)(child.firstChild) : null;
         if (child.firstChild && child.firstChild.nodeType === 8 && element && element.nodeType === 1 && element.classList.contains('au-animate')) {
           rmPromises.push(_this2.animator.leave(element).then(function () {
             child.removeNodes();
@@ -203,7 +203,7 @@ define(['exports', './content-selector', './animator'], function (exports, _cont
         child = children[i];
         child.attached();
 
-        var element = child.firstChild ? child.firstChild.nextElementSibling : null;
+        var element = child.firstChild ? (0, _util.nextElementSibling)(child.firstChild) : null;
         if (child.firstChild && child.firstChild.nodeType === 8 && element && element.nodeType === 1 && element.classList.contains('au-animate')) {
           this.animator.enter(element);
         }

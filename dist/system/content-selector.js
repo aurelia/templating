@@ -1,5 +1,9 @@
 System.register(['core-js'], function (_export) {
-  var core, _classCallCheck, proto, placeholder, ContentSelector;
+  'use strict';
+
+  var core, proto, placeholder, ContentSelector;
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
   function findInsertionPoint(groups, index) {
     var insertionPoint;
@@ -17,9 +21,6 @@ System.register(['core-js'], function (_export) {
       core = _coreJs['default'];
     }],
     execute: function () {
-      'use strict';
-
-      _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } };
 
       if (Element && !Element.prototype.matches) {
         proto = Element.prototype;

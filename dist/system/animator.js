@@ -1,13 +1,13 @@
 System.register([], function (_export) {
-  var _classCallCheck, Animator;
+  "use strict";
+
+  var Animator;
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
   return {
     setters: [],
     execute: function () {
-      "use strict";
-
-      _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
-
       Animator = (function () {
         function Animator() {
           _classCallCheck(this, Animator);
@@ -36,6 +36,16 @@ System.register([], function (_export) {
         Animator.prototype.addClass = function addClass(element, className) {
           return Promise.resolve(false);
         };
+
+        Animator.prototype.animate = function animate(element, className, options) {
+          return Promise.resolve(false);
+        };
+
+        Animator.prototype.runSequence = function runSequence(sequence) {};
+
+        Animator.prototype.registerEffect = function registerEffect(effectName, properties) {};
+
+        Animator.prototype.unregisterEffect = function unregisterEffect(effectName) {};
 
         return Animator;
       })();

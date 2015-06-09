@@ -1,15 +1,15 @@
 System.register(['aurelia-binding'], function (_export) {
-  var EventManager, _classCallCheck, ElementConfigResource;
+  'use strict';
+
+  var EventManager, ElementConfigResource;
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
   return {
     setters: [function (_aureliaBinding) {
       EventManager = _aureliaBinding.EventManager;
     }],
     execute: function () {
-      'use strict';
-
-      _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } };
-
       ElementConfigResource = (function () {
         function ElementConfigResource() {
           _classCallCheck(this, ElementConfigResource);

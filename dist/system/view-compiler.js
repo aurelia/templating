@@ -1,5 +1,9 @@
 System.register(['./resource-registry', './view-factory', './binding-language'], function (_export) {
-  var ResourceRegistry, ViewFactory, BindingLanguage, _classCallCheck, nextInjectorId, defaultCompileOptions, hasShadowDOM, ViewCompiler;
+  'use strict';
+
+  var ResourceRegistry, ViewFactory, BindingLanguage, nextInjectorId, defaultCompileOptions, hasShadowDOM, needsTemplateFixup, ViewCompiler;
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
   function getNextInjectorId() {
     return ++nextInjectorId;
@@ -48,13 +52,10 @@ System.register(['./resource-registry', './view-factory', './binding-language'],
       BindingLanguage = _bindingLanguage.BindingLanguage;
     }],
     execute: function () {
-      'use strict';
-
-      _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } };
-
       nextInjectorId = 0;
       defaultCompileOptions = { targetShadowDOM: false };
       hasShadowDOM = !!HTMLElement.prototype.createShadowRoot;
+      needsTemplateFixup = !('content' in document.createElement('template'));
 
       ViewCompiler = (function () {
         function ViewCompiler(bindingLanguage) {
@@ -72,7 +73,10 @@ System.register(['./resource-registry', './view-factory', './binding-language'],
 
           var instructions = [],
               targetShadowDOM = options.targetShadowDOM,
-              content;
+              content,
+              part,
+              factory,
+              temp;
 
           targetShadowDOM = targetShadowDOM && hasShadowDOM;
 
@@ -80,7 +84,22 @@ System.register(['./resource-registry', './view-factory', './binding-language'],
             options.beforeCompile(templateOrFragment);
           }
 
+          if (typeof templateOrFragment === 'string') {
+            temp = document.createElement('template');
+            temp.innerHTML = templateOrFragment;
+
+            if (needsTemplateFixup) {
+              temp.content = document.createDocumentFragment();
+              while (temp.firstChild) {
+                temp.content.appendChild(temp.firstChild);
+              }
+            }
+
+            templateOrFragment = temp;
+          }
+
           if (templateOrFragment.content) {
+            part = templateOrFragment.getAttribute('part');
             content = document.adoptNode(templateOrFragment.content, true);
           } else {
             content = templateOrFragment;
@@ -91,7 +110,13 @@ System.register(['./resource-registry', './view-factory', './binding-language'],
           content.insertBefore(document.createComment('<view>'), content.firstChild);
           content.appendChild(document.createComment('</view>'));
 
-          return new ViewFactory(content, instructions, resources);
+          var factory = new ViewFactory(content, instructions, resources);
+
+          if (part) {
+            factory.part = part;
+          }
+
+          return factory;
         };
 
         ViewCompiler.prototype.compileNode = function compileNode(node, resources, instructions, parentNode, parentInjectorId, targetLightDOM) {
@@ -154,10 +179,12 @@ System.register(['./resource-registry', './view-factory', './binding-language'],
             return node.nextSibling;
           } else if (tagName === 'template') {
             viewFactory = this.compile(node, resources);
+            viewFactory.part = node.getAttribute('part');
           } else {
             type = resources.getElement(tagName);
             if (type) {
               elementInstruction = { type: type, attributes: {} };
+              elementInstruction.anchorIsContainer = !node.hasAttribute('containerless') && !type.containerless;
               behaviorInstructions.push(elementInstruction);
             }
           }
@@ -267,7 +294,8 @@ System.register(['./resource-registry', './view-factory', './binding-language'],
             if (expressions.length || behaviorInstructions.length) {
               makeIntoInstructionTarget(node);
               instructions.push({
-                anchorIsContainer: true,
+                anchorIsContainer: elementInstruction ? elementInstruction.anchorIsContainer : true,
+                isCustomElement: !!elementInstruction,
                 injectorId: injectorId,
                 parentInjectorId: parentInjectorId,
                 expressions: expressions,

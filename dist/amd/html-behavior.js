@@ -1,9 +1,9 @@
 define(['exports', 'aurelia-metadata', 'aurelia-binding', 'aurelia-task-queue', './view-strategy', './view-engine', './content-selector', './util', './bindable-property', './behavior-instance'], function (exports, _aureliaMetadata, _aureliaBinding, _aureliaTaskQueue, _viewStrategy, _viewEngine, _contentSelector, _util, _bindableProperty, _behaviorInstance) {
   'use strict';
 
-  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } };
-
   exports.__esModule = true;
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
   var defaultInstruction = { suppressBind: false },
       contentSelectorFactoryOptions = { suppressBind: true },
@@ -15,12 +15,14 @@ define(['exports', 'aurelia-metadata', 'aurelia-binding', 'aurelia-task-queue', 
 
       this.elementName = null;
       this.attributeName = null;
+      this.attributeDefaultBindingMode = undefined;
       this.liftsContent = false;
       this.targetShadowDOM = false;
       this.skipContentProcessing = false;
       this.usesShadowDOM = false;
       this.childExpression = null;
       this.hasDynamicOptions = false;
+      this.containerless = false;
       this.properties = [];
       this.attributes = {};
     }
@@ -30,12 +32,12 @@ define(['exports', 'aurelia-metadata', 'aurelia-binding', 'aurelia-task-queue', 
 
       if (name.endsWith('CustomAttribute')) {
         behavior = existing || new HtmlBehaviorResource();
-        behavior.attributeName = _util.hyphenate(name.substring(0, name.length - 15));
+        behavior.attributeName = (0, _util.hyphenate)(name.substring(0, name.length - 15));
       }
 
       if (name.endsWith('CustomElement')) {
         behavior = existing || new HtmlBehaviorResource();
-        behavior.elementName = _util.hyphenate(name.substring(0, name.length - 13));
+        behavior.elementName = (0, _util.hyphenate)(name.substring(0, name.length - 13));
       }
 
       return behavior;
@@ -45,6 +47,7 @@ define(['exports', 'aurelia-metadata', 'aurelia-binding', 'aurelia-task-queue', 
       var proto = target.prototype,
           properties = this.properties,
           attributeName = this.attributeName,
+          attributeDefaultBindingMode = this.attributeDefaultBindingMode,
           i,
           ii,
           current;
@@ -68,7 +71,8 @@ define(['exports', 'aurelia-metadata', 'aurelia-binding', 'aurelia-task-queue', 
           new _bindableProperty.BindableProperty({
             name: 'value',
             changeHandler: 'valueChanged' in proto ? 'valueChanged' : null,
-            attribute: attributeName
+            attribute: attributeName,
+            defaultBindingMode: attributeDefaultBindingMode
           }).registerWith(target, this);
         }
 
@@ -85,7 +89,8 @@ define(['exports', 'aurelia-metadata', 'aurelia-binding', 'aurelia-task-queue', 
           current = new _bindableProperty.BindableProperty({
             name: 'value',
             changeHandler: 'valueChanged' in proto ? 'valueChanged' : null,
-            attribute: attributeName
+            attribute: attributeName,
+            defaultBindingMode: attributeDefaultBindingMode
           });
 
           current.hasOptions = true;
@@ -140,7 +145,8 @@ define(['exports', 'aurelia-metadata', 'aurelia-binding', 'aurelia-task-queue', 
       if (this.liftsContent) {
         if (!instruction.viewFactory) {
           var template = document.createElement('template'),
-              fragment = document.createDocumentFragment();
+              fragment = document.createDocumentFragment(),
+              part = node.getAttribute('part');
 
           node.removeAttribute(instruction.originalAttrName);
 
@@ -153,31 +159,64 @@ define(['exports', 'aurelia-metadata', 'aurelia-binding', 'aurelia-task-queue', 
           }
 
           fragment.appendChild(node);
-
           instruction.viewFactory = compiler.compile(fragment, resources);
+
+          if (part) {
+            instruction.viewFactory.part = part;
+            node.removeAttribute('part');
+          }
+
           node = template;
         }
-      } else if (this.elementName !== null && !this.usesShadowDOM && !this.skipContentProcessing && node.hasChildNodes()) {
-        var fragment = document.createDocumentFragment(),
-            currentChild = node.firstChild,
-            nextSibling;
+      } else if (this.elementName !== null) {
+        var partReplacements = {};
 
-        while (currentChild) {
-          nextSibling = currentChild.nextSibling;
-          fragment.appendChild(currentChild);
-          currentChild = nextSibling;
+        if (!this.skipContentProcessing && node.hasChildNodes()) {
+          if (!this.usesShadowDOM) {
+            var fragment = document.createDocumentFragment(),
+                currentChild = node.firstChild,
+                nextSibling;
+
+            while (currentChild) {
+              nextSibling = currentChild.nextSibling;
+
+              if (currentChild.tagName === 'TEMPLATE' && (toReplace = currentChild.getAttribute('replace-part'))) {
+                partReplacements[toReplace] = compiler.compile(currentChild, resources);
+              } else {
+                fragment.appendChild(currentChild);
+              }
+
+              currentChild = nextSibling;
+            }
+
+            instruction.contentFactory = compiler.compile(fragment, resources);
+          } else {
+            var currentChild = node.firstChild,
+                nextSibling,
+                toReplace;
+
+            while (currentChild) {
+              nextSibling = currentChild.nextSibling;
+
+              if (currentChild.tagName === 'TEMPLATE' && (toReplace = currentChild.getAttribute('replace-part'))) {
+                partReplacements[toReplace] = compiler.compile(currentChild, resources);
+              }
+
+              currentChild = nextSibling;
+            }
+          }
         }
-
-        instruction.contentFactory = compiler.compile(fragment, resources);
       }
 
+      instruction.partReplacements = partReplacements;
       instruction.suppressBind = true;
       return node;
     };
 
-    HtmlBehaviorResource.prototype.create = function create(container, _x, _x2, bindings) {
+    HtmlBehaviorResource.prototype.create = function create(container) {
       var instruction = arguments[1] === undefined ? defaultInstruction : arguments[1];
       var element = arguments[2] === undefined ? null : arguments[2];
+      var bindings = arguments[3] === undefined ? null : arguments[3];
 
       var executionContext = instruction.executionContext || container.get(this.target),
           behaviorInstance = new _behaviorInstance.BehaviorInstance(this, executionContext, instruction),
@@ -215,14 +254,26 @@ define(['exports', 'aurelia-metadata', 'aurelia-binding', 'aurelia-task-queue', 
               }
             }
 
-            if (this.childExpression) {
-              behaviorInstance.view.addBinding(this.childExpression.createBinding(host, behaviorInstance.executionContext));
-            }
+            if (instruction.anchorIsContainer) {
+              if (this.childExpression) {
+                behaviorInstance.view.addBinding(this.childExpression.createBinding(host, behaviorInstance.executionContext));
+              }
 
-            behaviorInstance.view.appendNodesTo(host);
+              behaviorInstance.view.appendNodesTo(host);
+            } else {
+              behaviorInstance.view.insertNodesBefore(host);
+            }
+          } else if (this.childExpression) {
+            bindings.push(this.childExpression.createBinding(element, behaviorInstance.executionContext));
           }
         } else if (behaviorInstance.view) {
           behaviorInstance.view.owner = behaviorInstance;
+
+          if (this.childExpression) {
+            behaviorInstance.view.addBinding(this.childExpression.createBinding(instruction.host, behaviorInstance.executionContext));
+          }
+        } else if (this.childExpression) {
+          bindings.push(this.childExpression.createBinding(instruction.host, behaviorInstance.executionContext));
         }
       } else if (this.childExpression) {
         bindings.push(this.childExpression.createBinding(element, behaviorInstance.executionContext));

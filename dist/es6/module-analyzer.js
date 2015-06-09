@@ -31,8 +31,7 @@ class ResourceModule {
       metadata = current.metadata;
       metadata.viewStrategy = viewStrategy;
 
-      if('analyze' in metadata && !metadata.isAnalyzed){
-        metadata.isAnalyzed = true;
+      if('analyze' in metadata){
         metadata.analyze(container, current.value);
       }
     }
@@ -42,8 +41,7 @@ class ResourceModule {
       metadata = current.metadata;
       metadata.viewStrategy = viewStrategy;
 
-      if('analyze' in metadata && !metadata.isAnalyzed){
-        metadata.isAnalyzed = true;
+      if('analyze' in metadata){
         metadata.analyze(container, current.value);
       }
     }
@@ -64,22 +62,18 @@ class ResourceModule {
   }
 
   load(container){
-    var current = this.mainResource,
-        resources = this.resources,
-        i, ii, metadata, loads;
-
-    if(this.isLoaded){
-      return Promise.resolve();
+    if(this.onLoaded){
+      return this.onLoaded;
     }
 
-    this.isLoaded = true;
-    loads = [];
+    var current = this.mainResource,
+        resources = this.resources,
+        i, ii, metadata, loads = [];
 
     if(current){
       metadata = current.metadata;
 
-      if('load' in metadata && !metadata.isLoaded){
-        metadata.isLoaded = true;
+      if('load' in metadata){
         loads.push(metadata.load(container, current.value));
       }
     }
@@ -88,13 +82,13 @@ class ResourceModule {
       current = resources[i];
       metadata = current.metadata;
 
-      if('load' in metadata && !metadata.isLoaded){
-        metadata.isLoaded = true;
+      if('load' in metadata){
         loads.push(metadata.load(container, current.value));
       }
     }
 
-    return Promise.all(loads);
+    this.onLoaded = Promise.all(loads);
+    return this.onLoaded;
   }
 }
 

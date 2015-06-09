@@ -1,13 +1,13 @@
 System.register([], function (_export) {
-  var _classCallCheck, View;
+  "use strict";
+
+  var View;
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
   return {
     setters: [],
     execute: function () {
-      "use strict";
-
-      _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
-
       View = (function () {
         function View(fragment, behaviors, bindings, children, systemControlled, contentSelectors) {
           _classCallCheck(this, View);

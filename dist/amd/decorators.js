@@ -1,8 +1,6 @@
 define(['exports', 'core-js', 'aurelia-metadata', './bindable-property', './children', './element-config', './view-strategy', './html-behavior'], function (exports, _coreJs, _aureliaMetadata, _bindableProperty, _children, _elementConfig, _viewStrategy, _htmlBehavior) {
   'use strict';
 
-  var _interopRequire = function (obj) { return obj && obj.__esModule ? obj['default'] : obj; };
-
   exports.__esModule = true;
   exports.behavior = behavior;
   exports.customElement = customElement;
@@ -13,12 +11,21 @@ define(['exports', 'core-js', 'aurelia-metadata', './bindable-property', './chil
   exports.syncChildren = syncChildren;
   exports.useShadowDOM = useShadowDOM;
   exports.skipContentProcessing = skipContentProcessing;
+  exports.containerless = containerless;
   exports.viewStrategy = viewStrategy;
   exports.useView = useView;
   exports.noView = noView;
   exports.elementConfig = elementConfig;
 
-  var _core = _interopRequire(_coreJs);
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+  var _core = _interopRequireDefault(_coreJs);
+
+  function validateBehaviorName(name, type) {
+    if (/[A-Z]/.test(name)) {
+      throw new Error('\'' + name + '\' is not a valid ' + type + ' name.  Upper-case letters are not allowed because the DOM is not case-sensitive.');
+    }
+  }
 
   function behavior(override) {
     return function (target) {
@@ -34,6 +41,7 @@ define(['exports', 'core-js', 'aurelia-metadata', './bindable-property', './chil
   _aureliaMetadata.Decorators.configure.parameterizedDecorator('behavior', behavior);
 
   function customElement(name) {
+    validateBehaviorName(name, 'custom element');
     return function (target) {
       var resource = _aureliaMetadata.Metadata.getOrCreateOwn(_aureliaMetadata.Metadata.resource, _htmlBehavior.HtmlBehaviorResource, target);
       resource.elementName = name;
@@ -42,10 +50,12 @@ define(['exports', 'core-js', 'aurelia-metadata', './bindable-property', './chil
 
   _aureliaMetadata.Decorators.configure.parameterizedDecorator('customElement', customElement);
 
-  function customAttribute(name) {
+  function customAttribute(name, defaultBindingMode) {
+    validateBehaviorName(name, 'custom attribute');
     return function (target) {
       var resource = _aureliaMetadata.Metadata.getOrCreateOwn(_aureliaMetadata.Metadata.resource, _htmlBehavior.HtmlBehaviorResource, target);
       resource.attributeName = name;
+      resource.attributeDefaultBindingMode = defaultBindingMode;
     };
   }
 
@@ -133,6 +143,17 @@ define(['exports', 'core-js', 'aurelia-metadata', './bindable-property', './chil
   }
 
   _aureliaMetadata.Decorators.configure.simpleDecorator('skipContentProcessing', skipContentProcessing);
+
+  function containerless(target) {
+    var deco = function deco(target) {
+      var resource = _aureliaMetadata.Metadata.getOrCreateOwn(_aureliaMetadata.Metadata.resource, _htmlBehavior.HtmlBehaviorResource, target);
+      resource.containerless = true;
+    };
+
+    return target ? deco(target) : deco;
+  }
+
+  _aureliaMetadata.Decorators.configure.simpleDecorator('containerless', containerless);
 
   function viewStrategy(strategy) {
     return function (target) {

@@ -1,5 +1,9 @@
 System.register(['aurelia-metadata', './view-strategy', './view-engine', './html-behavior'], function (_export) {
-  var Origin, Metadata, ViewStrategy, UseViewStrategy, ViewEngine, HtmlBehaviorResource, _classCallCheck, CompositionEngine;
+  'use strict';
+
+  var Origin, Metadata, ViewStrategy, UseViewStrategy, ViewEngine, HtmlBehaviorResource, CompositionEngine;
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
   return {
     setters: [function (_aureliaMetadata) {
@@ -14,10 +18,6 @@ System.register(['aurelia-metadata', './view-strategy', './view-engine', './html
       HtmlBehaviorResource = _htmlBehavior.HtmlBehaviorResource;
     }],
     execute: function () {
-      'use strict';
-
-      _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } };
-
       CompositionEngine = (function () {
         function CompositionEngine(viewEngine) {
           _classCallCheck(this, CompositionEngine);
@@ -81,8 +81,8 @@ System.register(['aurelia-metadata', './view-strategy', './view-engine', './html
             } else {
               metadata = new HtmlBehaviorResource();
               metadata.elementName = 'dynamic-element';
+              metadata.analyze(instruction.container || childContainer, viewModel.constructor);
               doneLoading = metadata.load(childContainer, viewModel.constructor, instruction.view, true).then(function (viewFactory) {
-                metadata.analyze(instruction.container || childContainer, viewModel.constructor);
                 return viewFactory;
               });
             }
@@ -91,7 +91,8 @@ System.register(['aurelia-metadata', './view-strategy', './view-engine', './html
               return metadata.create(childContainer, {
                 executionContext: viewModel,
                 viewFactory: viewFactory,
-                suppressBind: true
+                suppressBind: true,
+                host: instruction.host
               });
             });
           });
@@ -104,6 +105,11 @@ System.register(['aurelia-metadata', './view-strategy', './view-engine', './html
 
           return this.viewEngine.importViewModelResource(instruction.viewModel).then(function (viewModelResource) {
             childContainer.autoRegister(viewModelResource.value);
+
+            if (instruction.host) {
+              childContainer.registerInstance(Element, instruction.host);
+            }
+
             instruction.viewModel = childContainer.viewModel = childContainer.get(viewModelResource.value);
             instruction.viewModelResource = viewModelResource;
             return instruction;

@@ -1,13 +1,14 @@
 define(['exports', './resource-registry', './view-factory', './binding-language'], function (exports, _resourceRegistry, _viewFactory, _bindingLanguage) {
   'use strict';
 
-  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } };
-
   exports.__esModule = true;
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
   var nextInjectorId = 0,
       defaultCompileOptions = { targetShadowDOM: false },
-      hasShadowDOM = !!HTMLElement.prototype.createShadowRoot;
+      hasShadowDOM = !!HTMLElement.prototype.createShadowRoot,
+      needsTemplateFixup = !('content' in document.createElement('template'));
 
   function getNextInjectorId() {
     return ++nextInjectorId;
@@ -63,7 +64,10 @@ define(['exports', './resource-registry', './view-factory', './binding-language'
 
       var instructions = [],
           targetShadowDOM = options.targetShadowDOM,
-          content;
+          content,
+          part,
+          factory,
+          temp;
 
       targetShadowDOM = targetShadowDOM && hasShadowDOM;
 
@@ -71,7 +75,22 @@ define(['exports', './resource-registry', './view-factory', './binding-language'
         options.beforeCompile(templateOrFragment);
       }
 
+      if (typeof templateOrFragment === 'string') {
+        temp = document.createElement('template');
+        temp.innerHTML = templateOrFragment;
+
+        if (needsTemplateFixup) {
+          temp.content = document.createDocumentFragment();
+          while (temp.firstChild) {
+            temp.content.appendChild(temp.firstChild);
+          }
+        }
+
+        templateOrFragment = temp;
+      }
+
       if (templateOrFragment.content) {
+        part = templateOrFragment.getAttribute('part');
         content = document.adoptNode(templateOrFragment.content, true);
       } else {
         content = templateOrFragment;
@@ -82,7 +101,13 @@ define(['exports', './resource-registry', './view-factory', './binding-language'
       content.insertBefore(document.createComment('<view>'), content.firstChild);
       content.appendChild(document.createComment('</view>'));
 
-      return new _viewFactory.ViewFactory(content, instructions, resources);
+      var factory = new _viewFactory.ViewFactory(content, instructions, resources);
+
+      if (part) {
+        factory.part = part;
+      }
+
+      return factory;
     };
 
     ViewCompiler.prototype.compileNode = function compileNode(node, resources, instructions, parentNode, parentInjectorId, targetLightDOM) {
@@ -145,10 +170,12 @@ define(['exports', './resource-registry', './view-factory', './binding-language'
         return node.nextSibling;
       } else if (tagName === 'template') {
         viewFactory = this.compile(node, resources);
+        viewFactory.part = node.getAttribute('part');
       } else {
         type = resources.getElement(tagName);
         if (type) {
           elementInstruction = { type: type, attributes: {} };
+          elementInstruction.anchorIsContainer = !node.hasAttribute('containerless') && !type.containerless;
           behaviorInstructions.push(elementInstruction);
         }
       }
@@ -258,7 +285,8 @@ define(['exports', './resource-registry', './view-factory', './binding-language'
         if (expressions.length || behaviorInstructions.length) {
           makeIntoInstructionTarget(node);
           instructions.push({
-            anchorIsContainer: true,
+            anchorIsContainer: elementInstruction ? elementInstruction.anchorIsContainer : true,
+            isCustomElement: !!elementInstruction,
             injectorId: injectorId,
             parentInjectorId: parentInjectorId,
             expressions: expressions,

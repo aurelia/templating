@@ -1,9 +1,9 @@
 define(['exports', 'aurelia-metadata', 'aurelia-loader', 'aurelia-binding', './html-behavior', './view-strategy', './util'], function (exports, _aureliaMetadata, _aureliaLoader, _aureliaBinding, _htmlBehavior, _viewStrategy, _util) {
   'use strict';
 
-  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } };
-
   exports.__esModule = true;
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
   var ResourceModule = (function () {
     function ResourceModule(moduleId) {
@@ -35,8 +35,7 @@ define(['exports', 'aurelia-metadata', 'aurelia-loader', 'aurelia-binding', './h
         metadata = current.metadata;
         metadata.viewStrategy = viewStrategy;
 
-        if ('analyze' in metadata && !metadata.isAnalyzed) {
-          metadata.isAnalyzed = true;
+        if ('analyze' in metadata) {
           metadata.analyze(container, current.value);
         }
       }
@@ -46,8 +45,7 @@ define(['exports', 'aurelia-metadata', 'aurelia-loader', 'aurelia-binding', './h
         metadata = current.metadata;
         metadata.viewStrategy = viewStrategy;
 
-        if ('analyze' in metadata && !metadata.isAnalyzed) {
-          metadata.isAnalyzed = true;
+        if ('analyze' in metadata) {
           metadata.analyze(container, current.value);
         }
       }
@@ -70,25 +68,21 @@ define(['exports', 'aurelia-metadata', 'aurelia-loader', 'aurelia-binding', './h
     };
 
     ResourceModule.prototype.load = function load(container) {
+      if (this.onLoaded) {
+        return this.onLoaded;
+      }
+
       var current = this.mainResource,
           resources = this.resources,
           i,
           ii,
           metadata,
-          loads;
-
-      if (this.isLoaded) {
-        return Promise.resolve();
-      }
-
-      this.isLoaded = true;
-      loads = [];
+          loads = [];
 
       if (current) {
         metadata = current.metadata;
 
-        if ('load' in metadata && !metadata.isLoaded) {
-          metadata.isLoaded = true;
+        if ('load' in metadata) {
           loads.push(metadata.load(container, current.value));
         }
       }
@@ -97,13 +91,13 @@ define(['exports', 'aurelia-metadata', 'aurelia-loader', 'aurelia-binding', './h
         current = resources[i];
         metadata = current.metadata;
 
-        if ('load' in metadata && !metadata.isLoaded) {
-          metadata.isLoaded = true;
+        if ('load' in metadata) {
           loads.push(metadata.load(container, current.value));
         }
       }
 
-      return Promise.all(loads);
+      this.onLoaded = Promise.all(loads);
+      return this.onLoaded;
     };
 
     return ResourceModule;
@@ -117,21 +111,21 @@ define(['exports', 'aurelia-metadata', 'aurelia-loader', 'aurelia-binding', './h
 
       if (!resourceTypeMeta) {
         resourceTypeMeta = new _htmlBehavior.HtmlBehaviorResource();
-        resourceTypeMeta.elementName = _util.hyphenate(key);
+        resourceTypeMeta.elementName = (0, _util.hyphenate)(key);
         Reflect.defineMetadata(_aureliaMetadata.Metadata.resource, resourceTypeMeta, exportedValue);
       }
     }
 
     if (resourceTypeMeta instanceof _htmlBehavior.HtmlBehaviorResource) {
       if (resourceTypeMeta.elementName === undefined) {
-        resourceTypeMeta.elementName = _util.hyphenate(key);
+        resourceTypeMeta.elementName = (0, _util.hyphenate)(key);
       } else if (resourceTypeMeta.attributeName === undefined) {
-        resourceTypeMeta.attributeName = _util.hyphenate(key);
+        resourceTypeMeta.attributeName = (0, _util.hyphenate)(key);
       } else if (resourceTypeMeta.attributeName === null && resourceTypeMeta.elementName === null) {
         _htmlBehavior.HtmlBehaviorResource.convention(key, resourceTypeMeta);
       }
     } else if (!resourceTypeMeta.name) {
-      resourceTypeMeta.name = _util.hyphenate(key);
+      resourceTypeMeta.name = (0, _util.hyphenate)(key);
     }
 
     this.metadata = resourceTypeMeta;
@@ -192,7 +186,7 @@ define(['exports', 'aurelia-metadata', 'aurelia-loader', 'aurelia-binding', './h
           }
 
           if (resourceTypeMeta.attributeName === null && resourceTypeMeta.elementName === null) {
-            resourceTypeMeta.elementName = _util.hyphenate(key);
+            resourceTypeMeta.elementName = (0, _util.hyphenate)(key);
           }
 
           if (!mainResource && resourceTypeMeta instanceof _htmlBehavior.HtmlBehaviorResource && resourceTypeMeta.elementName !== null) {

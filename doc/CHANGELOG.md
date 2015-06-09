@@ -1,3 +1,30 @@
+## 0.12.0 (2015-06-08)
+
+
+#### Bug Fixes
+
+* **behavior-instance:** update to semi private api usage based on change in binding ([fffba93f](http://github.com/aurelia/templating/commit/fffba93f8ebb48d3bed8589347467b8fe7885a43))
+* **bindable-property:** publish custom getObserver on getter ([78238520](http://github.com/aurelia/templating/commit/7823852003408dcc0c86d1e0555336a21f53533b))
+* **decorators:** throw on invalid behavior resource names ([b9c4a527](http://github.com/aurelia/templating/commit/b9c4a5279f8d6315859b1717786fadd9010fe858))
+* **naming:** fixes naming issues ([2b5c1adb](http://github.com/aurelia/templating/commit/2b5c1adb1b2531866e2b4f7db4fd106defa63dd5))
+* **view-engine:** address async loading issues and double loading ([ce82ab1f](http://github.com/aurelia/templating/commit/ce82ab1f4b40aea659bee2627c4c62613cc4be37))
+* **view-factory:** template anchors converted to comment anchors ([2079480a](http://github.com/aurelia/templating/commit/2079480ad1ce3d8bc55b03564e7299481ab6a3dc))
+* **view-slot:** add fallback for missing nextElementSibling ([7ae88b6f](http://github.com/aurelia/templating/commit/7ae88b6fccf92cc057a7964c952d3ff925301725))
+
+
+#### Features
+
+* **all:**
+  * containerless custom elements ([710e5b38](http://github.com/aurelia/templating/commit/710e5b383bb621a8947019bda73498b58de56ef5))
+  * support template part replacement ([1d9ba1c0](http://github.com/aurelia/templating/commit/1d9ba1c06563a12505dd4033ff24932a9f88007e), closes [#70](http://github.com/aurelia/templating/issues/70))
+* **anim:** add animation events const ([0378ebe3](http://github.com/aurelia/templating/commit/0378ebe3482c2b023f360bc2774cfd76ad5faea6))
+* **animator:** add extra animator methods ([3ad6e884](http://github.com/aurelia/templating/commit/3ad6e884de22021c0f3e578056831826c76b7c1a))
+* **customAttribute:** enable defaultBindingMode for customAttribute ([91e503f7](http://github.com/aurelia/templating/commit/91e503f7d850e810ddb277f42a0ef5ff72e1909c))
+* **html-behavior:** enable syncChildren on composed views ([ea15104e](http://github.com/aurelia/templating/commit/ea15104e73bb9edf38397a1ea69c844ff7bd1831), closes [#68](http://github.com/aurelia/templating/issues/68))
+* **view-compiler:** support compiling of strings ([deb23a83](http://github.com/aurelia/templating/commit/deb23a8336ff84a6c8af221a95fed8df4c85f304), closes [#37](http://github.com/aurelia/templating/issues/37))
+* **view-factory:** enable replacement parts to flow through to child templates ([3261af3b](http://github.com/aurelia/templating/commit/3261af3bb532eac3a87766413b3c69854f17aa5b))
+
+
 ### 0.11.2 (2015-05-06)
 
 

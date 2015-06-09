@@ -1,26 +1,26 @@
 'use strict';
 
-var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } };
-
 exports.__esModule = true;
 
-var _Origin = require('aurelia-metadata');
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-var _ObserverLocator = require('aurelia-binding');
+var _aureliaMetadata = require('aurelia-metadata');
 
-var _TaskQueue = require('aurelia-task-queue');
+var _aureliaBinding = require('aurelia-binding');
 
-var _ViewStrategy = require('./view-strategy');
+var _aureliaTaskQueue = require('aurelia-task-queue');
 
-var _ViewEngine = require('./view-engine');
+var _viewStrategy = require('./view-strategy');
 
-var _ContentSelector = require('./content-selector');
+var _viewEngine = require('./view-engine');
 
-var _hyphenate = require('./util');
+var _contentSelector = require('./content-selector');
 
-var _BindableProperty = require('./bindable-property');
+var _util = require('./util');
 
-var _BehaviorInstance = require('./behavior-instance');
+var _bindableProperty = require('./bindable-property');
+
+var _behaviorInstance = require('./behavior-instance');
 
 var defaultInstruction = { suppressBind: false },
     contentSelectorFactoryOptions = { suppressBind: true },
@@ -32,12 +32,14 @@ var HtmlBehaviorResource = (function () {
 
     this.elementName = null;
     this.attributeName = null;
+    this.attributeDefaultBindingMode = undefined;
     this.liftsContent = false;
     this.targetShadowDOM = false;
     this.skipContentProcessing = false;
     this.usesShadowDOM = false;
     this.childExpression = null;
     this.hasDynamicOptions = false;
+    this.containerless = false;
     this.properties = [];
     this.attributes = {};
   }
@@ -47,12 +49,12 @@ var HtmlBehaviorResource = (function () {
 
     if (name.endsWith('CustomAttribute')) {
       behavior = existing || new HtmlBehaviorResource();
-      behavior.attributeName = _hyphenate.hyphenate(name.substring(0, name.length - 15));
+      behavior.attributeName = (0, _util.hyphenate)(name.substring(0, name.length - 15));
     }
 
     if (name.endsWith('CustomElement')) {
       behavior = existing || new HtmlBehaviorResource();
-      behavior.elementName = _hyphenate.hyphenate(name.substring(0, name.length - 13));
+      behavior.elementName = (0, _util.hyphenate)(name.substring(0, name.length - 13));
     }
 
     return behavior;
@@ -62,12 +64,13 @@ var HtmlBehaviorResource = (function () {
     var proto = target.prototype,
         properties = this.properties,
         attributeName = this.attributeName,
+        attributeDefaultBindingMode = this.attributeDefaultBindingMode,
         i,
         ii,
         current;
 
-    this.observerLocator = container.get(_ObserverLocator.ObserverLocator);
-    this.taskQueue = container.get(_TaskQueue.TaskQueue);
+    this.observerLocator = container.get(_aureliaBinding.ObserverLocator);
+    this.taskQueue = container.get(_aureliaTaskQueue.TaskQueue);
 
     this.target = target;
     this.usesShadowDOM = this.targetShadowDOM && hasShadowDOM;
@@ -82,10 +85,11 @@ var HtmlBehaviorResource = (function () {
 
     if (attributeName !== null) {
       if (properties.length === 0) {
-        new _BindableProperty.BindableProperty({
+        new _bindableProperty.BindableProperty({
           name: 'value',
           changeHandler: 'valueChanged' in proto ? 'valueChanged' : null,
-          attribute: attributeName
+          attribute: attributeName,
+          defaultBindingMode: attributeDefaultBindingMode
         }).registerWith(target, this);
       }
 
@@ -99,10 +103,11 @@ var HtmlBehaviorResource = (function () {
           properties[i].defineOn(target, this);
         }
 
-        current = new _BindableProperty.BindableProperty({
+        current = new _bindableProperty.BindableProperty({
           name: 'value',
           changeHandler: 'valueChanged' in proto ? 'valueChanged' : null,
-          attribute: attributeName
+          attribute: attributeName,
+          defaultBindingMode: attributeDefaultBindingMode
         });
 
         current.hasOptions = true;
@@ -121,17 +126,17 @@ var HtmlBehaviorResource = (function () {
     var options;
 
     if (this.elementName !== null) {
-      viewStrategy = viewStrategy || this.viewStrategy || _ViewStrategy.ViewStrategy.getDefault(target);
+      viewStrategy = viewStrategy || this.viewStrategy || _viewStrategy.ViewStrategy.getDefault(target);
       options = {
         targetShadowDOM: this.targetShadowDOM,
         beforeCompile: target.beforeCompile
       };
 
       if (!viewStrategy.moduleId) {
-        viewStrategy.moduleId = _Origin.Origin.get(target).moduleId;
+        viewStrategy.moduleId = _aureliaMetadata.Origin.get(target).moduleId;
       }
 
-      return viewStrategy.loadViewFactory(container.get(_ViewEngine.ViewEngine), options).then(function (viewFactory) {
+      return viewStrategy.loadViewFactory(container.get(_viewEngine.ViewEngine), options).then(function (viewFactory) {
         if (!transientView) {
           _this.viewFactory = viewFactory;
         }
@@ -157,7 +162,8 @@ var HtmlBehaviorResource = (function () {
     if (this.liftsContent) {
       if (!instruction.viewFactory) {
         var template = document.createElement('template'),
-            fragment = document.createDocumentFragment();
+            fragment = document.createDocumentFragment(),
+            part = node.getAttribute('part');
 
         node.removeAttribute(instruction.originalAttrName);
 
@@ -170,34 +176,67 @@ var HtmlBehaviorResource = (function () {
         }
 
         fragment.appendChild(node);
-
         instruction.viewFactory = compiler.compile(fragment, resources);
+
+        if (part) {
+          instruction.viewFactory.part = part;
+          node.removeAttribute('part');
+        }
+
         node = template;
       }
-    } else if (this.elementName !== null && !this.usesShadowDOM && !this.skipContentProcessing && node.hasChildNodes()) {
-      var fragment = document.createDocumentFragment(),
-          currentChild = node.firstChild,
-          nextSibling;
+    } else if (this.elementName !== null) {
+      var partReplacements = {};
 
-      while (currentChild) {
-        nextSibling = currentChild.nextSibling;
-        fragment.appendChild(currentChild);
-        currentChild = nextSibling;
+      if (!this.skipContentProcessing && node.hasChildNodes()) {
+        if (!this.usesShadowDOM) {
+          var fragment = document.createDocumentFragment(),
+              currentChild = node.firstChild,
+              nextSibling;
+
+          while (currentChild) {
+            nextSibling = currentChild.nextSibling;
+
+            if (currentChild.tagName === 'TEMPLATE' && (toReplace = currentChild.getAttribute('replace-part'))) {
+              partReplacements[toReplace] = compiler.compile(currentChild, resources);
+            } else {
+              fragment.appendChild(currentChild);
+            }
+
+            currentChild = nextSibling;
+          }
+
+          instruction.contentFactory = compiler.compile(fragment, resources);
+        } else {
+          var currentChild = node.firstChild,
+              nextSibling,
+              toReplace;
+
+          while (currentChild) {
+            nextSibling = currentChild.nextSibling;
+
+            if (currentChild.tagName === 'TEMPLATE' && (toReplace = currentChild.getAttribute('replace-part'))) {
+              partReplacements[toReplace] = compiler.compile(currentChild, resources);
+            }
+
+            currentChild = nextSibling;
+          }
+        }
       }
-
-      instruction.contentFactory = compiler.compile(fragment, resources);
     }
 
+    instruction.partReplacements = partReplacements;
     instruction.suppressBind = true;
     return node;
   };
 
-  HtmlBehaviorResource.prototype.create = function create(container, _x, _x2, bindings) {
+  HtmlBehaviorResource.prototype.create = function create(container) {
     var instruction = arguments[1] === undefined ? defaultInstruction : arguments[1];
     var element = arguments[2] === undefined ? null : arguments[2];
+    var bindings = arguments[3] === undefined ? null : arguments[3];
 
     var executionContext = instruction.executionContext || container.get(this.target),
-        behaviorInstance = new _BehaviorInstance.BehaviorInstance(this, executionContext, instruction),
+        behaviorInstance = new _behaviorInstance.BehaviorInstance(this, executionContext, instruction),
         viewFactory,
         host;
 
@@ -224,7 +263,7 @@ var HtmlBehaviorResource = (function () {
             if (instruction.contentFactory) {
               var contentView = instruction.contentFactory.create(container, null, contentSelectorFactoryOptions);
 
-              _ContentSelector.ContentSelector.applySelectors(contentView, behaviorInstance.view.contentSelectors, function (contentSelector, group) {
+              _contentSelector.ContentSelector.applySelectors(contentView, behaviorInstance.view.contentSelectors, function (contentSelector, group) {
                 return contentSelector.add(group);
               });
 
@@ -232,14 +271,26 @@ var HtmlBehaviorResource = (function () {
             }
           }
 
-          if (this.childExpression) {
-            behaviorInstance.view.addBinding(this.childExpression.createBinding(host, behaviorInstance.executionContext));
-          }
+          if (instruction.anchorIsContainer) {
+            if (this.childExpression) {
+              behaviorInstance.view.addBinding(this.childExpression.createBinding(host, behaviorInstance.executionContext));
+            }
 
-          behaviorInstance.view.appendNodesTo(host);
+            behaviorInstance.view.appendNodesTo(host);
+          } else {
+            behaviorInstance.view.insertNodesBefore(host);
+          }
+        } else if (this.childExpression) {
+          bindings.push(this.childExpression.createBinding(element, behaviorInstance.executionContext));
         }
       } else if (behaviorInstance.view) {
         behaviorInstance.view.owner = behaviorInstance;
+
+        if (this.childExpression) {
+          behaviorInstance.view.addBinding(this.childExpression.createBinding(instruction.host, behaviorInstance.executionContext));
+        }
+      } else if (this.childExpression) {
+        bindings.push(this.childExpression.createBinding(instruction.host, behaviorInstance.executionContext));
       }
     } else if (this.childExpression) {
       bindings.push(this.childExpression.createBinding(element, behaviorInstance.executionContext));

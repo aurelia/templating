@@ -1,4 +1,6 @@
 System.register(['core-js', 'aurelia-metadata', './bindable-property', './children', './element-config', './view-strategy', './html-behavior'], function (_export) {
+  'use strict';
+
   var core, Metadata, Decorators, BindableProperty, ChildObserver, ElementConfigResource, ViewStrategy, UseViewStrategy, NoViewStrategy, HtmlBehaviorResource;
 
   _export('behavior', behavior);
@@ -19,6 +21,8 @@ System.register(['core-js', 'aurelia-metadata', './bindable-property', './childr
 
   _export('skipContentProcessing', skipContentProcessing);
 
+  _export('containerless', containerless);
+
   _export('viewStrategy', viewStrategy);
 
   _export('useView', useView);
@@ -26,6 +30,12 @@ System.register(['core-js', 'aurelia-metadata', './bindable-property', './childr
   _export('noView', noView);
 
   _export('elementConfig', elementConfig);
+
+  function validateBehaviorName(name, type) {
+    if (/[A-Z]/.test(name)) {
+      throw new Error('\'' + name + '\' is not a valid ' + type + ' name.  Upper-case letters are not allowed because the DOM is not case-sensitive.');
+    }
+  }
 
   function behavior(override) {
     return function (target) {
@@ -39,16 +49,19 @@ System.register(['core-js', 'aurelia-metadata', './bindable-property', './childr
   }
 
   function customElement(name) {
+    validateBehaviorName(name, 'custom element');
     return function (target) {
       var resource = Metadata.getOrCreateOwn(Metadata.resource, HtmlBehaviorResource, target);
       resource.elementName = name;
     };
   }
 
-  function customAttribute(name) {
+  function customAttribute(name, defaultBindingMode) {
+    validateBehaviorName(name, 'custom attribute');
     return function (target) {
       var resource = Metadata.getOrCreateOwn(Metadata.resource, HtmlBehaviorResource, target);
       resource.attributeName = name;
+      resource.attributeDefaultBindingMode = defaultBindingMode;
     };
   }
 
@@ -123,6 +136,15 @@ System.register(['core-js', 'aurelia-metadata', './bindable-property', './childr
     return target ? deco(target) : deco;
   }
 
+  function containerless(target) {
+    var deco = function deco(target) {
+      var resource = Metadata.getOrCreateOwn(Metadata.resource, HtmlBehaviorResource, target);
+      resource.containerless = true;
+    };
+
+    return target ? deco(target) : deco;
+  }
+
   function viewStrategy(strategy) {
     return function (target) {
       Reflect.defineMetadata(ViewStrategy.metadataKey, strategy, target);
@@ -169,7 +191,6 @@ System.register(['core-js', 'aurelia-metadata', './bindable-property', './childr
       HtmlBehaviorResource = _htmlBehavior.HtmlBehaviorResource;
     }],
     execute: function () {
-      'use strict';
 
       Decorators.configure.parameterizedDecorator('behavior', behavior);
 
@@ -188,6 +209,8 @@ System.register(['core-js', 'aurelia-metadata', './bindable-property', './childr
       Decorators.configure.simpleDecorator('useShadowDOM', useShadowDOM);
 
       Decorators.configure.simpleDecorator('skipContentProcessing', skipContentProcessing);
+
+      Decorators.configure.simpleDecorator('containerless', containerless);
 
       Decorators.configure.parameterizedDecorator('viewStrategy', useView);
 

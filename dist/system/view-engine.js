@@ -1,5 +1,9 @@
 System.register(['core-js', 'aurelia-logging', 'aurelia-metadata', 'aurelia-loader', 'aurelia-dependency-injection', './view-compiler', './resource-registry', './module-analyzer'], function (_export) {
-  var core, LogManager, Origin, Loader, TemplateRegistryEntry, Container, ViewCompiler, ResourceRegistry, ViewResources, ModuleAnalyzer, _classCallCheck, logger, ViewEngine;
+  'use strict';
+
+  var core, LogManager, Origin, Loader, TemplateRegistryEntry, Container, ViewCompiler, ResourceRegistry, ViewResources, ModuleAnalyzer, logger, ViewEngine;
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
   function ensureRegistryEntry(loader, urlOrRegistryEntry) {
     if (urlOrRegistryEntry instanceof TemplateRegistryEntry) {
@@ -30,10 +34,6 @@ System.register(['core-js', 'aurelia-logging', 'aurelia-metadata', 'aurelia-load
       ModuleAnalyzer = _moduleAnalyzer.ModuleAnalyzer;
     }],
     execute: function () {
-      'use strict';
-
-      _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } };
-
       logger = LogManager.getLogger('templating');
 
       ViewEngine = (function () {
@@ -55,17 +55,12 @@ System.register(['core-js', 'aurelia-logging', 'aurelia-metadata', 'aurelia-load
           var _this = this;
 
           return ensureRegistryEntry(this.loader, urlOrRegistryEntry).then(function (viewRegistryEntry) {
-            if (viewRegistryEntry.isReady) {
-              return viewRegistryEntry.factory;
+            if (viewRegistryEntry.onReady) {
+              return viewRegistryEntry.onReady;
             }
 
-            return _this.loadTemplateResources(viewRegistryEntry, associatedModuleId).then(function (resources) {
-              if (viewRegistryEntry.isReady) {
-                return viewRegistryEntry.factory;
-              }
-
+            return viewRegistryEntry.onReady = _this.loadTemplateResources(viewRegistryEntry, associatedModuleId).then(function (resources) {
               viewRegistryEntry.setResources(resources);
-
               var viewFactory = _this.viewCompiler.compile(viewRegistryEntry.template, resources, compileOptions);
               viewRegistryEntry.setFactory(viewFactory);
               return viewFactory;

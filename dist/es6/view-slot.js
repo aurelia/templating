@@ -1,5 +1,6 @@
 import {ContentSelector} from './content-selector';
 import {Animator} from './animator';
+import {nextElementSibling} from './util';
 
 export class ViewSlot {
   constructor(anchor, anchorIsContainer, executionContext, animator=Animator.instance){
@@ -71,7 +72,7 @@ export class ViewSlot {
     if(this.isAttached){
       view.attached();
       // Animate page itself
-      var element = view.firstChild ? view.firstChild.nextElementSibling : null;
+      var element = view.firstChild ? nextElementSibling(view.firstChild) : null;
       if(view.firstChild &&
         view.firstChild.nodeType === 8 &&
         element &&
@@ -119,7 +120,7 @@ export class ViewSlot {
       return view;
     };
 
-    var element = view.firstChild && view.firstChild.nextElementSibling ? view.firstChild.nextElementSibling : null;
+    var element = view.firstChild ? nextElementSibling(view.firstChild) : null;
     if(view.firstChild &&
       view.firstChild.nodeType === 8 &&
       element &&
@@ -141,7 +142,7 @@ export class ViewSlot {
     var rmPromises = [];
 
     children.forEach(child => {
-      var element = child.firstChild ? child.firstChild.nextElementSibling : null;
+      var element = child.firstChild ? nextElementSibling(child.firstChild) : null;
       if(child.firstChild &&
          child.firstChild.nodeType === 8 &&
          element &&
@@ -199,7 +200,7 @@ export class ViewSlot {
       child = children[i];
       child.attached();
 
-      var element = child.firstChild ? child.firstChild.nextElementSibling : null;
+      var element = child.firstChild ? nextElementSibling(child.firstChild) : null;
       if(child.firstChild &&
         child.firstChild.nodeType === 8 &&
          element &&

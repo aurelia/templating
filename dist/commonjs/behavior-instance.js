@@ -1,8 +1,8 @@
 "use strict";
 
-var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
-
 exports.__esModule = true;
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var BehaviorInstance = (function () {
   function BehaviorInstance(behavior, executionContext, instruction) {
@@ -12,7 +12,7 @@ var BehaviorInstance = (function () {
     this.executionContext = executionContext;
     this.isAttached = false;
 
-    var observerLookup = behavior.observerLocator.getObserversLookup(executionContext),
+    var observerLookup = behavior.observerLocator.getOrCreateObserversLookup(executionContext),
         handlesBind = behavior.handlesBind,
         attributes = instruction.attributes,
         boundProperties = this.boundProperties = [],

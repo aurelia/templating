@@ -1,16 +1,16 @@
 'use strict';
 
-var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } };
-
 exports.__esModule = true;
 
-var _Origin$Metadata = require('aurelia-metadata');
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-var _ViewStrategy$UseViewStrategy = require('./view-strategy');
+var _aureliaMetadata = require('aurelia-metadata');
 
-var _ViewEngine = require('./view-engine');
+var _viewStrategy = require('./view-strategy');
 
-var _HtmlBehaviorResource = require('./html-behavior');
+var _viewEngine = require('./view-engine');
+
+var _htmlBehavior = require('./html-behavior');
 
 var CompositionEngine = (function () {
   function CompositionEngine(viewEngine) {
@@ -20,7 +20,7 @@ var CompositionEngine = (function () {
   }
 
   CompositionEngine.inject = function inject() {
-    return [_ViewEngine.ViewEngine];
+    return [_viewEngine.ViewEngine];
   };
 
   CompositionEngine.prototype.activate = function activate(instruction) {
@@ -55,12 +55,12 @@ var CompositionEngine = (function () {
 
       if ('getViewStrategy' in viewModel && !instruction.view) {
         viewStrategyFromViewModel = true;
-        instruction.view = _ViewStrategy$UseViewStrategy.ViewStrategy.normalize(viewModel.getViewStrategy());
+        instruction.view = _viewStrategy.ViewStrategy.normalize(viewModel.getViewStrategy());
       }
 
       if (instruction.view) {
         if (viewStrategyFromViewModel) {
-          origin = _Origin$Metadata.Origin.get(viewModel.constructor);
+          origin = _aureliaMetadata.Origin.get(viewModel.constructor);
           if (origin) {
             instruction.view.makeRelativeTo(origin.moduleId);
           }
@@ -73,10 +73,10 @@ var CompositionEngine = (function () {
         metadata = viewModelResource.metadata;
         doneLoading = metadata.load(childContainer, viewModelResource.value, instruction.view, true);
       } else {
-        metadata = new _HtmlBehaviorResource.HtmlBehaviorResource();
+        metadata = new _htmlBehavior.HtmlBehaviorResource();
         metadata.elementName = 'dynamic-element';
+        metadata.analyze(instruction.container || childContainer, viewModel.constructor);
         doneLoading = metadata.load(childContainer, viewModel.constructor, instruction.view, true).then(function (viewFactory) {
-          metadata.analyze(instruction.container || childContainer, viewModel.constructor);
           return viewFactory;
         });
       }
@@ -85,7 +85,8 @@ var CompositionEngine = (function () {
         return metadata.create(childContainer, {
           executionContext: viewModel,
           viewFactory: viewFactory,
-          suppressBind: true
+          suppressBind: true,
+          host: instruction.host
         });
       });
     });
@@ -98,6 +99,11 @@ var CompositionEngine = (function () {
 
     return this.viewEngine.importViewModelResource(instruction.viewModel).then(function (viewModelResource) {
       childContainer.autoRegister(viewModelResource.value);
+
+      if (instruction.host) {
+        childContainer.registerInstance(Element, instruction.host);
+      }
+
       instruction.viewModel = childContainer.viewModel = childContainer.get(viewModelResource.value);
       instruction.viewModelResource = viewModelResource;
       return instruction;
@@ -108,7 +114,7 @@ var CompositionEngine = (function () {
     var _this = this;
 
     instruction.childContainer = instruction.childContainer || instruction.container.createChild();
-    instruction.view = _ViewStrategy$UseViewStrategy.ViewStrategy.normalize(instruction.view);
+    instruction.view = _viewStrategy.ViewStrategy.normalize(instruction.view);
 
     if (instruction.viewModel) {
       if (typeof instruction.viewModel === 'string') {

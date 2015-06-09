@@ -1,24 +1,24 @@
 'use strict';
 
-var _interopRequireDefault = function (obj) { return obj && obj.__esModule ? obj : { 'default': obj }; };
-
-var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } };
-
 exports.__esModule = true;
 
-var _core = require('core-js');
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-var _core2 = _interopRequireDefault(_core);
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-var _hyphenate = require('./util');
+var _coreJs = require('core-js');
 
-var _bindingMode = require('aurelia-binding');
+var _coreJs2 = _interopRequireDefault(_coreJs);
+
+var _util = require('./util');
+
+var _aureliaBinding = require('aurelia-binding');
 
 function getObserver(behavior, instance, name) {
   var lookup = instance.__observers__;
 
   if (lookup === undefined) {
-    lookup = behavior.observerLocator.getObserversLookup(instance);
+    lookup = behavior.observerLocator.getOrCreateObserversLookup(instance);
     behavior.ensurePropertiesDefined(instance, lookup);
   }
 
@@ -35,8 +35,8 @@ var BindableProperty = (function () {
       Object.assign(this, nameOrConfig);
     }
 
-    this.attribute = this.attribute || _hyphenate.hyphenate(this.name);
-    this.defaultBindingMode = this.defaultBindingMode || _bindingMode.bindingMode.oneWay;
+    this.attribute = this.attribute || (0, _util.hyphenate)(this.name);
+    this.defaultBindingMode = this.defaultBindingMode || _aureliaBinding.bindingMode.oneWay;
     this.changeHandler = this.changeHandler || null;
     this.owner = null;
   }
@@ -76,6 +76,10 @@ var BindableProperty = (function () {
 
     descriptor.set = function (value) {
       getObserver(behavior, this, name).setValue(value);
+    };
+
+    descriptor.get.getObserver = function (obj) {
+      return getObserver(behavior, obj, name);
     };
 
     return descriptor;
@@ -170,7 +174,7 @@ var BindableProperty = (function () {
       };
     } else if ('dynamicPropertyChanged' in executionContext) {
       selfSubscriber = function (newValue, oldValue) {
-        return executionContext.dynamicPropertyChanged(name, newValue, oldValue);
+        return executionContext['dynamicPropertyChanged'](name, newValue, oldValue);
       };
     }
 

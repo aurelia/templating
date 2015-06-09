@@ -1,5 +1,9 @@
 System.register(['aurelia-metadata', 'aurelia-binding', 'aurelia-task-queue', './view-strategy', './view-engine', './content-selector', './util', './bindable-property', './behavior-instance'], function (_export) {
-  var Origin, ObserverLocator, TaskQueue, ViewStrategy, ViewEngine, ContentSelector, hyphenate, BindableProperty, BehaviorInstance, _classCallCheck, defaultInstruction, contentSelectorFactoryOptions, hasShadowDOM, HtmlBehaviorResource;
+  'use strict';
+
+  var Origin, ObserverLocator, TaskQueue, ViewStrategy, ViewEngine, ContentSelector, hyphenate, BindableProperty, BehaviorInstance, defaultInstruction, contentSelectorFactoryOptions, hasShadowDOM, HtmlBehaviorResource;
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
   return {
     setters: [function (_aureliaMetadata) {
@@ -22,10 +26,6 @@ System.register(['aurelia-metadata', 'aurelia-binding', 'aurelia-task-queue', '.
       BehaviorInstance = _behaviorInstance.BehaviorInstance;
     }],
     execute: function () {
-      'use strict';
-
-      _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } };
-
       defaultInstruction = { suppressBind: false };
       contentSelectorFactoryOptions = { suppressBind: true };
       hasShadowDOM = !!HTMLElement.prototype.createShadowRoot;
@@ -36,12 +36,14 @@ System.register(['aurelia-metadata', 'aurelia-binding', 'aurelia-task-queue', '.
 
           this.elementName = null;
           this.attributeName = null;
+          this.attributeDefaultBindingMode = undefined;
           this.liftsContent = false;
           this.targetShadowDOM = false;
           this.skipContentProcessing = false;
           this.usesShadowDOM = false;
           this.childExpression = null;
           this.hasDynamicOptions = false;
+          this.containerless = false;
           this.properties = [];
           this.attributes = {};
         }
@@ -66,6 +68,7 @@ System.register(['aurelia-metadata', 'aurelia-binding', 'aurelia-task-queue', '.
           var proto = target.prototype,
               properties = this.properties,
               attributeName = this.attributeName,
+              attributeDefaultBindingMode = this.attributeDefaultBindingMode,
               i,
               ii,
               current;
@@ -89,7 +92,8 @@ System.register(['aurelia-metadata', 'aurelia-binding', 'aurelia-task-queue', '.
               new BindableProperty({
                 name: 'value',
                 changeHandler: 'valueChanged' in proto ? 'valueChanged' : null,
-                attribute: attributeName
+                attribute: attributeName,
+                defaultBindingMode: attributeDefaultBindingMode
               }).registerWith(target, this);
             }
 
@@ -106,7 +110,8 @@ System.register(['aurelia-metadata', 'aurelia-binding', 'aurelia-task-queue', '.
               current = new BindableProperty({
                 name: 'value',
                 changeHandler: 'valueChanged' in proto ? 'valueChanged' : null,
-                attribute: attributeName
+                attribute: attributeName,
+                defaultBindingMode: attributeDefaultBindingMode
               });
 
               current.hasOptions = true;
@@ -161,7 +166,8 @@ System.register(['aurelia-metadata', 'aurelia-binding', 'aurelia-task-queue', '.
           if (this.liftsContent) {
             if (!instruction.viewFactory) {
               var template = document.createElement('template'),
-                  fragment = document.createDocumentFragment();
+                  fragment = document.createDocumentFragment(),
+                  part = node.getAttribute('part');
 
               node.removeAttribute(instruction.originalAttrName);
 
@@ -174,31 +180,64 @@ System.register(['aurelia-metadata', 'aurelia-binding', 'aurelia-task-queue', '.
               }
 
               fragment.appendChild(node);
-
               instruction.viewFactory = compiler.compile(fragment, resources);
+
+              if (part) {
+                instruction.viewFactory.part = part;
+                node.removeAttribute('part');
+              }
+
               node = template;
             }
-          } else if (this.elementName !== null && !this.usesShadowDOM && !this.skipContentProcessing && node.hasChildNodes()) {
-            var fragment = document.createDocumentFragment(),
-                currentChild = node.firstChild,
-                nextSibling;
+          } else if (this.elementName !== null) {
+            var partReplacements = {};
 
-            while (currentChild) {
-              nextSibling = currentChild.nextSibling;
-              fragment.appendChild(currentChild);
-              currentChild = nextSibling;
+            if (!this.skipContentProcessing && node.hasChildNodes()) {
+              if (!this.usesShadowDOM) {
+                var fragment = document.createDocumentFragment(),
+                    currentChild = node.firstChild,
+                    nextSibling;
+
+                while (currentChild) {
+                  nextSibling = currentChild.nextSibling;
+
+                  if (currentChild.tagName === 'TEMPLATE' && (toReplace = currentChild.getAttribute('replace-part'))) {
+                    partReplacements[toReplace] = compiler.compile(currentChild, resources);
+                  } else {
+                    fragment.appendChild(currentChild);
+                  }
+
+                  currentChild = nextSibling;
+                }
+
+                instruction.contentFactory = compiler.compile(fragment, resources);
+              } else {
+                var currentChild = node.firstChild,
+                    nextSibling,
+                    toReplace;
+
+                while (currentChild) {
+                  nextSibling = currentChild.nextSibling;
+
+                  if (currentChild.tagName === 'TEMPLATE' && (toReplace = currentChild.getAttribute('replace-part'))) {
+                    partReplacements[toReplace] = compiler.compile(currentChild, resources);
+                  }
+
+                  currentChild = nextSibling;
+                }
+              }
             }
-
-            instruction.contentFactory = compiler.compile(fragment, resources);
           }
 
+          instruction.partReplacements = partReplacements;
           instruction.suppressBind = true;
           return node;
         };
 
-        HtmlBehaviorResource.prototype.create = function create(container, _x, _x2, bindings) {
+        HtmlBehaviorResource.prototype.create = function create(container) {
           var instruction = arguments[1] === undefined ? defaultInstruction : arguments[1];
           var element = arguments[2] === undefined ? null : arguments[2];
+          var bindings = arguments[3] === undefined ? null : arguments[3];
 
           var executionContext = instruction.executionContext || container.get(this.target),
               behaviorInstance = new BehaviorInstance(this, executionContext, instruction),
@@ -236,14 +275,26 @@ System.register(['aurelia-metadata', 'aurelia-binding', 'aurelia-task-queue', '.
                   }
                 }
 
-                if (this.childExpression) {
-                  behaviorInstance.view.addBinding(this.childExpression.createBinding(host, behaviorInstance.executionContext));
-                }
+                if (instruction.anchorIsContainer) {
+                  if (this.childExpression) {
+                    behaviorInstance.view.addBinding(this.childExpression.createBinding(host, behaviorInstance.executionContext));
+                  }
 
-                behaviorInstance.view.appendNodesTo(host);
+                  behaviorInstance.view.appendNodesTo(host);
+                } else {
+                  behaviorInstance.view.insertNodesBefore(host);
+                }
+              } else if (this.childExpression) {
+                bindings.push(this.childExpression.createBinding(element, behaviorInstance.executionContext));
               }
             } else if (behaviorInstance.view) {
               behaviorInstance.view.owner = behaviorInstance;
+
+              if (this.childExpression) {
+                behaviorInstance.view.addBinding(this.childExpression.createBinding(instruction.host, behaviorInstance.executionContext));
+              }
+            } else if (this.childExpression) {
+              bindings.push(this.childExpression.createBinding(instruction.host, behaviorInstance.executionContext));
             }
           } else if (this.childExpression) {
             bindings.push(this.childExpression.createBinding(element, behaviorInstance.executionContext));

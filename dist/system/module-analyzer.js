@@ -1,5 +1,9 @@
 System.register(['aurelia-metadata', 'aurelia-loader', 'aurelia-binding', './html-behavior', './view-strategy', './util'], function (_export) {
-  var Metadata, TemplateRegistryEntry, ValueConverterResource, HtmlBehaviorResource, ViewStrategy, TemplateRegistryViewStrategy, hyphenate, _classCallCheck, ResourceModule, ResourceDescription, ModuleAnalyzer;
+  'use strict';
+
+  var Metadata, TemplateRegistryEntry, ValueConverterResource, HtmlBehaviorResource, ViewStrategy, TemplateRegistryViewStrategy, hyphenate, ResourceModule, ResourceDescription, ModuleAnalyzer;
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
   return {
     setters: [function (_aureliaMetadata) {
@@ -17,10 +21,6 @@ System.register(['aurelia-metadata', 'aurelia-loader', 'aurelia-binding', './htm
       hyphenate = _util.hyphenate;
     }],
     execute: function () {
-      'use strict';
-
-      _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } };
-
       ResourceModule = (function () {
         function ResourceModule(moduleId) {
           _classCallCheck(this, ResourceModule);
@@ -51,8 +51,7 @@ System.register(['aurelia-metadata', 'aurelia-loader', 'aurelia-binding', './htm
             metadata = current.metadata;
             metadata.viewStrategy = viewStrategy;
 
-            if ('analyze' in metadata && !metadata.isAnalyzed) {
-              metadata.isAnalyzed = true;
+            if ('analyze' in metadata) {
               metadata.analyze(container, current.value);
             }
           }
@@ -62,8 +61,7 @@ System.register(['aurelia-metadata', 'aurelia-loader', 'aurelia-binding', './htm
             metadata = current.metadata;
             metadata.viewStrategy = viewStrategy;
 
-            if ('analyze' in metadata && !metadata.isAnalyzed) {
-              metadata.isAnalyzed = true;
+            if ('analyze' in metadata) {
               metadata.analyze(container, current.value);
             }
           }
@@ -86,25 +84,21 @@ System.register(['aurelia-metadata', 'aurelia-loader', 'aurelia-binding', './htm
         };
 
         ResourceModule.prototype.load = function load(container) {
+          if (this.onLoaded) {
+            return this.onLoaded;
+          }
+
           var current = this.mainResource,
               resources = this.resources,
               i,
               ii,
               metadata,
-              loads;
-
-          if (this.isLoaded) {
-            return Promise.resolve();
-          }
-
-          this.isLoaded = true;
-          loads = [];
+              loads = [];
 
           if (current) {
             metadata = current.metadata;
 
-            if ('load' in metadata && !metadata.isLoaded) {
-              metadata.isLoaded = true;
+            if ('load' in metadata) {
               loads.push(metadata.load(container, current.value));
             }
           }
@@ -113,13 +107,13 @@ System.register(['aurelia-metadata', 'aurelia-loader', 'aurelia-binding', './htm
             current = resources[i];
             metadata = current.metadata;
 
-            if ('load' in metadata && !metadata.isLoaded) {
-              metadata.isLoaded = true;
+            if ('load' in metadata) {
               loads.push(metadata.load(container, current.value));
             }
           }
 
-          return Promise.all(loads);
+          this.onLoaded = Promise.all(loads);
+          return this.onLoaded;
         };
 
         return ResourceModule;

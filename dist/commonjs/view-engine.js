@@ -1,37 +1,37 @@
 'use strict';
 
-var _interopRequireWildcard = function (obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (typeof obj === 'object' && obj !== null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj['default'] = obj; return newObj; } };
-
-var _interopRequireDefault = function (obj) { return obj && obj.__esModule ? obj : { 'default': obj }; };
-
-var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } };
-
 exports.__esModule = true;
 
-var _core = require('core-js');
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj['default'] = obj; return newObj; } }
 
-var _core2 = _interopRequireDefault(_core);
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-var _import = require('aurelia-logging');
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-var LogManager = _interopRequireWildcard(_import);
+var _coreJs = require('core-js');
 
-var _Origin = require('aurelia-metadata');
+var _coreJs2 = _interopRequireDefault(_coreJs);
 
-var _Loader$TemplateRegistryEntry = require('aurelia-loader');
+var _aureliaLogging = require('aurelia-logging');
 
-var _Container = require('aurelia-dependency-injection');
+var LogManager = _interopRequireWildcard(_aureliaLogging);
 
-var _ViewCompiler = require('./view-compiler');
+var _aureliaMetadata = require('aurelia-metadata');
 
-var _ResourceRegistry$ViewResources = require('./resource-registry');
+var _aureliaLoader = require('aurelia-loader');
 
-var _ModuleAnalyzer = require('./module-analyzer');
+var _aureliaDependencyInjection = require('aurelia-dependency-injection');
+
+var _viewCompiler = require('./view-compiler');
+
+var _resourceRegistry = require('./resource-registry');
+
+var _moduleAnalyzer = require('./module-analyzer');
 
 var logger = LogManager.getLogger('templating');
 
 function ensureRegistryEntry(loader, urlOrRegistryEntry) {
-  if (urlOrRegistryEntry instanceof _Loader$TemplateRegistryEntry.TemplateRegistryEntry) {
+  if (urlOrRegistryEntry instanceof _aureliaLoader.TemplateRegistryEntry) {
     return Promise.resolve(urlOrRegistryEntry);
   }
 
@@ -50,24 +50,19 @@ var ViewEngine = (function () {
   }
 
   ViewEngine.inject = function inject() {
-    return [_Loader$TemplateRegistryEntry.Loader, _Container.Container, _ViewCompiler.ViewCompiler, _ModuleAnalyzer.ModuleAnalyzer, _ResourceRegistry$ViewResources.ResourceRegistry];
+    return [_aureliaLoader.Loader, _aureliaDependencyInjection.Container, _viewCompiler.ViewCompiler, _moduleAnalyzer.ModuleAnalyzer, _resourceRegistry.ResourceRegistry];
   };
 
   ViewEngine.prototype.loadViewFactory = function loadViewFactory(urlOrRegistryEntry, compileOptions, associatedModuleId) {
     var _this = this;
 
     return ensureRegistryEntry(this.loader, urlOrRegistryEntry).then(function (viewRegistryEntry) {
-      if (viewRegistryEntry.isReady) {
-        return viewRegistryEntry.factory;
+      if (viewRegistryEntry.onReady) {
+        return viewRegistryEntry.onReady;
       }
 
-      return _this.loadTemplateResources(viewRegistryEntry, associatedModuleId).then(function (resources) {
-        if (viewRegistryEntry.isReady) {
-          return viewRegistryEntry.factory;
-        }
-
+      return viewRegistryEntry.onReady = _this.loadTemplateResources(viewRegistryEntry, associatedModuleId).then(function (resources) {
         viewRegistryEntry.setResources(resources);
-
         var viewFactory = _this.viewCompiler.compile(viewRegistryEntry.template, resources, compileOptions);
         viewRegistryEntry.setFactory(viewFactory);
         return viewFactory;
@@ -76,7 +71,7 @@ var ViewEngine = (function () {
   };
 
   ViewEngine.prototype.loadTemplateResources = function loadTemplateResources(viewRegistryEntry, associatedModuleId) {
-    var resources = new _ResourceRegistry$ViewResources.ViewResources(this.appResources, viewRegistryEntry.id),
+    var resources = new _resourceRegistry.ViewResources(this.appResources, viewRegistryEntry.id),
         dependencies = viewRegistryEntry.dependencies,
         importIds,
         names;
@@ -100,7 +95,7 @@ var ViewEngine = (function () {
     var _this2 = this;
 
     return this.loader.loadModule(moduleImport).then(function (viewModelModule) {
-      var normalizedId = _Origin.Origin.get(viewModelModule).moduleId,
+      var normalizedId = _aureliaMetadata.Origin.get(viewModelModule).moduleId,
           resourceModule = _this2.moduleAnalyzer.analyze(normalizedId, viewModelModule, moduleMember);
 
       if (!resourceModule.mainResource) {
@@ -129,7 +124,7 @@ var ViewEngine = (function () {
 
       for (i = 0, ii = imports.length; i < ii; ++i) {
         current = imports[i];
-        normalizedId = _Origin.Origin.get(current).moduleId;
+        normalizedId = _aureliaMetadata.Origin.get(current).moduleId;
 
         analysis = moduleAnalyzer.analyze(normalizedId, current);
         analysis.analyze(container);

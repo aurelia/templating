@@ -1,12 +1,12 @@
 'use strict';
 
-var _inherits = function (subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
-
-var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } };
-
 exports.__esModule = true;
 
-var _relativeToFile = require('aurelia-path');
+function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+var _aureliaPath = require('aurelia-path');
 
 function register(lookup, name, resource, type) {
   if (!name) {
@@ -79,7 +79,7 @@ var ViewResources = (function (_ResourceRegistry) {
   _inherits(ViewResources, _ResourceRegistry);
 
   ViewResources.prototype.relativeToView = function relativeToView(path) {
-    return _relativeToFile.relativeToFile(path, this.viewUrl);
+    return (0, _aureliaPath.relativeToFile)(path, this.viewUrl);
   };
 
   ViewResources.prototype.getElement = function getElement(tagName) {

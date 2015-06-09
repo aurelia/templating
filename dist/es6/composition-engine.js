@@ -61,8 +61,8 @@ export class CompositionEngine {
       }else{
         metadata = new HtmlBehaviorResource();
         metadata.elementName = 'dynamic-element';
+        metadata.analyze(instruction.container || childContainer, viewModel.constructor);
         doneLoading = metadata.load(childContainer, viewModel.constructor, instruction.view, true).then(viewFactory => {
-          metadata.analyze(instruction.container || childContainer, viewModel.constructor);
           return viewFactory;
         });
       }
@@ -71,7 +71,8 @@ export class CompositionEngine {
         return metadata.create(childContainer, {
           executionContext:viewModel,
           viewFactory:viewFactory,
-          suppressBind:true
+          suppressBind:true,
+          host:instruction.host
         });
       });
     });
@@ -86,6 +87,11 @@ export class CompositionEngine {
 
     return this.viewEngine.importViewModelResource(instruction.viewModel).then(viewModelResource => {
       childContainer.autoRegister(viewModelResource.value);
+
+      if(instruction.host){
+        childContainer.registerInstance(Element, instruction.host);
+      }
+
       instruction.viewModel = childContainer.viewModel = childContainer.get(viewModelResource.value);
       instruction.viewModelResource = viewModelResource;
       return instruction;

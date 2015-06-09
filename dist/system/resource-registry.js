@@ -1,5 +1,11 @@
 System.register(['aurelia-path'], function (_export) {
-  var relativeToFile, _inherits, _classCallCheck, ResourceRegistry, ViewResources;
+  'use strict';
+
+  var relativeToFile, ResourceRegistry, ViewResources;
+
+  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
   function register(lookup, name, resource, type) {
     if (!name) {
@@ -23,12 +29,6 @@ System.register(['aurelia-path'], function (_export) {
       relativeToFile = _aureliaPath.relativeToFile;
     }],
     execute: function () {
-      'use strict';
-
-      _inherits = function (subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; };
-
-      _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } };
-
       ResourceRegistry = (function () {
         function ResourceRegistry() {
           _classCallCheck(this, ResourceRegistry);

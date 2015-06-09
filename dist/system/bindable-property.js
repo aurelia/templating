@@ -1,11 +1,15 @@
 System.register(['core-js', './util', 'aurelia-binding'], function (_export) {
-  var core, hyphenate, bindingMode, _classCallCheck, BindableProperty, BehaviorPropertyObserver;
+  'use strict';
+
+  var core, hyphenate, bindingMode, BindableProperty, BehaviorPropertyObserver;
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
   function getObserver(behavior, instance, name) {
     var lookup = instance.__observers__;
 
     if (lookup === undefined) {
-      lookup = behavior.observerLocator.getObserversLookup(instance);
+      lookup = behavior.observerLocator.getOrCreateObserversLookup(instance);
       behavior.ensurePropertiesDefined(instance, lookup);
     }
 
@@ -21,10 +25,6 @@ System.register(['core-js', './util', 'aurelia-binding'], function (_export) {
       bindingMode = _aureliaBinding.bindingMode;
     }],
     execute: function () {
-      'use strict';
-
-      _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } };
-
       BindableProperty = (function () {
         function BindableProperty(nameOrConfig) {
           _classCallCheck(this, BindableProperty);
@@ -76,6 +76,10 @@ System.register(['core-js', './util', 'aurelia-binding'], function (_export) {
 
           descriptor.set = function (value) {
             getObserver(behavior, this, name).setValue(value);
+          };
+
+          descriptor.get.getObserver = function (obj) {
+            return getObserver(behavior, obj, name);
           };
 
           return descriptor;
@@ -170,7 +174,7 @@ System.register(['core-js', './util', 'aurelia-binding'], function (_export) {
             };
           } else if ('dynamicPropertyChanged' in executionContext) {
             selfSubscriber = function (newValue, oldValue) {
-              return executionContext.dynamicPropertyChanged(name, newValue, oldValue);
+              return executionContext['dynamicPropertyChanged'](name, newValue, oldValue);
             };
           }
 

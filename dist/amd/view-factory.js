@@ -1,9 +1,9 @@
 define(['exports', 'aurelia-dependency-injection', './view', './view-slot', './content-selector', './resource-registry'], function (exports, _aureliaDependencyInjection, _view, _viewSlot, _contentSelector, _resourceRegistry) {
   'use strict';
 
-  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } };
-
   exports.__esModule = true;
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
   function elementContainerGet(key) {
     if (key === Element) {
@@ -11,7 +11,19 @@ define(['exports', 'aurelia-dependency-injection', './view', './view-slot', './c
     }
 
     if (key === BoundViewFactory) {
-      return this.boundViewFactory || (this.boundViewFactory = new BoundViewFactory(this, this.instruction.viewFactory, this.executionContext));
+      if (this.boundViewFactory) {
+        return this.boundViewFactory;
+      }
+
+      var factory = this.instruction.viewFactory,
+          partReplacements = this.partReplacements;
+
+      if (partReplacements) {
+        factory = partReplacements[factory.part] || factory;
+      }
+
+      factory.partReplacements = partReplacements;
+      return this.boundViewFactory = new BoundViewFactory(this, factory, this.executionContext);
     }
 
     if (key === _viewSlot.ViewSlot) {
@@ -30,7 +42,7 @@ define(['exports', 'aurelia-dependency-injection', './view', './view-slot', './c
     return this.superGet(key);
   }
 
-  function createElementContainer(parent, element, instruction, executionContext, children, resources) {
+  function createElementContainer(parent, element, instruction, executionContext, children, partReplacements, resources) {
     var container = parent.createChild(),
         providers,
         i;
@@ -40,6 +52,7 @@ define(['exports', 'aurelia-dependency-injection', './view', './view-slot', './c
     container.executionContext = executionContext;
     container.children = children;
     container.viewResources = resources;
+    container.partReplacements = partReplacements;
 
     providers = instruction.providers;
     i = providers.length;
@@ -54,7 +67,28 @@ define(['exports', 'aurelia-dependency-injection', './view', './view-slot', './c
     return container;
   }
 
-  function applyInstructions(containers, executionContext, element, instruction, behaviors, bindings, children, contentSelectors, resources) {
+  function makeElementIntoAnchor(element, isCustomElement) {
+    var anchor = document.createComment('anchor');
+
+    if (isCustomElement) {
+      anchor.attributes = element.attributes;
+      anchor.hasAttribute = function (name) {
+        return element.hasAttribute(name);
+      };
+      anchor.getAttribute = function (name) {
+        return element.getAttribute(name);
+      };
+      anchor.setAttribute = function (name, value) {
+        element.setAttribute(name, value);
+      };
+    }
+
+    element.parentNode.replaceChild(anchor, element);
+
+    return anchor;
+  }
+
+  function applyInstructions(containers, executionContext, element, instruction, behaviors, bindings, children, contentSelectors, partReplacements, resources) {
     var behaviorInstructions = instruction.behaviorInstructions,
         expressions = instruction.expressions,
         elementContainer,
@@ -70,16 +104,22 @@ define(['exports', 'aurelia-dependency-injection', './view', './view-slot', './c
     }
 
     if (instruction.contentSelector) {
-      contentSelectors.push(new _contentSelector.ContentSelector(element, instruction.selector));
+      var commentAnchor = document.createComment('anchor');
+      element.parentNode.replaceChild(commentAnchor, element);
+      contentSelectors.push(new _contentSelector.ContentSelector(commentAnchor, instruction.selector));
       return;
     }
 
     if (behaviorInstructions.length) {
-      containers[instruction.injectorId] = elementContainer = createElementContainer(containers[instruction.parentInjectorId], element, instruction, executionContext, children, resources);
+      if (!instruction.anchorIsContainer) {
+        element = makeElementIntoAnchor(element, instruction.isCustomElement);
+      }
+
+      containers[instruction.injectorId] = elementContainer = createElementContainer(containers[instruction.parentInjectorId], element, instruction, executionContext, children, partReplacements, resources);
 
       for (i = 0, ii = behaviorInstructions.length; i < ii; ++i) {
         current = behaviorInstructions[i];
-        instance = current.type.create(elementContainer, current, element, bindings);
+        instance = current.type.create(elementContainer, current, element, bindings, current.partReplacements);
 
         if (instance.contentView) {
           children.push(instance.contentView);
@@ -144,12 +184,13 @@ define(['exports', 'aurelia-dependency-injection', './view', './view-slot', './c
           children = [],
           contentSelectors = [],
           containers = { root: container },
+          partReplacements = options.partReplacements || this.partReplacements,
           i,
           ii,
           view;
 
       for (i = 0, ii = instructables.length; i < ii; ++i) {
-        applyInstructions(containers, executionContext, instructables[i], instructions[i], behaviors, bindings, children, contentSelectors, resources);
+        applyInstructions(containers, executionContext, instructables[i], instructions[i], behaviors, bindings, children, contentSelectors, partReplacements, resources);
       }
 
       view = new _view.View(fragment, behaviors, bindings, children, options.systemControlled, contentSelectors);

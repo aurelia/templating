@@ -1,10 +1,10 @@
 'use strict';
 
-var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } };
-
 exports.__esModule = true;
 
-var _EventManager = require('aurelia-binding');
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+var _aureliaBinding = require('aurelia-binding');
 
 var ElementConfigResource = (function () {
   function ElementConfigResource() {
@@ -13,7 +13,7 @@ var ElementConfigResource = (function () {
 
   ElementConfigResource.prototype.load = function load(container, target) {
     var config = new target(),
-        eventManager = container.get(_EventManager.EventManager);
+        eventManager = container.get(_aureliaBinding.EventManager);
 
     eventManager.registerElementConfig(config);
     return Promise.resolve(this);

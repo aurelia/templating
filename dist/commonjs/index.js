@@ -1,67 +1,71 @@
 'use strict';
 
-var _interopRequireWildcard = function (obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (typeof obj === 'object' && obj !== null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj['default'] = obj; return newObj; } };
-
-var _defaults = function (obj, defaults) { var keys = Object.getOwnPropertyNames(defaults); for (var i = 0; i < keys.length; i++) { var key = keys[i]; var value = Object.getOwnPropertyDescriptor(defaults, key); if (value && value.configurable && obj[key] === undefined) { Object.defineProperty(obj, key, value); } } return obj; };
-
 exports.__esModule = true;
 
-var _HtmlBehaviorResource = require('./html-behavior');
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj['default'] = obj; return newObj; } }
 
-exports.HtmlBehaviorResource = _HtmlBehaviorResource.HtmlBehaviorResource;
+function _defaults(obj, defaults) { var keys = Object.getOwnPropertyNames(defaults); for (var i = 0; i < keys.length; i++) { var key = keys[i]; var value = Object.getOwnPropertyDescriptor(defaults, key); if (value && value.configurable && obj[key] === undefined) { Object.defineProperty(obj, key, value); } } return obj; }
 
-var _BindableProperty = require('./bindable-property');
+var _htmlBehavior = require('./html-behavior');
 
-exports.BindableProperty = _BindableProperty.BindableProperty;
+exports.HtmlBehaviorResource = _htmlBehavior.HtmlBehaviorResource;
 
-var _ResourceRegistry$ViewResources = require('./resource-registry');
+var _bindableProperty = require('./bindable-property');
 
-exports.ResourceRegistry = _ResourceRegistry$ViewResources.ResourceRegistry;
-exports.ViewResources = _ResourceRegistry$ViewResources.ViewResources;
+exports.BindableProperty = _bindableProperty.BindableProperty;
 
-var _ChildObserver = require('./children');
+var _resourceRegistry = require('./resource-registry');
 
-exports.ChildObserver = _ChildObserver.ChildObserver;
+exports.ResourceRegistry = _resourceRegistry.ResourceRegistry;
+exports.ViewResources = _resourceRegistry.ViewResources;
 
-var _ElementConfigResource = require('./element-config');
+var _children = require('./children');
 
-exports.ElementConfigResource = _ElementConfigResource.ElementConfigResource;
+exports.ChildObserver = _children.ChildObserver;
 
-var _ViewStrategy$UseViewStrategy$ConventionalViewStrategy$NoViewStrategy = require('./view-strategy');
+var _elementConfig = require('./element-config');
 
-exports.ViewStrategy = _ViewStrategy$UseViewStrategy$ConventionalViewStrategy$NoViewStrategy.ViewStrategy;
-exports.UseViewStrategy = _ViewStrategy$UseViewStrategy$ConventionalViewStrategy$NoViewStrategy.UseViewStrategy;
-exports.ConventionalViewStrategy = _ViewStrategy$UseViewStrategy$ConventionalViewStrategy$NoViewStrategy.ConventionalViewStrategy;
-exports.NoViewStrategy = _ViewStrategy$UseViewStrategy$ConventionalViewStrategy$NoViewStrategy.NoViewStrategy;
+exports.ElementConfigResource = _elementConfig.ElementConfigResource;
 
-var _ViewCompiler = require('./view-compiler');
+var _viewStrategy = require('./view-strategy');
 
-exports.ViewCompiler = _ViewCompiler.ViewCompiler;
+exports.ViewStrategy = _viewStrategy.ViewStrategy;
+exports.UseViewStrategy = _viewStrategy.UseViewStrategy;
+exports.ConventionalViewStrategy = _viewStrategy.ConventionalViewStrategy;
+exports.NoViewStrategy = _viewStrategy.NoViewStrategy;
 
-var _ViewEngine = require('./view-engine');
+var _viewCompiler = require('./view-compiler');
 
-exports.ViewEngine = _ViewEngine.ViewEngine;
+exports.ViewCompiler = _viewCompiler.ViewCompiler;
 
-var _ViewFactory$BoundViewFactory = require('./view-factory');
+var _viewEngine = require('./view-engine');
 
-exports.ViewFactory = _ViewFactory$BoundViewFactory.ViewFactory;
-exports.BoundViewFactory = _ViewFactory$BoundViewFactory.BoundViewFactory;
+exports.ViewEngine = _viewEngine.ViewEngine;
 
-var _ViewSlot = require('./view-slot');
+var _viewFactory = require('./view-factory');
 
-exports.ViewSlot = _ViewSlot.ViewSlot;
+exports.ViewFactory = _viewFactory.ViewFactory;
+exports.BoundViewFactory = _viewFactory.BoundViewFactory;
 
-var _BindingLanguage = require('./binding-language');
+var _viewSlot = require('./view-slot');
 
-exports.BindingLanguage = _BindingLanguage.BindingLanguage;
+exports.ViewSlot = _viewSlot.ViewSlot;
 
-var _CompositionEngine = require('./composition-engine');
+var _view = require('./view');
 
-exports.CompositionEngine = _CompositionEngine.CompositionEngine;
+exports.View = _view.View;
 
-var _Animator = require('./animator');
+var _bindingLanguage = require('./binding-language');
 
-exports.Animator = _Animator.Animator;
+exports.BindingLanguage = _bindingLanguage.BindingLanguage;
+
+var _compositionEngine = require('./composition-engine');
+
+exports.CompositionEngine = _compositionEngine.CompositionEngine;
+
+var _animator = require('./animator');
+
+exports.Animator = _animator.Animator;
 
 var _decorators = require('./decorators');
 

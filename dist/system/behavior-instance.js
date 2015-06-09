@@ -1,13 +1,13 @@
 System.register([], function (_export) {
-  var _classCallCheck, BehaviorInstance;
+  "use strict";
+
+  var BehaviorInstance;
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
   return {
     setters: [],
     execute: function () {
-      "use strict";
-
-      _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
-
       BehaviorInstance = (function () {
         function BehaviorInstance(behavior, executionContext, instruction) {
           _classCallCheck(this, BehaviorInstance);
@@ -16,7 +16,7 @@ System.register([], function (_export) {
           this.executionContext = executionContext;
           this.isAttached = false;
 
-          var observerLookup = behavior.observerLocator.getObserversLookup(executionContext),
+          var observerLookup = behavior.observerLocator.getOrCreateObserversLookup(executionContext),
               handlesBind = behavior.handlesBind,
               attributes = instruction.attributes,
               boundProperties = this.boundProperties = [],

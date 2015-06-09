@@ -1,19 +1,19 @@
 define(['exports', 'core-js', './util', 'aurelia-binding'], function (exports, _coreJs, _util, _aureliaBinding) {
   'use strict';
 
-  var _interopRequire = function (obj) { return obj && obj.__esModule ? obj['default'] : obj; };
-
-  var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } };
-
   exports.__esModule = true;
 
-  var _core = _interopRequire(_coreJs);
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  var _core = _interopRequireDefault(_coreJs);
 
   function getObserver(behavior, instance, name) {
     var lookup = instance.__observers__;
 
     if (lookup === undefined) {
-      lookup = behavior.observerLocator.getObserversLookup(instance);
+      lookup = behavior.observerLocator.getOrCreateObserversLookup(instance);
       behavior.ensurePropertiesDefined(instance, lookup);
     }
 
@@ -30,7 +30,7 @@ define(['exports', 'core-js', './util', 'aurelia-binding'], function (exports, _
         Object.assign(this, nameOrConfig);
       }
 
-      this.attribute = this.attribute || _util.hyphenate(this.name);
+      this.attribute = this.attribute || (0, _util.hyphenate)(this.name);
       this.defaultBindingMode = this.defaultBindingMode || _aureliaBinding.bindingMode.oneWay;
       this.changeHandler = this.changeHandler || null;
       this.owner = null;
@@ -71,6 +71,10 @@ define(['exports', 'core-js', './util', 'aurelia-binding'], function (exports, _
 
       descriptor.set = function (value) {
         getObserver(behavior, this, name).setValue(value);
+      };
+
+      descriptor.get.getObserver = function (obj) {
+        return getObserver(behavior, obj, name);
       };
 
       return descriptor;
@@ -165,7 +169,7 @@ define(['exports', 'core-js', './util', 'aurelia-binding'], function (exports, _
         };
       } else if ('dynamicPropertyChanged' in executionContext) {
         selfSubscriber = function (newValue, oldValue) {
-          return executionContext.dynamicPropertyChanged(name, newValue, oldValue);
+          return executionContext['dynamicPropertyChanged'](name, newValue, oldValue);
         };
       }
 
