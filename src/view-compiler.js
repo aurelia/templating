@@ -101,13 +101,23 @@ export class ViewCompiler {
       case 1: //element node
         return this.compileElement(node, resources, instructions, parentNode, parentInjectorId, targetLightDOM);
       case 3: //text node
-        var expression =  this.bindingLanguage.parseText(resources, node.textContent);
+        //use wholeText to retrieve the textContent of all adjacent text nodes.
+        var expression = this.bindingLanguage.parseText(resources, node.wholeText);
         if(expression){
           var marker = document.createElement('au-marker');
           marker.className = 'au-target';
           (node.parentNode || parentNode).insertBefore(marker, node);
           node.textContent = ' ';
           instructions.push({ contentExpression:expression });
+          //remove adjacent text nodes.
+          while(node.nextSibling && node.nextSibling.nodeType === 3) {
+            (node.parentNode || parentNode).removeChild(node.nextSibling);
+          }
+        } else {
+          //skip parsing adjacent text nodes.
+          while(node.nextSibling && node.nextSibling.nodeType === 3) {
+            node = node.nextSibling;
+          }
         }
         return node.nextSibling;
       case 11: //document fragment node
