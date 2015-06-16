@@ -116,7 +116,7 @@ export class HtmlBehaviorResource {
       }
 
       return viewStrategy.loadViewFactory(container.get(ViewEngine), options).then(viewFactory => {
-        if(!transientView){
+        if(!transientView || !this.viewFactory){
           this.viewFactory = viewFactory;
         }
 
