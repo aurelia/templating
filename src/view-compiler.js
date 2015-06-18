@@ -173,6 +173,10 @@ export class ViewCompiler {
       type = resources.getAttribute(info.attrName);
       elementProperty = null;
 
+      if (attrName === 'class' && !info.command && info.expression) {
+        node.setAttribute('class', ''); //Clear the class attribute, otherwise the interpolation expression(s) will remain.
+      }
+
       if(type){ //do we have an attached behavior?
         knownAttribute = resources.mapAttribute(info.attrName); //map the local name to real name
         if(knownAttribute){

@@ -54,4 +54,30 @@ describe('compileNode', () => {
     expect(language.parseText).toHaveBeenCalledWith(resources, 'Hello ');
     expect(node).toBe(nextNode);
   });
+
+  it('clears class attributes containing interpolation expressions', () => {
+    var instructions = [], parentInjectorId = 'root', targetLightDOM = true,
+        node = document.createElement('div'), parentNode = null;
+    node.setAttribute('class', 'foo ${bar} baz');
+    spyOn(language, 'inspectAttribute').and.returnValue({ attrName: 'class', expression: {}, command: null });
+    viewCompiler.compileNode(node, resources, instructions, parentNode, parentInjectorId, targetLightDOM);
+    expect(node.className).toBe('');
+  });
+
+  it('does not clear class attributes with no interpolation expressions', () => {
+    var instructions = [], parentInjectorId = 'root', targetLightDOM = true,
+        node = document.createElement('div'), parentNode = null;
+    node.setAttribute('class', 'foo bar baz');
+    node.setAttribute('class.bind', 'someProperty');
+    spyOn(language, 'inspectAttribute').and.callFake((resources, attrName, attrValue) => {
+      if (attrName === 'class') {
+        return { attrName: 'class', expression: null, command: null };
+      } else {
+        return { attrName: 'class', expression: null, command: 'bind' };
+      }
+    });
+    viewCompiler.compileNode(node, resources, instructions, parentNode, parentInjectorId, targetLightDOM);
+    expect(node.className).toBe('foo bar baz');
+  });
+
 });
