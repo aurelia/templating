@@ -199,7 +199,7 @@ class BehaviorPropertyObserver {
   setValue(newValue){
     var oldValue = this.currentValue;
 
-    if(oldValue != newValue){
+    if(oldValue !== newValue){
       if(this.publishing && this.notqueued){
         this.notqueued = false;
         this.taskQueue.queueMicroTask(this);
@@ -218,7 +218,7 @@ class BehaviorPropertyObserver {
 
     this.notqueued = true;
 
-    if(newValue != oldValue){
+    if(newValue !== oldValue){
       if(this.selfSubscriber !== null){
         this.selfSubscriber(newValue, oldValue);
       }
