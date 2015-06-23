@@ -26,7 +26,7 @@ function configureProperties(instruction, resources){
   for(key in attributes){
     value = attributes[key];
 
-    if(typeof value !== 'string'){
+    if(value !== null && typeof value === 'object'){
       property = type.attributes[key];
 
       if(property !== undefined){
