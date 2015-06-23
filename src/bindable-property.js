@@ -88,14 +88,29 @@ export class BindableProperty {
   }
 
   createObserver(executionContext){
-    var selfSubscriber = null, defaultValue = this.defaultValue, initialValue;
+    var selfSubscriber = null,
+        defaultValue = this.defaultValue,
+        changeHandlerName = this.changeHandler,
+        name = this.name,
+        initialValue;
 
     if(this.hasOptions){
       return;
     }
 
-    if(this.changeHandler !== null){
-      selfSubscriber = (newValue, oldValue) => executionContext[this.changeHandler](newValue, oldValue);
+    if(changeHandlerName in executionContext){
+      if('propertyChanged' in executionContext) {
+        selfSubscriber = (newValue, oldValue) => {
+          executionContext[changeHandlerName](newValue, oldValue);
+          executionContext.propertyChanged(name, newValue, oldValue);
+        };
+      }else {
+        selfSubscriber = (newValue, oldValue) => executionContext[changeHandlerName](newValue, oldValue);
+      }
+    } else if('propertyChanged' in executionContext) {
+      selfSubscriber = (newValue, oldValue) => executionContext.propertyChanged(name, newValue, oldValue);
+    } else if(changeHandlerName !== null){
+      throw new Error(`Change handler ${changeHandlerName} was specified but not delcared on the class.`);
     }
 
     if(defaultValue !== undefined){
@@ -144,9 +159,16 @@ export class BindableProperty {
         selfSubscriber = null, observer, info;
 
     if(changeHandlerName in executionContext){
-      selfSubscriber = (newValue, oldValue) => executionContext[changeHandlerName](newValue, oldValue);
-    } else if ('dynamicPropertyChanged' in executionContext) {
-      selfSubscriber = (newValue, oldValue) => executionContext['dynamicPropertyChanged'](name, newValue, oldValue);
+      if('propertyChanged' in executionContext) {
+        selfSubscriber = (newValue, oldValue) => {
+          executionContext[changeHandlerName](newValue, oldValue);
+          executionContext.propertyChanged(name, newValue, oldValue);
+        };
+      }else {
+        selfSubscriber = (newValue, oldValue) => executionContext[changeHandlerName](newValue, oldValue);
+      }
+    }else if('propertyChanged' in executionContext) {
+      selfSubscriber = (newValue, oldValue) => executionContext.propertyChanged(name, newValue, oldValue);
     }
 
     observer = observerLookup[name] = new BehaviorPropertyObserver(
