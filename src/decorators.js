@@ -98,14 +98,31 @@ export function dynamicOptions(target){
 
 Decorators.configure.simpleDecorator('dynamicOptions', dynamicOptions);
 
-export function syncChildren(property, changeHandler, selector){
-  return function(target){
-    var resource = Metadata.getOrCreateOwn(Metadata.resource, HtmlBehaviorResource, target);
-    resource.childExpression = new ChildObserver(property, changeHandler, selector);
+export function sync(selectorOrConfig){
+  return function(target, key, descriptor){
+    let actualTarget = key ? target.constructor : target, //is it on a property or a class?
+        resource = Metadata.getOrCreateOwn(Metadata.resource, HtmlBehaviorResource, actualTarget);
+
+    if(typeof selectorOrConfig === 'string'){
+      selectorOrConfig = {
+        selector: selectorOrConfig,
+        name: key
+      };
+    }
+
+    if(!selectorOrConfig.changeHandler){
+      let handlerName = selectorOrConfig.name + 'Changed';
+
+      if(handlerName in actualTarget.prototype){
+        selectorOrConfig.changeHandler = handlerName;
+      }
+    }
+
+    resource.childExpression = new ChildObserver(selectorOrConfig);
   }
 }
 
-Decorators.configure.parameterizedDecorator('syncChildren', syncChildren);
+Decorators.configure.parameterizedDecorator('sync', sync);
 
 export function useShadowDOM(target){
   var deco = function(target){

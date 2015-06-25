@@ -1,14 +1,14 @@
 var noMutations = [];
 
 export class ChildObserver {
-  constructor(property, changeHandler, selector){
-    this.selector = selector;
-    this.changeHandler = changeHandler;
-    this.property = property;
+  constructor(config){
+    this.name = config.name;
+    this.changeHandler = config.changeHandler || null;
+    this.selector = config.selector;
   }
 
   createBinding(target, behavior){
-    return new ChildObserverBinder(this.selector, target, this.property, behavior, this.changeHandler);
+    return new ChildObserverBinder(this.selector, target, this.name, behavior, this.changeHandler);
   }
 }
 
@@ -41,7 +41,7 @@ export class ChildObserverBinder {
       items.push(node.primaryBehavior ? node.primaryBehavior.executionContext : node);
     }
 
-    if(this.changeHandler){
+    if(this.changeHandler !== null){
       this.behavior[this.changeHandler](noMutations);
     }
   }
@@ -90,7 +90,7 @@ export class ChildObserverBinder {
       }
     });
 
-    if(this.changeHandler){
+    if(this.changeHandler !== null){
       this.behavior[this.changeHandler](mutations);
     }
   }
