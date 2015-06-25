@@ -21,9 +21,10 @@ export const animationEvent = {
   addClassDone:    'animation:add-class:done',
   addClassTimeout: 'animation:add-class:timeout',
 
-  animateBegin:  'animation:animate:begin',
-  animateActive: 'animation:animate:active',
-  animateDone:   'animation:animate:done',
+  animateBegin:   'animation:animate:begin',
+  animateActive:  'animation:animate:active',
+  animateDone:    'animation:animate:done',
+  animateTimeout: 'animation:animate:timeout',
 
   sequenceBegin: 'animation:sequence:begin',
   sequenceDone:  'animation:sequence:done'
