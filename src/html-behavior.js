@@ -21,7 +21,7 @@ export class HtmlBehaviorResource {
     this.targetShadowDOM = false;
     this.skipContentProcessing = false;
     this.usesShadowDOM = false;
-    this.childExpression = null;
+    this.childBindings = null;
     this.hasDynamicOptions = false;
     this.containerless = false;
     this.properties = [];
@@ -42,6 +42,14 @@ export class HtmlBehaviorResource {
     }
 
     return behavior;
+  }
+
+  addChildBinding(behavior){
+    if(this.childBindings === null){
+      this.childBindings = [];
+    }
+
+    this.childBindings.push(behavior);
   }
 
   analyze(container, target){
@@ -214,6 +222,7 @@ export class HtmlBehaviorResource {
   create(container, instruction=defaultInstruction, element=null, bindings=null){
     var executionContext = instruction.executionContext || container.get(this.target),
         behaviorInstance = new BehaviorInstance(this, executionContext, instruction),
+        childBindings = this.childBindings,
         viewFactory, host;
 
     if(this.liftsContent){
@@ -254,31 +263,41 @@ export class HtmlBehaviorResource {
           }
 
           if(instruction.anchorIsContainer){
-            if(this.childExpression){
-              behaviorInstance.view.addBinding(this.childExpression.createBinding(host, executionContext));
+            if(childBindings !== null){
+              for(let i = 0, ii = childBindings.length; i < ii; ++i){
+                behaviorInstance.view.addBinding(childBindings[i].create(host, executionContext));
+              }
             }
 
             behaviorInstance.view.appendNodesTo(host);
           }else{
             behaviorInstance.view.insertNodesBefore(host);
           }
-        }else if(this.childExpression){
-          bindings.push(this.childExpression.createBinding(element, executionContext));
+        }else if(childBindings !== null){
+          for(let i = 0, ii = childBindings.length; i < ii; ++i){
+            bindings.push(childBindings[i].create(element, executionContext));
+          }
         }
       }else if(behaviorInstance.view){
         //dynamic element with view
         behaviorInstance.view.owner = behaviorInstance;
 
-        if(this.childExpression){
-          behaviorInstance.view.addBinding(this.childExpression.createBinding(instruction.host, executionContext));
+        if(childBindings !== null){
+          for(let i = 0, ii = childBindings.length; i < ii; ++i){
+            behaviorInstance.view.addBinding(childBindings[i].create(instruction.host, executionContext));
+          }
         }
-      }else if(this.childExpression){
+      }else if(childBindings !== null){
         //dynamic element without view
-        bindings.push(this.childExpression.createBinding(instruction.host, executionContext));
+        for(let i = 0, ii = childBindings.length; i < ii; ++i){
+          bindings.push(childBindings[i].create(instruction.host, executionContext));
+        }
       }
-    } else if(this.childExpression){
+    } else if(childBindings !== null){
       //custom attribute
-      bindings.push(this.childExpression.createBinding(element, executionContext));
+      for(let i = 0, ii = childBindings.length; i < ii; ++i){
+        bindings.push(childBindings[i].create(element, executionContext));
+      }
     }
 
     if(element){

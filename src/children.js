@@ -7,11 +7,13 @@ export class ChildObserver {
     this.selector = config.selector;
   }
 
-  createBinding(target, behavior){
+  create(target, behavior){
     return new ChildObserverBinder(this.selector, target, this.name, behavior, this.changeHandler);
   }
 }
 
+//TODO: we really only want one child observer per element. Right now you can have many, via @sync.
+//We need to enable a way to share the observer across all uses and direct matches to the correct source.
 export class ChildObserverBinder {
   constructor(selector, target, property, behavior, changeHandler){
     this.selector = selector;

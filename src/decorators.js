@@ -118,7 +118,7 @@ export function sync(selectorOrConfig){
       }
     }
 
-    resource.childExpression = new ChildObserver(selectorOrConfig);
+    resource.addChildBinding(new ChildObserver(selectorOrConfig));
   }
 }
 
