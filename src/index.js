@@ -12,4 +12,6 @@ export {View} from './view';
 export {BindingLanguage} from './binding-language';
 export {CompositionEngine} from './composition-engine';
 export {Animator} from './animator';
+export {ModuleAnalyzer,ResourceModule,ResourceDescription} from './module-analyzer'
+export {BehaviorInstance} from './behavior-instance';
 export * from './decorators';

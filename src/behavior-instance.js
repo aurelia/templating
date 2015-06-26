@@ -1,3 +1,6 @@
+import {ResourceDescription} from './module-analyzer';
+import {Container} from 'aurelia-dependency-injection';
+
 export class BehaviorInstance {
   constructor(behavior, executionContext, instruction){
     this.behavior = behavior;
@@ -16,6 +19,18 @@ export class BehaviorInstance {
     for(i = 0, ii = properties.length; i < ii; ++i){
       properties[i].initialize(executionContext, observerLookup, attributes, handlesBind, boundProperties);
     }
+  }
+
+  static createForUnitTest(type, attributes, bindingContext){
+    let description = ResourceDescription.get(type);
+    description.analyze(Container.instance);
+
+    let executionContext = Container.instance.get(type);
+    let behaviorInstance = new BehaviorInstance(description.metadata, executionContext, {attributes:attributes||{}});
+
+    behaviorInstance.bind(bindingContext || {});
+
+    return executionContext;
   }
 
   created(context){

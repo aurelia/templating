@@ -5,7 +5,7 @@ import {HtmlBehaviorResource} from './html-behavior';
 import {ViewStrategy,TemplateRegistryViewStrategy} from './view-strategy';
 import {hyphenate} from './util';
 
-class ResourceModule {
+export class ResourceModule {
   constructor(moduleId){
     this.id = moduleId;
     this.moduleInstance = null;
@@ -19,7 +19,7 @@ class ResourceModule {
     var current = this.mainResource,
         resources = this.resources,
         viewStrategy = this.viewStrategy,
-        i, ii, metadata;
+        i, ii;
 
     if(this.isAnalyzed){
       return;
@@ -28,22 +28,14 @@ class ResourceModule {
     this.isAnalyzed = true;
 
     if(current){
-      metadata = current.metadata;
-      metadata.viewStrategy = viewStrategy;
-
-      if('analyze' in metadata){
-        metadata.analyze(container, current.value);
-      }
+      current.metadata.viewStrategy = viewStrategy;
+      current.analyze(container);
     }
 
     for(i = 0, ii = resources.length; i < ii; ++i){
       current = resources[i];
-      metadata = current.metadata;
-      metadata.viewStrategy = viewStrategy;
-
-      if('analyze' in metadata){
-        metadata.analyze(container, current.value);
-      }
+      current.metadata.viewStrategy = viewStrategy;
+      current.analyze(container);
     }
   }
 
@@ -51,12 +43,12 @@ class ResourceModule {
     var i, ii, resources = this.resources;
 
     if(this.mainResource){
-      this.mainResource.metadata.register(registry, name);
+      this.mainResource.register(registry, name);
       name = null;
     }
 
     for(i = 0, ii = resources.length; i < ii; ++i){
-      resources[i].metadata.register(registry, name);
+      resources[i].register(registry, name);
       name = null;
     }
   }
@@ -68,23 +60,14 @@ class ResourceModule {
 
     var current = this.mainResource,
         resources = this.resources,
-        i, ii, metadata, loads = [];
+        i, ii, loads = [];
 
     if(current){
-      metadata = current.metadata;
-
-      if('load' in metadata){
-        loads.push(metadata.load(container, current.value));
-      }
+      loads.push(current.load(container));
     }
 
     for(i = 0, ii = resources.length; i < ii; ++i){
-      current = resources[i];
-      metadata = current.metadata;
-
-      if('load' in metadata){
-        loads.push(metadata.load(container, current.value));
-      }
+      loads.push(resources[i].load(container));
     }
 
     this.onLoaded = Promise.all(loads);
@@ -92,7 +75,7 @@ class ResourceModule {
   }
 }
 
-class ResourceDescription {
+export class ResourceDescription {
   constructor(key, exportedValue, resourceTypeMeta){
     if(!resourceTypeMeta){
       resourceTypeMeta = Metadata.get(Metadata.resource, exportedValue);
@@ -121,6 +104,57 @@ class ResourceDescription {
 
     this.metadata = resourceTypeMeta;
     this.value = exportedValue;
+  }
+
+  analyze(container){
+    let metadata = this.metadata,
+        value = this.value;
+
+    if('analyze' in metadata){
+      metadata.analyze(container, value);
+    }
+  }
+
+  register(registry, name){
+    this.metadata.register(registry, name);
+  }
+
+  load(container){
+    let metadata = this.metadata,
+        value = this.value;
+
+    if('load' in metadata){
+      return metadata.load(container, value);
+    }
+  }
+
+  static get(resource, key='custom-resource'){
+    var resourceTypeMeta = Metadata.get(Metadata.resource, resource),
+        resourceDescription;
+
+    if(resourceTypeMeta){
+      if(resourceTypeMeta.attributeName === null && resourceTypeMeta.elementName === null){
+        //no customeElement or customAttribute but behavior added by other metadata
+        HtmlBehaviorResource.convention(key, resourceTypeMeta);
+      }
+
+      if(resourceTypeMeta.attributeName === null && resourceTypeMeta.elementName === null){
+        //no convention and no customeElement or customAttribute but behavior added by other metadata
+        resourceTypeMeta.elementName = hyphenate(key);
+      }
+
+      resourceDescription = new ResourceDescription(key, resource, resourceTypeMeta);
+    } else {
+      if(resourceTypeMeta = HtmlBehaviorResource.convention(key)){
+        resourceDescription = new ResourceDescription(key, resource, resourceTypeMeta);
+        Reflect.defineMetadata(Metadata.resource, resourceTypeMeta, resource);
+      } else if(resourceTypeMeta = ValueConverterResource.convention(key)) {
+        resourceDescription = new ResourceDescription(key, resource, resourceTypeMeta);
+        Reflect.defineMetadata(Metadata.resource, resourceTypeMeta, resource);
+      }
+    }
+
+    return resourceDescription;
   }
 }
 
