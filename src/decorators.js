@@ -110,14 +110,6 @@ export function sync(selectorOrConfig){
       };
     }
 
-    if(!selectorOrConfig.changeHandler){
-      let handlerName = selectorOrConfig.name + 'Changed';
-
-      if(handlerName in actualTarget.prototype){
-        selectorOrConfig.changeHandler = handlerName;
-      }
-    }
-
     resource.addChildBinding(new ChildObserver(selectorOrConfig));
   }
 }

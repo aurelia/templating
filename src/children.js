@@ -3,7 +3,7 @@ var noMutations = [];
 export class ChildObserver {
   constructor(config){
     this.name = config.name;
-    this.changeHandler = config.changeHandler || null;
+    this.changeHandler = config.changeHandler || this.name + 'Changed';
     this.selector = config.selector;
   }
 
@@ -20,7 +20,7 @@ export class ChildObserverBinder {
     this.target = target;
     this.property = property;
     this.behavior = behavior;
-    this.changeHandler = changeHandler;
+    this.changeHandler = changeHandler in behavior ? changeHandler : null;
     this.observer = new MutationObserver(this.onChange.bind(this));
   }
 
