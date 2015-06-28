@@ -47,6 +47,7 @@ export class ViewCompiler {
   static inject() { return [BindingLanguage]; }
   constructor(bindingLanguage){
     this.bindingLanguage = bindingLanguage;
+    this.InterpolationBindingExpression = bindingLanguage.inspectAttribute({ valueConverterLookupFunction: () => null }, 'foo', '${foo}').expression.constructor;
   }
 
   compile(templateOrFragment, resources, options=defaultCompileOptions){
@@ -173,8 +174,11 @@ export class ViewCompiler {
       type = resources.getAttribute(info.attrName);
       elementProperty = null;
 
-      if (attrName === 'class' && !info.command && info.expression) {
-        node.setAttribute('class', ''); //Clear the class attribute, otherwise the interpolation expression(s) will remain.
+      // HTML attribute interpolation? Remove the attribute.
+      if (!info.command && info.expression && info.expression instanceof this.InterpolationBindingExpression) {
+        node.removeAttribute(attrName);
+        i--;
+        ii--;
       }
 
       if(type){ //do we have an attached behavior?
