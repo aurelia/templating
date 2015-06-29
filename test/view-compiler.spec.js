@@ -59,25 +59,37 @@ describe('compileNode', () => {
     var instructions = [], parentInjectorId = 'root', targetLightDOM = true,
         node = document.createElement('div'), parentNode = null;
     node.setAttribute('class', 'foo ${bar} baz');
-    spyOn(language, 'inspectAttribute').and.returnValue({ attrName: 'class', expression: {}, command: null });
+    spyOn(language, 'inspectAttribute').and.returnValue({ attrName: 'class', expression: {attrToRemove:'class'}, command: null });
+    spyOn(language, 'createAttributeInstruction').and.returnValue({ attributes:{ 'class': { discrete:true,attrToRemove:'class' } }, attrName:'class'  });
     viewCompiler.compileNode(node, resources, instructions, parentNode, parentInjectorId, targetLightDOM);
-    expect(node.className).toBe('');
+    expect(node.className).toBe('au-target');
   });
 
   it('does not clear class attributes with no interpolation expressions', () => {
     var instructions = [], parentInjectorId = 'root', targetLightDOM = true,
         node = document.createElement('div'), parentNode = null;
+
     node.setAttribute('class', 'foo bar baz');
     node.setAttribute('class.bind', 'someProperty');
+
     spyOn(language, 'inspectAttribute').and.callFake((resources, attrName, attrValue) => {
       if (attrName === 'class') {
-        return { attrName: 'class', expression: null, command: null };
+        return { attrName: 'class', expression: null, command: null }
       } else {
         return { attrName: 'class', expression: null, command: 'bind' };
       }
     });
+
+    spyOn(language, 'createAttributeInstruction').and.callFake((resources, node, info) => {
+      if(info.command){
+        return { attributes:{ 'class': { discrete:true } }, attrName:'class'  };
+      }else{
+        return null;
+      }
+    });
+
     viewCompiler.compileNode(node, resources, instructions, parentNode, parentInjectorId, targetLightDOM);
-    expect(node.className).toBe('foo bar baz');
+    expect(node.className).toBe('foo bar baz au-target');
   });
 
 });

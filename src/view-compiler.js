@@ -134,7 +134,7 @@ export class ViewCompiler {
   compileElement(node, resources, instructions, parentNode, parentInjectorId, targetLightDOM){
     var tagName = node.tagName.toLowerCase(),
         attributes = node.attributes,
-        expressions = [],
+        expressions = [], expression,
         behaviorInstructions = [],
         providers = [],
         bindingLanguage = this.bindingLanguage,
@@ -172,10 +172,6 @@ export class ViewCompiler {
       info = bindingLanguage.inspectAttribute(resources, attrName, attrValue);
       type = resources.getAttribute(info.attrName);
       elementProperty = null;
-
-      if (attrName === 'class' && !info.command && info.expression) {
-        node.setAttribute('class', ''); //Clear the class attribute, otherwise the interpolation expression(s) will remain.
-      }
 
       if(type){ //do we have an attached behavior?
         knownAttribute = resources.mapAttribute(info.attrName); //map the local name to real name
@@ -265,16 +261,24 @@ export class ViewCompiler {
         providers: [liftingInstruction.type.target]
       });
     }else{
-      for(i = 0, ii = behaviorInstructions.length; i < ii; ++i){
-        instruction = behaviorInstructions[i];
-        instruction.type.compile(this, resources, node, instruction, parentNode);
-        providers.push(instruction.type.target);
-      }
-
       var injectorId = behaviorInstructions.length ? getNextInjectorId() : false;
 
       if(expressions.length || behaviorInstructions.length){
+        for(i = 0, ii = behaviorInstructions.length; i < ii; ++i){
+          instruction = behaviorInstructions[i];
+          instruction.type.compile(this, resources, node, instruction, parentNode);
+          providers.push(instruction.type.target);
+        }
+
+        for(i = 0, ii = expressions.length; i < ii; ++i){
+          expression =  expressions[i];
+          if(expression.attrToRemove !== undefined){
+            node.removeAttribute(expression.attrToRemove);
+          }
+        }
+
         makeIntoInstructionTarget(node);
+
         instructions.push({
           anchorIsContainer: elementInstruction ? elementInstruction.anchorIsContainer : true,
           isCustomElement: !!elementInstruction,
