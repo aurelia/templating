@@ -83,7 +83,7 @@ export class ResourceDescription {
       if(!resourceTypeMeta){
         resourceTypeMeta = new HtmlBehaviorResource();
         resourceTypeMeta.elementName = hyphenate(key);
-        Reflect.defineMetadata(Metadata.resource, resourceTypeMeta, exportedValue);
+        Metadata.define(Metadata.resource, resourceTypeMeta, exportedValue);
       }
     }
 
@@ -147,10 +147,10 @@ export class ResourceDescription {
     } else {
       if(resourceTypeMeta = HtmlBehaviorResource.convention(key)){
         resourceDescription = new ResourceDescription(key, resource, resourceTypeMeta);
-        Reflect.defineMetadata(Metadata.resource, resourceTypeMeta, resource);
+        Metadata.define(Metadata.resource, resourceTypeMeta, resource);
       } else if(resourceTypeMeta = ValueConverterResource.convention(key)) {
         resourceDescription = new ResourceDescription(key, resource, resourceTypeMeta);
-        Reflect.defineMetadata(Metadata.resource, resourceTypeMeta, resource);
+        Metadata.define(Metadata.resource, resourceTypeMeta, resource);
       }
     }
 
@@ -224,10 +224,10 @@ export class ModuleAnalyzer {
             resources.push(new ResourceDescription(key, exportedValue, conventional));
           }
 
-          Reflect.defineMetadata(Metadata.resource, conventional, exportedValue);
+          Metadata.define(Metadata.resource, conventional, exportedValue);
         } else if(conventional = ValueConverterResource.convention(key)) {
           resources.push(new ResourceDescription(key, exportedValue, conventional));
-          Reflect.defineMetadata(Metadata.resource, conventional, exportedValue);
+          Metadata.define(Metadata.resource, conventional, exportedValue);
         } else if(!fallbackValue){
           fallbackValue = exportedValue;
           fallbackKey = key;

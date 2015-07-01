@@ -15,7 +15,7 @@ function validateBehaviorName(name, type) {
 export function behavior(override){
   return function(target){
     if(override instanceof HtmlBehaviorResource){
-      Reflect.defineMetadata(Metadata.resource, override, target);
+      Metadata.define(Metadata.resource, override, target);
     }else{
       var resource = Metadata.getOrCreateOwn(Metadata.resource, HtmlBehaviorResource, target);
       Object.assign(resource, override);
@@ -151,7 +151,7 @@ Decorators.configure.simpleDecorator('containerless', containerless);
 
 export function viewStrategy(strategy){
   return function(target){
-    Reflect.defineMetadata(ViewStrategy.metadataKey, strategy, target);
+    Metadata.define(ViewStrategy.metadataKey, strategy, target);
   }
 }
 
@@ -165,7 +165,7 @@ Decorators.configure.parameterizedDecorator('useView', useView);
 
 export function noView(target){
   var deco = function(target){
-    Reflect.defineMetadata(ViewStrategy.metadataKey, new NoViewStrategy(), target);
+    Metadata.define(ViewStrategy.metadataKey, new NoViewStrategy(), target);
   };
 
   return target ? deco(target) : deco;
@@ -175,7 +175,7 @@ Decorators.configure.simpleDecorator('noView', noView);
 
 export function elementConfig(target){
   var deco = function(target){
-    Reflect.defineMetadata(Metadata.resource, new ElementConfigResource(), target);
+    Metadata.define(Metadata.resource, new ElementConfigResource(), target);
   };
 
   return target ? deco(target) : deco;
