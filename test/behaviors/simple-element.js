@@ -1,4 +1,4 @@
-import {bindable} from '../../src/index';
+import {bindable} from '../../src/decorators';
 
 export class SimpleElement {
   @bindable foo = 'foo';

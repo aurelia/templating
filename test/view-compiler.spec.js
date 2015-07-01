@@ -1,4 +1,5 @@
-import {ViewCompiler, ViewResources, ResourceRegistry} from '../src/index';
+import {ViewCompiler} from '../src/view-compiler';
+import {ViewResources, ResourceRegistry} from '../src/resource-registry';
 
 class MockBindingLanguage {
   inspectAttribute(resources, attrName, attrValue){
