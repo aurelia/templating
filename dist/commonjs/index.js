@@ -212,14 +212,14 @@ var UseViewStrategy = (function (_ViewStrategy) {
 
   UseViewStrategy.prototype.loadViewFactory = function loadViewFactory(viewEngine, options) {
     if (!this.absolutePath && this.moduleId) {
-      this.absolutePath = (0, _aureliaPath.relativeToFile)(this.path, this.moduleId);
+      this.absolutePath = _aureliaPath.relativeToFile(this.path, this.moduleId);
     }
 
     return viewEngine.loadViewFactory(this.absolutePath || this.path, options, this.moduleId);
   };
 
   UseViewStrategy.prototype.makeRelativeTo = function makeRelativeTo(file) {
-    this.absolutePath = (0, _aureliaPath.relativeToFile)(this.path, file);
+    this.absolutePath = _aureliaPath.relativeToFile(this.path, file);
   };
 
   return UseViewStrategy;
@@ -255,9 +255,7 @@ var NoViewStrategy = (function (_ViewStrategy3) {
   function NoViewStrategy() {
     _classCallCheck(this, NoViewStrategy);
 
-    if (_ViewStrategy3 != null) {
-      _ViewStrategy3.apply(this, arguments);
-    }
+    _ViewStrategy3.apply(this, arguments);
   }
 
   _inherits(NoViewStrategy, _ViewStrategy3);
@@ -388,7 +386,7 @@ var ViewResources = (function (_ResourceRegistry) {
   _inherits(ViewResources, _ResourceRegistry);
 
   ViewResources.prototype.relativeToView = function relativeToView(path) {
-    return (0, _aureliaPath.relativeToFile)(path, this.viewUrl);
+    return _aureliaPath.relativeToFile(path, this.viewUrl);
   };
 
   ViewResources.prototype.getElement = function getElement(tagName) {
@@ -2521,7 +2519,7 @@ var ResourceDescription = (function () {
       if (!resourceTypeMeta) {
         resourceTypeMeta = new HtmlBehaviorResource();
         resourceTypeMeta.elementName = hyphenate(key);
-        Reflect.defineMetadata(_aureliaMetadata.Metadata.resource, resourceTypeMeta, exportedValue);
+        _aureliaMetadata.Metadata.define(_aureliaMetadata.Metadata.resource, resourceTypeMeta, exportedValue);
       }
     }
 
@@ -2582,10 +2580,10 @@ var ResourceDescription = (function () {
     } else {
       if (resourceTypeMeta = HtmlBehaviorResource.convention(key)) {
         resourceDescription = new ResourceDescription(key, resource, resourceTypeMeta);
-        Reflect.defineMetadata(_aureliaMetadata.Metadata.resource, resourceTypeMeta, resource);
+        _aureliaMetadata.Metadata.define(_aureliaMetadata.Metadata.resource, resourceTypeMeta, resource);
       } else if (resourceTypeMeta = _aureliaBinding.ValueConverterResource.convention(key)) {
         resourceDescription = new ResourceDescription(key, resource, resourceTypeMeta);
-        Reflect.defineMetadata(_aureliaMetadata.Metadata.resource, resourceTypeMeta, resource);
+        _aureliaMetadata.Metadata.define(_aureliaMetadata.Metadata.resource, resourceTypeMeta, resource);
       }
     }
 
@@ -2671,10 +2669,10 @@ var ModuleAnalyzer = (function () {
             resources.push(new ResourceDescription(key, exportedValue, conventional));
           }
 
-          Reflect.defineMetadata(_aureliaMetadata.Metadata.resource, conventional, exportedValue);
+          _aureliaMetadata.Metadata.define(_aureliaMetadata.Metadata.resource, conventional, exportedValue);
         } else if (conventional = _aureliaBinding.ValueConverterResource.convention(key)) {
           resources.push(new ResourceDescription(key, exportedValue, conventional));
-          Reflect.defineMetadata(_aureliaMetadata.Metadata.resource, conventional, exportedValue);
+          _aureliaMetadata.Metadata.define(_aureliaMetadata.Metadata.resource, conventional, exportedValue);
         } else if (!fallbackValue) {
           fallbackValue = exportedValue;
           fallbackKey = key;
@@ -2980,7 +2978,7 @@ function validateBehaviorName(name, type) {
 function behavior(override) {
   return function (target) {
     if (override instanceof HtmlBehaviorResource) {
-      Reflect.defineMetadata(_aureliaMetadata.Metadata.resource, override, target);
+      _aureliaMetadata.Metadata.define(_aureliaMetadata.Metadata.resource, override, target);
     } else {
       var resource = _aureliaMetadata.Metadata.getOrCreateOwn(_aureliaMetadata.Metadata.resource, HtmlBehaviorResource, target);
       Object.assign(resource, override);
@@ -3116,7 +3114,7 @@ _aureliaMetadata.Decorators.configure.simpleDecorator('containerless', container
 
 function viewStrategy(strategy) {
   return function (target) {
-    Reflect.defineMetadata(ViewStrategy.metadataKey, strategy, target);
+    _aureliaMetadata.Metadata.define(ViewStrategy.metadataKey, strategy, target);
   };
 }
 
@@ -3130,7 +3128,7 @@ _aureliaMetadata.Decorators.configure.parameterizedDecorator('useView', useView)
 
 function noView(target) {
   var deco = function deco(target) {
-    Reflect.defineMetadata(ViewStrategy.metadataKey, new NoViewStrategy(), target);
+    _aureliaMetadata.Metadata.define(ViewStrategy.metadataKey, new NoViewStrategy(), target);
   };
 
   return target ? deco(target) : deco;
@@ -3140,7 +3138,7 @@ _aureliaMetadata.Decorators.configure.simpleDecorator('noView', noView);
 
 function elementConfig(target) {
   var deco = function deco(target) {
-    Reflect.defineMetadata(_aureliaMetadata.Metadata.resource, new ElementConfigResource(), target);
+    _aureliaMetadata.Metadata.define(_aureliaMetadata.Metadata.resource, new ElementConfigResource(), target);
   };
 
   return target ? deco(target) : deco;

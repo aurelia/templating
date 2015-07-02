@@ -282,7 +282,7 @@ System.register(['core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-depende
   function behavior(override) {
     return function (target) {
       if (override instanceof HtmlBehaviorResource) {
-        Reflect.defineMetadata(Metadata.resource, override, target);
+        Metadata.define(Metadata.resource, override, target);
       } else {
         var resource = Metadata.getOrCreateOwn(Metadata.resource, HtmlBehaviorResource, target);
         Object.assign(resource, override);
@@ -398,7 +398,7 @@ System.register(['core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-depende
 
   function viewStrategy(strategy) {
     return function (target) {
-      Reflect.defineMetadata(ViewStrategy.metadataKey, strategy, target);
+      Metadata.define(ViewStrategy.metadataKey, strategy, target);
     };
   }
 
@@ -408,7 +408,7 @@ System.register(['core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-depende
 
   function noView(target) {
     var deco = function deco(target) {
-      Reflect.defineMetadata(ViewStrategy.metadataKey, new NoViewStrategy(), target);
+      Metadata.define(ViewStrategy.metadataKey, new NoViewStrategy(), target);
     };
 
     return target ? deco(target) : deco;
@@ -416,7 +416,7 @@ System.register(['core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-depende
 
   function elementConfig(target) {
     var deco = function deco(target) {
-      Reflect.defineMetadata(Metadata.resource, new ElementConfigResource(), target);
+      Metadata.define(Metadata.resource, new ElementConfigResource(), target);
     };
 
     return target ? deco(target) : deco;
@@ -635,9 +635,7 @@ System.register(['core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-depende
         function NoViewStrategy() {
           _classCallCheck(this, NoViewStrategy);
 
-          if (_ViewStrategy3 != null) {
-            _ViewStrategy3.apply(this, arguments);
-          }
+          _ViewStrategy3.apply(this, arguments);
         }
 
         _inherits(NoViewStrategy, _ViewStrategy3);
@@ -2688,7 +2686,7 @@ System.register(['core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-depende
             if (!resourceTypeMeta) {
               resourceTypeMeta = new HtmlBehaviorResource();
               resourceTypeMeta.elementName = hyphenate(key);
-              Reflect.defineMetadata(Metadata.resource, resourceTypeMeta, exportedValue);
+              Metadata.define(Metadata.resource, resourceTypeMeta, exportedValue);
             }
           }
 
@@ -2749,10 +2747,10 @@ System.register(['core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-depende
           } else {
             if (resourceTypeMeta = HtmlBehaviorResource.convention(key)) {
               resourceDescription = new ResourceDescription(key, resource, resourceTypeMeta);
-              Reflect.defineMetadata(Metadata.resource, resourceTypeMeta, resource);
+              Metadata.define(Metadata.resource, resourceTypeMeta, resource);
             } else if (resourceTypeMeta = ValueConverterResource.convention(key)) {
               resourceDescription = new ResourceDescription(key, resource, resourceTypeMeta);
-              Reflect.defineMetadata(Metadata.resource, resourceTypeMeta, resource);
+              Metadata.define(Metadata.resource, resourceTypeMeta, resource);
             }
           }
 
@@ -2838,10 +2836,10 @@ System.register(['core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-depende
                   resources.push(new ResourceDescription(key, exportedValue, conventional));
                 }
 
-                Reflect.defineMetadata(Metadata.resource, conventional, exportedValue);
+                Metadata.define(Metadata.resource, conventional, exportedValue);
               } else if (conventional = ValueConverterResource.convention(key)) {
                 resources.push(new ResourceDescription(key, exportedValue, conventional));
-                Reflect.defineMetadata(Metadata.resource, conventional, exportedValue);
+                Metadata.define(Metadata.resource, conventional, exportedValue);
               } else if (!fallbackValue) {
                 fallbackValue = exportedValue;
                 fallbackKey = key;

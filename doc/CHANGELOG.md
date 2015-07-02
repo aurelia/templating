@@ -1,3 +1,31 @@
+## 0.13.0 (2015-07-02)
+
+
+#### Bug Fixes
+
+* **BindableProperty:** use strict equality operators ([5128617a](http://github.com/aurelia/templating/commit/5128617ad02a5330250624669e67e0a4ac164f32), closes [#100](http://github.com/aurelia/templating/issues/100))
+* **ViewCompiler:**
+  * clear class attributes containing interpolation expressions ([92aa047b](http://github.com/aurelia/templating/commit/92aa047bdbc39ee0c0a5181887df4368343f79df), closes [#99](http://github.com/aurelia/templating/issues/99))
+  * handle undefined instruction attributes ([0f6761b8](http://github.com/aurelia/templating/commit/0f6761b89aba2ab48a98738a44b656b53699e80d))
+  * handle adjacent text nodes ([a6db7f30](http://github.com/aurelia/templating/commit/a6db7f30532cdd8ca1401c041c7052ff52ec8644))
+* **all:** use new metadata api ([b5ff3fe0](http://github.com/aurelia/templating/commit/b5ff3fe0a41b723f5d94ad70614f3d42e6e4c3ac))
+* **children:**
+  * delay change handler check for child sync ([e56f0350](http://github.com/aurelia/templating/commit/e56f03503fd2a1b3a3e59e93e63112bfb6f3df29))
+  * child sync can now decorate a property ([745c7c00](http://github.com/aurelia/templating/commit/745c7c00f46add7a4cd0a40d937b315e752b6d15))
+* **html-behavior:** enable recursive elements when loaded by router first ([e82f44ce](http://github.com/aurelia/templating/commit/e82f44ce8e351ad86f42af342609b67eb9ac50ee))
+* **view-compiler:** remove interpolated expression attrs ([b86c6d41](http://github.com/aurelia/templating/commit/b86c6d4116463176921bb4fbff544beb7f1d7842))
+
+
+#### Features
+
+* **all:** new API for testing HTML behaviors ([f28ea278](http://github.com/aurelia/templating/commit/f28ea2789351e0fbc07de5aaf0ced9ce6093d6a4))
+* **anim:**
+  * add missing animateTimeout ([28527e18](http://github.com/aurelia/templating/commit/28527e1872b07d11db23d2ee8ec9105ac0307e10))
+  * additional animation events ([40c4ab13](http://github.com/aurelia/templating/commit/40c4ab13341b3f02fa00727432fc30ddb698466a))
+* **bindable-property:** all behaviors now support propertyChanged ([c1138e51](http://github.com/aurelia/templating/commit/c1138e51068763139e6661096957ec714eb9c619))
+* **children:** enable multiple @sync properties on a behavior ([c549ff86](http://github.com/aurelia/templating/commit/c549ff86be818bec2f8e25fdfd37207cabf9daa2))
+
+
 ### 0.12.1 (2015-06-09)
 
 
