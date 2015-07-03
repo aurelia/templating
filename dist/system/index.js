@@ -623,7 +623,8 @@ System.register(['core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-depende
         };
 
         ConventionalViewStrategy.convertModuleIdToViewUrl = function convertModuleIdToViewUrl(moduleId) {
-          return moduleId + '.html';
+          var id = moduleId.endsWith('.js') ? moduleId.substring(0, moduleId.length - 3) : moduleId;
+          return id + '.html';
         };
 
         return ConventionalViewStrategy;

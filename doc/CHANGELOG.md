@@ -1,3 +1,11 @@
+### 0.13.1 (2015-07-03)
+
+
+#### Bug Fixes
+
+* **view-strategy:** address changes in jspm/system.js beta ([ac24d3b6](http://github.com/aurelia/templating/commit/ac24d3b68680241c0ce31eefc6edd58f6c8e9858))
+
+
 ## 0.13.0 (2015-07-02)
 
 
