@@ -73,7 +73,8 @@ export class ConventionalViewStrategy extends ViewStrategy {
   }
 
   static convertModuleIdToViewUrl(moduleId){
-    return moduleId + '.html';
+    var id = moduleId.endsWith('.js') ? moduleId.substring(0, moduleId.length - 3) : moduleId;
+    return id + '.html';
   }
 }
 
