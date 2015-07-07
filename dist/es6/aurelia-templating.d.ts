@@ -287,7 +287,7 @@ declare module 'aurelia-templating' {
   export function customElement(name: any): any;
   export function customAttribute(name: any, defaultBindingMode: any): any;
   export function templateController(target: any): any;
-  export function bindable(nameOrConfigOrTarget: any, key: any, descriptor: any): any;
+  export function bindable(nameOrConfigOrTarget?: any, key?: any, descriptor?: any): any;
   export function dynamicOptions(target: any): any;
   export function sync(selectorOrConfig: any): any;
   export function useShadowDOM(target: any): any;
