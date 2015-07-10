@@ -133,6 +133,40 @@ function applyInstructions(containers, executionContext, element, instruction,
   }
 }
 
+function applySurrogateInstruction(container, element, instruction, behaviors, bindings, children){
+  let behaviorInstructions = instruction.behaviorInstructions,
+      expressions = instruction.expressions,
+      providers = instruction.providers,
+      values = instruction.values,
+      i, ii, current, instance;
+
+  i = providers.length;
+  while(i--) {
+    container.registerSingleton(providers[i]);
+  }
+
+  for(let key in values){
+    element.setAttribute(key, values[key]);
+  }
+
+  if(behaviorInstructions.length){
+    for(i = 0, ii = behaviorInstructions.length; i < ii; ++i){
+      current = behaviorInstructions[i];
+      instance = current.type.create(container, current, element, bindings, current.partReplacements);
+
+      if(instance.contentView){
+        children.push(instance.contentView);
+      }
+
+      behaviors.push(instance);
+    }
+  }
+
+  for(i = 0, ii = expressions.length; i < ii; ++i){
+    bindings.push(expressions[i].createBinding(element));
+  }
+}
+
 export class BoundViewFactory {
   constructor(parentContainer, viewFactory, executionContext){
     this.parentContainer = parentContainer;
@@ -163,7 +197,7 @@ export class ViewFactory{
     this.resources = resources;
   }
 
-  create(container, executionContext, options=defaultFactoryOptions){
+  create(container, executionContext, options=defaultFactoryOptions, element=null){
     var fragment = this.template.cloneNode(true),
         instructables = fragment.querySelectorAll('.au-target'),
         instructions = this.instructions,
@@ -176,12 +210,16 @@ export class ViewFactory{
         partReplacements = options.partReplacements || this.partReplacements,
         i, ii, view;
 
+    if(element !== null && this.surrogateInstruction !== null){
+      applySurrogateInstruction(container, element, this.surrogateInstruction, behaviors, bindings, children);
+    }
+
     for(i = 0, ii = instructables.length; i < ii; ++i){
       applyInstructions(containers, executionContext, instructables[i],
         instructions[i], behaviors, bindings, children, contentSelectors, partReplacements, resources);
     }
 
-    view = new View(fragment, behaviors, bindings, children, options.systemControlled, contentSelectors);
+    view = new View(container, fragment, behaviors, bindings, children, options.systemControlled, contentSelectors);
     view.created(executionContext);
 
     if(!options.suppressBind){

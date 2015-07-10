@@ -2,7 +2,8 @@
 //NOTE: Adding to the fragment, causes the nodes to be removed from the document.
 
 export class View {
-  constructor(fragment, behaviors, bindings, children, systemControlled, contentSelectors){
+  constructor(container, fragment, behaviors, bindings, children, systemControlled, contentSelectors){
+    this.container = container;
     this.fragment = fragment;
     this.behaviors = behaviors;
     this.bindings = bindings;

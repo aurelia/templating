@@ -77,7 +77,6 @@ export class ViewCompiler {
     if(templateOrFragment.content){
       part = templateOrFragment.getAttribute('part');
       content = document.adoptNode(templateOrFragment.content, true);
-      //TODO: read in element instructions
     }else{
       content = templateOrFragment;
     }
@@ -88,6 +87,7 @@ export class ViewCompiler {
     content.appendChild(document.createComment('</view>'));
 
     var factory = new ViewFactory(content, instructions, resources);
+    factory.surrogateInstruction = templateOrFragment.content ? this.compileSurrogate(templateOrFragment, resources) : null;
 
     if(part){
       factory.part = part;
@@ -129,6 +129,108 @@ export class ViewCompiler {
     }
 
     return node.nextSibling;
+  }
+
+  compileSurrogate(node, resources){
+    let attributes = node.attributes,
+        bindingLanguage = this.bindingLanguage,
+        knownAttribute, property, instruction,
+        i, ii, attr, attrName, attrValue, info, type,
+        expressions = [], expression,
+        behaviorInstructions = [],
+        values = {}, hasValues = false,
+        providers = [];
+
+    for(i = 0, ii = attributes.length; i < ii; ++i){
+      attr = attributes[i];
+      attrName = attr.name;
+      attrValue = attr.value;
+
+      info = bindingLanguage.inspectAttribute(resources, attrName, attrValue);
+      type = resources.getAttribute(info.attrName);
+
+      if(type){ //do we have an attached behavior?
+        knownAttribute = resources.mapAttribute(info.attrName); //map the local name to real name
+        if(knownAttribute){
+          property = type.attributes[knownAttribute];
+
+          if(property){ //if there's a defined property
+            info.defaultBindingMode = property.defaultBindingMode; //set the default binding mode
+
+            if(!info.command && !info.expression){ // if there is no command or detected expression
+              info.command = property.hasOptions ? 'options' : null; //and it is an optons property, set the options command
+            }
+          }
+        }
+      }
+
+      instruction = bindingLanguage.createAttributeInstruction(resources, node, info);
+
+      if(instruction){ //HAS BINDINGS
+        if(instruction.alteredAttr){
+          type = resources.getAttribute(instruction.attrName);
+        }
+
+        if(instruction.discrete){ //ref binding or listener binding
+          expressions.push(instruction);
+        }else{ //attribute bindings
+          if(type){ //templator or attached behavior found
+            instruction.type = type;
+            configureProperties(instruction, resources);
+
+            if(type.liftsContent){ //template controller
+              throw new Error('You cannot place a template controller on a surrogate element.');
+            }else{ //attached behavior
+              behaviorInstructions.push(instruction);
+            }
+          } else{ //standard attribute binding
+            expressions.push(instruction.attributes[instruction.attrName]);
+          }
+        }
+      }else{ //NO BINDINGS
+        if(type){ //templator or attached behavior found
+          instruction = { attrName:attrName, type:type, attributes:{} };
+          instruction.attributes[resources.mapAttribute(attrName)] = attrValue;
+
+          if(type.liftsContent){ //template controller
+            throw new Error('You cannot place a template controller on a surrogate element.');
+          }else{ //attached behavior
+            behaviorInstructions.push(instruction);
+          }
+        }else if(attrName !== 'id' && attrName !== 'part' && attrName !== 'replace-part'){
+          hasValues = true;
+          values[attrName] = attrValue;
+        }
+      }
+    }
+
+    if(expressions.length || behaviorInstructions.length || hasValues){
+      for(i = 0, ii = behaviorInstructions.length; i < ii; ++i){
+        instruction = behaviorInstructions[i];
+        instruction.type.compile(this, resources, node, instruction);
+        providers.push(instruction.type.target);
+      }
+
+      for(i = 0, ii = expressions.length; i < ii; ++i){
+        expression =  expressions[i];
+        if(expression.attrToRemove !== undefined){
+          node.removeAttribute(expression.attrToRemove);
+        }
+      }
+
+      return {
+        anchorIsContainer: false,
+        isCustomElement: false,
+        injectorId: null,
+        parentInjectorId: null,
+        expressions: expressions,
+        behaviorInstructions: behaviorInstructions,
+        providers: providers,
+        values:values
+      };
+    }
+
+    return null;
   }
 
   compileElement(node, resources, instructions, parentNode, parentInjectorId, targetLightDOM){
