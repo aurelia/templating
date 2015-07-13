@@ -140,7 +140,7 @@ declare module 'aurelia-templating' {
   // NOTE: Adding a fragment to the document causes the nodes to be removed from the fragment.
   // NOTE: Adding to the fragment, causes the nodes to be removed from the document.
   export class View {
-    constructor(fragment: any, behaviors: any, bindings: any, children: any, systemControlled: any, contentSelectors: any);
+    constructor(container: any, fragment: any, behaviors: any, bindings: any, children: any, systemControlled: any, contentSelectors: any);
     created(executionContext: any): any;
     bind(executionContext: any, systemUpdate: any): any;
     addBinding(binding: any): any;
@@ -186,13 +186,14 @@ declare module 'aurelia-templating' {
   }
   export class ViewFactory {
     constructor(template: any, instructions: any, resources: any);
-    create(container: any, executionContext: any, options?: any): any;
+    create(container: any, executionContext: any, options?: any, element?: any): any;
   }
   export class ViewCompiler {
     static inject(): any;
     constructor(bindingLanguage: any);
     compile(templateOrFragment: any, resources: any, options?: any): any;
     compileNode(node: any, resources: any, instructions: any, parentNode: any, parentInjectorId: any, targetLightDOM: any): any;
+    compileSurrogate(node: any, resources: any): any;
     compileElement(node: any, resources: any, instructions: any, parentNode: any, parentInjectorId: any, targetLightDOM: any): any;
   }
   export class ViewEngine {

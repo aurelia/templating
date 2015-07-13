@@ -1,3 +1,11 @@
+### 0.13.3 (2015-07-13)
+
+
+#### Features
+
+* **view-compiler:** enable surrogate behaviors, bindings and attributes ([a1fcdffb](http://github.com/aurelia/templating/commit/a1fcdffbcb1b0dcfbd23387c467302d540a9144f), closes [#61](http://github.com/aurelia/templating/issues/61))
+
+
 ### 0.13.2 (2015-07-07)
 
 

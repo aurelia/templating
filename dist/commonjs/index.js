@@ -412,9 +412,10 @@ var ViewResources = (function (_ResourceRegistry) {
 exports.ViewResources = ViewResources;
 
 var View = (function () {
-  function View(fragment, behaviors, bindings, children, systemControlled, contentSelectors) {
+  function View(container, fragment, behaviors, bindings, children, systemControlled, contentSelectors) {
     _classCallCheck(this, View);
 
+    this.container = container;
     this.fragment = fragment;
     this.behaviors = behaviors;
     this.bindings = bindings;
@@ -1164,6 +1165,43 @@ function applyInstructions(containers, executionContext, element, instruction, b
   }
 }
 
+function applySurrogateInstruction(container, element, instruction, behaviors, bindings, children) {
+  var behaviorInstructions = instruction.behaviorInstructions,
+      expressions = instruction.expressions,
+      providers = instruction.providers,
+      values = instruction.values,
+      i = undefined,
+      ii = undefined,
+      current = undefined,
+      instance = undefined;
+
+  i = providers.length;
+  while (i--) {
+    container.registerSingleton(providers[i]);
+  }
+
+  for (var key in values) {
+    element.setAttribute(key, values[key]);
+  }
+
+  if (behaviorInstructions.length) {
+    for (i = 0, ii = behaviorInstructions.length; i < ii; ++i) {
+      current = behaviorInstructions[i];
+      instance = current.type.create(container, current, element, bindings, current.partReplacements);
+
+      if (instance.contentView) {
+        children.push(instance.contentView);
+      }
+
+      behaviors.push(instance);
+    }
+  }
+
+  for (i = 0, ii = expressions.length; i < ii; ++i) {
+    bindings.push(expressions[i].createBinding(element));
+  }
+}
+
 var BoundViewFactory = (function () {
   function BoundViewFactory(parentContainer, viewFactory, executionContext) {
     _classCallCheck(this, BoundViewFactory);
@@ -1204,6 +1242,7 @@ var ViewFactory = (function () {
 
   ViewFactory.prototype.create = function create(container, executionContext) {
     var options = arguments[2] === undefined ? defaultFactoryOptions : arguments[2];
+    var element = arguments[3] === undefined ? null : arguments[3];
 
     var fragment = this.template.cloneNode(true),
         instructables = fragment.querySelectorAll('.au-target'),
@@ -1219,11 +1258,15 @@ var ViewFactory = (function () {
         ii,
         view;
 
+    if (element !== null && this.surrogateInstruction !== null) {
+      applySurrogateInstruction(container, element, this.surrogateInstruction, behaviors, bindings, children);
+    }
+
     for (i = 0, ii = instructables.length; i < ii; ++i) {
       applyInstructions(containers, executionContext, instructables[i], instructions[i], behaviors, bindings, children, contentSelectors, partReplacements, resources);
     }
 
-    view = new View(fragment, behaviors, bindings, children, options.systemControlled, contentSelectors);
+    view = new View(container, fragment, behaviors, bindings, children, options.systemControlled, contentSelectors);
     view.created(executionContext);
 
     if (!options.suppressBind) {
@@ -1335,6 +1378,7 @@ var ViewCompiler = (function () {
     content.appendChild(document.createComment('</view>'));
 
     var factory = new ViewFactory(content, instructions, resources);
+    factory.surrogateInstruction = templateOrFragment.content ? this.compileSurrogate(templateOrFragment, resources) : null;
 
     if (part) {
       factory.part = part;
@@ -1374,6 +1418,118 @@ var ViewCompiler = (function () {
     }
 
     return node.nextSibling;
+  };
+
+  ViewCompiler.prototype.compileSurrogate = function compileSurrogate(node, resources) {
+    var attributes = node.attributes,
+        bindingLanguage = this.bindingLanguage,
+        knownAttribute = undefined,
+        property = undefined,
+        instruction = undefined,
+        i = undefined,
+        ii = undefined,
+        attr = undefined,
+        attrName = undefined,
+        attrValue = undefined,
+        info = undefined,
+        type = undefined,
+        expressions = [],
+        expression = undefined,
+        behaviorInstructions = [],
+        values = {},
+        hasValues = false,
+        providers = [];
+
+    for (i = 0, ii = attributes.length; i < ii; ++i) {
+      attr = attributes[i];
+      attrName = attr.name;
+      attrValue = attr.value;
+
+      info = bindingLanguage.inspectAttribute(resources, attrName, attrValue);
+      type = resources.getAttribute(info.attrName);
+
+      if (type) {
+        knownAttribute = resources.mapAttribute(info.attrName);
+        if (knownAttribute) {
+          property = type.attributes[knownAttribute];
+
+          if (property) {
+            info.defaultBindingMode = property.defaultBindingMode;
+
+            if (!info.command && !info.expression) {
+              info.command = property.hasOptions ? 'options' : null;
+            }
+          }
+        }
+      }
+
+      instruction = bindingLanguage.createAttributeInstruction(resources, node, info);
+
+      if (instruction) {
+        if (instruction.alteredAttr) {
+          type = resources.getAttribute(instruction.attrName);
+        }
+
+        if (instruction.discrete) {
+          expressions.push(instruction);
+        } else {
+          if (type) {
+            instruction.type = type;
+            configureProperties(instruction, resources);
+
+            if (type.liftsContent) {
+              throw new Error('You cannot place a template controller on a surrogate element.');
+            } else {
+              behaviorInstructions.push(instruction);
+            }
+          } else {
+            expressions.push(instruction.attributes[instruction.attrName]);
+          }
+        }
+      } else {
+        if (type) {
+          instruction = { attrName: attrName, type: type, attributes: {} };
+          instruction.attributes[resources.mapAttribute(attrName)] = attrValue;
+
+          if (type.liftsContent) {
+            throw new Error('You cannot place a template controller on a surrogate element.');
+          } else {
+            behaviorInstructions.push(instruction);
+          }
+        } else if (attrName !== 'id' && attrName !== 'part' && attrName !== 'replace-part') {
+          hasValues = true;
+          values[attrName] = attrValue;
+        }
+      }
+    }
+
+    if (expressions.length || behaviorInstructions.length || hasValues) {
+      for (i = 0, ii = behaviorInstructions.length; i < ii; ++i) {
+        instruction = behaviorInstructions[i];
+        instruction.type.compile(this, resources, node, instruction);
+        providers.push(instruction.type.target);
+      }
+
+      for (i = 0, ii = expressions.length; i < ii; ++i) {
+        expression = expressions[i];
+        if (expression.attrToRemove !== undefined) {
+          node.removeAttribute(expression.attrToRemove);
+        }
+      }
+
+      return {
+        anchorIsContainer: false,
+        isCustomElement: false,
+        injectorId: null,
+        parentInjectorId: null,
+        expressions: expressions,
+        behaviorInstructions: behaviorInstructions,
+        providers: providers,
+        values: values
+      };
+    }
+
+    return null;
   };
 
   ViewCompiler.prototype.compileElement = function compileElement(node, resources, instructions, parentNode, parentInjectorId, targetLightDOM) {
@@ -2332,7 +2488,7 @@ var HtmlBehaviorResource = (function () {
       viewFactory = instruction.viewFactory || this.viewFactory;
 
       if (viewFactory) {
-        behaviorInstance.view = viewFactory.create(container, executionContext, instruction);
+        behaviorInstance.view = viewFactory.create(container, executionContext, instruction, element);
       }
 
       if (element) {
