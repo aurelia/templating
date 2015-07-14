@@ -199,12 +199,12 @@ export class UseViewStrategy extends ViewStrategy {
     this.path = path;
   }
 
-  loadViewFactory(viewEngine, options){
+  loadViewFactory(viewEngine, options, loadContext){
     if(!this.absolutePath && this.moduleId){
       this.absolutePath = relativeToFile(this.path, this.moduleId);
     }
 
-    return viewEngine.loadViewFactory(this.absolutePath || this.path, options, this.moduleId);
+    return viewEngine.loadViewFactory(this.absolutePath || this.path, options, this.moduleId, loadContext);
   }
 
   makeRelativeTo(file){
@@ -219,8 +219,8 @@ export class ConventionalViewStrategy extends ViewStrategy {
     this.viewUrl = ConventionalViewStrategy.convertModuleIdToViewUrl(moduleId);
   }
 
-  loadViewFactory(viewEngine, options){
-    return viewEngine.loadViewFactory(this.viewUrl, options, this.moduleId);
+  loadViewFactory(viewEngine, options, loadContext){
+    return viewEngine.loadViewFactory(this.viewUrl, options, this.moduleId, loadContext);
   }
 
   static convertModuleIdToViewUrl(moduleId){
@@ -242,12 +242,12 @@ export class TemplateRegistryViewStrategy extends ViewStrategy {
     this.registryEntry = registryEntry;
   }
 
-  loadViewFactory(viewEngine, options){
+  loadViewFactory(viewEngine, options, loadContext){
     if(this.registryEntry.isReady){
       return Promise.resolve(this.registryEntry.factory);
     }
 
-    return viewEngine.loadViewFactory(this.registryEntry, options, this.moduleId);
+    return viewEngine.loadViewFactory(this.registryEntry, options, this.moduleId, loadContext);
   }
 }
 
@@ -1595,6 +1595,16 @@ function ensureRegistryEntry(loader, urlOrRegistryEntry){
   return loader.loadTemplate(urlOrRegistryEntry);
 }
 
+class ProxyViewFactory {
+  constructor(promise){
+    promise.then(x => this.absorb(x));
+  }
+
+  absorb(factory){
+    this.create = factory.create.bind(factory);
+  }
+}
+
 export class ViewEngine {
   static inject() { return [Loader, Container, ViewCompiler, ModuleAnalyzer, ResourceRegistry]; }
   constructor(loader, container, viewCompiler, moduleAnalyzer, appResources){
@@ -1605,13 +1615,22 @@ export class ViewEngine {
     this.appResources = appResources;
   }
 
-  loadViewFactory(urlOrRegistryEntry, compileOptions, associatedModuleId){
+  loadViewFactory(urlOrRegistryEntry, compileOptions, associatedModuleId, loadContext){
+    loadContext = loadContext || [];
+
     return ensureRegistryEntry(this.loader, urlOrRegistryEntry).then(viewRegistryEntry => {
       if(viewRegistryEntry.onReady){
-        return viewRegistryEntry.onReady;
+        if(loadContext.indexOf(urlOrRegistryEntry) === -1){
+          loadContext.push(urlOrRegistryEntry);
+          return viewRegistryEntry.onReady;
+        }
+
+        return Promise.resolve(new ProxyViewFactory(viewRegistryEntry.onReady));
       }
 
-      return viewRegistryEntry.onReady = this.loadTemplateResources(viewRegistryEntry, associatedModuleId).then(resources => {
+      loadContext.push(urlOrRegistryEntry);
+
+      return viewRegistryEntry.onReady = this.loadTemplateResources(viewRegistryEntry, associatedModuleId, loadContext).then(resources => {
         viewRegistryEntry.setResources(resources);
         var viewFactory = this.viewCompiler.compile(viewRegistryEntry.template, resources, compileOptions);
         viewRegistryEntry.setFactory(viewFactory);
@@ -1620,7 +1639,7 @@ export class ViewEngine {
     });
   }
 
-  loadTemplateResources(viewRegistryEntry, associatedModuleId){
+  loadTemplateResources(viewRegistryEntry, associatedModuleId, loadContext){
     var resources = new ViewResources(this.appResources, viewRegistryEntry.id),
         dependencies = viewRegistryEntry.dependencies,
         importIds, names;
@@ -1633,7 +1652,7 @@ export class ViewEngine {
     names = dependencies.map(x => x.name);
     logger.debug(`importing resources for ${viewRegistryEntry.id}`, importIds);
 
-    return this.importViewResources(importIds, names, resources, associatedModuleId);
+    return this.importViewResources(importIds, names, resources, associatedModuleId, loadContext);
   }
 
   importViewModelResource(moduleImport, moduleMember){
@@ -1651,7 +1670,9 @@ export class ViewEngine {
     });
   }
 
-  importViewResources(moduleIds, names, resources, associatedModuleId){
+  importViewResources(moduleIds, names, resources, associatedModuleId, loadContext){
+    loadContext = loadContext || [];
+
     return this.loader.loadAllModules(moduleIds).then(imports => {
       var i, ii, analysis, normalizedId, current, associatedModule,
           container = this.container,
@@ -1683,7 +1704,7 @@ export class ViewEngine {
       //cause compile/load of any associated views second
       //as a result all globals have access to all other globals during compilation
       for(i = 0, ii = allAnalysis.length; i < ii; ++i){
-        allAnalysis[i] = allAnalysis[i].load(container);
+        allAnalysis[i] = allAnalysis[i].load(container, loadContext);
       }
 
       return Promise.all(allAnalysis).then(() => resources);
@@ -2169,7 +2190,7 @@ export class HtmlBehaviorResource {
     }
   }
 
-  load(container, target, viewStrategy, transientView){
+  load(container, target, viewStrategy, transientView, loadContext){
     var options;
 
     if(this.elementName !== null){
@@ -2183,7 +2204,7 @@ export class HtmlBehaviorResource {
         viewStrategy.moduleId = Origin.get(target).moduleId;
       }
 
-      return viewStrategy.loadViewFactory(container.get(ViewEngine), options).then(viewFactory => {
+      return viewStrategy.loadViewFactory(container.get(ViewEngine), options, loadContext).then(viewFactory => {
         if(!transientView || !this.viewFactory){
           this.viewFactory = viewFactory;
         }
@@ -2439,7 +2460,7 @@ export class ResourceModule {
     }
   }
 
-  load(container){
+  load(container, loadContext){
     if(this.onLoaded){
       return this.onLoaded;
     }
@@ -2449,11 +2470,11 @@ export class ResourceModule {
         i, ii, loads = [];
 
     if(current){
-      loads.push(current.load(container));
+      loads.push(current.load(container, loadContext));
     }
 
     for(i = 0, ii = resources.length; i < ii; ++i){
-      loads.push(resources[i].load(container));
+      loads.push(resources[i].load(container, loadContext));
     }
 
     this.onLoaded = Promise.all(loads);
@@ -2505,12 +2526,12 @@ export class ResourceDescription {
     this.metadata.register(registry, name);
   }
 
-  load(container){
+  load(container, loadContext){
     let metadata = this.metadata,
         value = this.value;
 
     if('load' in metadata){
-      return metadata.load(container, value);
+      return metadata.load(container, value, null, null, loadContext);
     }
   }
 

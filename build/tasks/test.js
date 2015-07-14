@@ -8,9 +8,7 @@ gulp.task('test', function (done) {
     karma.start({
         configFile: __dirname + '/../../karma.conf.js',
         singleRun: true
-    }, function(e) {
-        done();
-    });
+    }, done);
 });
 
 /**
@@ -19,9 +17,7 @@ gulp.task('test', function (done) {
 gulp.task('tdd', function (done) {
     karma.start({
         configFile: __dirname + '/../../karma.conf.js'
-    }, function(e) {
-        done();
-    });
+    }, done);
 });
 
 /**
@@ -40,7 +36,5 @@ gulp.task('cover', function (done) {
       type: 'html',
       dir: 'build/reports/coverage'
     }
-  }, function (e) {
-    done();
-  });
+  }, done);
 });

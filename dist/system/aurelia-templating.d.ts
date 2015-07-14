@@ -99,12 +99,12 @@ declare module 'aurelia-templating' {
   }
   export class UseViewStrategy extends ViewStrategy {
     constructor(path: any);
-    loadViewFactory(viewEngine: any, options: any): any;
+    loadViewFactory(viewEngine: any, options: any, loadContext: any): any;
     makeRelativeTo(file: any): any;
   }
   export class ConventionalViewStrategy extends ViewStrategy {
     constructor(moduleId: any);
-    loadViewFactory(viewEngine: any, options: any): any;
+    loadViewFactory(viewEngine: any, options: any, loadContext: any): any;
     static convertModuleIdToViewUrl(moduleId: any): any;
   }
   export class NoViewStrategy extends ViewStrategy {
@@ -112,7 +112,7 @@ declare module 'aurelia-templating' {
   }
   export class TemplateRegistryViewStrategy extends ViewStrategy {
     constructor(moduleId: any, registryEntry: any);
-    loadViewFactory(viewEngine: any, options: any): any;
+    loadViewFactory(viewEngine: any, options: any, loadContext: any): any;
   }
   export class BindingLanguage {
     inspectAttribute(resources: any, attrName: any, attrValue: any): any;
@@ -196,13 +196,17 @@ declare module 'aurelia-templating' {
     compileSurrogate(node: any, resources: any): any;
     compileElement(node: any, resources: any, instructions: any, parentNode: any, parentInjectorId: any, targetLightDOM: any): any;
   }
+  class ProxyViewFactory {
+    constructor(promise: any);
+    absorb(factory: any): any;
+  }
   export class ViewEngine {
     static inject(): any;
     constructor(loader: any, container: any, viewCompiler: any, moduleAnalyzer: any, appResources: any);
-    loadViewFactory(urlOrRegistryEntry: any, compileOptions: any, associatedModuleId: any): any;
-    loadTemplateResources(viewRegistryEntry: any, associatedModuleId: any): any;
+    loadViewFactory(urlOrRegistryEntry: any, compileOptions: any, associatedModuleId: any, loadContext: any): any;
+    loadTemplateResources(viewRegistryEntry: any, associatedModuleId: any, loadContext: any): any;
     importViewModelResource(moduleImport: any, moduleMember: any): any;
-    importViewResources(moduleIds: any, names: any, resources: any, associatedModuleId: any): any;
+    importViewResources(moduleIds: any, names: any, resources: any, associatedModuleId: any, loadContext: any): any;
   }
   export class BehaviorInstance {
     constructor(behavior: any, executionContext: any, instruction: any);
@@ -234,7 +238,7 @@ declare module 'aurelia-templating' {
     static convention(name: any, existing: any): any;
     addChildBinding(behavior: any): any;
     analyze(container: any, target: any): any;
-    load(container: any, target: any, viewStrategy: any, transientView: any): any;
+    load(container: any, target: any, viewStrategy: any, transientView: any, loadContext: any): any;
     register(registry: any, name: any): any;
     compile(compiler: any, resources: any, node: any, instruction: any, parentNode: any): any;
     create(container: any, instruction?: any, element?: any, bindings?: any): any;
@@ -244,13 +248,13 @@ declare module 'aurelia-templating' {
     constructor(moduleId: any);
     analyze(container: any): any;
     register(registry: any, name: any): any;
-    load(container: any): any;
+    load(container: any, loadContext: any): any;
   }
   export class ResourceDescription {
     constructor(key: any, exportedValue: any, resourceTypeMeta: any);
     analyze(container: any): any;
     register(registry: any, name: any): any;
-    load(container: any): any;
+    load(container: any, loadContext: any): any;
     static get(resource: any, key?: any): any;
   }
   export class ModuleAnalyzer {

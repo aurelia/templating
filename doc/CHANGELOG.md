@@ -1,3 +1,11 @@
+### 0.13.4 (2015-07-14)
+
+
+#### Bug Fixes
+
+* **view-engine:** handle circular references between views ([5e023a59](http://github.com/aurelia/templating/commit/5e023a59fc12867a0c1d8bb00399f0e3f4ce53b6))
+
+
 ### 0.13.3 (2015-07-13)
 
 

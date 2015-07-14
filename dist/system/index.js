@@ -1,7 +1,7 @@
 System.register(['core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-dependency-injection', 'aurelia-loader', 'aurelia-binding', 'aurelia-task-queue', 'aurelia-logging'], function (_export) {
   'use strict';
 
-  var core, Metadata, Origin, Decorators, relativeToFile, Container, Loader, TemplateRegistryEntry, bindingMode, ObserverLocator, ValueConverterResource, EventManager, TaskQueue, LogManager, animationEvent, Animator, capitalMatcher, ViewStrategy, UseViewStrategy, ConventionalViewStrategy, NoViewStrategy, TemplateRegistryViewStrategy, BindingLanguage, ResourceRegistry, ViewResources, View, proto, placeholder, ContentSelector, ViewSlot, BoundViewFactory, defaultFactoryOptions, ViewFactory, nextInjectorId, defaultCompileOptions, hasShadowDOM, needsTemplateFixup, ViewCompiler, logger, ViewEngine, BehaviorInstance, BindableProperty, BehaviorPropertyObserver, defaultInstruction, contentSelectorFactoryOptions, hasShadowDOM, HtmlBehaviorResource, ResourceModule, ResourceDescription, ModuleAnalyzer, noMutations, ChildObserver, ChildObserverBinder, CompositionEngine, ElementConfigResource;
+  var core, Metadata, Origin, Decorators, relativeToFile, Container, Loader, TemplateRegistryEntry, bindingMode, ObserverLocator, ValueConverterResource, EventManager, TaskQueue, LogManager, animationEvent, Animator, capitalMatcher, ViewStrategy, UseViewStrategy, ConventionalViewStrategy, NoViewStrategy, TemplateRegistryViewStrategy, BindingLanguage, ResourceRegistry, ViewResources, View, proto, placeholder, ContentSelector, ViewSlot, BoundViewFactory, defaultFactoryOptions, ViewFactory, nextInjectorId, defaultCompileOptions, hasShadowDOM, needsTemplateFixup, ViewCompiler, logger, ProxyViewFactory, ViewEngine, BehaviorInstance, BindableProperty, BehaviorPropertyObserver, defaultInstruction, contentSelectorFactoryOptions, hasShadowDOM, HtmlBehaviorResource, ResourceModule, ResourceDescription, ModuleAnalyzer, noMutations, ChildObserver, ChildObserverBinder, CompositionEngine, ElementConfigResource;
 
   var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
@@ -627,12 +627,12 @@ System.register(['core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-depende
 
         _inherits(UseViewStrategy, _ViewStrategy);
 
-        UseViewStrategy.prototype.loadViewFactory = function loadViewFactory(viewEngine, options) {
+        UseViewStrategy.prototype.loadViewFactory = function loadViewFactory(viewEngine, options, loadContext) {
           if (!this.absolutePath && this.moduleId) {
             this.absolutePath = relativeToFile(this.path, this.moduleId);
           }
 
-          return viewEngine.loadViewFactory(this.absolutePath || this.path, options, this.moduleId);
+          return viewEngine.loadViewFactory(this.absolutePath || this.path, options, this.moduleId, loadContext);
         };
 
         UseViewStrategy.prototype.makeRelativeTo = function makeRelativeTo(file) {
@@ -655,8 +655,8 @@ System.register(['core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-depende
 
         _inherits(ConventionalViewStrategy, _ViewStrategy2);
 
-        ConventionalViewStrategy.prototype.loadViewFactory = function loadViewFactory(viewEngine, options) {
-          return viewEngine.loadViewFactory(this.viewUrl, options, this.moduleId);
+        ConventionalViewStrategy.prototype.loadViewFactory = function loadViewFactory(viewEngine, options, loadContext) {
+          return viewEngine.loadViewFactory(this.viewUrl, options, this.moduleId, loadContext);
         };
 
         ConventionalViewStrategy.convertModuleIdToViewUrl = function convertModuleIdToViewUrl(moduleId) {
@@ -698,12 +698,12 @@ System.register(['core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-depende
 
         _inherits(TemplateRegistryViewStrategy, _ViewStrategy4);
 
-        TemplateRegistryViewStrategy.prototype.loadViewFactory = function loadViewFactory(viewEngine, options) {
+        TemplateRegistryViewStrategy.prototype.loadViewFactory = function loadViewFactory(viewEngine, options, loadContext) {
           if (this.registryEntry.isReady) {
             return Promise.resolve(this.registryEntry.factory);
           }
 
-          return viewEngine.loadViewFactory(this.registryEntry, options, this.moduleId);
+          return viewEngine.loadViewFactory(this.registryEntry, options, this.moduleId, loadContext);
         };
 
         return TemplateRegistryViewStrategy;
@@ -1907,6 +1907,24 @@ System.register(['core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-depende
 
       logger = LogManager.getLogger('templating');
 
+      ProxyViewFactory = (function () {
+        function ProxyViewFactory(promise) {
+          var _this4 = this;
+
+          _classCallCheck(this, ProxyViewFactory);
+
+          promise.then(function (x) {
+            return _this4.absorb(x);
+          });
+        }
+
+        ProxyViewFactory.prototype.absorb = function absorb(factory) {
+          this.create = factory.create.bind(factory);
+        };
+
+        return ProxyViewFactory;
+      })();
+
       ViewEngine = (function () {
         function ViewEngine(loader, container, viewCompiler, moduleAnalyzer, appResources) {
           _classCallCheck(this, ViewEngine);
@@ -1922,24 +1940,33 @@ System.register(['core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-depende
           return [Loader, Container, ViewCompiler, ModuleAnalyzer, ResourceRegistry];
         };
 
-        ViewEngine.prototype.loadViewFactory = function loadViewFactory(urlOrRegistryEntry, compileOptions, associatedModuleId) {
-          var _this4 = this;
+        ViewEngine.prototype.loadViewFactory = function loadViewFactory(urlOrRegistryEntry, compileOptions, associatedModuleId, loadContext) {
+          var _this5 = this;
+
+          loadContext = loadContext || [];
 
           return ensureRegistryEntry(this.loader, urlOrRegistryEntry).then(function (viewRegistryEntry) {
             if (viewRegistryEntry.onReady) {
-              return viewRegistryEntry.onReady;
+              if (loadContext.indexOf(urlOrRegistryEntry) === -1) {
+                loadContext.push(urlOrRegistryEntry);
+                return viewRegistryEntry.onReady;
+              }
+
+              return Promise.resolve(new ProxyViewFactory(viewRegistryEntry.onReady));
             }
 
-            return viewRegistryEntry.onReady = _this4.loadTemplateResources(viewRegistryEntry, associatedModuleId).then(function (resources) {
+            loadContext.push(urlOrRegistryEntry);
+
+            return viewRegistryEntry.onReady = _this5.loadTemplateResources(viewRegistryEntry, associatedModuleId, loadContext).then(function (resources) {
               viewRegistryEntry.setResources(resources);
-              var viewFactory = _this4.viewCompiler.compile(viewRegistryEntry.template, resources, compileOptions);
+              var viewFactory = _this5.viewCompiler.compile(viewRegistryEntry.template, resources, compileOptions);
               viewRegistryEntry.setFactory(viewFactory);
               return viewFactory;
             });
           });
         };
 
-        ViewEngine.prototype.loadTemplateResources = function loadTemplateResources(viewRegistryEntry, associatedModuleId) {
+        ViewEngine.prototype.loadTemplateResources = function loadTemplateResources(viewRegistryEntry, associatedModuleId, loadContext) {
           var resources = new ViewResources(this.appResources, viewRegistryEntry.id),
               dependencies = viewRegistryEntry.dependencies,
               importIds,
@@ -1957,28 +1984,30 @@ System.register(['core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-depende
           });
           logger.debug('importing resources for ' + viewRegistryEntry.id, importIds);
 
-          return this.importViewResources(importIds, names, resources, associatedModuleId);
+          return this.importViewResources(importIds, names, resources, associatedModuleId, loadContext);
         };
 
         ViewEngine.prototype.importViewModelResource = function importViewModelResource(moduleImport, moduleMember) {
-          var _this5 = this;
+          var _this6 = this;
 
           return this.loader.loadModule(moduleImport).then(function (viewModelModule) {
             var normalizedId = Origin.get(viewModelModule).moduleId,
-                resourceModule = _this5.moduleAnalyzer.analyze(normalizedId, viewModelModule, moduleMember);
+                resourceModule = _this6.moduleAnalyzer.analyze(normalizedId, viewModelModule, moduleMember);
 
             if (!resourceModule.mainResource) {
               throw new Error('No view model found in module "' + moduleImport + '".');
             }
 
-            resourceModule.analyze(_this5.container);
+            resourceModule.analyze(_this6.container);
 
             return resourceModule.mainResource;
           });
         };
 
-        ViewEngine.prototype.importViewResources = function importViewResources(moduleIds, names, resources, associatedModuleId) {
-          var _this6 = this;
+        ViewEngine.prototype.importViewResources = function importViewResources(moduleIds, names, resources, associatedModuleId, loadContext) {
+          var _this7 = this;
+
+          loadContext = loadContext || [];
 
           return this.loader.loadAllModules(moduleIds).then(function (imports) {
             var i,
@@ -1987,8 +2016,8 @@ System.register(['core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-depende
                 normalizedId,
                 current,
                 associatedModule,
-                container = _this6.container,
-                moduleAnalyzer = _this6.moduleAnalyzer,
+                container = _this7.container,
+                moduleAnalyzer = _this7.moduleAnalyzer,
                 allAnalysis = new Array(imports.length);
 
             for (i = 0, ii = imports.length; i < ii; ++i) {
@@ -2011,7 +2040,7 @@ System.register(['core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-depende
             }
 
             for (i = 0, ii = allAnalysis.length; i < ii; ++i) {
-              allAnalysis[i] = allAnalysis[i].load(container);
+              allAnalysis[i] = allAnalysis[i].load(container, loadContext);
             }
 
             return Promise.all(allAnalysis).then(function () {
@@ -2528,8 +2557,8 @@ System.register(['core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-depende
           }
         };
 
-        HtmlBehaviorResource.prototype.load = function load(container, target, viewStrategy, transientView) {
-          var _this7 = this;
+        HtmlBehaviorResource.prototype.load = function load(container, target, viewStrategy, transientView, loadContext) {
+          var _this8 = this;
 
           var options;
 
@@ -2544,9 +2573,9 @@ System.register(['core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-depende
               viewStrategy.moduleId = Origin.get(target).moduleId;
             }
 
-            return viewStrategy.loadViewFactory(container.get(ViewEngine), options).then(function (viewFactory) {
-              if (!transientView || !_this7.viewFactory) {
-                _this7.viewFactory = viewFactory;
+            return viewStrategy.loadViewFactory(container.get(ViewEngine), options, loadContext).then(function (viewFactory) {
+              if (!transientView || !_this8.viewFactory) {
+                _this8.viewFactory = viewFactory;
               }
 
               return viewFactory;
@@ -2805,7 +2834,7 @@ System.register(['core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-depende
           }
         };
 
-        ResourceModule.prototype.load = function load(container) {
+        ResourceModule.prototype.load = function load(container, loadContext) {
           if (this.onLoaded) {
             return this.onLoaded;
           }
@@ -2817,11 +2846,11 @@ System.register(['core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-depende
               loads = [];
 
           if (current) {
-            loads.push(current.load(container));
+            loads.push(current.load(container, loadContext));
           }
 
           for (i = 0, ii = resources.length; i < ii; ++i) {
-            loads.push(resources[i].load(container));
+            loads.push(resources[i].load(container, loadContext));
           }
 
           this.onLoaded = Promise.all(loads);
@@ -2876,12 +2905,12 @@ System.register(['core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-depende
           this.metadata.register(registry, name);
         };
 
-        ResourceDescription.prototype.load = function load(container) {
+        ResourceDescription.prototype.load = function load(container, loadContext) {
           var metadata = this.metadata,
               value = this.value;
 
           if ('load' in metadata) {
-            return metadata.load(container, value);
+            return metadata.load(container, value, null, null, loadContext);
           }
         };
 
@@ -3239,7 +3268,7 @@ System.register(['core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-depende
         };
 
         CompositionEngine.prototype.compose = function compose(instruction) {
-          var _this8 = this;
+          var _this9 = this;
 
           instruction.childContainer = instruction.childContainer || instruction.container.createChild();
           instruction.view = ViewStrategy.normalize(instruction.view);
@@ -3247,7 +3276,7 @@ System.register(['core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-depende
           if (instruction.viewModel) {
             if (typeof instruction.viewModel === 'string') {
               return this.createViewModel(instruction).then(function (instruction) {
-                return _this8.createBehaviorAndSwap(instruction);
+                return _this9.createBehaviorAndSwap(instruction);
               });
             } else {
               return this.createBehaviorAndSwap(instruction);
