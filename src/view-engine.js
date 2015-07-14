@@ -17,6 +17,16 @@ function ensureRegistryEntry(loader, urlOrRegistryEntry){
   return loader.loadTemplate(urlOrRegistryEntry);
 }
 
+class ProxyViewFactory {
+  constructor(promise){
+    promise.then(x => this.absorb(x));
+  }
+
+  absorb(factory){
+    this.create = factory.create.bind(factory);
+  }
+}
+
 export class ViewEngine {
   static inject() { return [Loader, Container, ViewCompiler, ModuleAnalyzer, ResourceRegistry]; }
   constructor(loader, container, viewCompiler, moduleAnalyzer, appResources){
@@ -27,13 +37,22 @@ export class ViewEngine {
     this.appResources = appResources;
   }
 
-  loadViewFactory(urlOrRegistryEntry, compileOptions, associatedModuleId){
+  loadViewFactory(urlOrRegistryEntry, compileOptions, associatedModuleId, loadContext){
+    loadContext = loadContext || [];
+
     return ensureRegistryEntry(this.loader, urlOrRegistryEntry).then(viewRegistryEntry => {
       if(viewRegistryEntry.onReady){
-        return viewRegistryEntry.onReady;
+        if(loadContext.indexOf(urlOrRegistryEntry) === -1){
+          loadContext.push(urlOrRegistryEntry);
+          return viewRegistryEntry.onReady;
+        }
+
+        return Promise.resolve(new ProxyViewFactory(viewRegistryEntry.onReady));
       }
 
-      return viewRegistryEntry.onReady = this.loadTemplateResources(viewRegistryEntry, associatedModuleId).then(resources => {
+      loadContext.push(urlOrRegistryEntry);
+
+      return viewRegistryEntry.onReady = this.loadTemplateResources(viewRegistryEntry, associatedModuleId, loadContext).then(resources => {
         viewRegistryEntry.setResources(resources);
         var viewFactory = this.viewCompiler.compile(viewRegistryEntry.template, resources, compileOptions);
         viewRegistryEntry.setFactory(viewFactory);
@@ -42,7 +61,7 @@ export class ViewEngine {
     });
   }
 
-  loadTemplateResources(viewRegistryEntry, associatedModuleId){
+  loadTemplateResources(viewRegistryEntry, associatedModuleId, loadContext){
     var resources = new ViewResources(this.appResources, viewRegistryEntry.id),
         dependencies = viewRegistryEntry.dependencies,
         importIds, names;
@@ -55,7 +74,7 @@ export class ViewEngine {
     names = dependencies.map(x => x.name);
     logger.debug(`importing resources for ${viewRegistryEntry.id}`, importIds);
 
-    return this.importViewResources(importIds, names, resources, associatedModuleId);
+    return this.importViewResources(importIds, names, resources, associatedModuleId, loadContext);
   }
 
   importViewModelResource(moduleImport, moduleMember){
@@ -73,7 +92,9 @@ export class ViewEngine {
     });
   }
 
-  importViewResources(moduleIds, names, resources, associatedModuleId){
+  importViewResources(moduleIds, names, resources, associatedModuleId, loadContext){
+    loadContext = loadContext || [];
+
     return this.loader.loadAllModules(moduleIds).then(imports => {
       var i, ii, analysis, normalizedId, current, associatedModule,
           container = this.container,
@@ -105,7 +126,7 @@ export class ViewEngine {
       //cause compile/load of any associated views second
       //as a result all globals have access to all other globals during compilation
       for(i = 0, ii = allAnalysis.length; i < ii; ++i){
-        allAnalysis[i] = allAnalysis[i].load(container);
+        allAnalysis[i] = allAnalysis[i].load(container, loadContext);
       }
 
       return Promise.all(allAnalysis).then(() => resources);

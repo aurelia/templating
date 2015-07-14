@@ -109,7 +109,7 @@ export class HtmlBehaviorResource {
     }
   }
 
-  load(container, target, viewStrategy, transientView){
+  load(container, target, viewStrategy, transientView, loadContext){
     var options;
 
     if(this.elementName !== null){
@@ -123,7 +123,7 @@ export class HtmlBehaviorResource {
         viewStrategy.moduleId = Origin.get(target).moduleId;
       }
 
-      return viewStrategy.loadViewFactory(container.get(ViewEngine), options).then(viewFactory => {
+      return viewStrategy.loadViewFactory(container.get(ViewEngine), options, loadContext).then(viewFactory => {
         if(!transientView || !this.viewFactory){
           this.viewFactory = viewFactory;
         }

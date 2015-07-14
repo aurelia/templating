@@ -48,12 +48,12 @@ export class UseViewStrategy extends ViewStrategy {
     this.path = path;
   }
 
-  loadViewFactory(viewEngine, options){
+  loadViewFactory(viewEngine, options, loadContext){
     if(!this.absolutePath && this.moduleId){
       this.absolutePath = relativeToFile(this.path, this.moduleId);
     }
 
-    return viewEngine.loadViewFactory(this.absolutePath || this.path, options, this.moduleId);
+    return viewEngine.loadViewFactory(this.absolutePath || this.path, options, this.moduleId, loadContext);
   }
 
   makeRelativeTo(file){
@@ -68,8 +68,8 @@ export class ConventionalViewStrategy extends ViewStrategy {
     this.viewUrl = ConventionalViewStrategy.convertModuleIdToViewUrl(moduleId);
   }
 
-  loadViewFactory(viewEngine, options){
-    return viewEngine.loadViewFactory(this.viewUrl, options, this.moduleId);
+  loadViewFactory(viewEngine, options, loadContext){
+    return viewEngine.loadViewFactory(this.viewUrl, options, this.moduleId, loadContext);
   }
 
   static convertModuleIdToViewUrl(moduleId){
@@ -91,11 +91,11 @@ export class TemplateRegistryViewStrategy extends ViewStrategy {
     this.registryEntry = registryEntry;
   }
 
-  loadViewFactory(viewEngine, options){
+  loadViewFactory(viewEngine, options, loadContext){
     if(this.registryEntry.isReady){
       return Promise.resolve(this.registryEntry.factory);
     }
 
-    return viewEngine.loadViewFactory(this.registryEntry, options, this.moduleId);
+    return viewEngine.loadViewFactory(this.registryEntry, options, this.moduleId, loadContext);
   }
 }

@@ -53,7 +53,7 @@ export class ResourceModule {
     }
   }
 
-  load(container){
+  load(container, loadContext){
     if(this.onLoaded){
       return this.onLoaded;
     }
@@ -63,11 +63,11 @@ export class ResourceModule {
         i, ii, loads = [];
 
     if(current){
-      loads.push(current.load(container));
+      loads.push(current.load(container, loadContext));
     }
 
     for(i = 0, ii = resources.length; i < ii; ++i){
-      loads.push(resources[i].load(container));
+      loads.push(resources[i].load(container, loadContext));
     }
 
     this.onLoaded = Promise.all(loads);
@@ -119,12 +119,12 @@ export class ResourceDescription {
     this.metadata.register(registry, name);
   }
 
-  load(container){
+  load(container, loadContext){
     let metadata = this.metadata,
         value = this.value;
 
     if('load' in metadata){
-      return metadata.load(container, value);
+      return metadata.load(container, value, null, null, loadContext);
     }
   }
 
