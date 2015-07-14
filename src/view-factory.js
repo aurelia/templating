@@ -133,22 +133,70 @@ function applyInstructions(containers, executionContext, element, instruction,
   }
 }
 
+function styleStringToObject(style, target) {
+    var attributes = style.split(';'),
+        firstIndexOfColon, i, current, key, value;
+
+    target = target || {};
+
+    for(i = 0; i < attributes.length; i++) {
+      current = attributes[i];
+      firstIndexOfColon = current.indexOf(":");
+      key = current.substring(0, firstIndexOfColon).trim();
+      value = current.substring(firstIndexOfColon + 1).trim();
+      target[key] = value;
+    }
+
+    return target;
+}
+
+function styleObjectToString(obj){
+  let result = '';
+
+  for(let key in obj){
+    result += key + ':' + obj[key] + ';';
+  }
+
+  return result;
+}
+
 function applySurrogateInstruction(container, element, instruction, behaviors, bindings, children){
   let behaviorInstructions = instruction.behaviorInstructions,
       expressions = instruction.expressions,
       providers = instruction.providers,
       values = instruction.values,
-      i, ii, current, instance;
+      i, ii, current, instance, currentAttributeValue, styleParts;
 
   i = providers.length;
   while(i--) {
     container.registerSingleton(providers[i]);
   }
 
+  //apply surrogate attributes
   for(let key in values){
-    element.setAttribute(key, values[key]);
+    currentAttributeValue = element.getAttribute(key);
+
+    if(currentAttributeValue){
+      if(key === 'class'){
+        if(currentAttributeValue !== 'au-target'){
+          //merge the surrogate classes
+          element.setAttribute('class', currentAttributeValue + ' ' + values[key]);
+        }
+      }else if(key === 'style'){
+        //merge the surrogate styles
+        let styleObject = styleStringToObject(values[key]);
+        styleStringToObject(currentAttributeValue, styleObject);
+        element.setAttribute('style', styleObjectToString(styleObject));
+      }
+
+      //otherwise, do not overwrite the consumer's attribute
+    }else{
+      //copy the surrogate attribute
+      element.setAttribute(key, values[key]);
+    }
   }
 
+  //apply surrogate behaviors
   if(behaviorInstructions.length){
     for(i = 0, ii = behaviorInstructions.length; i < ii; ++i){
       current = behaviorInstructions[i];
@@ -162,6 +210,7 @@ function applySurrogateInstruction(container, element, instruction, behaviors, b
     }
   }
 
+  //apply surrogate bindings
   for(i = 0, ii = expressions.length; i < ii; ++i){
     bindings.push(expressions[i].createBinding(element));
   }
