@@ -1,3 +1,11 @@
+### 0.13.5 (2015-07-14)
+
+
+#### Bug Fixes
+
+* **view-factory:** properly merge element attr overrides with surrogate values ([0ba7c904](http://github.com/aurelia/templating/commit/0ba7c9040354016b64a69f55f95fa5a9b5b80187))
+
+
 ### 0.13.4 (2015-07-14)
 
 

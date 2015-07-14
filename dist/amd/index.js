@@ -1146,6 +1146,37 @@ define(['exports', 'core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-depen
     }
   }
 
+  function styleStringToObject(style, target) {
+    var attributes = style.split(';'),
+        firstIndexOfColon,
+        i,
+        current,
+        key,
+        value;
+
+    target = target || {};
+
+    for (i = 0; i < attributes.length; i++) {
+      current = attributes[i];
+      firstIndexOfColon = current.indexOf(':');
+      key = current.substring(0, firstIndexOfColon).trim();
+      value = current.substring(firstIndexOfColon + 1).trim();
+      target[key] = value;
+    }
+
+    return target;
+  }
+
+  function styleObjectToString(obj) {
+    var result = '';
+
+    for (var key in obj) {
+      result += key + ':' + obj[key] + ';';
+    }
+
+    return result;
+  }
+
   function applySurrogateInstruction(container, element, instruction, behaviors, bindings, children) {
     var behaviorInstructions = instruction.behaviorInstructions,
         expressions = instruction.expressions,
@@ -1154,7 +1185,9 @@ define(['exports', 'core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-depen
         i = undefined,
         ii = undefined,
         current = undefined,
-        instance = undefined;
+        instance = undefined,
+        currentAttributeValue = undefined,
+        styleParts = undefined;
 
     i = providers.length;
     while (i--) {
@@ -1162,7 +1195,21 @@ define(['exports', 'core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-depen
     }
 
     for (var key in values) {
-      element.setAttribute(key, values[key]);
+      currentAttributeValue = element.getAttribute(key);
+
+      if (currentAttributeValue) {
+        if (key === 'class') {
+          if (currentAttributeValue !== 'au-target') {
+            element.setAttribute('class', currentAttributeValue + ' ' + values[key]);
+          }
+        } else if (key === 'style') {
+          var styleObject = styleStringToObject(values[key]);
+          styleStringToObject(currentAttributeValue, styleObject);
+          element.setAttribute('style', styleObjectToString(styleObject));
+        }
+      } else {
+        element.setAttribute(key, values[key]);
+      }
     }
 
     if (behaviorInstructions.length) {
