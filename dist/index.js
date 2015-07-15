@@ -1,9 +1,9 @@
 import core from 'core-js';
 import {Metadata,Origin,Decorators} from 'aurelia-metadata';
 import {relativeToFile} from 'aurelia-path';
+import {TemplateRegistryEntry,Loader} from 'aurelia-loader';
 import {Container} from 'aurelia-dependency-injection';
-import {Loader,TemplateRegistryEntry} from 'aurelia-loader';
-import {bindingMode,ObserverLocator,ValueConverterResource,EventManager} from 'aurelia-binding';
+import {bindingMode,ObserverLocator,BindingExpression,Binding,ValueConverterResource,EventManager} from 'aurelia-binding';
 import {TaskQueue} from 'aurelia-task-queue';
 
 export const animationEvent = {
@@ -153,11 +153,11 @@ export function nextElementSibling(element) {
 }
 
 export class ViewStrategy {
-  static metadataKey = 'aurelia:view-strategy';
+  static metadataKey:string = 'aurelia:view-strategy';
 
-  makeRelativeTo(baseUrl){}
+  makeRelativeTo(baseUrl:string){}
 
-  static normalize(value){
+  static normalize(value:string|ViewStrategy){
     if(typeof value === 'string'){
       value = new UseViewStrategy(value);
     }
@@ -169,7 +169,7 @@ export class ViewStrategy {
     return value;
   }
 
-  static getDefault(target){
+  static getDefault(target:any):ViewStrategy{
     var strategy, annotation;
 
     if(typeof target !== 'function'){
@@ -194,12 +194,12 @@ export class ViewStrategy {
 }
 
 export class UseViewStrategy extends ViewStrategy {
-  constructor(path){
+  constructor(path:string){
     super();
     this.path = path;
   }
 
-  loadViewFactory(viewEngine, options, loadContext){
+  loadViewFactory(viewEngine:ViewEngine, options:Object, loadContext?:string[]):Promise<ViewFactory>{
     if(!this.absolutePath && this.moduleId){
       this.absolutePath = relativeToFile(this.path, this.moduleId);
     }
@@ -207,42 +207,42 @@ export class UseViewStrategy extends ViewStrategy {
     return viewEngine.loadViewFactory(this.absolutePath || this.path, options, this.moduleId, loadContext);
   }
 
-  makeRelativeTo(file){
+  makeRelativeTo(file:string){
     this.absolutePath = relativeToFile(this.path, file);
   }
 }
 
 export class ConventionalViewStrategy extends ViewStrategy {
-  constructor(moduleId){
+  constructor(moduleId:string){
     super();
     this.moduleId = moduleId;
     this.viewUrl = ConventionalViewStrategy.convertModuleIdToViewUrl(moduleId);
   }
 
-  loadViewFactory(viewEngine, options, loadContext){
+  loadViewFactory(viewEngine:ViewEngine, options:Object, loadContext?:string[]):Promise<ViewFactory>{
     return viewEngine.loadViewFactory(this.viewUrl, options, this.moduleId, loadContext);
   }
 
-  static convertModuleIdToViewUrl(moduleId){
+  static convertModuleIdToViewUrl(moduleId:string):string{
     var id = (moduleId.endsWith('.js') || moduleId.endsWith('.ts')) ? moduleId.substring(0, moduleId.length - 3) : moduleId;
     return id + '.html';
   }
 }
 
 export class NoViewStrategy extends ViewStrategy {
-  loadViewFactory(){
+  loadViewFactory(viewEngine:ViewEngine, options:Object, loadContext?:string[]):Promise<ViewFactory>{
     return Promise.resolve(null);
   }
 }
 
 export class TemplateRegistryViewStrategy extends ViewStrategy {
-  constructor(moduleId, registryEntry){
+  constructor(moduleId:string, registryEntry:TemplateRegistryEntry){
     super();
     this.moduleId = moduleId;
     this.registryEntry = registryEntry;
   }
 
-  loadViewFactory(viewEngine, options, loadContext){
+  loadViewFactory(viewEngine:ViewEngine, options:Object, loadContext?:string[]):Promise<ViewFactory>{
     if(this.registryEntry.isReady){
       return Promise.resolve(this.registryEntry.factory);
     }
@@ -1656,7 +1656,7 @@ class ProxyViewFactory {
 
 export class ViewEngine {
   static inject() { return [Loader, Container, ViewCompiler, ModuleAnalyzer, ResourceRegistry]; }
-  constructor(loader, container, viewCompiler, moduleAnalyzer, appResources){
+  constructor(loader:Loader, container:Container, viewCompiler:ViewCompiler, moduleAnalyzer:ModuleAnalyzer, appResources:ResourceRegistry){
     this.loader = loader;
     this.container = container;
     this.viewCompiler = viewCompiler;
@@ -1664,7 +1664,7 @@ export class ViewEngine {
     this.appResources = appResources;
   }
 
-  loadViewFactory(urlOrRegistryEntry, compileOptions, associatedModuleId, loadContext){
+  loadViewFactory(urlOrRegistryEntry:string|TemplateRegistryEntry, compileOptions?:Object, associatedModuleId?:string, loadContext?:string[]):Promise<ViewFactory>{
     loadContext = loadContext || [];
 
     return ensureRegistryEntry(this.loader, urlOrRegistryEntry).then(viewRegistryEntry => {
@@ -1688,7 +1688,7 @@ export class ViewEngine {
     });
   }
 
-  loadTemplateResources(viewRegistryEntry, associatedModuleId, loadContext){
+  loadTemplateResources(viewRegistryEntry:TemplateRegistryEntry, associatedModuleId?:string, loadContext?:string[]):Promise<ResourceRegistry>{
     var resources = new ViewResources(this.appResources, viewRegistryEntry.id),
         dependencies = viewRegistryEntry.dependencies,
         importIds, names;
@@ -1704,7 +1704,7 @@ export class ViewEngine {
     return this.importViewResources(importIds, names, resources, associatedModuleId, loadContext);
   }
 
-  importViewModelResource(moduleImport, moduleMember){
+  importViewModelResource(moduleImport:string, moduleMember:string):Promise<ResourceDescription>{
     return this.loader.loadModule(moduleImport).then(viewModelModule => {
       var normalizedId = Origin.get(viewModelModule).moduleId,
           resourceModule = this.moduleAnalyzer.analyze(normalizedId, viewModelModule, moduleMember);
@@ -1719,7 +1719,7 @@ export class ViewEngine {
     });
   }
 
-  importViewResources(moduleIds, names, resources, associatedModuleId, loadContext){
+  importViewResources(moduleIds:string[], names:string[], resources:ResourceRegistry, associatedModuleId?:string, loadContext?:string[]):Promise<ResourceRegistry>{
     loadContext = loadContext || [];
 
     return this.loader.loadAllModules(moduleIds).then(imports => {
@@ -2158,7 +2158,7 @@ export class HtmlBehaviorResource {
     this.attributes = {};
   }
 
-  static convention(name, existing){
+  static convention(name:string, existing?:HtmlBehaviorResource){
     var behavior;
 
     if(name.endsWith('CustomAttribute')){
@@ -2174,7 +2174,7 @@ export class HtmlBehaviorResource {
     return behavior;
   }
 
-  addChildBinding(behavior){
+  addChildBinding(behavior:BindingExpression){
     if(this.childBindings === null){
       this.childBindings = [];
     }
@@ -2182,7 +2182,7 @@ export class HtmlBehaviorResource {
     this.childBindings.push(behavior);
   }
 
-  analyze(container, target){
+  analyze(container:Container, target:Function){
     var proto = target.prototype,
         properties = this.properties,
         attributeName = this.attributeName,
@@ -2239,7 +2239,7 @@ export class HtmlBehaviorResource {
     }
   }
 
-  load(container, target, viewStrategy, transientView, loadContext){
+  load(container:Container, target:Function, viewStrategy?:ViewStrategy, transientView?:boolean, loadContext?:string[]):Promise<HtmlBehaviorResource>{
     var options;
 
     if(this.elementName !== null){
@@ -2265,7 +2265,7 @@ export class HtmlBehaviorResource {
     return Promise.resolve(this);
   }
 
-  register(registry, name){
+  register(registry:ResourceRegistry, name?:string){
     if(this.attributeName !== null) {
       registry.registerAttribute(name || this.attributeName, this, this.attributeName);
     }
@@ -2275,7 +2275,7 @@ export class HtmlBehaviorResource {
     }
   }
 
-  compile(compiler, resources, node, instruction, parentNode){
+  compile(compiler:ViewCompiler, resources:ResourceRegistry, node?:Node, instruction?:Object, parentNode?:Node):Node{
     if(this.liftsContent){
       if(!instruction.viewFactory){
         var template = document.createElement('template'),
@@ -2349,7 +2349,7 @@ export class HtmlBehaviorResource {
     return node;
   }
 
-  create(container, instruction=defaultInstruction, element=null, bindings=null){
+  create(container:Container, instruction?:Object=defaultInstruction, element?:Element=null, bindings?:Binding[]=null):BehaviorInstance{
     var executionContext = instruction.executionContext || container.get(this.target),
         behaviorInstance = new BehaviorInstance(this, executionContext, instruction),
         childBindings = this.childBindings,
@@ -2441,7 +2441,7 @@ export class HtmlBehaviorResource {
     return behaviorInstance;
   }
 
-  ensurePropertiesDefined(instance, lookup){
+  ensurePropertiesDefined(instance:Object, lookup:Object){
     var properties, i, ii, observer;
 
     if('__propertiesDefined__' in lookup){
@@ -2462,7 +2462,7 @@ export class HtmlBehaviorResource {
 }
 
 export class ResourceModule {
-  constructor(moduleId){
+  constructor(moduleId:string){
     this.id = moduleId;
     this.moduleInstance = null;
     this.mainResource = null;
@@ -2471,7 +2471,7 @@ export class ResourceModule {
     this.isAnalyzed = false;
   }
 
-  analyze(container){
+  analyze(container:Container){
     var current = this.mainResource,
         resources = this.resources,
         viewStrategy = this.viewStrategy,
@@ -2495,7 +2495,7 @@ export class ResourceModule {
     }
   }
 
-  register(registry, name){
+  register(registry:ResourceRegistry, name?:string){
     var i, ii, resources = this.resources;
 
     if(this.mainResource){
@@ -2509,7 +2509,7 @@ export class ResourceModule {
     }
   }
 
-  load(container, loadContext){
+  load(container:Container, loadContext?:string[]):Promise{
     if(this.onLoaded){
       return this.onLoaded;
     }
@@ -2532,7 +2532,7 @@ export class ResourceModule {
 }
 
 export class ResourceDescription {
-  constructor(key, exportedValue, resourceTypeMeta){
+  constructor(key:string, exportedValue:any, resourceTypeMeta:Object){
     if(!resourceTypeMeta){
       resourceTypeMeta = Metadata.get(Metadata.resource, exportedValue);
 
@@ -2562,7 +2562,7 @@ export class ResourceDescription {
     this.value = exportedValue;
   }
 
-  analyze(container){
+  analyze(container:Container){
     let metadata = this.metadata,
         value = this.value;
 
@@ -2571,11 +2571,11 @@ export class ResourceDescription {
     }
   }
 
-  register(registry, name){
+  register(registry:ResourceRegistry, name?:string){
     this.metadata.register(registry, name);
   }
 
-  load(container, loadContext){
+  load(container:Container, loadContext?:string[]):Promise|void{
     let metadata = this.metadata,
         value = this.value;
 
@@ -2584,7 +2584,7 @@ export class ResourceDescription {
     }
   }
 
-  static get(resource, key='custom-resource'){
+  static get(resource:any, key?:string='custom-resource'):ResourceDescription{
     var resourceTypeMeta = Metadata.get(Metadata.resource, resource),
         resourceDescription;
 
@@ -2619,11 +2619,11 @@ export class ModuleAnalyzer {
     this.cache = {};
   }
 
-  getAnalysis(moduleId){
+  getAnalysis(moduleId:string):ResourceModule{
     return this.cache[moduleId];
   }
 
-  analyze(moduleId, moduleInstance, viewModelMember){
+  analyze(moduleId:string, moduleInstance:any, viewModelMember?:string):ResourceModule{
     var mainResource, fallbackValue, fallbackKey, resourceTypeMeta, key,
         exportedValue, resources = [], conventional, viewStrategy, resourceModule;
 

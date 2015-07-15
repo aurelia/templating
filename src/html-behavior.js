@@ -1,12 +1,15 @@
 import {Origin} from 'aurelia-metadata';
-import {ObserverLocator} from 'aurelia-binding';
+import {ObserverLocator, BindingExpression, Binding} from 'aurelia-binding';
 import {TaskQueue} from 'aurelia-task-queue';
+import {Container} from 'aurelia-dependency-injection';
 import {ViewStrategy} from './view-strategy';
 import {ViewEngine} from './view-engine';
+import {ViewCompiler} from './view-compiler';
 import {ContentSelector} from './content-selector';
 import {hyphenate} from './util';
 import {BindableProperty} from './bindable-property';
 import {BehaviorInstance} from './behavior-instance';
+import {ResourceRegistry} from './resource-registry';
 
 var defaultInstruction = { suppressBind:false },
     contentSelectorFactoryOptions = { suppressBind:true },
@@ -28,7 +31,7 @@ export class HtmlBehaviorResource {
     this.attributes = {};
   }
 
-  static convention(name, existing){
+  static convention(name:string, existing?:HtmlBehaviorResource){
     var behavior;
 
     if(name.endsWith('CustomAttribute')){
@@ -44,7 +47,7 @@ export class HtmlBehaviorResource {
     return behavior;
   }
 
-  addChildBinding(behavior){
+  addChildBinding(behavior:BindingExpression){
     if(this.childBindings === null){
       this.childBindings = [];
     }
@@ -52,7 +55,7 @@ export class HtmlBehaviorResource {
     this.childBindings.push(behavior);
   }
 
-  analyze(container, target){
+  analyze(container:Container, target:Function){
     var proto = target.prototype,
         properties = this.properties,
         attributeName = this.attributeName,
@@ -109,7 +112,7 @@ export class HtmlBehaviorResource {
     }
   }
 
-  load(container, target, viewStrategy, transientView, loadContext){
+  load(container:Container, target:Function, viewStrategy?:ViewStrategy, transientView?:boolean, loadContext?:string[]):Promise<HtmlBehaviorResource>{
     var options;
 
     if(this.elementName !== null){
@@ -135,7 +138,7 @@ export class HtmlBehaviorResource {
     return Promise.resolve(this);
   }
 
-  register(registry, name){
+  register(registry:ResourceRegistry, name?:string){
     if(this.attributeName !== null) {
       registry.registerAttribute(name || this.attributeName, this, this.attributeName);
     }
@@ -145,7 +148,7 @@ export class HtmlBehaviorResource {
     }
   }
 
-  compile(compiler, resources, node, instruction, parentNode){
+  compile(compiler:ViewCompiler, resources:ResourceRegistry, node?:Node, instruction?:Object, parentNode?:Node):Node{
     if(this.liftsContent){
       if(!instruction.viewFactory){
         var template = document.createElement('template'),
@@ -219,7 +222,7 @@ export class HtmlBehaviorResource {
     return node;
   }
 
-  create(container, instruction=defaultInstruction, element=null, bindings=null){
+  create(container:Container, instruction?:Object=defaultInstruction, element?:Element=null, bindings?:Binding[]=null):BehaviorInstance{
     var executionContext = instruction.executionContext || container.get(this.target),
         behaviorInstance = new BehaviorInstance(this, executionContext, instruction),
         childBindings = this.childBindings,
@@ -311,7 +314,7 @@ export class HtmlBehaviorResource {
     return behaviorInstance;
   }
 
-  ensurePropertiesDefined(instance, lookup){
+  ensurePropertiesDefined(instance:Object, lookup:Object){
     var properties, i, ii, observer;
 
     if('__propertiesDefined__' in lookup){

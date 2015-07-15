@@ -1,4 +1,4 @@
-define(['exports', 'core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-dependency-injection', 'aurelia-loader', 'aurelia-binding', 'aurelia-task-queue', 'aurelia-logging'], function (exports, _coreJs, _aureliaMetadata, _aureliaPath, _aureliaDependencyInjection, _aureliaLoader, _aureliaBinding, _aureliaTaskQueue, _aureliaLogging) {
+define(['exports', 'core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loader', 'aurelia-dependency-injection', 'aurelia-binding', 'aurelia-task-queue', 'aurelia-logging'], function (exports, _coreJs, _aureliaMetadata, _aureliaPath, _aureliaLoader, _aureliaDependencyInjection, _aureliaBinding, _aureliaTaskQueue, _aureliaLogging) {
   'use strict';
 
   exports.__esModule = true;
@@ -242,7 +242,7 @@ define(['exports', 'core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-depen
 
     _inherits(NoViewStrategy, _ViewStrategy3);
 
-    NoViewStrategy.prototype.loadViewFactory = function loadViewFactory() {
+    NoViewStrategy.prototype.loadViewFactory = function loadViewFactory(viewEngine, options, loadContext) {
       return Promise.resolve(null);
     };
 

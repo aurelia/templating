@@ -5,7 +5,8 @@ import {Loader,TemplateRegistryEntry} from 'aurelia-loader';
 import {Container} from 'aurelia-dependency-injection';
 import {ViewCompiler} from './view-compiler';
 import {ResourceRegistry, ViewResources} from './resource-registry';
-import {ModuleAnalyzer} from './module-analyzer';
+import {ModuleAnalyzer, ResourceDescription} from './module-analyzer';
+import {ViewFactory} from './view-factory';
 
 var logger = LogManager.getLogger('templating');
 
@@ -29,7 +30,7 @@ class ProxyViewFactory {
 
 export class ViewEngine {
   static inject() { return [Loader, Container, ViewCompiler, ModuleAnalyzer, ResourceRegistry]; }
-  constructor(loader, container, viewCompiler, moduleAnalyzer, appResources){
+  constructor(loader:Loader, container:Container, viewCompiler:ViewCompiler, moduleAnalyzer:ModuleAnalyzer, appResources:ResourceRegistry){
     this.loader = loader;
     this.container = container;
     this.viewCompiler = viewCompiler;
@@ -37,7 +38,7 @@ export class ViewEngine {
     this.appResources = appResources;
   }
 
-  loadViewFactory(urlOrRegistryEntry, compileOptions, associatedModuleId, loadContext){
+  loadViewFactory(urlOrRegistryEntry:string|TemplateRegistryEntry, compileOptions?:Object, associatedModuleId?:string, loadContext?:string[]):Promise<ViewFactory>{
     loadContext = loadContext || [];
 
     return ensureRegistryEntry(this.loader, urlOrRegistryEntry).then(viewRegistryEntry => {
@@ -61,7 +62,7 @@ export class ViewEngine {
     });
   }
 
-  loadTemplateResources(viewRegistryEntry, associatedModuleId, loadContext){
+  loadTemplateResources(viewRegistryEntry:TemplateRegistryEntry, associatedModuleId?:string, loadContext?:string[]):Promise<ResourceRegistry>{
     var resources = new ViewResources(this.appResources, viewRegistryEntry.id),
         dependencies = viewRegistryEntry.dependencies,
         importIds, names;
@@ -77,7 +78,7 @@ export class ViewEngine {
     return this.importViewResources(importIds, names, resources, associatedModuleId, loadContext);
   }
 
-  importViewModelResource(moduleImport, moduleMember){
+  importViewModelResource(moduleImport:string, moduleMember:string):Promise<ResourceDescription>{
     return this.loader.loadModule(moduleImport).then(viewModelModule => {
       var normalizedId = Origin.get(viewModelModule).moduleId,
           resourceModule = this.moduleAnalyzer.analyze(normalizedId, viewModelModule, moduleMember);
@@ -92,7 +93,7 @@ export class ViewEngine {
     });
   }
 
-  importViewResources(moduleIds, names, resources, associatedModuleId, loadContext){
+  importViewResources(moduleIds:string[], names:string[], resources:ResourceRegistry, associatedModuleId?:string, loadContext?:string[]):Promise<ResourceRegistry>{
     loadContext = loadContext || [];
 
     return this.loader.loadAllModules(moduleIds).then(imports => {

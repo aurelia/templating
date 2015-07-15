@@ -37,9 +37,9 @@ var _aureliaMetadata = require('aurelia-metadata');
 
 var _aureliaPath = require('aurelia-path');
 
-var _aureliaDependencyInjection = require('aurelia-dependency-injection');
-
 var _aureliaLoader = require('aurelia-loader');
+
+var _aureliaDependencyInjection = require('aurelia-dependency-injection');
 
 var _aureliaBinding = require('aurelia-binding');
 
@@ -261,7 +261,7 @@ var NoViewStrategy = (function (_ViewStrategy3) {
 
   _inherits(NoViewStrategy, _ViewStrategy3);
 
-  NoViewStrategy.prototype.loadViewFactory = function loadViewFactory() {
+  NoViewStrategy.prototype.loadViewFactory = function loadViewFactory(viewEngine, options, loadContext) {
     return Promise.resolve(null);
   };
 

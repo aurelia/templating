@@ -1,12 +1,14 @@
 import {Metadata} from 'aurelia-metadata';
+import {Container} from 'aurelia-dependency-injection';
 import {TemplateRegistryEntry} from 'aurelia-loader';
 import {ValueConverterResource} from 'aurelia-binding';
 import {HtmlBehaviorResource} from './html-behavior';
 import {ViewStrategy,TemplateRegistryViewStrategy} from './view-strategy';
+import {ResourceRegistry} from './resource-registry';
 import {hyphenate} from './util';
 
 export class ResourceModule {
-  constructor(moduleId){
+  constructor(moduleId:string){
     this.id = moduleId;
     this.moduleInstance = null;
     this.mainResource = null;
@@ -15,7 +17,7 @@ export class ResourceModule {
     this.isAnalyzed = false;
   }
 
-  analyze(container){
+  analyze(container:Container){
     var current = this.mainResource,
         resources = this.resources,
         viewStrategy = this.viewStrategy,
@@ -39,7 +41,7 @@ export class ResourceModule {
     }
   }
 
-  register(registry, name){
+  register(registry:ResourceRegistry, name?:string){
     var i, ii, resources = this.resources;
 
     if(this.mainResource){
@@ -53,7 +55,7 @@ export class ResourceModule {
     }
   }
 
-  load(container, loadContext){
+  load(container:Container, loadContext?:string[]):Promise{
     if(this.onLoaded){
       return this.onLoaded;
     }
@@ -76,7 +78,7 @@ export class ResourceModule {
 }
 
 export class ResourceDescription {
-  constructor(key, exportedValue, resourceTypeMeta){
+  constructor(key:string, exportedValue:any, resourceTypeMeta:Object){
     if(!resourceTypeMeta){
       resourceTypeMeta = Metadata.get(Metadata.resource, exportedValue);
 
@@ -106,7 +108,7 @@ export class ResourceDescription {
     this.value = exportedValue;
   }
 
-  analyze(container){
+  analyze(container:Container){
     let metadata = this.metadata,
         value = this.value;
 
@@ -115,11 +117,11 @@ export class ResourceDescription {
     }
   }
 
-  register(registry, name){
+  register(registry:ResourceRegistry, name?:string){
     this.metadata.register(registry, name);
   }
 
-  load(container, loadContext){
+  load(container:Container, loadContext?:string[]):Promise|void{
     let metadata = this.metadata,
         value = this.value;
 
@@ -128,7 +130,7 @@ export class ResourceDescription {
     }
   }
 
-  static get(resource, key='custom-resource'){
+  static get(resource:any, key?:string='custom-resource'):ResourceDescription{
     var resourceTypeMeta = Metadata.get(Metadata.resource, resource),
         resourceDescription;
 
@@ -163,11 +165,11 @@ export class ModuleAnalyzer {
     this.cache = {};
   }
 
-  getAnalysis(moduleId){
+  getAnalysis(moduleId:string):ResourceModule{
     return this.cache[moduleId];
   }
 
-  analyze(moduleId, moduleInstance, viewModelMember){
+  analyze(moduleId:string, moduleInstance:any, viewModelMember?:string):ResourceModule{
     var mainResource, fallbackValue, fallbackKey, resourceTypeMeta, key,
         exportedValue, resources = [], conventional, viewStrategy, resourceModule;
 

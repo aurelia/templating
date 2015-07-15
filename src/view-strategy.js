@@ -1,12 +1,14 @@
 import {Metadata, Origin} from 'aurelia-metadata';
 import {relativeToFile} from 'aurelia-path';
+import {TemplateRegistryEntry} from 'aurelia-loader';
+import {ViewEngine} from './view-engine';
 
 export class ViewStrategy {
-  static metadataKey = 'aurelia:view-strategy';
+  static metadataKey:string = 'aurelia:view-strategy';
 
-  makeRelativeTo(baseUrl){}
+  makeRelativeTo(baseUrl:string){}
 
-  static normalize(value){
+  static normalize(value:string|ViewStrategy){
     if(typeof value === 'string'){
       value = new UseViewStrategy(value);
     }
@@ -18,7 +20,7 @@ export class ViewStrategy {
     return value;
   }
 
-  static getDefault(target){
+  static getDefault(target:any):ViewStrategy{
     var strategy, annotation;
 
     if(typeof target !== 'function'){
@@ -43,12 +45,12 @@ export class ViewStrategy {
 }
 
 export class UseViewStrategy extends ViewStrategy {
-  constructor(path){
+  constructor(path:string){
     super();
     this.path = path;
   }
 
-  loadViewFactory(viewEngine, options, loadContext){
+  loadViewFactory(viewEngine:ViewEngine, options:Object, loadContext?:string[]):Promise<ViewFactory>{
     if(!this.absolutePath && this.moduleId){
       this.absolutePath = relativeToFile(this.path, this.moduleId);
     }
@@ -56,42 +58,42 @@ export class UseViewStrategy extends ViewStrategy {
     return viewEngine.loadViewFactory(this.absolutePath || this.path, options, this.moduleId, loadContext);
   }
 
-  makeRelativeTo(file){
+  makeRelativeTo(file:string){
     this.absolutePath = relativeToFile(this.path, file);
   }
 }
 
 export class ConventionalViewStrategy extends ViewStrategy {
-  constructor(moduleId){
+  constructor(moduleId:string){
     super();
     this.moduleId = moduleId;
     this.viewUrl = ConventionalViewStrategy.convertModuleIdToViewUrl(moduleId);
   }
 
-  loadViewFactory(viewEngine, options, loadContext){
+  loadViewFactory(viewEngine:ViewEngine, options:Object, loadContext?:string[]):Promise<ViewFactory>{
     return viewEngine.loadViewFactory(this.viewUrl, options, this.moduleId, loadContext);
   }
 
-  static convertModuleIdToViewUrl(moduleId){
+  static convertModuleIdToViewUrl(moduleId:string):string{
     var id = (moduleId.endsWith('.js') || moduleId.endsWith('.ts')) ? moduleId.substring(0, moduleId.length - 3) : moduleId;
     return id + '.html';
   }
 }
 
 export class NoViewStrategy extends ViewStrategy {
-  loadViewFactory(){
+  loadViewFactory(viewEngine:ViewEngine, options:Object, loadContext?:string[]):Promise<ViewFactory>{
     return Promise.resolve(null);
   }
 }
 
 export class TemplateRegistryViewStrategy extends ViewStrategy {
-  constructor(moduleId, registryEntry){
+  constructor(moduleId:string, registryEntry:TemplateRegistryEntry){
     super();
     this.moduleId = moduleId;
     this.registryEntry = registryEntry;
   }
 
-  loadViewFactory(viewEngine, options, loadContext){
+  loadViewFactory(viewEngine:ViewEngine, options:Object, loadContext?:string[]):Promise<ViewFactory>{
     if(this.registryEntry.isReady){
       return Promise.resolve(this.registryEntry.factory);
     }

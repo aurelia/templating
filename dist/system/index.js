@@ -1,7 +1,7 @@
-System.register(['core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-dependency-injection', 'aurelia-loader', 'aurelia-binding', 'aurelia-task-queue', 'aurelia-logging'], function (_export) {
+System.register(['core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loader', 'aurelia-dependency-injection', 'aurelia-binding', 'aurelia-task-queue', 'aurelia-logging'], function (_export) {
   'use strict';
 
-  var core, Metadata, Origin, Decorators, relativeToFile, Container, Loader, TemplateRegistryEntry, bindingMode, ObserverLocator, ValueConverterResource, EventManager, TaskQueue, LogManager, animationEvent, Animator, capitalMatcher, ViewStrategy, UseViewStrategy, ConventionalViewStrategy, NoViewStrategy, TemplateRegistryViewStrategy, BindingLanguage, ResourceRegistry, ViewResources, View, proto, placeholder, ContentSelector, ViewSlot, BoundViewFactory, defaultFactoryOptions, ViewFactory, nextInjectorId, defaultCompileOptions, hasShadowDOM, needsTemplateFixup, ViewCompiler, logger, ProxyViewFactory, ViewEngine, BehaviorInstance, BindableProperty, BehaviorPropertyObserver, defaultInstruction, contentSelectorFactoryOptions, hasShadowDOM, HtmlBehaviorResource, ResourceModule, ResourceDescription, ModuleAnalyzer, noMutations, ChildObserver, ChildObserverBinder, CompositionEngine, ElementConfigResource;
+  var core, Metadata, Origin, Decorators, relativeToFile, TemplateRegistryEntry, Loader, Container, bindingMode, ObserverLocator, BindingExpression, Binding, ValueConverterResource, EventManager, TaskQueue, LogManager, animationEvent, Animator, capitalMatcher, ViewStrategy, UseViewStrategy, ConventionalViewStrategy, NoViewStrategy, TemplateRegistryViewStrategy, BindingLanguage, ResourceRegistry, ViewResources, View, proto, placeholder, ContentSelector, ViewSlot, BoundViewFactory, defaultFactoryOptions, ViewFactory, nextInjectorId, defaultCompileOptions, hasShadowDOM, needsTemplateFixup, ViewCompiler, logger, ProxyViewFactory, ViewEngine, BehaviorInstance, BindableProperty, BehaviorPropertyObserver, defaultInstruction, contentSelectorFactoryOptions, hasShadowDOM, HtmlBehaviorResource, ResourceModule, ResourceDescription, ModuleAnalyzer, noMutations, ChildObserver, ChildObserverBinder, CompositionEngine, ElementConfigResource;
 
   var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
@@ -515,14 +515,16 @@ System.register(['core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-depende
       Decorators = _aureliaMetadata.Decorators;
     }, function (_aureliaPath) {
       relativeToFile = _aureliaPath.relativeToFile;
+    }, function (_aureliaLoader) {
+      TemplateRegistryEntry = _aureliaLoader.TemplateRegistryEntry;
+      Loader = _aureliaLoader.Loader;
     }, function (_aureliaDependencyInjection) {
       Container = _aureliaDependencyInjection.Container;
-    }, function (_aureliaLoader) {
-      Loader = _aureliaLoader.Loader;
-      TemplateRegistryEntry = _aureliaLoader.TemplateRegistryEntry;
     }, function (_aureliaBinding) {
       bindingMode = _aureliaBinding.bindingMode;
       ObserverLocator = _aureliaBinding.ObserverLocator;
+      BindingExpression = _aureliaBinding.BindingExpression;
+      Binding = _aureliaBinding.Binding;
       ValueConverterResource = _aureliaBinding.ValueConverterResource;
       EventManager = _aureliaBinding.EventManager;
     }, function (_aureliaTaskQueue) {
@@ -725,7 +727,7 @@ System.register(['core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-depende
 
         _inherits(NoViewStrategy, _ViewStrategy3);
 
-        NoViewStrategy.prototype.loadViewFactory = function loadViewFactory() {
+        NoViewStrategy.prototype.loadViewFactory = function loadViewFactory(viewEngine, options, loadContext) {
           return Promise.resolve(null);
         };
 
