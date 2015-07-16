@@ -3,7 +3,7 @@ import {Metadata, Decorators} from 'aurelia-metadata';
 import {BindableProperty} from './bindable-property';
 import {ChildObserver} from './children';
 import {ElementConfigResource} from './element-config';
-import {ViewStrategy, UseViewStrategy, NoViewStrategy} from './view-strategy';
+import {ViewStrategy, UseViewStrategy, NoViewStrategy, InlineViewStrategy} from './view-strategy';
 import {HtmlBehaviorResource} from './html-behavior';
 
 function validateBehaviorName(name, type) {
@@ -162,6 +162,12 @@ export function useView(path){
 }
 
 Decorators.configure.parameterizedDecorator('useView', useView);
+
+export function inlineView(markup:string, dependencies?:Array<string|Function|Object>, dependencyBaseUrl?:string){
+  return viewStrategy(new InlineViewStrategy(markup, dependencies, dependencyBaseUrl));
+}
+
+Decorators.configure.parameterizedDecorator('inlineView', inlineView);
 
 export function noView(target){
   var deco = function(target){

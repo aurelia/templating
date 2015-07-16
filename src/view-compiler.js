@@ -1,11 +1,11 @@
 import {ResourceRegistry} from './resource-registry';
 import {ViewFactory} from './view-factory';
 import {BindingLanguage} from './binding-language';
+import {createTemplateFromMarkup} from './dom';
 
 var nextInjectorId = 0,
     defaultCompileOptions = { targetShadowDOM:false },
-    hasShadowDOM = !!HTMLElement.prototype.createShadowRoot,
-    needsTemplateFixup = !('content' in document.createElement('template'));
+    hasShadowDOM = !!HTMLElement.prototype.createShadowRoot;
 
 function getNextInjectorId(){
   return ++nextInjectorId;
@@ -52,7 +52,7 @@ export class ViewCompiler {
   compile(templateOrFragment, resources, options=defaultCompileOptions){
     var instructions = [],
         targetShadowDOM = options.targetShadowDOM,
-        content, part, factory, temp;
+        content, part, factory;
 
     targetShadowDOM = targetShadowDOM && hasShadowDOM;
 
@@ -61,17 +61,7 @@ export class ViewCompiler {
     }
 
     if(typeof templateOrFragment === 'string'){
-      temp = document.createElement('template');
-      temp.innerHTML = templateOrFragment;
-
-      if(needsTemplateFixup){
-        temp.content = document.createDocumentFragment();
-        while(temp.firstChild){
-          temp.content.appendChild(temp.firstChild);
-        }
-      }
-
-      templateOrFragment = temp;
+      templateOrFragment = createTemplateFromMarkup(templateOrFragment);
     }
 
     if(templateOrFragment.content){
