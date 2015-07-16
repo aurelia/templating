@@ -122,7 +122,7 @@ export class InlineViewStrategy extends ViewStrategy {
     }
 
     this.entry = entry = new TemplateRegistryEntry(this.moduleId || this.dependencyBaseUrl);
-    entry.setTemplate(createTemplateFromMarkup(markup));
+    entry.setTemplate(createTemplateFromMarkup(this.markup));
 
     if(dependencies !== null){
       for(let i = 0, ii = dependencies.length; i < ii; ++i){
