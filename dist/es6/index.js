@@ -236,15 +236,52 @@ export class NoViewStrategy extends ViewStrategy {
 }
 
 export class TemplateRegistryViewStrategy extends ViewStrategy {
-  constructor(moduleId:string, registryEntry:TemplateRegistryEntry){
+  constructor(moduleId:string, entry:TemplateRegistryEntry){
     super();
     this.moduleId = moduleId;
-    this.registryEntry = registryEntry;
+    this.entry = entry;
   }
 
   loadViewFactory(viewEngine:ViewEngine, options:Object, loadContext?:string[]):Promise<ViewFactory>{
-    if(this.registryEntry.isReady){
-      return Promise.resolve(this.registryEntry.factory);
+    let entry = this.entry;
+
+    if(entry.isReady){
+      return Promise.resolve(entry.factory);
+    }
+
+    return viewEngine.loadViewFactory(entry, options, this.moduleId, loadContext);
+  }
+}
+
+export class InlineViewStrategy extends ViewStrategy {
+  constructor(markup:string, dependencies?:Array<string|Function|Object>, dependencyBaseUrl?:string){
+    super();
+    this.markup = markup;
+    this.dependencies = dependencies || null;
+    this.dependencyBaseUrl = dependencyBaseUrl || '';
+  }
+
+  loadViewFactory(viewEngine:ViewEngine, options:Object, loadContext?:string[]):Promise<ViewFactory>{
+    let entry = this.entry,
+        dependencies = this.dependencies;
+
+    if(entry && entry.isReady){
+      return Promise.resolve(entry.factory);
+    }
+
+    this.entry = entry = new TemplateRegistryEntry(this.moduleId || this.dependencyBaseUrl);
+    entry.setTemplate(createTemplateFromMarkup(markup));
+
+    if(dependencies !== null){
+      for(let i = 0, ii = dependencies.length; i < ii; ++i){
+        let current = dependencies[i];
+
+        if(typeof current === 'string' || typeof current === 'function'){
+          entry.addDependency(current);
+        }else{
+          entry.addDependency(current.from, current.as);
+        }
+      }
     }
 
     return viewEngine.loadViewFactory(this.registryEntry, options, this.moduleId, loadContext);
@@ -1233,8 +1270,7 @@ export class ViewFactory{
 
 var nextInjectorId = 0,
     defaultCompileOptions = { targetShadowDOM:false },
-    hasShadowDOM = !!HTMLElement.prototype.createShadowRoot,
-    needsTemplateFixup = !('content' in document.createElement('template'));
+    hasShadowDOM = !!HTMLElement.prototype.createShadowRoot;
 
 function getNextInjectorId(){
   return ++nextInjectorId;
@@ -1281,7 +1317,7 @@ export class ViewCompiler {
   compile(templateOrFragment, resources, options=defaultCompileOptions){
     var instructions = [],
         targetShadowDOM = options.targetShadowDOM,
-        content, part, factory, temp;
+        content, part, factory;
 
     targetShadowDOM = targetShadowDOM && hasShadowDOM;
 
@@ -1290,17 +1326,7 @@ export class ViewCompiler {
     }
 
     if(typeof templateOrFragment === 'string'){
-      temp = document.createElement('template');
-      temp.innerHTML = templateOrFragment;
-
-      if(needsTemplateFixup){
-        temp.content = document.createDocumentFragment();
-        while(temp.firstChild){
-          temp.content.appendChild(temp.firstChild);
-        }
-      }
-
-      templateOrFragment = temp;
+      templateOrFragment = createTemplateFromMarkup(templateOrFragment);
     }
 
     if(templateOrFragment.content){
@@ -3101,6 +3127,12 @@ export function useView(path){
 }
 
 Decorators.configure.parameterizedDecorator('useView', useView);
+
+export function inlineView(markup:string, dependencies?:Array<string|Function|Object>, dependencyBaseUrl?:string){
+  return viewStrategy(new InlineViewStrategy(markup, dependencies, dependencyBaseUrl));
+}
+
+Decorators.configure.parameterizedDecorator('inlineView', inlineView);
 
 export function noView(target){
   var deco = function(target){

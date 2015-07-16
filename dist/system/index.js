@@ -1,7 +1,7 @@
 System.register(['core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loader', 'aurelia-dependency-injection', 'aurelia-binding', 'aurelia-task-queue', 'aurelia-logging'], function (_export) {
   'use strict';
 
-  var core, Metadata, Origin, Decorators, relativeToFile, TemplateRegistryEntry, Loader, Container, bindingMode, ObserverLocator, BindingExpression, Binding, ValueConverterResource, EventManager, TaskQueue, LogManager, animationEvent, Animator, capitalMatcher, ViewStrategy, UseViewStrategy, ConventionalViewStrategy, NoViewStrategy, TemplateRegistryViewStrategy, BindingLanguage, ResourceRegistry, ViewResources, View, proto, placeholder, ContentSelector, ViewSlot, BoundViewFactory, defaultFactoryOptions, ViewFactory, nextInjectorId, defaultCompileOptions, hasShadowDOM, needsTemplateFixup, ViewCompiler, logger, ProxyViewFactory, ViewEngine, BehaviorInstance, BindableProperty, BehaviorPropertyObserver, defaultInstruction, contentSelectorFactoryOptions, hasShadowDOM, HtmlBehaviorResource, ResourceModule, ResourceDescription, ModuleAnalyzer, noMutations, ChildObserver, ChildObserverBinder, CompositionEngine, ElementConfigResource;
+  var core, Metadata, Origin, Decorators, relativeToFile, TemplateRegistryEntry, Loader, Container, bindingMode, ObserverLocator, BindingExpression, Binding, ValueConverterResource, EventManager, TaskQueue, LogManager, animationEvent, Animator, capitalMatcher, ViewStrategy, UseViewStrategy, ConventionalViewStrategy, NoViewStrategy, TemplateRegistryViewStrategy, InlineViewStrategy, BindingLanguage, ResourceRegistry, ViewResources, View, proto, placeholder, ContentSelector, ViewSlot, BoundViewFactory, defaultFactoryOptions, ViewFactory, nextInjectorId, defaultCompileOptions, hasShadowDOM, ViewCompiler, logger, ProxyViewFactory, ViewEngine, BehaviorInstance, BindableProperty, BehaviorPropertyObserver, defaultInstruction, contentSelectorFactoryOptions, hasShadowDOM, HtmlBehaviorResource, ResourceModule, ResourceDescription, ModuleAnalyzer, noMutations, ChildObserver, ChildObserverBinder, CompositionEngine, ElementConfigResource;
 
   var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
@@ -32,6 +32,8 @@ System.register(['core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loader'
   _export('viewStrategy', viewStrategy);
 
   _export('useView', useView);
+
+  _export('inlineView', inlineView);
 
   _export('noView', noView);
 
@@ -490,6 +492,10 @@ System.register(['core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loader'
     return viewStrategy(new UseViewStrategy(path));
   }
 
+  function inlineView(markup, dependencies, dependencyBaseUrl) {
+    return viewStrategy(new InlineViewStrategy(markup, dependencies, dependencyBaseUrl));
+  }
+
   function noView(target) {
     var deco = function deco(target) {
       Metadata.define(ViewStrategy.metadataKey, new NoViewStrategy(), target);
@@ -737,28 +743,73 @@ System.register(['core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loader'
       _export('NoViewStrategy', NoViewStrategy);
 
       TemplateRegistryViewStrategy = (function (_ViewStrategy4) {
-        function TemplateRegistryViewStrategy(moduleId, registryEntry) {
+        function TemplateRegistryViewStrategy(moduleId, entry) {
           _classCallCheck(this, TemplateRegistryViewStrategy);
 
           _ViewStrategy4.call(this);
           this.moduleId = moduleId;
-          this.registryEntry = registryEntry;
+          this.entry = entry;
         }
 
         _inherits(TemplateRegistryViewStrategy, _ViewStrategy4);
 
         TemplateRegistryViewStrategy.prototype.loadViewFactory = function loadViewFactory(viewEngine, options, loadContext) {
-          if (this.registryEntry.isReady) {
-            return Promise.resolve(this.registryEntry.factory);
+          var entry = this.entry;
+
+          if (entry.isReady) {
+            return Promise.resolve(entry.factory);
           }
 
-          return viewEngine.loadViewFactory(this.registryEntry, options, this.moduleId, loadContext);
+          return viewEngine.loadViewFactory(entry, options, this.moduleId, loadContext);
         };
 
         return TemplateRegistryViewStrategy;
       })(ViewStrategy);
 
       _export('TemplateRegistryViewStrategy', TemplateRegistryViewStrategy);
+
+      InlineViewStrategy = (function (_ViewStrategy5) {
+        function InlineViewStrategy(markup, dependencies, dependencyBaseUrl) {
+          _classCallCheck(this, InlineViewStrategy);
+
+          _ViewStrategy5.call(this);
+          this.markup = markup;
+          this.dependencies = dependencies || null;
+          this.dependencyBaseUrl = dependencyBaseUrl || '';
+        }
+
+        _inherits(InlineViewStrategy, _ViewStrategy5);
+
+        InlineViewStrategy.prototype.loadViewFactory = function loadViewFactory(viewEngine, options, loadContext) {
+          var entry = this.entry,
+              dependencies = this.dependencies;
+
+          if (entry && entry.isReady) {
+            return Promise.resolve(entry.factory);
+          }
+
+          this.entry = entry = new TemplateRegistryEntry(this.moduleId || this.dependencyBaseUrl);
+          entry.setTemplate(createTemplateFromMarkup(markup));
+
+          if (dependencies !== null) {
+            for (var i = 0, ii = dependencies.length; i < ii; ++i) {
+              var current = dependencies[i];
+
+              if (typeof current === 'string' || typeof current === 'function') {
+                entry.addDependency(current);
+              } else {
+                entry.addDependency(current.from, current.as);
+              }
+            }
+          }
+
+          return viewEngine.loadViewFactory(this.registryEntry, options, this.moduleId, loadContext);
+        };
+
+        return InlineViewStrategy;
+      })(ViewStrategy);
+
+      _export('InlineViewStrategy', InlineViewStrategy);
 
       BindingLanguage = (function () {
         function BindingLanguage() {
@@ -1557,7 +1608,6 @@ System.register(['core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loader'
       nextInjectorId = 0;
       defaultCompileOptions = { targetShadowDOM: false };
       hasShadowDOM = !!HTMLElement.prototype.createShadowRoot;
-      needsTemplateFixup = !('content' in document.createElement('template'));
 
       ViewCompiler = (function () {
         function ViewCompiler(bindingLanguage) {
@@ -1577,8 +1627,7 @@ System.register(['core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loader'
               targetShadowDOM = options.targetShadowDOM,
               content,
               part,
-              factory,
-              temp;
+              factory;
 
           targetShadowDOM = targetShadowDOM && hasShadowDOM;
 
@@ -1587,17 +1636,7 @@ System.register(['core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loader'
           }
 
           if (typeof templateOrFragment === 'string') {
-            temp = document.createElement('template');
-            temp.innerHTML = templateOrFragment;
-
-            if (needsTemplateFixup) {
-              temp.content = document.createDocumentFragment();
-              while (temp.firstChild) {
-                temp.content.appendChild(temp.firstChild);
-              }
-            }
-
-            templateOrFragment = temp;
+            templateOrFragment = createTemplateFromMarkup(templateOrFragment);
           }
 
           if (templateOrFragment.content) {
@@ -3395,6 +3434,8 @@ System.register(['core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loader'
       Decorators.configure.parameterizedDecorator('viewStrategy', useView);
 
       Decorators.configure.parameterizedDecorator('useView', useView);
+
+      Decorators.configure.parameterizedDecorator('inlineView', inlineView);
 
       Decorators.configure.simpleDecorator('noView', noView);
 

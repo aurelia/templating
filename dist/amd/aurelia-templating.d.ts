@@ -111,7 +111,11 @@ declare module 'aurelia-templating' {
     loadViewFactory(viewEngine: ViewEngine, options: Object, loadContext?: string[]): Promise<ViewFactory>;
   }
   export class TemplateRegistryViewStrategy extends ViewStrategy {
-    constructor(moduleId: string, registryEntry: TemplateRegistryEntry);
+    constructor(moduleId: string, entry: TemplateRegistryEntry);
+    loadViewFactory(viewEngine: ViewEngine, options: Object, loadContext?: string[]): Promise<ViewFactory>;
+  }
+  export class InlineViewStrategy extends ViewStrategy {
+    constructor(markup: string, dependencies?: Array<string | Function | Object>, dependencyBaseUrl?: string);
     loadViewFactory(viewEngine: ViewEngine, options: Object, loadContext?: string[]): Promise<ViewFactory>;
   }
   export class BindingLanguage {
@@ -300,6 +304,7 @@ declare module 'aurelia-templating' {
   export function containerless(target: any): any;
   export function viewStrategy(strategy: any): any;
   export function useView(path: any): any;
+  export function inlineView(markup: string, dependencies?: Array<string | Function | Object>, dependencyBaseUrl?: string): any;
   export function noView(target: any): any;
   export function elementConfig(target: any): any;
 }

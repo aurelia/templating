@@ -18,6 +18,7 @@ exports.skipContentProcessing = skipContentProcessing;
 exports.containerless = containerless;
 exports.viewStrategy = viewStrategy;
 exports.useView = useView;
+exports.inlineView = inlineView;
 exports.noView = noView;
 exports.elementConfig = elementConfig;
 
@@ -271,28 +272,73 @@ var NoViewStrategy = (function (_ViewStrategy3) {
 exports.NoViewStrategy = NoViewStrategy;
 
 var TemplateRegistryViewStrategy = (function (_ViewStrategy4) {
-  function TemplateRegistryViewStrategy(moduleId, registryEntry) {
+  function TemplateRegistryViewStrategy(moduleId, entry) {
     _classCallCheck(this, TemplateRegistryViewStrategy);
 
     _ViewStrategy4.call(this);
     this.moduleId = moduleId;
-    this.registryEntry = registryEntry;
+    this.entry = entry;
   }
 
   _inherits(TemplateRegistryViewStrategy, _ViewStrategy4);
 
   TemplateRegistryViewStrategy.prototype.loadViewFactory = function loadViewFactory(viewEngine, options, loadContext) {
-    if (this.registryEntry.isReady) {
-      return Promise.resolve(this.registryEntry.factory);
+    var entry = this.entry;
+
+    if (entry.isReady) {
+      return Promise.resolve(entry.factory);
     }
 
-    return viewEngine.loadViewFactory(this.registryEntry, options, this.moduleId, loadContext);
+    return viewEngine.loadViewFactory(entry, options, this.moduleId, loadContext);
   };
 
   return TemplateRegistryViewStrategy;
 })(ViewStrategy);
 
 exports.TemplateRegistryViewStrategy = TemplateRegistryViewStrategy;
+
+var InlineViewStrategy = (function (_ViewStrategy5) {
+  function InlineViewStrategy(markup, dependencies, dependencyBaseUrl) {
+    _classCallCheck(this, InlineViewStrategy);
+
+    _ViewStrategy5.call(this);
+    this.markup = markup;
+    this.dependencies = dependencies || null;
+    this.dependencyBaseUrl = dependencyBaseUrl || '';
+  }
+
+  _inherits(InlineViewStrategy, _ViewStrategy5);
+
+  InlineViewStrategy.prototype.loadViewFactory = function loadViewFactory(viewEngine, options, loadContext) {
+    var entry = this.entry,
+        dependencies = this.dependencies;
+
+    if (entry && entry.isReady) {
+      return Promise.resolve(entry.factory);
+    }
+
+    this.entry = entry = new _aureliaLoader.TemplateRegistryEntry(this.moduleId || this.dependencyBaseUrl);
+    entry.setTemplate(createTemplateFromMarkup(markup));
+
+    if (dependencies !== null) {
+      for (var i = 0, ii = dependencies.length; i < ii; ++i) {
+        var current = dependencies[i];
+
+        if (typeof current === 'string' || typeof current === 'function') {
+          entry.addDependency(current);
+        } else {
+          entry.addDependency(current.from, current.as);
+        }
+      }
+    }
+
+    return viewEngine.loadViewFactory(this.registryEntry, options, this.moduleId, loadContext);
+  };
+
+  return InlineViewStrategy;
+})(ViewStrategy);
+
+exports.InlineViewStrategy = InlineViewStrategy;
 
 var BindingLanguage = (function () {
   function BindingLanguage() {
@@ -1330,8 +1376,7 @@ exports.ViewFactory = ViewFactory;
 
 var nextInjectorId = 0,
     defaultCompileOptions = { targetShadowDOM: false },
-    hasShadowDOM = !!HTMLElement.prototype.createShadowRoot,
-    needsTemplateFixup = !('content' in document.createElement('template'));
+    hasShadowDOM = !!HTMLElement.prototype.createShadowRoot;
 
 function getNextInjectorId() {
   return ++nextInjectorId;
@@ -1389,8 +1434,7 @@ var ViewCompiler = (function () {
         targetShadowDOM = options.targetShadowDOM,
         content,
         part,
-        factory,
-        temp;
+        factory;
 
     targetShadowDOM = targetShadowDOM && hasShadowDOM;
 
@@ -1399,17 +1443,7 @@ var ViewCompiler = (function () {
     }
 
     if (typeof templateOrFragment === 'string') {
-      temp = document.createElement('template');
-      temp.innerHTML = templateOrFragment;
-
-      if (needsTemplateFixup) {
-        temp.content = document.createDocumentFragment();
-        while (temp.firstChild) {
-          temp.content.appendChild(temp.firstChild);
-        }
-      }
-
-      templateOrFragment = temp;
+      templateOrFragment = createTemplateFromMarkup(templateOrFragment);
     }
 
     if (templateOrFragment.content) {
@@ -3359,6 +3393,12 @@ function useView(path) {
 }
 
 _aureliaMetadata.Decorators.configure.parameterizedDecorator('useView', useView);
+
+function inlineView(markup, dependencies, dependencyBaseUrl) {
+  return viewStrategy(new InlineViewStrategy(markup, dependencies, dependencyBaseUrl));
+}
+
+_aureliaMetadata.Decorators.configure.parameterizedDecorator('inlineView', inlineView);
 
 function noView(target) {
   var deco = function deco(target) {

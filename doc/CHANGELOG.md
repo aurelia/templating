@@ -1,3 +1,11 @@
+### 0.13.8 (2015-07-16)
+
+
+#### Features
+
+* **view-strategy:** @inlineView and InlineViewStrategy implemented ([bc464a42](http://github.com/aurelia/templating/commit/bc464a421ceeae6301832b656ad0204aa7f0c5a7))
+
+
 ### 0.13.7 (2015-07-16)
 
 
