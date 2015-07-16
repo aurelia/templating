@@ -87,7 +87,7 @@ export class ViewCompiler {
     content.appendChild(document.createComment('</view>'));
 
     var factory = new ViewFactory(content, instructions, resources);
-    factory.surrogateInstruction = templateOrFragment.content ? this.compileSurrogate(templateOrFragment, resources) : null;
+    factory.surrogateInstruction = options.compileSurrogate ? this.compileSurrogate(templateOrFragment, resources) : null;
 
     if(part){
       factory.part = part;
