@@ -1314,7 +1314,7 @@ export class ViewCompiler {
     content.appendChild(document.createComment('</view>'));
 
     var factory = new ViewFactory(content, instructions, resources);
-    factory.surrogateInstruction = templateOrFragment.content ? this.compileSurrogate(templateOrFragment, resources) : null;
+    factory.surrogateInstruction = options.compileSurrogate ? this.compileSurrogate(templateOrFragment, resources) : null;
 
     if(part){
       factory.part = part;
@@ -2246,7 +2246,8 @@ export class HtmlBehaviorResource {
       viewStrategy = viewStrategy || this.viewStrategy || ViewStrategy.getDefault(target);
       options = {
         targetShadowDOM:this.targetShadowDOM,
-        beforeCompile:target.beforeCompile
+        beforeCompile:target.beforeCompile,
+        compileSurrogate:true
       };
 
       if(!viewStrategy.moduleId){

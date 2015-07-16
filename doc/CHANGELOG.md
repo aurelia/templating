@@ -1,3 +1,12 @@
+### 0.13.6 (2015-07-15)
+
+
+#### Bug Fixes
+
+* **all:** improve several d.ts definitions with better type info ([51cad257](http://github.com/aurelia/templating/commit/51cad25703786f4edfaa5e08db2ef2c8bf5fc126), closes [#132](http://github.com/aurelia/templating/issues/132))
+* **view-compiler:** template elements with template controllers work again ([71c67c21](http://github.com/aurelia/templating/commit/71c67c2109284f6c4adfaa35609b67e66ed11b80), closes [#133](http://github.com/aurelia/templating/issues/133))
+
+
 ### 0.13.5 (2015-07-14)
 
 
