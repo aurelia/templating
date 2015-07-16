@@ -248,13 +248,13 @@ declare module 'aurelia-templating' {
     constructor(moduleId: string);
     analyze(container: Container): any;
     register(registry: ResourceRegistry, name?: string): any;
-    load(container: Container, loadContext?: string[]): Promise;
+    load(container: Container, loadContext?: string[]): Promise<void>;
   }
   export class ResourceDescription {
     constructor(key: string, exportedValue: any, resourceTypeMeta: Object);
     analyze(container: Container): any;
     register(registry: ResourceRegistry, name?: string): any;
-    load(container: Container, loadContext?: string[]): Promise | void;
+    load(container: Container, loadContext?: string[]): Promise<void> | void;
     static get(resource: any, key?: string): ResourceDescription;
   }
   export class ModuleAnalyzer {

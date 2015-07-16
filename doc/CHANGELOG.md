@@ -1,3 +1,11 @@
+### 0.13.7 (2015-07-16)
+
+
+#### Bug Fixes
+
+* **module-analyzer:** correct some promise types in the d.ts ([d025abf0](http://github.com/aurelia/templating/commit/d025abf0ea17792a7e56bf5d54120fed3790f837))
+
+
 ### 0.13.6 (2015-07-15)
 
 

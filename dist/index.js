@@ -1213,6 +1213,8 @@ export class ViewFactory{
       applySurrogateInstruction(container, element, this.surrogateInstruction, behaviors, bindings, children);
     }
 
+    //TODO: get DOMBoundary from container; attach to instructable to be picked up by delegated events
+
     for(i = 0, ii = instructables.length; i < ii; ++i){
       applyInstructions(containers, executionContext, instructables[i],
         instructions[i], behaviors, bindings, children, contentSelectors, partReplacements, resources);
@@ -2351,6 +2353,8 @@ export class HtmlBehaviorResource {
   }
 
   create(container:Container, instruction?:Object=defaultInstruction, element?:Element=null, bindings?:Binding[]=null):BehaviorInstance{
+    //TODO: push host into container as DOMBoundary
+
     var executionContext = instruction.executionContext || container.get(this.target),
         behaviorInstance = new BehaviorInstance(this, executionContext, instruction),
         childBindings = this.childBindings,
@@ -2510,7 +2514,7 @@ export class ResourceModule {
     }
   }
 
-  load(container:Container, loadContext?:string[]):Promise{
+  load(container:Container, loadContext?:string[]):Promise<void>{
     if(this.onLoaded){
       return this.onLoaded;
     }
@@ -2576,7 +2580,7 @@ export class ResourceDescription {
     this.metadata.register(registry, name);
   }
 
-  load(container:Container, loadContext?:string[]):Promise|void{
+  load(container:Container, loadContext?:string[]):Promise<void>|void{
     let metadata = this.metadata,
         value = this.value;
 
