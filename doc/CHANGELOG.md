@@ -1,3 +1,11 @@
+### 0.13.10 (2015-07-16)
+
+
+#### Bug Fixes
+
+* **view-strategy:** incorrect variable ([7ef25428](http://github.com/aurelia/templating/commit/7ef25428679348fc54210315abc9568ef6ecaccd))
+
+
 ### 0.13.9 (2015-07-16)
 
 

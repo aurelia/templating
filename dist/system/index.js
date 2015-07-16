@@ -806,7 +806,7 @@ System.register(['core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loader'
           }
 
           this.entry = entry = new TemplateRegistryEntry(this.moduleId || this.dependencyBaseUrl);
-          entry.setTemplate(createTemplateFromMarkup(markup));
+          entry.setTemplate(createTemplateFromMarkup(this.markup));
 
           if (dependencies !== null) {
             for (var i = 0, ii = dependencies.length; i < ii; ++i) {

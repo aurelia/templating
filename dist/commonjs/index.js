@@ -335,7 +335,7 @@ var InlineViewStrategy = (function (_ViewStrategy5) {
     }
 
     this.entry = entry = new _aureliaLoader.TemplateRegistryEntry(this.moduleId || this.dependencyBaseUrl);
-    entry.setTemplate(createTemplateFromMarkup(markup));
+    entry.setTemplate(createTemplateFromMarkup(this.markup));
 
     if (dependencies !== null) {
       for (var i = 0, ii = dependencies.length; i < ii; ++i) {
