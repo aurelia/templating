@@ -13,6 +13,7 @@ var tools = require('aurelia-tools');
 gulp.task('build-index', function(){
   var importsToAdd = [];
   var files = [
+    'dom.js',
     'animation-event.js',
     'animator.js',
     'util.js',
