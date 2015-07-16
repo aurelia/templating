@@ -330,7 +330,7 @@ define(['exports', 'core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loade
         }
       }
 
-      return viewEngine.loadViewFactory(this.registryEntry, options, this.moduleId, loadContext);
+      return viewEngine.loadViewFactory(entry, options, this.moduleId, loadContext);
     };
 
     return InlineViewStrategy;

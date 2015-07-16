@@ -349,7 +349,7 @@ var InlineViewStrategy = (function (_ViewStrategy5) {
       }
     }
 
-    return viewEngine.loadViewFactory(this.registryEntry, options, this.moduleId, loadContext);
+    return viewEngine.loadViewFactory(entry, options, this.moduleId, loadContext);
   };
 
   return InlineViewStrategy;

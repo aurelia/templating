@@ -300,7 +300,7 @@ export class InlineViewStrategy extends ViewStrategy {
       }
     }
 
-    return viewEngine.loadViewFactory(this.registryEntry, options, this.moduleId, loadContext);
+    return viewEngine.loadViewFactory(entry, options, this.moduleId, loadContext);
   }
 }
 
