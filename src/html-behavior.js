@@ -224,6 +224,8 @@ export class HtmlBehaviorResource {
   }
 
   create(container:Container, instruction?:Object=defaultInstruction, element?:Element=null, bindings?:Binding[]=null):BehaviorInstance{
+    //TODO: push host into container as DOMBoundary
+
     var executionContext = instruction.executionContext || container.get(this.target),
         behaviorInstance = new BehaviorInstance(this, executionContext, instruction),
         childBindings = this.childBindings,

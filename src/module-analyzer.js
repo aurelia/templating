@@ -55,7 +55,7 @@ export class ResourceModule {
     }
   }
 
-  load(container:Container, loadContext?:string[]):Promise{
+  load(container:Container, loadContext?:string[]):Promise<void>{
     if(this.onLoaded){
       return this.onLoaded;
     }
@@ -121,7 +121,7 @@ export class ResourceDescription {
     this.metadata.register(registry, name);
   }
 
-  load(container:Container, loadContext?:string[]):Promise|void{
+  load(container:Container, loadContext?:string[]):Promise<void>|void{
     let metadata = this.metadata,
         value = this.value;
 

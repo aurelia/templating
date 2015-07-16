@@ -263,6 +263,8 @@ export class ViewFactory{
       applySurrogateInstruction(container, element, this.surrogateInstruction, behaviors, bindings, children);
     }
 
+    //TODO: get DOMBoundary from container; attach to instructable to be picked up by delegated events
+
     for(i = 0, ii = instructables.length; i < ii; ++i){
       applyInstructions(containers, executionContext, instructables[i],
         instructions[i], behaviors, bindings, children, contentSelectors, partReplacements, resources);
