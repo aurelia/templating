@@ -1,9 +1,11 @@
 System.register(['core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loader', 'aurelia-dependency-injection', 'aurelia-binding', 'aurelia-task-queue', 'aurelia-logging'], function (_export) {
   'use strict';
 
-  var core, Metadata, Origin, Decorators, relativeToFile, TemplateRegistryEntry, Loader, Container, bindingMode, ObserverLocator, BindingExpression, Binding, ValueConverterResource, EventManager, TaskQueue, LogManager, animationEvent, Animator, capitalMatcher, ViewStrategy, UseViewStrategy, ConventionalViewStrategy, NoViewStrategy, TemplateRegistryViewStrategy, InlineViewStrategy, BindingLanguage, ResourceRegistry, ViewResources, View, proto, placeholder, ContentSelector, ViewSlot, BoundViewFactory, defaultFactoryOptions, ViewFactory, nextInjectorId, defaultCompileOptions, hasShadowDOM, ViewCompiler, logger, ProxyViewFactory, ViewEngine, BehaviorInstance, BindableProperty, BehaviorPropertyObserver, defaultInstruction, contentSelectorFactoryOptions, hasShadowDOM, HtmlBehaviorResource, ResourceModule, ResourceDescription, ModuleAnalyzer, noMutations, ChildObserver, ChildObserverBinder, CompositionEngine, ElementConfigResource;
+  var core, Metadata, Origin, Decorators, relativeToFile, TemplateRegistryEntry, Loader, Container, bindingMode, ObserverLocator, BindingExpression, Binding, ValueConverterResource, EventManager, TaskQueue, LogManager, needsTemplateFixup, animationEvent, Animator, capitalMatcher, ViewStrategy, UseViewStrategy, ConventionalViewStrategy, NoViewStrategy, TemplateRegistryViewStrategy, InlineViewStrategy, BindingLanguage, ResourceRegistry, ViewResources, View, proto, placeholder, ContentSelector, ViewSlot, BoundViewFactory, defaultFactoryOptions, ViewFactory, nextInjectorId, defaultCompileOptions, hasShadowDOM, ViewCompiler, logger, ProxyViewFactory, ViewEngine, BehaviorInstance, BindableProperty, BehaviorPropertyObserver, defaultInstruction, contentSelectorFactoryOptions, hasShadowDOM, HtmlBehaviorResource, ResourceModule, ResourceDescription, ModuleAnalyzer, noMutations, ChildObserver, ChildObserverBinder, CompositionEngine, ElementConfigResource;
 
   var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  _export('createTemplateFromMarkup', createTemplateFromMarkup);
 
   _export('hyphenate', hyphenate);
 
@@ -42,6 +44,20 @@ System.register(['core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loader'
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  function createTemplateFromMarkup(markup) {
+    var temp = document.createElement('template');
+    temp.innerHTML = markup;
+
+    if (needsTemplateFixup) {
+      temp.content = document.createDocumentFragment();
+      while (temp.firstChild) {
+        temp.content.appendChild(temp.firstChild);
+      }
+    }
+
+    return temp;
+  }
 
   function addHyphenAndLower(char) {
     return '-' + char.toLowerCase();
@@ -539,6 +555,7 @@ System.register(['core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loader'
       LogManager = _aureliaLogging;
     }],
     execute: function () {
+      needsTemplateFixup = !('content' in document.createElement('template'));
       animationEvent = {
         enterBegin: 'animation:enter:begin',
         enterActive: 'animation:enter:active',

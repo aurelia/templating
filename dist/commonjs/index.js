@@ -4,6 +4,7 @@ exports.__esModule = true;
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
+exports.createTemplateFromMarkup = createTemplateFromMarkup;
 exports.hyphenate = hyphenate;
 exports.nextElementSibling = nextElementSibling;
 exports.behavior = behavior;
@@ -49,6 +50,22 @@ var _aureliaTaskQueue = require('aurelia-task-queue');
 var _aureliaLogging = require('aurelia-logging');
 
 var LogManager = _interopRequireWildcard(_aureliaLogging);
+
+var needsTemplateFixup = !('content' in document.createElement('template'));
+
+function createTemplateFromMarkup(markup) {
+  var temp = document.createElement('template');
+  temp.innerHTML = markup;
+
+  if (needsTemplateFixup) {
+    temp.content = document.createDocumentFragment();
+    while (temp.firstChild) {
+      temp.content.appendChild(temp.firstChild);
+    }
+  }
+
+  return temp;
+}
 
 var animationEvent = {
   enterBegin: 'animation:enter:begin',

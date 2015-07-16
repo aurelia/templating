@@ -6,6 +6,22 @@ import {Container} from 'aurelia-dependency-injection';
 import {bindingMode,ObserverLocator,BindingExpression,Binding,ValueConverterResource,EventManager} from 'aurelia-binding';
 import {TaskQueue} from 'aurelia-task-queue';
 
+let needsTemplateFixup = !('content' in document.createElement('template'));
+
+export function createTemplateFromMarkup(markup){
+  let temp = document.createElement('template');
+  temp.innerHTML = markup;
+
+  if(needsTemplateFixup){
+    temp.content = document.createDocumentFragment();
+    while(temp.firstChild){
+      temp.content.appendChild(temp.firstChild);
+    }
+  }
+
+  return temp;
+}
+
 export const animationEvent = {
   enterBegin:   'animation:enter:begin',
   enterActive:  'animation:enter:active',

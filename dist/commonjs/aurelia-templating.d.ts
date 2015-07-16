@@ -7,6 +7,7 @@ declare module 'aurelia-templating' {
   import { bindingMode, ObserverLocator, BindingExpression, Binding, ValueConverterResource, EventManager }  from 'aurelia-binding';
   import { TaskQueue }  from 'aurelia-task-queue';
   import * as LogManager from 'aurelia-logging';
+  export function createTemplateFromMarkup(markup: any): any;
   export const animationEvent: any;
   export class Animator {
     static configureDefault(container: any, animatorInstance: any): any;

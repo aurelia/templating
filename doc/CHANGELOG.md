@@ -1,3 +1,11 @@
+### 0.13.9 (2015-07-16)
+
+
+#### Bug Fixes
+
+* **build:** missed adding new file ([121ca640](http://github.com/aurelia/templating/commit/121ca6406b3444d1d4bc33c90a70009cfe5e66ee))
+
+
 ### 0.13.8 (2015-07-16)
 
 
