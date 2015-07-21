@@ -70,7 +70,6 @@ function makeElementIntoAnchor(element, isCustomElement){
   var anchor = document.createComment('anchor');
 
   if(isCustomElement){
-    anchor.attributes = element.attributes;
     anchor.hasAttribute = function(name) { return element.hasAttribute(name); };
     anchor.getAttribute = function(name){ return element.getAttribute(name); };
     anchor.setAttribute = function(name, value) { element.setAttribute(name, value); };
