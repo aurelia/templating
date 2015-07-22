@@ -78,32 +78,39 @@ export class ViewSlot {
         element &&
         element.nodeType === 1 &&
         element.classList.contains('au-animate')) {
-        this.animator.enter(element);
+        return this.animator.enter(element);
       }
     }
   }
 
   insert(index, view){
-    if((index === 0 && !this.children.length) || index >= this.children.length){
-      this.add(view);
+    let children = this.children,
+        length = children.length;
+
+    if((index === 0 && length === 0) || index >= length){
+      return this.add(view);
     } else{
-      view.insertNodesBefore(this.children[index].firstChild);
-      this.children.splice(index, 0, view);
+      view.insertNodesBefore(children[index].firstChild);
+      children.splice(index, 0, view);
 
       if(this.isAttached){
         view.attached();
+
+        // Animate page itself
+        var element = view.firstChild ? nextElementSibling(view.firstChild) : null;
+        if(view.firstChild &&
+          view.firstChild.nodeType === 8 &&
+          element &&
+          element.nodeType === 1 &&
+          element.classList.contains('au-animate')) {
+          return this.animator.enter(element);
+        }
       }
     }
   }
 
   remove(view){
-    view.removeNodes();
-
-    this.children.splice(this.children.indexOf(view), 1);
-
-    if(this.isAttached){
-      view.detached();
-    }
+    return this.removeAt(this.children.indexOf(view));
   }
 
   removeAt(index){
@@ -126,9 +133,7 @@ export class ViewSlot {
       element &&
       element.nodeType === 1 &&
       element.classList.contains('au-animate')) {
-      return this.animator.leave(element).then( () => {
-        return removeAction();
-      })
+      return this.animator.leave(element).then(() => removeAction());
     } else {
       return removeAction();
     }
@@ -167,9 +172,7 @@ export class ViewSlot {
     };
 
     if(rmPromises.length > 0) {
-      return Promise.all(rmPromises).then(() => {
-        removeAction();
-      });
+      return Promise.all(rmPromises).then(() => removeAction());
     } else {
       removeAction();
     }
@@ -177,12 +180,11 @@ export class ViewSlot {
 
   swap(view){
     var removeResponse = this.removeAll();
+
     if(removeResponse !== undefined) {
-      removeResponse.then(() => {
-        this.add(view);
-      });
+      return removeResponse.then(() => this.add(view));
     } else {
-      this.add(view);
+      return this.add(view);
     }
   }
 
