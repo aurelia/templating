@@ -3,6 +3,7 @@ import {View} from './view';
 import {ViewSlot} from './view-slot';
 import {ContentSelector} from './content-selector';
 import {ViewResources} from './resource-registry';
+import {DOMBoundary} from './dom';
 
 function elementContainerGet(key){
   if(key === Element){
@@ -256,15 +257,16 @@ export class ViewFactory{
         contentSelectors = [],
         containers = { root:container },
         partReplacements = options.partReplacements || this.partReplacements,
-        i, ii, view;
+        domBoundary = container.get(DOMBoundary),
+        i, ii, view, instructable;
 
     if(element !== null && this.surrogateInstruction !== null){
       applySurrogateInstruction(container, element, this.surrogateInstruction, behaviors, bindings, children);
     }
 
-    //TODO: get DOMBoundary from container; attach to instructable to be picked up by delegated events
-
     for(i = 0, ii = instructables.length; i < ii; ++i){
+      instructable = instructables[i];
+      instructable.domBoundary = domBoundary;
       applyInstructions(containers, executionContext, instructables[i],
         instructions[i], behaviors, bindings, children, contentSelectors, partReplacements, resources);
     }

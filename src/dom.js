@@ -1,5 +1,7 @@
 let needsTemplateFixup = !('content' in document.createElement('template'));
 
+export let DOMBoundary = 'aurelia-dom-boundary';
+
 export function createTemplateFromMarkup(markup){
   let temp = document.createElement('template');
   temp.innerHTML = markup;

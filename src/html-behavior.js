@@ -10,6 +10,7 @@ import {hyphenate} from './util';
 import {BindableProperty} from './bindable-property';
 import {BehaviorInstance} from './behavior-instance';
 import {ResourceRegistry} from './resource-registry';
+import {DOMBoundary} from './dom';
 
 var defaultInstruction = { suppressBind:false },
     contentSelectorFactoryOptions = { suppressBind:true },
@@ -224,12 +225,22 @@ export class HtmlBehaviorResource {
   }
 
   create(container:Container, instruction?:Object=defaultInstruction, element?:Element=null, bindings?:Binding[]=null):BehaviorInstance{
-    //TODO: push host into container as DOMBoundary
+    let host;
 
-    var executionContext = instruction.executionContext || container.get(this.target),
+    if(this.elementName !== null && element){
+      if(this.usesShadowDOM) {
+        host = element.createShadowRoot();
+      }else{
+        host = element;
+      }
+
+      container.registerInstance(DOMBoundary, host);
+    }
+
+    let executionContext = instruction.executionContext || container.get(this.target),
         behaviorInstance = new BehaviorInstance(this, executionContext, instruction),
         childBindings = this.childBindings,
-        viewFactory, host;
+        viewFactory;
 
     if(this.liftsContent){
       //template controller
@@ -244,12 +255,6 @@ export class HtmlBehaviorResource {
 
       if(element){
         element.primaryBehavior = behaviorInstance;
-
-        if(this.usesShadowDOM) {
-          host = element.createShadowRoot();
-        }else{
-          host = element;
-        }
 
         if(behaviorInstance.view){
           if(!this.usesShadowDOM) {
