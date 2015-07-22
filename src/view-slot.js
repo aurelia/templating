@@ -2,6 +2,22 @@ import {ContentSelector} from './content-selector';
 import {Animator} from './animator';
 import {nextElementSibling} from './util';
 
+function getAnimatableElement(view){
+  let firstChild = view.firstChild;
+
+  if(firstChild !== null && firstChild !== undefined && firstChild.nodeType === 8){
+    let element = nextElementSibling(firstChild);
+
+    if(element !== null && element !== undefined &&
+      element.nodeType === 1 &&
+      element.classList.contains('au-animate')) {
+      return element;
+    }
+  }
+
+  return null;
+}
+
 export class ViewSlot {
   constructor(anchor, anchorIsContainer, executionContext, animator=Animator.instance){
     this.anchor = anchor;
@@ -71,14 +87,10 @@ export class ViewSlot {
 
     if(this.isAttached){
       view.attached();
-      // Animate page itself
-      var element = view.firstChild ? nextElementSibling(view.firstChild) : null;
-      if(view.firstChild &&
-        view.firstChild.nodeType === 8 &&
-        element &&
-        element.nodeType === 1 &&
-        element.classList.contains('au-animate')) {
-        return this.animator.enter(element);
+
+      let animatableElement = getAnimatableElement(view);
+      if(animatableElement !== null){
+        return this.animator.enter(animatableElement);
       }
     }
   }
@@ -96,14 +108,9 @@ export class ViewSlot {
       if(this.isAttached){
         view.attached();
 
-        // Animate page itself
-        var element = view.firstChild ? nextElementSibling(view.firstChild) : null;
-        if(view.firstChild &&
-          view.firstChild.nodeType === 8 &&
-          element &&
-          element.nodeType === 1 &&
-          element.classList.contains('au-animate')) {
-          return this.animator.enter(element);
+        let animatableElement = getAnimatableElement(view);
+        if(animatableElement !== null){
+          return this.animator.enter(animatableElement);
         }
       }
     }
@@ -127,16 +134,12 @@ export class ViewSlot {
       return view;
     };
 
-    var element = view.firstChild ? nextElementSibling(view.firstChild) : null;
-    if(view.firstChild &&
-      view.firstChild.nodeType === 8 &&
-      element &&
-      element.nodeType === 1 &&
-      element.classList.contains('au-animate')) {
-      return this.animator.leave(element).then(() => removeAction());
-    } else {
-      return removeAction();
+    let animatableElement = getAnimatableElement(view);
+    if(animatableElement !== null){
+      return this.animator.leave(animatableElement).then(() => removeAction());
     }
+
+    return removeAction();
   }
 
   removeAll(){
@@ -147,15 +150,9 @@ export class ViewSlot {
     var rmPromises = [];
 
     children.forEach(child => {
-      var element = child.firstChild ? nextElementSibling(child.firstChild) : null;
-      if(child.firstChild &&
-         child.firstChild.nodeType === 8 &&
-         element &&
-         element.nodeType === 1 &&
-         element.classList.contains('au-animate')) {
-        rmPromises.push(this.animator.leave(element).then(() => {
-          child.removeNodes();
-        }));
+      let animatableElement = getAnimatableElement(child);
+      if(animatableElement !== null){
+        rmPromises.push(this.animator.leave(animatableElement).then(() => child.removeNodes()));
       } else {
         child.removeNodes();
       }
