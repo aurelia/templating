@@ -22,8 +22,7 @@ function elementContainerGet(key){
       factory = partReplacements[factory.part] || factory;
     }
 
-    factory.partReplacements = partReplacements;
-    return this.boundViewFactory = new BoundViewFactory(this, factory, this.executionContext);
+    return this.boundViewFactory = new BoundViewFactory(this, factory, this.executionContext, partReplacements);
   }
 
   if(key === ViewSlot){
@@ -217,11 +216,11 @@ function applySurrogateInstruction(container, element, instruction, behaviors, b
 }
 
 export class BoundViewFactory {
-  constructor(parentContainer, viewFactory, executionContext){
+  constructor(parentContainer, viewFactory, executionContext, partReplacements){
     this.parentContainer = parentContainer;
     this.viewFactory = viewFactory;
     this.executionContext = executionContext;
-    this.factoryOptions = { behaviorInstance:false };
+    this.factoryOptions = { behaviorInstance:false, partReplacements:partReplacements };
   }
 
   create(executionContext){
@@ -256,7 +255,7 @@ export class ViewFactory{
         children = [],
         contentSelectors = [],
         containers = { root:container },
-        partReplacements = options.partReplacements || this.partReplacements,
+        partReplacements = options.partReplacements,
         domBoundary = container.get(DOMBoundary),
         i, ii, view, instructable;
 
