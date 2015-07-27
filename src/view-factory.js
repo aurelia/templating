@@ -257,7 +257,7 @@ export class ViewFactory{
         containers = { root:container },
         partReplacements = options.partReplacements,
         domBoundary = container.get(DOMBoundary),
-        i, ii, view, instructable;
+        i, ii, view, instructable, instruction;
 
     if(element !== null && this.surrogateInstruction !== null){
       applySurrogateInstruction(container, element, this.surrogateInstruction, behaviors, bindings, children);
@@ -265,9 +265,12 @@ export class ViewFactory{
 
     for(i = 0, ii = instructables.length; i < ii; ++i){
       instructable = instructables[i];
+      instruction = instructions[instructable.getAttribute('au-target-id')];
+
       instructable.domBoundary = domBoundary;
-      applyInstructions(containers, executionContext, instructables[i],
-        instructions[i], behaviors, bindings, children, contentSelectors, partReplacements, resources);
+
+      applyInstructions(containers, executionContext, instructable,
+        instruction, behaviors, bindings, children, contentSelectors, partReplacements, resources);
     }
 
     view = new View(container, fragment, behaviors, bindings, children, options.systemControlled, contentSelectors);

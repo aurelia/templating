@@ -38,9 +38,19 @@ function configureProperties(instruction, resources){
   }
 }
 
+let lastAUTargetID = 0;
+function getNextAUTargetID(){
+  return (++lastAUTargetID).toString();
+}
+
 function makeIntoInstructionTarget(element){
-  var value = element.getAttribute('class');
+  let value = element.getAttribute('class'),
+      auTargetID = getNextAUTargetID();
+
   element.setAttribute('class', (value ? value += ' au-target' : 'au-target'));
+  element.setAttribute('au-target-id', auTargetID);
+
+  return auTargetID;
 }
 
 export class ViewCompiler {
@@ -50,7 +60,7 @@ export class ViewCompiler {
   }
 
   compile(templateOrFragment, resources, options=defaultCompileOptions){
-    var instructions = [],
+    var instructions = {},
         targetShadowDOM = options.targetShadowDOM,
         content, part, factory;
 
@@ -94,11 +104,11 @@ export class ViewCompiler {
         //use wholeText to retrieve the textContent of all adjacent text nodes.
         var expression = this.bindingLanguage.parseText(resources, node.wholeText);
         if(expression){
-          var marker = document.createElement('au-marker');
-          marker.className = 'au-target';
+          let marker = document.createElement('au-marker'),
+              auTargetID = makeIntoInstructionTarget(marker);
           (node.parentNode || parentNode).insertBefore(marker, node);
           node.textContent = ' ';
-          instructions.push({ contentExpression:expression });
+          instructions[auTargetID] = { contentExpression:expression };
           //remove adjacent text nodes.
           while(node.nextSibling && node.nextSibling.nodeType === 3) {
             (node.parentNode || parentNode).removeChild(node.nextSibling);
@@ -232,7 +242,7 @@ export class ViewCompiler {
         bindingLanguage = this.bindingLanguage,
         liftingInstruction, viewFactory, type, elementInstruction,
         elementProperty, i, ii, attr, attrName, attrValue, instruction, info,
-        property, knownAttribute;
+        property, knownAttribute, auTargetID, injectorId;
 
     if(tagName === 'content'){
       if(targetLightDOM){
@@ -343,19 +353,19 @@ export class ViewCompiler {
     if(liftingInstruction){
       liftingInstruction.viewFactory = viewFactory;
       node = liftingInstruction.type.compile(this, resources, node, liftingInstruction, parentNode);
-      makeIntoInstructionTarget(node);
-      instructions.push({
+      auTargetID = makeIntoInstructionTarget(node);
+      instructions[auTargetID] = {
         anchorIsContainer: false,
         parentInjectorId: parentInjectorId,
         expressions: [],
         behaviorInstructions: [liftingInstruction],
         viewFactory: liftingInstruction.viewFactory,
         providers: [liftingInstruction.type.target]
-      });
+      };
     }else{
-      var injectorId = behaviorInstructions.length ? getNextInjectorId() : false;
-
       if(expressions.length || behaviorInstructions.length){
+        injectorId = behaviorInstructions.length ? getNextInjectorId() : false;
+
         for(i = 0, ii = behaviorInstructions.length; i < ii; ++i){
           instruction = behaviorInstructions[i];
           instruction.type.compile(this, resources, node, instruction, parentNode);
@@ -369,9 +379,8 @@ export class ViewCompiler {
           }
         }
 
-        makeIntoInstructionTarget(node);
-
-        instructions.push({
+        auTargetID = makeIntoInstructionTarget(node);
+        instructions[auTargetID] = {
           anchorIsContainer: elementInstruction ? elementInstruction.anchorIsContainer : true,
           isCustomElement: !!elementInstruction,
           injectorId: injectorId,
@@ -379,7 +388,7 @@ export class ViewCompiler {
           expressions: expressions,
           behaviorInstructions: behaviorInstructions,
           providers: providers
-        });
+        };
       }
 
       if(elementInstruction && elementInstruction.type.skipContentProcessing){
