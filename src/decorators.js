@@ -136,6 +136,7 @@ export function skipContentProcessing(target){
   var deco = function(target){
     var resource = Metadata.getOrCreateOwn(Metadata.resource, HtmlBehaviorResource, target);
     resource.processContent = doNotProcessContent;
+    console.warn('The @skipContentProcessing decorator is deprecated and will be removed in a future release. Please use @processContent(false) instead.');
   };
 
   return target ? deco(target) : deco;
