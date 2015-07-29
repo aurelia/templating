@@ -127,16 +127,30 @@ export function useShadowDOM(target){
 
 Decorators.configure.simpleDecorator('useShadowDOM', useShadowDOM);
 
+function doNotProcessContent(){
+  return false;
+}
+
+//this is now deprecated in favor of the processContent decorator
 export function skipContentProcessing(target){
   var deco = function(target){
     var resource = Metadata.getOrCreateOwn(Metadata.resource, HtmlBehaviorResource, target);
-    resource.skipContentProcessing = true;
+    resource.processContent = doNotProcessContent;
   };
 
   return target ? deco(target) : deco;
 }
 
 Decorators.configure.simpleDecorator('skipContentProcessing', skipContentProcessing);
+
+export function processContent(processor){
+  return function(target){
+    var resource = Metadata.getOrCreateOwn(Metadata.resource, HtmlBehaviorResource, target);
+    resource.processContent = processor || doNotProcessContent;
+  }
+}
+
+Decorators.configure.parameterizedDecorator('processContent', processContent);
 
 export function containerless(target){
   var deco = function(target){

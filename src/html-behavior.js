@@ -16,6 +16,10 @@ var defaultInstruction = { suppressBind:false },
     contentSelectorFactoryOptions = { suppressBind:true },
     hasShadowDOM = !!HTMLElement.prototype.createShadowRoot;
 
+function doProcessContent(){
+  return true;
+}
+
 export class HtmlBehaviorResource {
   constructor(){
     this.elementName = null;
@@ -23,7 +27,7 @@ export class HtmlBehaviorResource {
     this.attributeDefaultBindingMode = undefined;
     this.liftsContent = false;
     this.targetShadowDOM = false;
-    this.skipContentProcessing = false;
+    this.processContent = doProcessContent;
     this.usesShadowDOM = false;
     this.childBindings = null;
     this.hasDynamicOptions = false;
@@ -150,7 +154,7 @@ export class HtmlBehaviorResource {
     }
   }
 
-  compile(compiler:ViewCompiler, resources:ResourceRegistry, node?:Node, instruction?:Object, parentNode?:Node):Node{
+  compile(compiler:ViewCompiler, resources:ResourceRegistry, node:Node, instruction:Object, parentNode?:Node):Node{
     if(this.liftsContent){
       if(!instruction.viewFactory){
         var template = document.createElement('template'),
@@ -181,9 +185,9 @@ export class HtmlBehaviorResource {
         node = template;
       }
     } else if(this.elementName !== null){ //custom element
-      var partReplacements = {};
+      var partReplacements = instruction.partReplacements = {};
 
-      if(!this.skipContentProcessing && node.hasChildNodes()){
+      if(this.processContent(compiler, resources, node, instruction) && node.hasChildNodes()){
         if(!this.usesShadowDOM){
           var fragment = document.createDocumentFragment(),
               currentChild = node.firstChild,
@@ -219,7 +223,6 @@ export class HtmlBehaviorResource {
       }
     }
 
-    instruction.partReplacements = partReplacements;
     instruction.suppressBind = true;
     return node;
   }
