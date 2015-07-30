@@ -1,3 +1,11 @@
+### 0.13.14 (2015-07-30)
+
+
+#### Bug Fixes
+
+* **html-behavior:** do not override DOMBoundary for containerless elements ([d3c2ba4e](http://github.com/aurelia/templating/commit/d3c2ba4eeebd8a08dca6cb15d6ee377af4698e52))
+
+
 ### 0.13.13 (2015-07-29)
 
 

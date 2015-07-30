@@ -2842,7 +2842,9 @@ System.register(['core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loader'
               host = element;
             }
 
-            container.registerInstance(DOMBoundary, host);
+            if (instruction.anchorIsContainer) {
+              container.registerInstance(DOMBoundary, host);
+            }
           }
 
           var executionContext = instruction.executionContext || container.get(this.target),

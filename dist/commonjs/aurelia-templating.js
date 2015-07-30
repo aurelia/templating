@@ -2655,7 +2655,9 @@ var HtmlBehaviorResource = (function () {
         host = element;
       }
 
-      container.registerInstance(DOMBoundary, host);
+      if (instruction.anchorIsContainer) {
+        container.registerInstance(DOMBoundary, host);
+      }
     }
 
     var executionContext = instruction.executionContext || container.get(this.target),
