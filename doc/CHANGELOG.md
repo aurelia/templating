@@ -1,3 +1,11 @@
+### 0.13.13 (2015-07-29)
+
+
+#### Bug Fixes
+
+* **view-compiler:** missed update to content projection with new instruction lookup ([589c9d7e](http://github.com/aurelia/templating/commit/589c9d7e8c5cd27812c8059f8b88481844657992))
+
+
 ### 0.13.12 (2015-07-29)
 
 

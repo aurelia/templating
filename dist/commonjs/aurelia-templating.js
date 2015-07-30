@@ -1695,13 +1695,13 @@ var ViewCompiler = (function () {
 
     if (tagName === 'content') {
       if (targetLightDOM) {
-        instructions.push({
+        auTargetID = makeIntoInstructionTarget(node);
+        instructions[auTargetID] = {
           parentInjectorId: parentInjectorId,
           contentSelector: true,
           selector: node.getAttribute('select'),
           suppressBind: true
-        });
-        makeIntoInstructionTarget(node);
+        };
       }
       return node.nextSibling;
     } else if (tagName === 'template') {
