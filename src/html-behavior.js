@@ -188,6 +188,8 @@ export class HtmlBehaviorResource {
       var partReplacements = instruction.partReplacements = {};
 
       if(this.processContent(compiler, resources, node, instruction) && node.hasChildNodes()){
+        instruction.skipContentProcessing = false;
+
         if(!this.usesShadowDOM){
           var fragment = document.createDocumentFragment(),
               currentChild = node.firstChild,
@@ -220,6 +222,8 @@ export class HtmlBehaviorResource {
             currentChild = nextSibling;
           }
         }
+      }else{
+        instruction.skipContentProcessing = true;
       }
     }
 

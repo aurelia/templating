@@ -391,7 +391,7 @@ export class ViewCompiler {
         };
       }
 
-      if(elementInstruction && elementInstruction.type.skipContentProcessing){
+      if(elementInstruction && elementInstruction.skipContentProcessing){
         return node.nextSibling;
       }
 
