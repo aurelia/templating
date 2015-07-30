@@ -1,3 +1,23 @@
+### 0.13.12 (2015-07-29)
+
+
+#### Bug Fixes
+
+* **view-compiler:** account for web components that alter the DOM structure during creation ([af5584b4](http://github.com/aurelia/templating/commit/af5584b4b2d93c498da920c10327fffed215a7dc), closes [#90](http://github.com/aurelia/templating/issues/90))
+* **view-factory:**
+  * overwriting part replacments in template controllers ([1c2420dd](http://github.com/aurelia/templating/commit/1c2420ddd4b007e67c0028f9c51de4cfef19e746), closes [#120](http://github.com/aurelia/templating/issues/120))
+  * solve IE bug related to anchors ([7764774c](http://github.com/aurelia/templating/commit/7764774cf6621d25a111759cbe1217dfae64812d))
+* **view-slot:** use animations on all slot modifications and properly return promises ([e28d776e](http://github.com/aurelia/templating/commit/e28d776e1a24f31d5244b23ae696ae37d3a5ac6d))
+
+
+#### Features
+
+* **decorators:** warn on deprecated skipContentProcessing decorator ([27822488](http://github.com/aurelia/templating/commit/27822488686535a7f9b5c7364c8cd751259e1c9e))
+* **html-behavior:**
+  * enable extensible content processing ([aa6c2d62](http://github.com/aurelia/templating/commit/aa6c2d627695000209f5278d6d8f4abb69c4c1b7))
+  * introduce dom boundary for better shadow dom support ([74d06240](http://github.com/aurelia/templating/commit/74d0624097fa5dda6bd2fbea2ef7bb5617f2f221))
+
+
 ### 0.13.11 (2015-07-16)
 
 
