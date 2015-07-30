@@ -19,14 +19,14 @@
     "url": "http://github.com/aurelia/templating"
   },
   "dependencies": {
-    "aurelia-binding": "^0.8.0",
-    "aurelia-dependency-injection": "^0.9.0",
+    "aurelia-binding": "^0.8.3",
+    "aurelia-dependency-injection": "^0.9.1",
     "aurelia-html-template-element": "^0.2.0",
-    "aurelia-loader": "^0.8.0",
-    "aurelia-logging": "^0.6.0",
-    "aurelia-metadata": "^0.7.0",
-    "aurelia-path": "^0.8.0",
-    "aurelia-task-queue": "^0.6.0",
+    "aurelia-loader": "^0.8.3",
+    "aurelia-logging": "^0.6.2",
+    "aurelia-metadata": "^0.7.1",
+    "aurelia-path": "^0.8.1",
+    "aurelia-task-queue": "^0.6.1",
     "core-js": "zloirock/core-js"
   }
 }

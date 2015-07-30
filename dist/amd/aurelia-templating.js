@@ -17,6 +17,7 @@ define(['exports', 'core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loade
   exports.sync = sync;
   exports.useShadowDOM = useShadowDOM;
   exports.skipContentProcessing = skipContentProcessing;
+  exports.processContent = processContent;
   exports.containerless = containerless;
   exports.viewStrategy = viewStrategy;
   exports.useView = useView;
@@ -33,6 +34,10 @@ define(['exports', 'core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loade
   var _core = _interopRequireDefault(_coreJs);
 
   var needsTemplateFixup = !('content' in document.createElement('template'));
+
+  var DOMBoundary = 'aurelia-dom-boundary';
+
+  exports.DOMBoundary = DOMBoundary;
 
   function createTemplateFromMarkup(markup) {
     var temp = document.createElement('template');
@@ -759,6 +764,20 @@ define(['exports', 'core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loade
 
   exports.ContentSelector = ContentSelector;
 
+  function getAnimatableElement(view) {
+    var firstChild = view.firstChild;
+
+    if (firstChild !== null && firstChild !== undefined && firstChild.nodeType === 8) {
+      var element = nextElementSibling(firstChild);
+
+      if (element !== null && element !== undefined && element.nodeType === 1 && element.classList.contains('au-animate')) {
+        return element;
+      }
+    }
+
+    return null;
+  }
+
   var ViewSlot = (function () {
     function ViewSlot(anchor, anchorIsContainer, executionContext) {
       var animator = arguments[3] === undefined ? Animator.instance : arguments[3];
@@ -835,34 +854,36 @@ define(['exports', 'core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loade
       if (this.isAttached) {
         view.attached();
 
-        var element = view.firstChild ? nextElementSibling(view.firstChild) : null;
-        if (view.firstChild && view.firstChild.nodeType === 8 && element && element.nodeType === 1 && element.classList.contains('au-animate')) {
-          this.animator.enter(element);
+        var animatableElement = getAnimatableElement(view);
+        if (animatableElement !== null) {
+          return this.animator.enter(animatableElement);
         }
       }
     };
 
     ViewSlot.prototype.insert = function insert(index, view) {
-      if (index === 0 && !this.children.length || index >= this.children.length) {
-        this.add(view);
+      var children = this.children,
+          length = children.length;
+
+      if (index === 0 && length === 0 || index >= length) {
+        return this.add(view);
       } else {
-        view.insertNodesBefore(this.children[index].firstChild);
-        this.children.splice(index, 0, view);
+        view.insertNodesBefore(children[index].firstChild);
+        children.splice(index, 0, view);
 
         if (this.isAttached) {
           view.attached();
+
+          var animatableElement = getAnimatableElement(view);
+          if (animatableElement !== null) {
+            return this.animator.enter(animatableElement);
+          }
         }
       }
     };
 
     ViewSlot.prototype.remove = function remove(view) {
-      view.removeNodes();
-
-      this.children.splice(this.children.indexOf(view), 1);
-
-      if (this.isAttached) {
-        view.detached();
-      }
+      return this.removeAt(this.children.indexOf(view));
     };
 
     ViewSlot.prototype.removeAt = function removeAt(index) {
@@ -881,14 +902,14 @@ define(['exports', 'core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loade
         return view;
       };
 
-      var element = view.firstChild ? nextElementSibling(view.firstChild) : null;
-      if (view.firstChild && view.firstChild.nodeType === 8 && element && element.nodeType === 1 && element.classList.contains('au-animate')) {
-        return this.animator.leave(element).then(function () {
+      var animatableElement = getAnimatableElement(view);
+      if (animatableElement !== null) {
+        return this.animator.leave(animatableElement).then(function () {
           return removeAction();
         });
-      } else {
-        return removeAction();
       }
+
+      return removeAction();
     };
 
     ViewSlot.prototype.removeAll = function removeAll() {
@@ -901,10 +922,10 @@ define(['exports', 'core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loade
       var rmPromises = [];
 
       children.forEach(function (child) {
-        var element = child.firstChild ? nextElementSibling(child.firstChild) : null;
-        if (child.firstChild && child.firstChild.nodeType === 8 && element && element.nodeType === 1 && element.classList.contains('au-animate')) {
-          rmPromises.push(_this2.animator.leave(element).then(function () {
-            child.removeNodes();
+        var animatableElement = getAnimatableElement(child);
+        if (animatableElement !== null) {
+          rmPromises.push(_this2.animator.leave(animatableElement).then(function () {
+            return child.removeNodes();
           }));
         } else {
           child.removeNodes();
@@ -923,7 +944,7 @@ define(['exports', 'core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loade
 
       if (rmPromises.length > 0) {
         return Promise.all(rmPromises).then(function () {
-          removeAction();
+          return removeAction();
         });
       } else {
         removeAction();
@@ -934,12 +955,13 @@ define(['exports', 'core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loade
       var _this3 = this;
 
       var removeResponse = this.removeAll();
+
       if (removeResponse !== undefined) {
-        removeResponse.then(function () {
-          _this3.add(view);
+        return removeResponse.then(function () {
+          return _this3.add(view);
         });
       } else {
-        this.add(view);
+        return this.add(view);
       }
     };
 
@@ -1097,8 +1119,7 @@ define(['exports', 'core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loade
         factory = partReplacements[factory.part] || factory;
       }
 
-      factory.partReplacements = partReplacements;
-      return this.boundViewFactory = new BoundViewFactory(this, factory, this.executionContext);
+      return this.boundViewFactory = new BoundViewFactory(this, factory, this.executionContext, partReplacements);
     }
 
     if (key === ViewSlot) {
@@ -1146,7 +1167,6 @@ define(['exports', 'core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loade
     var anchor = document.createComment('anchor');
 
     if (isCustomElement) {
-      anchor.attributes = element.attributes;
       anchor.hasAttribute = function (name) {
         return element.hasAttribute(name);
       };
@@ -1294,13 +1314,13 @@ define(['exports', 'core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loade
   }
 
   var BoundViewFactory = (function () {
-    function BoundViewFactory(parentContainer, viewFactory, executionContext) {
+    function BoundViewFactory(parentContainer, viewFactory, executionContext, partReplacements) {
       _classCallCheck(this, BoundViewFactory);
 
       this.parentContainer = parentContainer;
       this.viewFactory = viewFactory;
       this.executionContext = executionContext;
-      this.factoryOptions = { behaviorInstance: false };
+      this.factoryOptions = { behaviorInstance: false, partReplacements: partReplacements };
     }
 
     BoundViewFactory.prototype.create = function create(executionContext) {
@@ -1344,17 +1364,25 @@ define(['exports', 'core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loade
           children = [],
           contentSelectors = [],
           containers = { root: container },
-          partReplacements = options.partReplacements || this.partReplacements,
+          partReplacements = options.partReplacements,
+          domBoundary = container.get(DOMBoundary),
           i,
           ii,
-          view;
+          view,
+          instructable,
+          instruction;
 
       if (element !== null && this.surrogateInstruction !== null) {
         applySurrogateInstruction(container, element, this.surrogateInstruction, behaviors, bindings, children);
       }
 
       for (i = 0, ii = instructables.length; i < ii; ++i) {
-        applyInstructions(containers, executionContext, instructables[i], instructions[i], behaviors, bindings, children, contentSelectors, partReplacements, resources);
+        instructable = instructables[i];
+        instruction = instructions[instructable.getAttribute('au-target-id')];
+
+        instructable.domBoundary = domBoundary;
+
+        applyInstructions(containers, executionContext, instructable, instruction, behaviors, bindings, children, contentSelectors, partReplacements, resources);
       }
 
       view = new View(container, fragment, behaviors, bindings, children, options.systemControlled, contentSelectors);
@@ -1409,9 +1437,19 @@ define(['exports', 'core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loade
     }
   }
 
+  var lastAUTargetID = 0;
+  function getNextAUTargetID() {
+    return (++lastAUTargetID).toString();
+  }
+
   function makeIntoInstructionTarget(element) {
-    var value = element.getAttribute('class');
+    var value = element.getAttribute('class'),
+        auTargetID = getNextAUTargetID();
+
     element.setAttribute('class', value ? value += ' au-target' : 'au-target');
+    element.setAttribute('au-target-id', auTargetID);
+
+    return auTargetID;
   }
 
   var ViewCompiler = (function () {
@@ -1428,7 +1466,7 @@ define(['exports', 'core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loade
     ViewCompiler.prototype.compile = function compile(templateOrFragment, resources) {
       var options = arguments[2] === undefined ? defaultCompileOptions : arguments[2];
 
-      var instructions = [],
+      var instructions = {},
           targetShadowDOM = options.targetShadowDOM,
           content,
           part,
@@ -1473,11 +1511,11 @@ define(['exports', 'core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loade
         case 3:
           var expression = this.bindingLanguage.parseText(resources, node.wholeText);
           if (expression) {
-            var marker = document.createElement('au-marker');
-            marker.className = 'au-target';
+            var marker = document.createElement('au-marker'),
+                auTargetID = makeIntoInstructionTarget(marker);
             (node.parentNode || parentNode).insertBefore(marker, node);
             node.textContent = ' ';
-            instructions.push({ contentExpression: expression });
+            instructions[auTargetID] = { contentExpression: expression };
 
             while (node.nextSibling && node.nextSibling.nodeType === 3) {
               (node.parentNode || parentNode).removeChild(node.nextSibling);
@@ -1632,7 +1670,9 @@ define(['exports', 'core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loade
           instruction,
           info,
           property,
-          knownAttribute;
+          knownAttribute,
+          auTargetID,
+          injectorId;
 
       if (tagName === 'content') {
         if (targetLightDOM) {
@@ -1741,19 +1781,19 @@ define(['exports', 'core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loade
       if (liftingInstruction) {
         liftingInstruction.viewFactory = viewFactory;
         node = liftingInstruction.type.compile(this, resources, node, liftingInstruction, parentNode);
-        makeIntoInstructionTarget(node);
-        instructions.push({
+        auTargetID = makeIntoInstructionTarget(node);
+        instructions[auTargetID] = {
           anchorIsContainer: false,
           parentInjectorId: parentInjectorId,
           expressions: [],
           behaviorInstructions: [liftingInstruction],
           viewFactory: liftingInstruction.viewFactory,
           providers: [liftingInstruction.type.target]
-        });
+        };
       } else {
-        var injectorId = behaviorInstructions.length ? getNextInjectorId() : false;
-
         if (expressions.length || behaviorInstructions.length) {
+          injectorId = behaviorInstructions.length ? getNextInjectorId() : false;
+
           for (i = 0, ii = behaviorInstructions.length; i < ii; ++i) {
             instruction = behaviorInstructions[i];
             instruction.type.compile(this, resources, node, instruction, parentNode);
@@ -1767,9 +1807,8 @@ define(['exports', 'core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loade
             }
           }
 
-          makeIntoInstructionTarget(node);
-
-          instructions.push({
+          auTargetID = makeIntoInstructionTarget(node);
+          instructions[auTargetID] = {
             anchorIsContainer: elementInstruction ? elementInstruction.anchorIsContainer : true,
             isCustomElement: !!elementInstruction,
             injectorId: injectorId,
@@ -1777,7 +1816,7 @@ define(['exports', 'core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loade
             expressions: expressions,
             behaviorInstructions: behaviorInstructions,
             providers: providers
-          });
+          };
         }
 
         if (elementInstruction && elementInstruction.type.skipContentProcessing) {
@@ -2366,6 +2405,10 @@ define(['exports', 'core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loade
       contentSelectorFactoryOptions = { suppressBind: true },
       hasShadowDOM = !!HTMLElement.prototype.createShadowRoot;
 
+  function doProcessContent() {
+    return true;
+  }
+
   var HtmlBehaviorResource = (function () {
     function HtmlBehaviorResource() {
       _classCallCheck(this, HtmlBehaviorResource);
@@ -2375,7 +2418,7 @@ define(['exports', 'core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loade
       this.attributeDefaultBindingMode = undefined;
       this.liftsContent = false;
       this.targetShadowDOM = false;
-      this.skipContentProcessing = false;
+      this.processContent = doProcessContent;
       this.usesShadowDOM = false;
       this.childBindings = null;
       this.hasDynamicOptions = false;
@@ -2536,9 +2579,9 @@ define(['exports', 'core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loade
           node = template;
         }
       } else if (this.elementName !== null) {
-        var partReplacements = {};
+        var partReplacements = instruction.partReplacements = {};
 
-        if (!this.skipContentProcessing && node.hasChildNodes()) {
+        if (this.processContent(compiler, resources, node, instruction) && node.hasChildNodes()) {
           if (!this.usesShadowDOM) {
             var fragment = document.createDocumentFragment(),
                 currentChild = node.firstChild,
@@ -2575,7 +2618,6 @@ define(['exports', 'core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loade
         }
       }
 
-      instruction.partReplacements = partReplacements;
       instruction.suppressBind = true;
       return node;
     };
@@ -2585,11 +2627,22 @@ define(['exports', 'core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loade
       var element = arguments[2] === undefined ? null : arguments[2];
       var bindings = arguments[3] === undefined ? null : arguments[3];
 
+      var host = undefined;
+
+      if (this.elementName !== null && element) {
+        if (this.usesShadowDOM) {
+          host = element.createShadowRoot();
+        } else {
+          host = element;
+        }
+
+        container.registerInstance(DOMBoundary, host);
+      }
+
       var executionContext = instruction.executionContext || container.get(this.target),
           behaviorInstance = new BehaviorInstance(this, executionContext, instruction),
           childBindings = this.childBindings,
-          viewFactory,
-          host;
+          viewFactory = undefined;
 
       if (this.liftsContent) {
         element.primaryBehavior = behaviorInstance;
@@ -2602,12 +2655,6 @@ define(['exports', 'core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loade
 
         if (element) {
           element.primaryBehavior = behaviorInstance;
-
-          if (this.usesShadowDOM) {
-            host = element.createShadowRoot();
-          } else {
-            host = element;
-          }
 
           if (behaviorInstance.view) {
             if (!this.usesShadowDOM) {
@@ -3356,16 +3403,30 @@ define(['exports', 'core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loade
 
   _aureliaMetadata.Decorators.configure.simpleDecorator('useShadowDOM', useShadowDOM);
 
+  function doNotProcessContent() {
+    return false;
+  }
+
   function skipContentProcessing(target) {
     var deco = function deco(target) {
       var resource = _aureliaMetadata.Metadata.getOrCreateOwn(_aureliaMetadata.Metadata.resource, HtmlBehaviorResource, target);
-      resource.skipContentProcessing = true;
+      resource.processContent = doNotProcessContent;
+      console.warn('The @skipContentProcessing decorator is deprecated and will be removed in a future release. Please use @processContent(false) instead.');
     };
 
     return target ? deco(target) : deco;
   }
 
   _aureliaMetadata.Decorators.configure.simpleDecorator('skipContentProcessing', skipContentProcessing);
+
+  function processContent(processor) {
+    return function (target) {
+      var resource = _aureliaMetadata.Metadata.getOrCreateOwn(_aureliaMetadata.Metadata.resource, HtmlBehaviorResource, target);
+      resource.processContent = processor || doNotProcessContent;
+    };
+  }
+
+  _aureliaMetadata.Decorators.configure.parameterizedDecorator('processContent', processContent);
 
   function containerless(target) {
     var deco = function deco(target) {

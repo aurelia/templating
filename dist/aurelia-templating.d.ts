@@ -7,6 +7,7 @@ declare module 'aurelia-templating' {
   import { bindingMode, ObserverLocator, BindingExpression, Binding, ValueConverterResource, EventManager }  from 'aurelia-binding';
   import { TaskQueue }  from 'aurelia-task-queue';
   import * as LogManager from 'aurelia-logging';
+  export let DOMBoundary: any;
   export function createTemplateFromMarkup(markup: any): any;
   export const animationEvent: any;
   export class Animator {
@@ -186,7 +187,7 @@ declare module 'aurelia-templating' {
     contentSelectorRemoveAll(): any;
   }
   export class BoundViewFactory {
-    constructor(parentContainer: any, viewFactory: any, executionContext: any);
+    constructor(parentContainer: any, viewFactory: any, executionContext: any, partReplacements: any);
     create(executionContext: any): any;
   }
   export class ViewFactory {
@@ -245,7 +246,7 @@ declare module 'aurelia-templating' {
     analyze(container: Container, target: Function): any;
     load(container: Container, target: Function, viewStrategy?: ViewStrategy, transientView?: boolean, loadContext?: string[]): Promise<HtmlBehaviorResource>;
     register(registry: ResourceRegistry, name?: string): any;
-    compile(compiler: ViewCompiler, resources: ResourceRegistry, node?: Node, instruction?: Object, parentNode?: Node): Node;
+    compile(compiler: ViewCompiler, resources: ResourceRegistry, node: Node, instruction: Object, parentNode?: Node): Node;
     create(container: Container, instruction?: Object, element?: Element, bindings?: Binding[]): BehaviorInstance;
     ensurePropertiesDefined(instance: Object, lookup: Object): any;
   }
@@ -301,7 +302,10 @@ declare module 'aurelia-templating' {
   export function dynamicOptions(target: any): any;
   export function sync(selectorOrConfig: any): any;
   export function useShadowDOM(target: any): any;
+  
+  // this is now deprecated in favor of the processContent decorator
   export function skipContentProcessing(target: any): any;
+  export function processContent(processor: any): any;
   export function containerless(target: any): any;
   export function viewStrategy(strategy: any): any;
   export function useView(path: any): any;
