@@ -1,3 +1,11 @@
+### 0.13.15 (2015-07-30)
+
+
+#### Bug Fixes
+
+* **view-compiler:** properly handle content process skip ([014185ed](http://github.com/aurelia/templating/commit/014185ed849c71d539fa56f629aa58baf086f6bb))
+
+
 ### 0.13.14 (2015-07-30)
 
 

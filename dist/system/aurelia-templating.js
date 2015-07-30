@@ -2048,7 +2048,7 @@ System.register(['core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loader'
               };
             }
 
-            if (elementInstruction && elementInstruction.type.skipContentProcessing) {
+            if (elementInstruction && elementInstruction.skipContentProcessing) {
               return node.nextSibling;
             }
 
@@ -2788,6 +2788,8 @@ System.register(['core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loader'
             var partReplacements = instruction.partReplacements = {};
 
             if (this.processContent(compiler, resources, node, instruction) && node.hasChildNodes()) {
+              instruction.skipContentProcessing = false;
+
               if (!this.usesShadowDOM) {
                 var fragment = document.createDocumentFragment(),
                     currentChild = node.firstChild,
@@ -2821,6 +2823,8 @@ System.register(['core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loader'
                   currentChild = nextSibling;
                 }
               }
+            } else {
+              instruction.skipContentProcessing = true;
             }
           }
 

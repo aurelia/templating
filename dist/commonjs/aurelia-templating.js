@@ -1838,7 +1838,7 @@ var ViewCompiler = (function () {
         };
       }
 
-      if (elementInstruction && elementInstruction.type.skipContentProcessing) {
+      if (elementInstruction && elementInstruction.skipContentProcessing) {
         return node.nextSibling;
       }
 
@@ -2601,6 +2601,8 @@ var HtmlBehaviorResource = (function () {
       var partReplacements = instruction.partReplacements = {};
 
       if (this.processContent(compiler, resources, node, instruction) && node.hasChildNodes()) {
+        instruction.skipContentProcessing = false;
+
         if (!this.usesShadowDOM) {
           var fragment = document.createDocumentFragment(),
               currentChild = node.firstChild,
@@ -2634,6 +2636,8 @@ var HtmlBehaviorResource = (function () {
             currentChild = nextSibling;
           }
         }
+      } else {
+        instruction.skipContentProcessing = true;
       }
     }
 
