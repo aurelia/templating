@@ -235,7 +235,8 @@ export class BoundViewFactory {
 
 var defaultFactoryOptions = {
   systemControlled:false,
-  suppressBind:false
+  suppressBind:false,
+  enhance:false
 };
 
 export class ViewFactory{
@@ -246,7 +247,7 @@ export class ViewFactory{
   }
 
   create(container, executionContext, options=defaultFactoryOptions, element=null){
-    var fragment = this.template.cloneNode(true),
+    var fragment = options.enhance ? this.template : this.template.cloneNode(true),
         instructables = fragment.querySelectorAll('.au-target'),
         instructions = this.instructions,
         resources = this.resources,

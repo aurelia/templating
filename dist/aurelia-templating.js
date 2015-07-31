@@ -1238,7 +1238,8 @@ export class BoundViewFactory {
 
 var defaultFactoryOptions = {
   systemControlled:false,
-  suppressBind:false
+  suppressBind:false,
+  enhance:false
 };
 
 export class ViewFactory{
@@ -1249,7 +1250,7 @@ export class ViewFactory{
   }
 
   create(container, executionContext, options=defaultFactoryOptions, element=null){
-    var fragment = this.template.cloneNode(true),
+    var fragment = options.enhance ? this.template : this.template.cloneNode(true),
         instructables = fragment.querySelectorAll('.au-target'),
         instructions = this.instructions,
         resources = this.resources,
@@ -1718,6 +1719,21 @@ export class ViewEngine {
     this.viewCompiler = viewCompiler;
     this.moduleAnalyzer = moduleAnalyzer;
     this.appResources = appResources;
+  }
+
+  enhance(container, element, resources, bindingContext){
+    let instructions = {};
+
+    this.viewCompiler.compileNode(element, resources, instructions, element.parentNode, 'root', true);
+
+    let factory = new ViewFactory(element, instructions, resources);
+    let options = {
+      systemControlled:false,
+      suppressBind:false,
+      enhance:true
+    };
+
+    return factory.create(container, bindingContext, options);
   }
 
   loadViewFactory(urlOrRegistryEntry:string|TemplateRegistryEntry, compileOptions?:Object, associatedModuleId?:string, loadContext?:string[]):Promise<ViewFactory>{
@@ -2195,7 +2211,7 @@ class BehaviorPropertyObserver {
 }
 
 var defaultInstruction = { suppressBind:false },
-    contentSelectorFactoryOptions = { suppressBind:true },
+    contentSelectorFactoryOptions = { suppressBind:true, enhance:false },
     hasShadowDOM = !!HTMLElement.prototype.createShadowRoot;
 
 function doProcessContent(){
@@ -2439,6 +2455,7 @@ export class HtmlBehaviorResource {
     } else if(this.elementName !== null){
       //custom element
       viewFactory = instruction.viewFactory || this.viewFactory;
+      container.viewModel = executionContext;
 
       if(viewFactory){
         behaviorInstance.view = viewFactory.create(container, executionContext, instruction, element);

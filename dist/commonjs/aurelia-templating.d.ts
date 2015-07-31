@@ -209,6 +209,7 @@ declare module 'aurelia-templating' {
   export class ViewEngine {
     static inject(): any;
     constructor(loader: Loader, container: Container, viewCompiler: ViewCompiler, moduleAnalyzer: ModuleAnalyzer, appResources: ResourceRegistry);
+    enhance(container: any, element: any, resources: any, bindingContext: any): any;
     loadViewFactory(urlOrRegistryEntry: string | TemplateRegistryEntry, compileOptions?: Object, associatedModuleId?: string, loadContext?: string[]): Promise<ViewFactory>;
     loadTemplateResources(viewRegistryEntry: TemplateRegistryEntry, associatedModuleId?: string, loadContext?: string[]): Promise<ResourceRegistry>;
     importViewModelResource(moduleImport: string, moduleMember: string): Promise<ResourceDescription>;

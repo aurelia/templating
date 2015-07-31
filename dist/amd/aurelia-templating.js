@@ -1339,7 +1339,8 @@ define(['exports', 'core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loade
 
   var defaultFactoryOptions = {
     systemControlled: false,
-    suppressBind: false
+    suppressBind: false,
+    enhance: false
   };
 
   var ViewFactory = (function () {
@@ -1355,7 +1356,7 @@ define(['exports', 'core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loade
       var options = arguments[2] === undefined ? defaultFactoryOptions : arguments[2];
       var element = arguments[3] === undefined ? null : arguments[3];
 
-      var fragment = this.template.cloneNode(true),
+      var fragment = options.enhance ? this.template : this.template.cloneNode(true),
           instructables = fragment.querySelectorAll('.au-target'),
           instructions = this.instructions,
           resources = this.resources,
@@ -1880,6 +1881,21 @@ define(['exports', 'core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loade
       return [_aureliaLoader.Loader, _aureliaDependencyInjection.Container, ViewCompiler, ModuleAnalyzer, ResourceRegistry];
     };
 
+    ViewEngine.prototype.enhance = function enhance(container, element, resources, bindingContext) {
+      var instructions = {};
+
+      this.viewCompiler.compileNode(element, resources, instructions, element.parentNode, 'root', true);
+
+      var factory = new ViewFactory(element, instructions, resources);
+      var options = {
+        systemControlled: false,
+        suppressBind: false,
+        enhance: true
+      };
+
+      return factory.create(container, bindingContext, options);
+    };
+
     ViewEngine.prototype.loadViewFactory = function loadViewFactory(urlOrRegistryEntry, compileOptions, associatedModuleId, loadContext) {
       var _this5 = this;
 
@@ -2402,7 +2418,7 @@ define(['exports', 'core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loade
   })();
 
   var defaultInstruction = { suppressBind: false },
-      contentSelectorFactoryOptions = { suppressBind: true },
+      contentSelectorFactoryOptions = { suppressBind: true, enhance: false },
       hasShadowDOM = !!HTMLElement.prototype.createShadowRoot;
 
   function doProcessContent() {
@@ -2654,6 +2670,7 @@ define(['exports', 'core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loade
         element.primaryBehavior = behaviorInstance;
       } else if (this.elementName !== null) {
         viewFactory = instruction.viewFactory || this.viewFactory;
+        container.viewModel = executionContext;
 
         if (viewFactory) {
           behaviorInstance.view = viewFactory.create(container, executionContext, instruction, element);

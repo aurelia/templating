@@ -38,6 +38,21 @@ export class ViewEngine {
     this.appResources = appResources;
   }
 
+  enhance(container, element, resources, bindingContext){
+    let instructions = {};
+
+    this.viewCompiler.compileNode(element, resources, instructions, element.parentNode, 'root', true);
+
+    let factory = new ViewFactory(element, instructions, resources);
+    let options = {
+      systemControlled:false,
+      suppressBind:false,
+      enhance:true
+    };
+
+    return factory.create(container, bindingContext, options);
+  }
+
   loadViewFactory(urlOrRegistryEntry:string|TemplateRegistryEntry, compileOptions?:Object, associatedModuleId?:string, loadContext?:string[]):Promise<ViewFactory>{
     loadContext = loadContext || [];
 

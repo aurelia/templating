@@ -13,7 +13,7 @@ import {ResourceRegistry} from './resource-registry';
 import {DOMBoundary} from './dom';
 
 var defaultInstruction = { suppressBind:false },
-    contentSelectorFactoryOptions = { suppressBind:true },
+    contentSelectorFactoryOptions = { suppressBind:true, enhance:false },
     hasShadowDOM = !!HTMLElement.prototype.createShadowRoot;
 
 function doProcessContent(){
@@ -257,6 +257,7 @@ export class HtmlBehaviorResource {
     } else if(this.elementName !== null){
       //custom element
       viewFactory = instruction.viewFactory || this.viewFactory;
+      container.viewModel = executionContext;
 
       if(viewFactory){
         behaviorInstance.view = viewFactory.create(container, executionContext, instruction, element);
