@@ -10,7 +10,7 @@ import {hyphenate} from './util';
 import {BindableProperty} from './bindable-property';
 import {BehaviorInstance} from './behavior-instance';
 import {ResourceRegistry} from './resource-registry';
-import {DOMBoundary} from './dom';
+import {DOMBoundary, replaceNode, removeNode} from './dom';
 
 var defaultInstruction = { suppressBind:false },
     contentSelectorFactoryOptions = { suppressBind:true, enhance:false },
@@ -162,18 +162,7 @@ export class HtmlBehaviorResource {
             part = node.getAttribute('part');
 
         node.removeAttribute(instruction.originalAttrName);
-
-        if(node.parentNode){
-          node.parentNode.replaceChild(template, node);
-        }else if(window.ShadowDOMPolyfill){ //HACK: IE template element and shadow dom polyfills not quite right...
-          ShadowDOMPolyfill.unwrap(parentNode).replaceChild(
-            ShadowDOMPolyfill.unwrap(template),
-            ShadowDOMPolyfill.unwrap(node)
-            );
-        }else{ //HACK: same as above
-          parentNode.replaceChild(template, node);
-        }
-
+        replaceNode(template, node, parentNode);
         fragment.appendChild(node);
         instruction.viewFactory = compiler.compile(fragment, resources);
 
@@ -188,9 +177,23 @@ export class HtmlBehaviorResource {
       var partReplacements = instruction.partReplacements = {};
 
       if(this.processContent(compiler, resources, node, instruction) && node.hasChildNodes()){
-        instruction.skipContentProcessing = false;
+        if(this.usesShadowDOM){
+          var currentChild = node.firstChild,
+              nextSibling, toReplace;
 
-        if(!this.usesShadowDOM){
+          while (currentChild) {
+            nextSibling = currentChild.nextSibling;
+
+            if(currentChild.tagName === 'TEMPLATE' && (toReplace = currentChild.getAttribute('replace-part'))){
+              partReplacements[toReplace] = compiler.compile(currentChild, resources);
+              removeNode(currentChild, parentNode);
+            }
+
+            currentChild = nextSibling;
+          }
+
+          instruction.skipContentProcessing = false;
+        }else{
           var fragment = document.createDocumentFragment(),
               currentChild = node.firstChild,
               nextSibling;
@@ -200,6 +203,7 @@ export class HtmlBehaviorResource {
 
             if(currentChild.tagName === 'TEMPLATE' && (toReplace = currentChild.getAttribute('replace-part'))){
               partReplacements[toReplace] = compiler.compile(currentChild, resources);
+              removeNode(currentChild, parentNode);
             }else{
               fragment.appendChild(currentChild);
             }
@@ -208,19 +212,7 @@ export class HtmlBehaviorResource {
           }
 
           instruction.contentFactory = compiler.compile(fragment, resources);
-        }else{
-          var currentChild = node.firstChild,
-              nextSibling, toReplace;
-
-          while (currentChild) {
-            nextSibling = currentChild.nextSibling;
-
-            if(currentChild.tagName === 'TEMPLATE' && (toReplace = currentChild.getAttribute('replace-part'))){
-              partReplacements[toReplace] = compiler.compile(currentChild, resources);
-            }
-
-            currentChild = nextSibling;
-          }
+          instruction.skipContentProcessing = true;
         }
       }else{
         instruction.skipContentProcessing = true;
