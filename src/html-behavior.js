@@ -229,12 +229,13 @@ export class HtmlBehaviorResource {
     if(this.elementName !== null && element){
       if(this.usesShadowDOM) {
         host = element.createShadowRoot();
+        container.registerInstance(DOMBoundary, host);
       }else{
         host = element;
-      }
 
-      if(instruction.anchorIsContainer){
-        container.registerInstance(DOMBoundary, host);
+        if(this.targetShadowDOM){
+          container.registerInstance(DOMBoundary, host);
+        }
       }
     }
 

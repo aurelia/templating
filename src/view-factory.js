@@ -3,7 +3,6 @@ import {View} from './view';
 import {ViewSlot} from './view-slot';
 import {ContentSelector} from './content-selector';
 import {ViewResources} from './resource-registry';
-import {DOMBoundary} from './dom';
 
 function elementContainerGet(key){
   if(key === Element){
@@ -257,7 +256,6 @@ export class ViewFactory{
         contentSelectors = [],
         containers = { root:container },
         partReplacements = options.partReplacements,
-        domBoundary = container.get(DOMBoundary),
         i, ii, view, instructable, instruction;
 
     if(element !== null && this.surrogateInstruction !== null){
@@ -267,8 +265,6 @@ export class ViewFactory{
     for(i = 0, ii = instructables.length; i < ii; ++i){
       instructable = instructables[i];
       instruction = instructions[instructable.getAttribute('au-target-id')];
-
-      instructable.domBoundary = domBoundary;
 
       applyInstructions(containers, executionContext, instructable,
         instruction, behaviors, bindings, children, contentSelectors, partReplacements, resources);
