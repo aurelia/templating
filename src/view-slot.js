@@ -308,7 +308,7 @@ export class ViewSlot {
       view = children[i];
 
       for(j = 0; j < jj; ++j){
-        contentSelectors[j].removeAt(i, view.fragment);
+        contentSelectors[j].removeAt(0, view.fragment);
       }
     }
 
