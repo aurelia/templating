@@ -9,6 +9,8 @@ declare module 'aurelia-templating' {
   import * as LogManager from 'aurelia-logging';
   export let DOMBoundary: any;
   export function createTemplateFromMarkup(markup: any): any;
+  export function replaceNode(newNode: any, node: any, parentNode: any): any;
+  export function removeNode(node: any, parentNode: any): any;
   export const animationEvent: any;
   export class Animator {
     static configureDefault(container: any, animatorInstance: any): any;

@@ -1,11 +1,15 @@
 System.register(['core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loader', 'aurelia-dependency-injection', 'aurelia-binding', 'aurelia-task-queue', 'aurelia-logging'], function (_export) {
   'use strict';
 
-  var core, Metadata, Origin, Decorators, relativeToFile, TemplateRegistryEntry, Loader, Container, bindingMode, ObserverLocator, BindingExpression, Binding, ValueConverterResource, EventManager, TaskQueue, LogManager, needsTemplateFixup, DOMBoundary, animationEvent, Animator, capitalMatcher, ViewStrategy, UseViewStrategy, ConventionalViewStrategy, NoViewStrategy, TemplateRegistryViewStrategy, InlineViewStrategy, BindingLanguage, ResourceRegistry, ViewResources, View, proto, placeholder, ContentSelector, ViewSlot, BoundViewFactory, defaultFactoryOptions, ViewFactory, nextInjectorId, defaultCompileOptions, hasShadowDOM, lastAUTargetID, ViewCompiler, logger, ProxyViewFactory, ViewEngine, BehaviorInstance, BindableProperty, BehaviorPropertyObserver, defaultInstruction, contentSelectorFactoryOptions, hasShadowDOM, HtmlBehaviorResource, ResourceModule, ResourceDescription, ModuleAnalyzer, noMutations, ChildObserver, ChildObserverBinder, CompositionEngine, ElementConfigResource;
+  var core, Metadata, Origin, Decorators, relativeToFile, TemplateRegistryEntry, Loader, Container, bindingMode, ObserverLocator, BindingExpression, Binding, ValueConverterResource, EventManager, TaskQueue, LogManager, needsTemplateFixup, shadowPoly, DOMBoundary, animationEvent, Animator, capitalMatcher, ViewStrategy, UseViewStrategy, ConventionalViewStrategy, NoViewStrategy, TemplateRegistryViewStrategy, InlineViewStrategy, BindingLanguage, ResourceRegistry, ViewResources, View, proto, placeholder, ContentSelector, ViewSlot, BoundViewFactory, defaultFactoryOptions, ViewFactory, nextInjectorId, defaultCompileOptions, hasShadowDOM, lastAUTargetID, ViewCompiler, logger, ProxyViewFactory, ViewEngine, BehaviorInstance, BindableProperty, BehaviorPropertyObserver, defaultInstruction, contentSelectorFactoryOptions, hasShadowDOM, HtmlBehaviorResource, ResourceModule, ResourceDescription, ModuleAnalyzer, noMutations, ChildObserver, ChildObserverBinder, CompositionEngine, ElementConfigResource;
 
   var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
   _export('createTemplateFromMarkup', createTemplateFromMarkup);
+
+  _export('replaceNode', replaceNode);
+
+  _export('removeNode', removeNode);
 
   _export('hyphenate', hyphenate);
 
@@ -59,6 +63,26 @@ System.register(['core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loader'
     }
 
     return temp;
+  }
+
+  function replaceNode(newNode, node, parentNode) {
+    if (node.parentNode) {
+      node.parentNode.replaceChild(newNode, node);
+    } else if (shadowPoly) {
+      shadowPoly.unwrap(parentNode).replaceChild(shadowPoly.unwrap(newNode), shadowPoly.unwrap(node));
+    } else {
+      parentNode.replaceChild(newNode, node);
+    }
+  }
+
+  function removeNode(node, parentNode) {
+    if (node.parentNode) {
+      node.parentNode.removeChild(node);
+    } else if (shadowPoly) {
+      shadowPoly.unwrap(parentNode).removeChild(shadowPoly.unwrap(node));
+    } else {
+      parentNode.removeChild(node);
+    }
   }
 
   function addHyphenAndLower(char) {
@@ -595,6 +619,7 @@ System.register(['core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loader'
     }],
     execute: function () {
       needsTemplateFixup = !('content' in document.createElement('template'));
+      shadowPoly = window.ShadowDOMPolyfill || null;
       DOMBoundary = 'aurelia-dom-boundary';
 
       _export('DOMBoundary', DOMBoundary);
@@ -1571,7 +1596,7 @@ System.register(['core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loader'
             view = children[i];
 
             for (j = 0; j < jj; ++j) {
-              contentSelectors[j].removeAt(i, view.fragment);
+              contentSelectors[j].removeAt(0, view.fragment);
             }
           }
 
@@ -1642,7 +1667,6 @@ System.register(['core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loader'
               contentSelectors = [],
               containers = { root: container },
               partReplacements = options.partReplacements,
-              domBoundary = container.get(DOMBoundary),
               i,
               ii,
               view,
@@ -1656,8 +1680,6 @@ System.register(['core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loader'
           for (i = 0, ii = instructables.length; i < ii; ++i) {
             instructable = instructables[i];
             instruction = instructions[instructable.getAttribute('au-target-id')];
-
-            instructable.domBoundary = domBoundary;
 
             applyInstructions(containers, executionContext, instructable, instruction, behaviors, bindings, children, contentSelectors, partReplacements, resources);
           }
@@ -2781,15 +2803,7 @@ System.register(['core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loader'
                   part = node.getAttribute('part');
 
               node.removeAttribute(instruction.originalAttrName);
-
-              if (node.parentNode) {
-                node.parentNode.replaceChild(template, node);
-              } else if (window.ShadowDOMPolyfill) {
-                ShadowDOMPolyfill.unwrap(parentNode).replaceChild(ShadowDOMPolyfill.unwrap(template), ShadowDOMPolyfill.unwrap(node));
-              } else {
-                parentNode.replaceChild(template, node);
-              }
-
+              replaceNode(template, node, parentNode);
               fragment.appendChild(node);
               instruction.viewFactory = compiler.compile(fragment, resources);
 
@@ -2804,27 +2818,7 @@ System.register(['core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loader'
             var partReplacements = instruction.partReplacements = {};
 
             if (this.processContent(compiler, resources, node, instruction) && node.hasChildNodes()) {
-              instruction.skipContentProcessing = false;
-
-              if (!this.usesShadowDOM) {
-                var fragment = document.createDocumentFragment(),
-                    currentChild = node.firstChild,
-                    nextSibling;
-
-                while (currentChild) {
-                  nextSibling = currentChild.nextSibling;
-
-                  if (currentChild.tagName === 'TEMPLATE' && (toReplace = currentChild.getAttribute('replace-part'))) {
-                    partReplacements[toReplace] = compiler.compile(currentChild, resources);
-                  } else {
-                    fragment.appendChild(currentChild);
-                  }
-
-                  currentChild = nextSibling;
-                }
-
-                instruction.contentFactory = compiler.compile(fragment, resources);
-              } else {
+              if (this.usesShadowDOM) {
                 var currentChild = node.firstChild,
                     nextSibling,
                     toReplace;
@@ -2834,10 +2828,33 @@ System.register(['core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loader'
 
                   if (currentChild.tagName === 'TEMPLATE' && (toReplace = currentChild.getAttribute('replace-part'))) {
                     partReplacements[toReplace] = compiler.compile(currentChild, resources);
+                    removeNode(currentChild, parentNode);
                   }
 
                   currentChild = nextSibling;
                 }
+
+                instruction.skipContentProcessing = false;
+              } else {
+                var fragment = document.createDocumentFragment(),
+                    currentChild = node.firstChild,
+                    nextSibling;
+
+                while (currentChild) {
+                  nextSibling = currentChild.nextSibling;
+
+                  if (currentChild.tagName === 'TEMPLATE' && (toReplace = currentChild.getAttribute('replace-part'))) {
+                    partReplacements[toReplace] = compiler.compile(currentChild, resources);
+                    removeNode(currentChild, parentNode);
+                  } else {
+                    fragment.appendChild(currentChild);
+                  }
+
+                  currentChild = nextSibling;
+                }
+
+                instruction.contentFactory = compiler.compile(fragment, resources);
+                instruction.skipContentProcessing = true;
               }
             } else {
               instruction.skipContentProcessing = true;
@@ -2858,12 +2875,13 @@ System.register(['core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loader'
           if (this.elementName !== null && element) {
             if (this.usesShadowDOM) {
               host = element.createShadowRoot();
+              container.registerInstance(DOMBoundary, host);
             } else {
               host = element;
-            }
 
-            if (instruction.anchorIsContainer) {
-              container.registerInstance(DOMBoundary, host);
+              if (this.targetShadowDOM) {
+                container.registerInstance(DOMBoundary, host);
+              }
             }
           }
 

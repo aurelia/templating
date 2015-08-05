@@ -6,6 +6,8 @@ define(['exports', 'core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loade
   var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
   exports.createTemplateFromMarkup = createTemplateFromMarkup;
+  exports.replaceNode = replaceNode;
+  exports.removeNode = removeNode;
   exports.hyphenate = hyphenate;
   exports.nextElementSibling = nextElementSibling;
   exports.behavior = behavior;
@@ -34,6 +36,7 @@ define(['exports', 'core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loade
   var _core = _interopRequireDefault(_coreJs);
 
   var needsTemplateFixup = !('content' in document.createElement('template'));
+  var shadowPoly = window.ShadowDOMPolyfill || null;
 
   var DOMBoundary = 'aurelia-dom-boundary';
 
@@ -51,6 +54,26 @@ define(['exports', 'core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loade
     }
 
     return temp;
+  }
+
+  function replaceNode(newNode, node, parentNode) {
+    if (node.parentNode) {
+      node.parentNode.replaceChild(newNode, node);
+    } else if (shadowPoly) {
+      shadowPoly.unwrap(parentNode).replaceChild(shadowPoly.unwrap(newNode), shadowPoly.unwrap(node));
+    } else {
+      parentNode.replaceChild(newNode, node);
+    }
+  }
+
+  function removeNode(node, parentNode) {
+    if (node.parentNode) {
+      node.parentNode.removeChild(node);
+    } else if (shadowPoly) {
+      shadowPoly.unwrap(parentNode).removeChild(shadowPoly.unwrap(node));
+    } else {
+      parentNode.removeChild(node);
+    }
   }
 
   var animationEvent = {
@@ -1084,7 +1107,7 @@ define(['exports', 'core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loade
         view = children[i];
 
         for (j = 0; j < jj; ++j) {
-          contentSelectors[j].removeAt(i, view.fragment);
+          contentSelectors[j].removeAt(0, view.fragment);
         }
       }
 
@@ -1366,7 +1389,6 @@ define(['exports', 'core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loade
           contentSelectors = [],
           containers = { root: container },
           partReplacements = options.partReplacements,
-          domBoundary = container.get(DOMBoundary),
           i,
           ii,
           view,
@@ -1380,8 +1402,6 @@ define(['exports', 'core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loade
       for (i = 0, ii = instructables.length; i < ii; ++i) {
         instructable = instructables[i];
         instruction = instructions[instructable.getAttribute('au-target-id')];
-
-        instructable.domBoundary = domBoundary;
 
         applyInstructions(containers, executionContext, instructable, instruction, behaviors, bindings, children, contentSelectors, partReplacements, resources);
       }
@@ -2575,15 +2595,7 @@ define(['exports', 'core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loade
               part = node.getAttribute('part');
 
           node.removeAttribute(instruction.originalAttrName);
-
-          if (node.parentNode) {
-            node.parentNode.replaceChild(template, node);
-          } else if (window.ShadowDOMPolyfill) {
-            ShadowDOMPolyfill.unwrap(parentNode).replaceChild(ShadowDOMPolyfill.unwrap(template), ShadowDOMPolyfill.unwrap(node));
-          } else {
-            parentNode.replaceChild(template, node);
-          }
-
+          replaceNode(template, node, parentNode);
           fragment.appendChild(node);
           instruction.viewFactory = compiler.compile(fragment, resources);
 
@@ -2598,27 +2610,7 @@ define(['exports', 'core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loade
         var partReplacements = instruction.partReplacements = {};
 
         if (this.processContent(compiler, resources, node, instruction) && node.hasChildNodes()) {
-          instruction.skipContentProcessing = false;
-
-          if (!this.usesShadowDOM) {
-            var fragment = document.createDocumentFragment(),
-                currentChild = node.firstChild,
-                nextSibling;
-
-            while (currentChild) {
-              nextSibling = currentChild.nextSibling;
-
-              if (currentChild.tagName === 'TEMPLATE' && (toReplace = currentChild.getAttribute('replace-part'))) {
-                partReplacements[toReplace] = compiler.compile(currentChild, resources);
-              } else {
-                fragment.appendChild(currentChild);
-              }
-
-              currentChild = nextSibling;
-            }
-
-            instruction.contentFactory = compiler.compile(fragment, resources);
-          } else {
+          if (this.usesShadowDOM) {
             var currentChild = node.firstChild,
                 nextSibling,
                 toReplace;
@@ -2628,10 +2620,33 @@ define(['exports', 'core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loade
 
               if (currentChild.tagName === 'TEMPLATE' && (toReplace = currentChild.getAttribute('replace-part'))) {
                 partReplacements[toReplace] = compiler.compile(currentChild, resources);
+                removeNode(currentChild, parentNode);
               }
 
               currentChild = nextSibling;
             }
+
+            instruction.skipContentProcessing = false;
+          } else {
+            var fragment = document.createDocumentFragment(),
+                currentChild = node.firstChild,
+                nextSibling;
+
+            while (currentChild) {
+              nextSibling = currentChild.nextSibling;
+
+              if (currentChild.tagName === 'TEMPLATE' && (toReplace = currentChild.getAttribute('replace-part'))) {
+                partReplacements[toReplace] = compiler.compile(currentChild, resources);
+                removeNode(currentChild, parentNode);
+              } else {
+                fragment.appendChild(currentChild);
+              }
+
+              currentChild = nextSibling;
+            }
+
+            instruction.contentFactory = compiler.compile(fragment, resources);
+            instruction.skipContentProcessing = true;
           }
         } else {
           instruction.skipContentProcessing = true;
@@ -2652,12 +2667,13 @@ define(['exports', 'core-js', 'aurelia-metadata', 'aurelia-path', 'aurelia-loade
       if (this.elementName !== null && element) {
         if (this.usesShadowDOM) {
           host = element.createShadowRoot();
+          container.registerInstance(DOMBoundary, host);
         } else {
           host = element;
-        }
 
-        if (instruction.anchorIsContainer) {
-          container.registerInstance(DOMBoundary, host);
+          if (this.targetShadowDOM) {
+            container.registerInstance(DOMBoundary, host);
+          }
         }
       }
 

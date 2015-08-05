@@ -1,3 +1,18 @@
+### 0.13.16 (2015-08-05)
+
+
+#### Bug Fixes
+
+* **html-behavior:** remove double compile of template parts ([49a5ad79](http://github.com/aurelia/templating/commit/49a5ad79072791352b2c1db58e4f009fa861a456))
+* **view-factory:** unnecessary dom boundaries removed ([77452a17](http://github.com/aurelia/templating/commit/77452a1712249229a82252c22abd4a8d9444c78e))
+* **view-slot:** out of bounds on array for content selector remove all ([eb345050](http://github.com/aurelia/templating/commit/eb3450508ee91aa03e38aeaeac58ffc54bc07870), closes [#136](http://github.com/aurelia/templating/issues/136))
+
+
+#### Features
+
+* **view-engine:** preliminary support for element enhancement ([e8078686](http://github.com/aurelia/templating/commit/e8078686e7297caef3d7e6b3a9b610c8d5069f30))
+
+
 ### 0.13.15 (2015-07-30)
 
 

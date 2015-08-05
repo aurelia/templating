@@ -7,6 +7,7 @@ import {bindingMode,ObserverLocator,BindingExpression,Binding,ValueConverterReso
 import {TaskQueue} from 'aurelia-task-queue';
 
 let needsTemplateFixup = !('content' in document.createElement('template'));
+let shadowPoly = window.ShadowDOMPolyfill || null;
 
 export let DOMBoundary = 'aurelia-dom-boundary';
 
@@ -22,6 +23,31 @@ export function createTemplateFromMarkup(markup){
   }
 
   return temp;
+}
+
+export function replaceNode(newNode, node, parentNode){
+  if(node.parentNode){
+    node.parentNode.replaceChild(newNode, node);
+  }else if(shadowPoly){ //HACK: IE template element and shadow dom polyfills not quite right...
+    shadowPoly.unwrap(parentNode).replaceChild(
+      shadowPoly.unwrap(newNode),
+      shadowPoly.unwrap(node)
+      );
+  }else{ //HACK: same as above
+    parentNode.replaceChild(newNode, node);
+  }
+}
+
+export function removeNode(node, parentNode) {
+  if(node.parentNode){
+    node.parentNode.removeChild(node);
+  }else if(shadowPoly){ //HACK: IE template element and shadow dom polyfills not quite right...
+    shadowPoly.unwrap(parentNode).removeChild(
+      shadowPoly.unwrap(node)
+      );
+  }else{ //HACK: same as above
+    parentNode.removeChild(node);
+  }
 }
 
 export const animationEvent = {
@@ -994,7 +1020,7 @@ export class ViewSlot {
       view = children[i];
 
       for(j = 0; j < jj; ++j){
-        contentSelectors[j].removeAt(i, view.fragment);
+        contentSelectors[j].removeAt(0, view.fragment);
       }
     }
 
@@ -1260,7 +1286,6 @@ export class ViewFactory{
         contentSelectors = [],
         containers = { root:container },
         partReplacements = options.partReplacements,
-        domBoundary = container.get(DOMBoundary),
         i, ii, view, instructable, instruction;
 
     if(element !== null && this.surrogateInstruction !== null){
@@ -1270,8 +1295,6 @@ export class ViewFactory{
     for(i = 0, ii = instructables.length; i < ii; ++i){
       instructable = instructables[i];
       instruction = instructions[instructable.getAttribute('au-target-id')];
-
-      instructable.domBoundary = domBoundary;
 
       applyInstructions(containers, executionContext, instructable,
         instruction, behaviors, bindings, children, contentSelectors, partReplacements, resources);
@@ -2360,18 +2383,7 @@ export class HtmlBehaviorResource {
             part = node.getAttribute('part');
 
         node.removeAttribute(instruction.originalAttrName);
-
-        if(node.parentNode){
-          node.parentNode.replaceChild(template, node);
-        }else if(window.ShadowDOMPolyfill){ //HACK: IE template element and shadow dom polyfills not quite right...
-          ShadowDOMPolyfill.unwrap(parentNode).replaceChild(
-            ShadowDOMPolyfill.unwrap(template),
-            ShadowDOMPolyfill.unwrap(node)
-            );
-        }else{ //HACK: same as above
-          parentNode.replaceChild(template, node);
-        }
-
+        replaceNode(template, node, parentNode);
         fragment.appendChild(node);
         instruction.viewFactory = compiler.compile(fragment, resources);
 
@@ -2386,9 +2398,23 @@ export class HtmlBehaviorResource {
       var partReplacements = instruction.partReplacements = {};
 
       if(this.processContent(compiler, resources, node, instruction) && node.hasChildNodes()){
-        instruction.skipContentProcessing = false;
+        if(this.usesShadowDOM){
+          var currentChild = node.firstChild,
+              nextSibling, toReplace;
 
-        if(!this.usesShadowDOM){
+          while (currentChild) {
+            nextSibling = currentChild.nextSibling;
+
+            if(currentChild.tagName === 'TEMPLATE' && (toReplace = currentChild.getAttribute('replace-part'))){
+              partReplacements[toReplace] = compiler.compile(currentChild, resources);
+              removeNode(currentChild, parentNode);
+            }
+
+            currentChild = nextSibling;
+          }
+
+          instruction.skipContentProcessing = false;
+        }else{
           var fragment = document.createDocumentFragment(),
               currentChild = node.firstChild,
               nextSibling;
@@ -2398,6 +2424,7 @@ export class HtmlBehaviorResource {
 
             if(currentChild.tagName === 'TEMPLATE' && (toReplace = currentChild.getAttribute('replace-part'))){
               partReplacements[toReplace] = compiler.compile(currentChild, resources);
+              removeNode(currentChild, parentNode);
             }else{
               fragment.appendChild(currentChild);
             }
@@ -2406,19 +2433,7 @@ export class HtmlBehaviorResource {
           }
 
           instruction.contentFactory = compiler.compile(fragment, resources);
-        }else{
-          var currentChild = node.firstChild,
-              nextSibling, toReplace;
-
-          while (currentChild) {
-            nextSibling = currentChild.nextSibling;
-
-            if(currentChild.tagName === 'TEMPLATE' && (toReplace = currentChild.getAttribute('replace-part'))){
-              partReplacements[toReplace] = compiler.compile(currentChild, resources);
-            }
-
-            currentChild = nextSibling;
-          }
+          instruction.skipContentProcessing = true;
         }
       }else{
         instruction.skipContentProcessing = true;
@@ -2435,12 +2450,13 @@ export class HtmlBehaviorResource {
     if(this.elementName !== null && element){
       if(this.usesShadowDOM) {
         host = element.createShadowRoot();
+        container.registerInstance(DOMBoundary, host);
       }else{
         host = element;
-      }
 
-      if(instruction.anchorIsContainer){
-        container.registerInstance(DOMBoundary, host);
+        if(this.targetShadowDOM){
+          container.registerInstance(DOMBoundary, host);
+        }
       }
     }
 
