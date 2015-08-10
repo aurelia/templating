@@ -4,8 +4,10 @@ let shadowPoly = window.ShadowDOMPolyfill || null;
 export let DOMBoundary = 'aurelia-dom-boundary';
 
 export function createTemplateFromMarkup(markup){
-  let temp = document.createElement('template');
-  temp.innerHTML = markup;
+  let parser = document.createElement('div');
+  parser.innerHTML = markup;
+
+  let temp = parser.firstChild;
 
   if(needsTemplateFixup){
     temp.content = document.createDocumentFragment();
