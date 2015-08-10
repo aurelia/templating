@@ -1,4 +1,4 @@
-import {ResourceRegistry} from './resource-registry';
+import {ViewResources} from './view-resources';
 import {ViewFactory} from './view-factory';
 import {BindingLanguage} from './binding-language';
 import {createTemplateFromMarkup} from './dom';
@@ -55,11 +55,11 @@ function makeIntoInstructionTarget(element){
 
 export class ViewCompiler {
   static inject() { return [BindingLanguage]; }
-  constructor(bindingLanguage){
+  constructor(bindingLanguage:BindingLanguage){
     this.bindingLanguage = bindingLanguage;
   }
 
-  compile(templateOrFragment, resources, options=defaultCompileOptions){
+  compile(source:HTMLTemplateElement|DocumentFragment|string, resources:ViewResources, options:Object=defaultCompileOptions):ViewFactory{
     var instructions = {},
         targetShadowDOM = options.targetShadowDOM,
         content, part, factory;
@@ -67,27 +67,27 @@ export class ViewCompiler {
     targetShadowDOM = targetShadowDOM && hasShadowDOM;
 
     if(options.beforeCompile){
-      options.beforeCompile(templateOrFragment);
+      options.beforeCompile(source);
     }
 
-    if(typeof templateOrFragment === 'string'){
-      templateOrFragment = createTemplateFromMarkup(templateOrFragment);
+    if(typeof source === 'string'){
+      source = createTemplateFromMarkup(source);
     }
 
-    if(templateOrFragment.content){
-      part = templateOrFragment.getAttribute('part');
-      content = document.adoptNode(templateOrFragment.content, true);
+    if(source.content){
+      part = source.getAttribute('part');
+      content = document.adoptNode(source.content, true);
     }else{
-      content = templateOrFragment;
+      content = source;
     }
 
-    this.compileNode(content, resources, instructions, templateOrFragment, 'root', !targetShadowDOM);
+    this.compileNode(content, resources, instructions, source, 'root', !targetShadowDOM);
 
     content.insertBefore(document.createComment('<view>'), content.firstChild);
     content.appendChild(document.createComment('</view>'));
 
     var factory = new ViewFactory(content, instructions, resources);
-    factory.surrogateInstruction = options.compileSurrogate ? this.compileSurrogate(templateOrFragment, resources) : null;
+    factory.surrogateInstruction = options.compileSurrogate ? this.compileSurrogate(source, resources) : null;
 
     if(part){
       factory.part = part;

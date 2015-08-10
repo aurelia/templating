@@ -21,7 +21,7 @@ gulp.task('build-index', function(){
     'util.js',
     'view-strategy.js',
     'binding-language.js',
-    'resource-registry.js',
+    'view-resources.js',
     'view.js',
     'content-selector.js',
     'view-slot.js',

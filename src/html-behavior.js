@@ -9,7 +9,7 @@ import {ContentSelector} from './content-selector';
 import {hyphenate} from './util';
 import {BindableProperty} from './bindable-property';
 import {BehaviorInstance} from './behavior-instance';
-import {ResourceRegistry} from './resource-registry';
+import {ViewResources} from './view-resources';
 import {DOMBoundary, replaceNode, removeNode} from './dom';
 
 var defaultInstruction = { suppressBind:false },
@@ -144,7 +144,7 @@ export class HtmlBehaviorResource {
     return Promise.resolve(this);
   }
 
-  register(registry:ResourceRegistry, name?:string){
+  register(registry:ViewResources, name?:string){
     if(this.attributeName !== null) {
       registry.registerAttribute(name || this.attributeName, this, this.attributeName);
     }
@@ -154,7 +154,7 @@ export class HtmlBehaviorResource {
     }
   }
 
-  compile(compiler:ViewCompiler, resources:ResourceRegistry, node:Node, instruction:Object, parentNode?:Node):Node{
+  compile(compiler:ViewCompiler, resources:ViewResources, node:Node, instruction:Object, parentNode?:Node):Node{
     if(this.liftsContent){
       if(!instruction.viewFactory){
         var template = document.createElement('template'),

@@ -2,7 +2,7 @@ import {Container} from 'aurelia-dependency-injection';
 import {View} from './view';
 import {ViewSlot} from './view-slot';
 import {ContentSelector} from './content-selector';
-import {ViewResources} from './resource-registry';
+import {ViewResources} from './view-resources';
 
 function elementContainerGet(key){
   if(key === Element){

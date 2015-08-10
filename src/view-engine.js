@@ -4,7 +4,7 @@ import {Origin} from 'aurelia-metadata';
 import {Loader,TemplateRegistryEntry} from 'aurelia-loader';
 import {Container} from 'aurelia-dependency-injection';
 import {ViewCompiler} from './view-compiler';
-import {ResourceRegistry, ViewResources} from './resource-registry';
+import {ViewResources} from './view-resources';
 import {ModuleAnalyzer, ResourceDescription} from './module-analyzer';
 import {ViewFactory} from './view-factory';
 
@@ -29,8 +29,8 @@ class ProxyViewFactory {
 }
 
 export class ViewEngine {
-  static inject() { return [Loader, Container, ViewCompiler, ModuleAnalyzer, ResourceRegistry]; }
-  constructor(loader:Loader, container:Container, viewCompiler:ViewCompiler, moduleAnalyzer:ModuleAnalyzer, appResources:ResourceRegistry){
+  static inject() { return [Loader, Container, ViewCompiler, ModuleAnalyzer, ViewResources]; }
+  constructor(loader:Loader, container:Container, viewCompiler:ViewCompiler, moduleAnalyzer:ModuleAnalyzer, appResources:ViewResources){
     this.loader = loader;
     this.container = container;
     this.viewCompiler = viewCompiler;
@@ -38,7 +38,7 @@ export class ViewEngine {
     this.appResources = appResources;
   }
 
-  enhance(container, element, resources, bindingContext){
+  enhance(container:Container, element:Element, resources:ViewResources, bindingContext?:Object):View{
     let instructions = {};
 
     this.viewCompiler.compileNode(element, resources, instructions, element.parentNode, 'root', true);
@@ -77,7 +77,7 @@ export class ViewEngine {
     });
   }
 
-  loadTemplateResources(viewRegistryEntry:TemplateRegistryEntry, associatedModuleId?:string, loadContext?:string[]):Promise<ResourceRegistry>{
+  loadTemplateResources(viewRegistryEntry:TemplateRegistryEntry, associatedModuleId?:string, loadContext?:string[]):Promise<ViewResources>{
     var resources = new ViewResources(this.appResources, viewRegistryEntry.id),
         dependencies = viewRegistryEntry.dependencies,
         importIds, names;
@@ -108,7 +108,7 @@ export class ViewEngine {
     });
   }
 
-  importViewResources(moduleIds:string[], names:string[], resources:ResourceRegistry, associatedModuleId?:string, loadContext?:string[]):Promise<ResourceRegistry>{
+  importViewResources(moduleIds:string[], names:string[], resources:ViewResources, associatedModuleId?:string, loadContext?:string[]):Promise<ViewResources>{
     loadContext = loadContext || [];
 
     return this.loader.loadAllModules(moduleIds).then(imports => {

@@ -4,7 +4,7 @@ import {TemplateRegistryEntry} from 'aurelia-loader';
 import {ValueConverterResource} from 'aurelia-binding';
 import {HtmlBehaviorResource} from './html-behavior';
 import {ViewStrategy,TemplateRegistryViewStrategy} from './view-strategy';
-import {ResourceRegistry} from './resource-registry';
+import {ViewResources} from './view-resources';
 import {hyphenate} from './util';
 
 export class ResourceModule {
@@ -41,7 +41,7 @@ export class ResourceModule {
     }
   }
 
-  register(registry:ResourceRegistry, name?:string){
+  register(registry:ViewResources, name?:string){
     var i, ii, resources = this.resources;
 
     if(this.mainResource){
@@ -117,7 +117,7 @@ export class ResourceDescription {
     }
   }
 
-  register(registry:ResourceRegistry, name?:string){
+  register(registry:ViewResources, name?:string){
     this.metadata.register(registry, name);
   }
 
