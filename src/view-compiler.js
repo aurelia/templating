@@ -193,7 +193,7 @@ export class ViewCompiler {
         }
       }else{ //NO BINDINGS
         if(type){ //templator or attached behavior found
-          instruction = { attrName:attrName, type:type, attributes:{} };
+          instruction = BehaviorInstruction.attribute(attrName, type);
           instruction.attributes[resources.mapAttribute(attrName)] = attrValue;
 
           if(type.liftsContent){ //template controller
@@ -281,10 +281,6 @@ export class ViewCompiler {
         elementProperty = elementInstruction.type.attributes[info.attrName];
         if(elementProperty){ //and this attribute is a custom property
           info.defaultBindingMode = elementProperty.defaultBindingMode; //set the default binding mode
-
-          if(!info.command && !info.expression){ // if there is no command or detected expression
-            info.command = elementProperty.hasOptions ? 'options' : null; //and it is an optons property, set the options command
-          }
         }
       }
 
@@ -321,7 +317,7 @@ export class ViewCompiler {
         }
       }else{ //NO BINDINGS
         if(type){ //templator or attached behavior found
-          instruction = { attrName:attrName, type:type, attributes:{} };
+          instruction = BehaviorInstruction.attribute(attrName, type);
           instruction.attributes[resources.mapAttribute(attrName)] = attrValue;
 
           if(type.liftsContent){ //template controller

@@ -2,7 +2,6 @@ import {Metadata, Origin} from 'aurelia-metadata';
 import {relativeToFile} from 'aurelia-path';
 import {TemplateRegistryEntry} from 'aurelia-loader';
 import {ViewEngine} from './view-engine';
-import {LoadContext} from './load-context';
 import {ResourceLoadContext, ViewCompileInstruction} from './instructions';
 import {createTemplateFromMarkup} from './dom';
 

@@ -2,6 +2,7 @@ import {Origin,Metadata} from 'aurelia-metadata';
 import {ViewStrategy, UseViewStrategy} from './view-strategy';
 import {ViewEngine} from './view-engine';
 import {HtmlBehaviorResource} from './html-behavior';
+import {BehaviorInstruction} from './instructions';
 
 export class CompositionEngine {
   static inject(){ return [ViewEngine]; }
@@ -68,12 +69,7 @@ export class CompositionEngine {
       }
 
       return doneLoading.then(viewFactory => {
-        return metadata.create(childContainer, {
-          executionContext:viewModel,
-          viewFactory:viewFactory,
-          suppressBind:true,
-          host:instruction.host
-        });
+        return metadata.create(childContainer, BehaviorInstruction.dynamic(instruction.host, viewModel, viewFactory));
       });
     });
   }

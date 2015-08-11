@@ -1,5 +1,5 @@
 import {ViewCompiler} from '../src/view-compiler';
-import {ViewResources, ResourceRegistry} from '../src/resource-registry';
+import {ViewResources} from '../src/view-resources';
 
 class MockBindingLanguage {
   inspectAttribute(resources, attrName, attrValue){
@@ -17,7 +17,7 @@ describe('compileNode', () => {
   beforeAll(() => {
     language = new MockBindingLanguage();
     viewCompiler = new ViewCompiler(language);
-    resources = new ViewResources(new ResourceRegistry(), 'app.html');
+    resources = new ViewResources(new ViewResources(), 'app.html');
   });
 
   it('concatenates adjacent text nodes', () => {

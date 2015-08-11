@@ -3,11 +3,11 @@ export class ResourceLoadContext {
     this.dependencies = {};
   }
 
-  addDependency(url){
+  addDependency(url:string):void{
     this.dependencies[url] = true;
   }
 
-  doesNotHaveDependency(url){
+  doesNotHaveDependency(url:string):boolean{
     return !(url in this.dependencies);
   }
 }
@@ -34,11 +34,28 @@ export class BehaviorInstruction {
   static normal = new BehaviorInstruction();
   static contentSelector = new BehaviorInstruction(true);
 
-  static element(node:Node, type:HtmlBehaviorResource){
+  static element(node:Node, type:HtmlBehaviorResource):BehaviorInstruction{
     let instruction = new BehaviorInstruction();
     instruction.type = type;
     instruction.attributes = {};
     instruction.anchorIsContainer = !(node.hasAttribute('containerless') || type.containerless);
+    return instruction;
+  }
+
+  static attribute(attrName:string, type?:HtmlBehaviorResource):BehaviorInstruction{
+    let instruction = new BehaviorInstruction();
+    instruction.attrName = attrName;
+    instruction.type = type || null;
+    instruction.attributes = {};
+    return instruction;
+  }
+
+  static dynamic(host, executionContext, viewFactory){
+    let instruction = new BehaviorInstruction();
+    instruction.host = host;
+    instruction.executionContext = executionContext;
+    instruction.viewFactory = viewFactory;
+    instruction.suppressBind = true;
     return instruction;
   }
 
@@ -56,13 +73,14 @@ export class BehaviorInstruction {
     this.host = null;
     this.attributes = null;
     this.type = null;
+    this.attrName = null;
   }
 }
 
 export class TargetInstruction {
   static noExpressions = Object.freeze([]);
 
-  static contentSelector(node:Node, parentInjectorId){
+  static contentSelector(node:Node, parentInjectorId:number):TargetInstruction{
     let instruction = new TargetInstruction();
     instruction.parentInjectorId = parentInjectorId;
     instruction.contentSelector = true;
@@ -71,13 +89,13 @@ export class TargetInstruction {
     return instruction;
   }
 
-  static contentExpression(expression){
+  static contentExpression(expression):TargetInstruction{
     let instruction = new TargetInstruction();
     instruction.contentExpression = expression;
     return instruction;
   }
 
-  static lifting(parentInjectorId, liftingInstruction){
+  static lifting(parentInjectorId:number, liftingInstruction:BehaviorInstruction):TargetInstruction{
     let instruction = new TargetInstruction();
     instruction.parentInjectorId = parentInjectorId;
     instruction.expressions = TargetInstruction.noExpressions;
@@ -87,7 +105,7 @@ export class TargetInstruction {
     return instruction;
   }
 
-  static normal(injectorId, parentInjectorId, providers, behaviorInstructions, expressions, elementInstruction){
+  static normal(injectorId, parentInjectorId, providers, behaviorInstructions, expressions, elementInstruction):TargetInstruction{
     let instruction = new TargetInstruction();
     instruction.injectorId = injectorId;
     instruction.parentInjectorId = parentInjectorId;
@@ -99,7 +117,7 @@ export class TargetInstruction {
     return instruction;
   }
 
-  static surrogate(providers, behaviorInstructions, expressions, values){
+  static surrogate(providers, behaviorInstructions, expressions, values):TargetInstruction{
     let instruction = new TargetInstruction();
     instruction.expressions = expressions;
     instruction.behaviorInstructions = behaviorInstructions;
