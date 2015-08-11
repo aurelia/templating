@@ -11,10 +11,9 @@ import {BindableProperty} from './bindable-property';
 import {BehaviorInstance} from './behavior-instance';
 import {ViewResources} from './view-resources';
 import {DOMBoundary, replaceNode, removeNode, hasShadowDOM} from './dom';
-import {ResourceLoadContext, ViewCompileInstruction} from './instructions';
+import {ResourceLoadContext, ViewCompileInstruction, BehaviorInstruction} from './instructions';
 
-var defaultInstruction = { suppressBind:false },
-    contentSelectorFactoryOptions = { suppressBind:true, enhance:false };
+var contentSelectorViewCreateInstruction = { suppressBind:true, enhance:false };
 
 function doProcessContent(){
   return true;
@@ -150,7 +149,7 @@ export class HtmlBehaviorResource {
     }
   }
 
-  compile(compiler:ViewCompiler, resources:ViewResources, node:Node, instruction:Object, parentNode?:Node):Node{
+  compile(compiler:ViewCompiler, resources:ViewResources, node:Node, instruction:BehaviorInstruction, parentNode?:Node):Node{
     if(this.liftsContent){
       if(!instruction.viewFactory){
         var template = document.createElement('template'),
@@ -219,8 +218,12 @@ export class HtmlBehaviorResource {
     return node;
   }
 
-  create(container:Container, instruction?:Object=defaultInstruction, element?:Element=null, bindings?:Binding[]=null):BehaviorInstance{
+  create(container:Container, instruction?:BehaviorInstruction, element?:Element, bindings?:Binding[]):BehaviorInstance{
     let host;
+
+    instruction = instruction || BehaviorInstruction.normal;
+    element = element || null;
+    bindings = bindings || null;
 
     if(this.elementName !== null && element){
       if(this.usesShadowDOM) {
@@ -258,7 +261,7 @@ export class HtmlBehaviorResource {
         if(behaviorInstance.view){
           if(!this.usesShadowDOM) {
             if(instruction.contentFactory){
-              var contentView = instruction.contentFactory.create(container, null, contentSelectorFactoryOptions);
+              var contentView = instruction.contentFactory.create(container, null, contentSelectorViewCreateInstruction);
 
               ContentSelector.applySelectors(
                 contentView,

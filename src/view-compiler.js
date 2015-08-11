@@ -3,6 +3,7 @@ import {ViewFactory} from './view-factory';
 import {BindingLanguage} from './binding-language';
 import {ViewCompileInstruction} from './instructions';
 import {createTemplateFromMarkup, hasShadowDOM} from './dom';
+import {BehaviorInstruction, TargetInstruction} from './instructions';
 
 let nextInjectorId = 0;
 function getNextInjectorId(){
@@ -111,7 +112,7 @@ export class ViewCompiler {
               auTargetID = makeIntoInstructionTarget(marker);
           (node.parentNode || parentNode).insertBefore(marker, node);
           node.textContent = ' ';
-          instructions[auTargetID] = { contentExpression:expression };
+          instructions[auTargetID] = TargetInstruction.contentExpression(expression);
           //remove adjacent text nodes.
           while(node.nextSibling && node.nextSibling.nodeType === 3) {
             (node.parentNode || parentNode).removeChild(node.nextSibling);
@@ -221,16 +222,7 @@ export class ViewCompiler {
         }
       }
 
-      return {
-        anchorIsContainer: false,
-        isCustomElement: false,
-        injectorId: null,
-        parentInjectorId: null,
-        expressions: expressions,
-        behaviorInstructions: behaviorInstructions,
-        providers: providers,
-        values:values
-      };
+      return TargetInstruction.surrogate(providers, behaviorInstructions, expressions, values);
     }
 
     return null;
@@ -250,12 +242,7 @@ export class ViewCompiler {
     if(tagName === 'content'){
       if(targetLightDOM){
         auTargetID = makeIntoInstructionTarget(node);
-        instructions[auTargetID] = {
-          parentInjectorId: parentInjectorId,
-          contentSelector: true,
-          selector:node.getAttribute('select'),
-          suppressBind: true
-        };
+        instructions[auTargetID] = TargetInstruction.contentSelector(node, parentInjectorId);
       }
       return node.nextSibling;
     } else if(tagName === 'template'){
@@ -264,8 +251,7 @@ export class ViewCompiler {
     } else{
       type = resources.getElement(tagName);
       if(type){
-        elementInstruction = {type:type, attributes:{}};
-        elementInstruction.anchorIsContainer = !node.hasAttribute('containerless') && !type.containerless;
+        elementInstruction = BehaviorInstruction.element(node, type);
         behaviorInstructions.push(elementInstruction);
       }
     }
@@ -357,14 +343,7 @@ export class ViewCompiler {
       liftingInstruction.viewFactory = viewFactory;
       node = liftingInstruction.type.compile(this, resources, node, liftingInstruction, parentNode);
       auTargetID = makeIntoInstructionTarget(node);
-      instructions[auTargetID] = {
-        anchorIsContainer: false,
-        parentInjectorId: parentInjectorId,
-        expressions: [],
-        behaviorInstructions: [liftingInstruction],
-        viewFactory: liftingInstruction.viewFactory,
-        providers: [liftingInstruction.type.target]
-      };
+      instructions[auTargetID] = TargetInstruction.lifting(parentInjectorId, liftingInstruction);
     }else{
       if(expressions.length || behaviorInstructions.length){
         injectorId = behaviorInstructions.length ? getNextInjectorId() : false;
@@ -383,15 +362,14 @@ export class ViewCompiler {
         }
 
         auTargetID = makeIntoInstructionTarget(node);
-        instructions[auTargetID] = {
-          anchorIsContainer: elementInstruction ? elementInstruction.anchorIsContainer : true,
-          isCustomElement: !!elementInstruction,
-          injectorId: injectorId,
-          parentInjectorId: parentInjectorId,
-          expressions: expressions,
-          behaviorInstructions: behaviorInstructions,
-          providers: providers
-        };
+        instructions[auTargetID] = TargetInstruction.normal(
+          injectorId,
+          parentInjectorId,
+          providers,
+          behaviorInstructions,
+          expressions,
+          elementInstruction
+        );
       }
 
       if(elementInstruction && elementInstruction.skipContentProcessing){
