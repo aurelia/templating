@@ -23,17 +23,33 @@ export class ViewCompileInstruction {
   }
 }
 
-export class BehaviorInstruction {
-  constructor(){
-    this.systemControlled = false;
-    this.suppressBind = false;
-    this.enhance = false;
+interface ViewCreateInstruction {
+  suppressBind?:boolean;
+  systemControlled?:boolean;
+  enhance?:boolean;
+  partReplacements?:Object;
+}
 
-    //partReplacements
+export class BehaviorInstruction {
+  static normal = new BehaviorInstruction();
+  static contentSelector = new BehaviorInstruction(true);
+
+  constructor(suppressBind?:boolean=false){
+    this.suppressBind = suppressBind;
+    this.systemControlled = false;
+    this.enhance = false;
+    this.partReplacements = null;
+
     //attributes
+
     //viewFactory
     //executionContext
     //host
+    //anchorIsContainer
+    //contentFactory
+    //skipContentProcessing
+
+    //originalAttrName
   }
 }
 

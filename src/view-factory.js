@@ -3,6 +3,7 @@ import {View} from './view';
 import {ViewSlot} from './view-slot';
 import {ContentSelector} from './content-selector';
 import {ViewResources} from './view-resources';
+import {BehaviorInstruction} from './instructions';
 
 function elementContainerGet(key){
   if(key === Element){
@@ -215,38 +216,35 @@ function applySurrogateInstruction(container, element, instruction, behaviors, b
 }
 
 export class BoundViewFactory {
-  constructor(parentContainer, viewFactory, executionContext, partReplacements){
+  constructor(parentContainer:Container, viewFactory:ViewFactory, executionContext:Object, partReplacements?:Object){
     this.parentContainer = parentContainer;
     this.viewFactory = viewFactory;
     this.executionContext = executionContext;
-    this.factoryOptions = { behaviorInstance:false, partReplacements:partReplacements };
+    this.factoryCreateInstruction = { partReplacements:partReplacements };
   }
 
-  create(executionContext){
+  create(executionContext?:Object):View{
     var childContainer = this.parentContainer.createChild(),
         context = executionContext || this.executionContext;
 
-    this.factoryOptions.systemControlled = !executionContext;
+    this.factoryCreateInstruction.systemControlled = !executionContext;
 
-    return this.viewFactory.create(childContainer, context, this.factoryOptions);
+    return this.viewFactory.create(childContainer, context, this.factoryCreateInstruction);
   }
 }
 
-var defaultFactoryOptions = {
-  systemControlled:false,
-  suppressBind:false,
-  enhance:false
-};
-
 export class ViewFactory{
-  constructor(template, instructions, resources){
+  constructor(template:DocumentFragment, instructions:Object, resources:ViewResources){
     this.template = template;
     this.instructions = instructions;
     this.resources = resources;
   }
 
-  create(container, executionContext, options=defaultFactoryOptions, element=null){
-    var fragment = options.enhance ? this.template : this.template.cloneNode(true),
+  create(container:Container, executionContext?:Object, createInstruction?:ViewCreateInstruction, element?:Element):View{
+    createInstruction = createInstruction || BehaviorInstruction.normal;
+    element = element || null;
+
+    let fragment = createInstruction.enhance ? this.template : this.template.cloneNode(true),
         instructables = fragment.querySelectorAll('.au-target'),
         instructions = this.instructions,
         resources = this.resources,
@@ -255,7 +253,7 @@ export class ViewFactory{
         children = [],
         contentSelectors = [],
         containers = { root:container },
-        partReplacements = options.partReplacements,
+        partReplacements = createInstruction.partReplacements,
         i, ii, view, instructable, instruction;
 
     if(element !== null && this.surrogateInstruction !== null){
@@ -270,10 +268,10 @@ export class ViewFactory{
         instruction, behaviors, bindings, children, contentSelectors, partReplacements, resources);
     }
 
-    view = new View(container, fragment, behaviors, bindings, children, options.systemControlled, contentSelectors);
+    view = new View(container, fragment, behaviors, bindings, children, createInstruction.systemControlled, contentSelectors);
     view.created(executionContext);
 
-    if(!options.suppressBind){
+    if(!createInstruction.suppressBind){
       view.bind(executionContext);
     }
 

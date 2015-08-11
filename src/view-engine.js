@@ -41,17 +41,10 @@ export class ViewEngine {
 
   enhance(container:Container, element:Element, resources:ViewResources, bindingContext?:Object):View{
     let instructions = {};
-
     this.viewCompiler.compileNode(element, resources, instructions, element.parentNode, 'root', true);
 
     let factory = new ViewFactory(element, instructions, resources);
-    let options = {
-      systemControlled:false,
-      suppressBind:false,
-      enhance:true
-    };
-
-    return factory.create(container, bindingContext, options);
+    return factory.create(container, bindingContext, { enhance:true });
   }
 
   loadViewFactory(urlOrRegistryEntry:string|TemplateRegistryEntry, compileInstruction?:ViewCompileInstruction, loadContext?:ResourceLoadContext):Promise<ViewFactory>{
