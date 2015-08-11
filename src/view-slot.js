@@ -1,6 +1,6 @@
 import {ContentSelector} from './content-selector';
 import {Animator} from './animator';
-import {nextElementSibling} from './util';
+import {nextElementSibling} from './dom';
 
 function getAnimatableElement(view){
   let firstChild = view.firstChild;

@@ -2,8 +2,16 @@ let needsTemplateFixup = !('content' in document.createElement('template'));
 let shadowPoly = window.ShadowDOMPolyfill || null;
 
 export let DOMBoundary = 'aurelia-dom-boundary';
+export let hasShadowDOM = !!HTMLElement.prototype.createShadowRoot;
 
-export function createTemplateFromMarkup(markup){
+export function nextElementSibling(element:Node):Element {
+  if (element.nextElementSibling){ return element.nextElementSibling; }
+  do { element = element.nextSibling }
+  while (element && element.nodeType !== 1);
+  return element;
+}
+
+export function createTemplateFromMarkup(markup:string):HTMLTemplateElement{
   let parser = document.createElement('div');
   parser.innerHTML = markup;
 
@@ -19,7 +27,7 @@ export function createTemplateFromMarkup(markup){
   return temp;
 }
 
-export function replaceNode(newNode, node, parentNode){
+export function replaceNode(newNode:Node, node:Node, parentNode:Node):void{
   if(node.parentNode){
     node.parentNode.replaceChild(newNode, node);
   }else if(shadowPoly){ //HACK: IE template element and shadow dom polyfills not quite right...
@@ -32,7 +40,7 @@ export function replaceNode(newNode, node, parentNode){
   }
 }
 
-export function removeNode(node, parentNode) {
+export function removeNode(node:Node, parentNode:Node):void {
   if(node.parentNode){
     node.parentNode.removeChild(node);
   }else if(shadowPoly){ //HACK: IE template element and shadow dom polyfills not quite right...

@@ -1,12 +1,10 @@
 import {ViewResources} from './view-resources';
 import {ViewFactory} from './view-factory';
 import {BindingLanguage} from './binding-language';
-import {createTemplateFromMarkup} from './dom';
+import {ViewCompileInstruction} from './instructions';
+import {createTemplateFromMarkup, hasShadowDOM} from './dom';
 
-var nextInjectorId = 0,
-    defaultCompileOptions = { targetShadowDOM:false },
-    hasShadowDOM = !!HTMLElement.prototype.createShadowRoot;
-
+let nextInjectorId = 0;
 function getNextInjectorId(){
   return ++nextInjectorId;
 }
@@ -54,20 +52,25 @@ function makeIntoInstructionTarget(element){
 }
 
 export class ViewCompiler {
-  static inject() { return [BindingLanguage]; }
-  constructor(bindingLanguage:BindingLanguage){
+  static inject() { return [BindingLanguage, ViewResources]; }
+  constructor(bindingLanguage:BindingLanguage, resources:ViewResources){
     this.bindingLanguage = bindingLanguage;
+    this.resources = resources;
   }
 
-  compile(source:HTMLTemplateElement|DocumentFragment|string, resources:ViewResources, options:Object=defaultCompileOptions):ViewFactory{
-    var instructions = {},
-        targetShadowDOM = options.targetShadowDOM,
-        content, part, factory;
+  compile(source:HTMLTemplateElement|DocumentFragment|string, resources?:ViewResources, compileInstruction?:ViewCompileInstruction):ViewFactory{
+    resources = resources || this.resources;
+    compileInstruction = compileInstruction || ViewCompileInstruction.normal;
+
+    let instructions = {},
+        targetShadowDOM = compileInstruction.targetShadowDOM,
+        content, part;
 
     targetShadowDOM = targetShadowDOM && hasShadowDOM;
 
-    if(options.beforeCompile){
-      options.beforeCompile(source);
+    if(compileInstruction.beforeCompile){
+      compileInstruction.beforeCompile(source);
+      console.warn('In a future release, the beforeCompile hook will be replaced by an alternate mechanism');
     }
 
     if(typeof source === 'string'){
@@ -86,8 +89,8 @@ export class ViewCompiler {
     content.insertBefore(document.createComment('<view>'), content.firstChild);
     content.appendChild(document.createComment('</view>'));
 
-    var factory = new ViewFactory(content, instructions, resources);
-    factory.surrogateInstruction = options.compileSurrogate ? this.compileSurrogate(source, resources) : null;
+    let factory = new ViewFactory(content, instructions, resources);
+    factory.surrogateInstruction = compileInstruction.compileSurrogate ? this.compileSurrogate(source, resources) : null;
 
     if(part){
       factory.part = part;

@@ -19,6 +19,7 @@ gulp.task('build-index', function(){
     'animation-event.js',
     'animator.js',
     'util.js',
+    'instructions.js',
     'view-strategy.js',
     'binding-language.js',
     'view-resources.js',

@@ -2,14 +2,16 @@ import {Metadata, Origin} from 'aurelia-metadata';
 import {relativeToFile} from 'aurelia-path';
 import {TemplateRegistryEntry} from 'aurelia-loader';
 import {ViewEngine} from './view-engine';
+import {LoadContext} from './load-context';
+import {ResourceLoadContext, ViewCompileInstruction} from './instructions';
 import {createTemplateFromMarkup} from './dom';
 
 export class ViewStrategy {
   static metadataKey:string = 'aurelia:view-strategy';
 
-  makeRelativeTo(baseUrl:string){}
+  makeRelativeTo(baseUrl:string):void{}
 
-  static normalize(value:string|ViewStrategy){
+  static normalize(value:string|ViewStrategy):ViewStrategy{
     if(typeof value === 'string'){
       value = new UseViewStrategy(value);
     }
@@ -51,15 +53,15 @@ export class UseViewStrategy extends ViewStrategy {
     this.path = path;
   }
 
-  loadViewFactory(viewEngine:ViewEngine, options:Object, loadContext?:string[]):Promise<ViewFactory>{
+  loadViewFactory(viewEngine:ViewEngine, compileInstruction:ViewCompileInstruction, loadContext?:ResourceLoadContext):Promise<ViewFactory>{
     if(!this.absolutePath && this.moduleId){
       this.absolutePath = relativeToFile(this.path, this.moduleId);
     }
 
-    return viewEngine.loadViewFactory(this.absolutePath || this.path, options, this.moduleId, loadContext);
+    return viewEngine.loadViewFactory(this.absolutePath || this.path, compileInstruction, this.moduleId, loadContext);
   }
 
-  makeRelativeTo(file:string){
+  makeRelativeTo(file:string):void{
     this.absolutePath = relativeToFile(this.path, file);
   }
 }
@@ -71,8 +73,8 @@ export class ConventionalViewStrategy extends ViewStrategy {
     this.viewUrl = ConventionalViewStrategy.convertModuleIdToViewUrl(moduleId);
   }
 
-  loadViewFactory(viewEngine:ViewEngine, options:Object, loadContext?:string[]):Promise<ViewFactory>{
-    return viewEngine.loadViewFactory(this.viewUrl, options, this.moduleId, loadContext);
+  loadViewFactory(viewEngine:ViewEngine, compileInstruction:ViewCompileInstruction, loadContext?:ResourceLoadContext):Promise<ViewFactory>{
+    return viewEngine.loadViewFactory(this.viewUrl, compileInstruction, this.moduleId, loadContext);
   }
 
   static convertModuleIdToViewUrl(moduleId:string):string{
@@ -82,7 +84,7 @@ export class ConventionalViewStrategy extends ViewStrategy {
 }
 
 export class NoViewStrategy extends ViewStrategy {
-  loadViewFactory(viewEngine:ViewEngine, options:Object, loadContext?:string[]):Promise<ViewFactory>{
+  loadViewFactory(viewEngine:ViewEngine, compileInstruction:ViewCompileInstruction, loadContext?:ResourceLoadContext):Promise<ViewFactory>{
     return Promise.resolve(null);
   }
 }
@@ -94,14 +96,14 @@ export class TemplateRegistryViewStrategy extends ViewStrategy {
     this.entry = entry;
   }
 
-  loadViewFactory(viewEngine:ViewEngine, options:Object, loadContext?:string[]):Promise<ViewFactory>{
+  loadViewFactory(viewEngine:ViewEngine, compileInstruction:ViewCompileInstruction, loadContext?:ResourceLoadContext):Promise<ViewFactory>{
     let entry = this.entry;
 
     if(entry.isReady){
       return Promise.resolve(entry.factory);
     }
 
-    return viewEngine.loadViewFactory(entry, options, this.moduleId, loadContext);
+    return viewEngine.loadViewFactory(entry, compileInstruction, this.moduleId, loadContext);
   }
 }
 
@@ -113,7 +115,7 @@ export class InlineViewStrategy extends ViewStrategy {
     this.dependencyBaseUrl = dependencyBaseUrl || '';
   }
 
-  loadViewFactory(viewEngine:ViewEngine, options:Object, loadContext?:string[]):Promise<ViewFactory>{
+  loadViewFactory(viewEngine:ViewEngine, compileInstruction:ViewCompileInstruction, loadContext?:ResourceLoadContext):Promise<ViewFactory>{
     let entry = this.entry,
         dependencies = this.dependencies;
 
@@ -136,6 +138,6 @@ export class InlineViewStrategy extends ViewStrategy {
       }
     }
 
-    return viewEngine.loadViewFactory(entry, options, this.moduleId, loadContext);
+    return viewEngine.loadViewFactory(entry, compileInstruction, this.moduleId, loadContext);
   }
 }

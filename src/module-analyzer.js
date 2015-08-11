@@ -5,6 +5,7 @@ import {ValueConverterResource} from 'aurelia-binding';
 import {HtmlBehaviorResource} from './html-behavior';
 import {ViewStrategy,TemplateRegistryViewStrategy} from './view-strategy';
 import {ViewResources} from './view-resources';
+import {ResourceLoadContext} from './instructions';
 import {hyphenate} from './util';
 
 export class ResourceModule {
@@ -55,7 +56,7 @@ export class ResourceModule {
     }
   }
 
-  load(container:Container, loadContext?:string[]):Promise<void>{
+  load(container:Container, loadContext?:ResourceLoadContext):Promise<void>{
     if(this.onLoaded){
       return this.onLoaded;
     }
@@ -121,7 +122,7 @@ export class ResourceDescription {
     this.metadata.register(registry, name);
   }
 
-  load(container:Container, loadContext?:string[]):Promise<void>|void{
+  load(container:Container, loadContext?:ResourceLoadContext):Promise<void>|void{
     let metadata = this.metadata,
         value = this.value;
 

@@ -10,11 +10,11 @@ import {hyphenate} from './util';
 import {BindableProperty} from './bindable-property';
 import {BehaviorInstance} from './behavior-instance';
 import {ViewResources} from './view-resources';
-import {DOMBoundary, replaceNode, removeNode} from './dom';
+import {DOMBoundary, replaceNode, removeNode, hasShadowDOM} from './dom';
+import {ResourceLoadContext, ViewCompileInstruction} from './instructions';
 
 var defaultInstruction = { suppressBind:false },
-    contentSelectorFactoryOptions = { suppressBind:true, enhance:false },
-    hasShadowDOM = !!HTMLElement.prototype.createShadowRoot;
+    contentSelectorFactoryOptions = { suppressBind:true, enhance:false };
 
 function doProcessContent(){
   return true;
@@ -36,7 +36,7 @@ export class HtmlBehaviorResource {
     this.attributes = {};
   }
 
-  static convention(name:string, existing?:HtmlBehaviorResource){
+  static convention(name:string, existing?:HtmlBehaviorResource):HtmlBehaviorResource{
     var behavior;
 
     if(name.endsWith('CustomAttribute')){
@@ -52,7 +52,7 @@ export class HtmlBehaviorResource {
     return behavior;
   }
 
-  addChildBinding(behavior:BindingExpression){
+  addChildBinding(behavior:BindingExpression):void{
     if(this.childBindings === null){
       this.childBindings = [];
     }
@@ -60,7 +60,7 @@ export class HtmlBehaviorResource {
     this.childBindings.push(behavior);
   }
 
-  analyze(container:Container, target:Function){
+  analyze(container:Container, target:Function):void{
     var proto = target.prototype,
         properties = this.properties,
         attributeName = this.attributeName,
@@ -117,16 +117,12 @@ export class HtmlBehaviorResource {
     }
   }
 
-  load(container:Container, target:Function, viewStrategy?:ViewStrategy, transientView?:boolean, loadContext?:string[]):Promise<HtmlBehaviorResource>{
+  load(container:Container, target:Function, viewStrategy?:ViewStrategy, transientView?:boolean, loadContext?:ResourceLoadContext):Promise<HtmlBehaviorResource>{
     var options;
 
     if(this.elementName !== null){
       viewStrategy = viewStrategy || this.viewStrategy || ViewStrategy.getDefault(target);
-      options = {
-        targetShadowDOM:this.targetShadowDOM,
-        beforeCompile:target.beforeCompile,
-        compileSurrogate:true
-      };
+      options = new ViewCompileInstruction(this.targetShadowDOM, true, target.beforeCompile);
 
       if(!viewStrategy.moduleId){
         viewStrategy.moduleId = Origin.get(target).moduleId;
@@ -144,7 +140,7 @@ export class HtmlBehaviorResource {
     return Promise.resolve(this);
   }
 
-  register(registry:ViewResources, name?:string){
+  register(registry:ViewResources, name?:string):void{
     if(this.attributeName !== null) {
       registry.registerAttribute(name || this.attributeName, this, this.attributeName);
     }
