@@ -105,7 +105,7 @@ export class ViewCompiler {
         return this.compileElement(node, resources, instructions, parentNode, parentInjectorId, targetLightDOM);
       case 3: //text node
         //use wholeText to retrieve the textContent of all adjacent text nodes.
-        var expression = this.bindingLanguage.parseText(resources, node.wholeText);
+        var expression = resources.getBindingLanguage(this.bindingLanguage).parseText(resources, node.wholeText);
         if(expression){
           let marker = document.createElement('au-marker'),
               auTargetID = makeIntoInstructionTarget(marker);
@@ -136,7 +136,7 @@ export class ViewCompiler {
 
   compileSurrogate(node, resources){
     let attributes = node.attributes,
-        bindingLanguage = this.bindingLanguage,
+        bindingLanguage = resources.getBindingLanguage(this.bindingLanguage),
         knownAttribute, property, instruction,
         i, ii, attr, attrName, attrValue, info, type,
         expressions = [], expression,
@@ -242,7 +242,7 @@ export class ViewCompiler {
         expressions = [], expression,
         behaviorInstructions = [],
         providers = [],
-        bindingLanguage = this.bindingLanguage,
+        bindingLanguage = resources.getBindingLanguage(this.bindingLanguage),
         liftingInstruction, viewFactory, type, elementInstruction,
         elementProperty, i, ii, attr, attrName, attrValue, instruction, info,
         property, knownAttribute, auTargetID, injectorId;

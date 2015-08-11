@@ -30,6 +30,11 @@ export class ViewResources {
     this.valueConverters = {};
     this.attributeMap = {};
     this.baseResourceUrl = '';
+    this.bindingLanguage = null;
+  }
+
+  getBindingLanguage(bindingLanguageFallback){
+    return this.bindingLanguage || (this.bindingLanguage = bindingLanguageFallback);
   }
 
   patchInParent(newParent:ViewResources):void{
