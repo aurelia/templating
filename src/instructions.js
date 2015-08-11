@@ -18,6 +18,7 @@ export class ViewCompileInstruction {
   constructor(targetShadowDOM?:boolean=false, compileSurrogate?:boolean=false, beforeCompile?:boolean=null){
     this.targetShadowDOM = targetShadowDOM;
     this.compileSurrogate = compileSurrogate;
+    this.associatedModuleId = null;
     this.beforeCompile = beforeCompile; //this will be replaced soon
   }
 }
@@ -28,7 +29,11 @@ export class BehaviorInstruction {
     this.suppressBind = false;
     this.enhance = false;
 
+    //partReplacements
     //attributes
+    //viewFactory
+    //executionContext
+    //host
   }
 }
 

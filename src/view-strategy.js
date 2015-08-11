@@ -58,7 +58,8 @@ export class UseViewStrategy extends ViewStrategy {
       this.absolutePath = relativeToFile(this.path, this.moduleId);
     }
 
-    return viewEngine.loadViewFactory(this.absolutePath || this.path, compileInstruction, this.moduleId, loadContext);
+    compileInstruction.associatedModuleId = this.moduleId;
+    return viewEngine.loadViewFactory(this.absolutePath || this.path, compileInstruction, loadContext);
   }
 
   makeRelativeTo(file:string):void{
@@ -74,7 +75,8 @@ export class ConventionalViewStrategy extends ViewStrategy {
   }
 
   loadViewFactory(viewEngine:ViewEngine, compileInstruction:ViewCompileInstruction, loadContext?:ResourceLoadContext):Promise<ViewFactory>{
-    return viewEngine.loadViewFactory(this.viewUrl, compileInstruction, this.moduleId, loadContext);
+    compileInstruction.associatedModuleId = this.moduleId;
+    return viewEngine.loadViewFactory(this.viewUrl, compileInstruction, loadContext);
   }
 
   static convertModuleIdToViewUrl(moduleId:string):string{
@@ -103,7 +105,8 @@ export class TemplateRegistryViewStrategy extends ViewStrategy {
       return Promise.resolve(entry.factory);
     }
 
-    return viewEngine.loadViewFactory(entry, compileInstruction, this.moduleId, loadContext);
+    compileInstruction.associatedModuleId = this.moduleId;
+    return viewEngine.loadViewFactory(entry, compileInstruction, loadContext);
   }
 }
 
@@ -138,6 +141,7 @@ export class InlineViewStrategy extends ViewStrategy {
       }
     }
 
-    return viewEngine.loadViewFactory(entry, compileInstruction, this.moduleId, loadContext);
+    compileInstruction.associatedModuleId = this.moduleId
+    return viewEngine.loadViewFactory(entry, compileInstruction, loadContext);
   }
 }

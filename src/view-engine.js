@@ -54,7 +54,7 @@ export class ViewEngine {
     return factory.create(container, bindingContext, options);
   }
 
-  loadViewFactory(urlOrRegistryEntry:string|TemplateRegistryEntry, compileOptions?:ViewCompileInstruction, associatedModuleId?:string, loadContext?:ResourceLoadContext):Promise<ViewFactory>{
+  loadViewFactory(urlOrRegistryEntry:string|TemplateRegistryEntry, compileInstruction?:ViewCompileInstruction, loadContext?:ResourceLoadContext):Promise<ViewFactory>{
     loadContext = loadContext || new ResourceLoadContext();
 
     return ensureRegistryEntry(this.loader, urlOrRegistryEntry).then(viewRegistryEntry => {
@@ -69,21 +69,23 @@ export class ViewEngine {
 
       loadContext.addDependency(urlOrRegistryEntry);
 
-      return viewRegistryEntry.onReady = this.loadTemplateResources(viewRegistryEntry, associatedModuleId, loadContext).then(resources => {
+      return viewRegistryEntry.onReady = this.loadTemplateResources(viewRegistryEntry, compileInstruction, loadContext).then(resources => {
         viewRegistryEntry.setResources(resources);
-        var viewFactory = this.viewCompiler.compile(viewRegistryEntry.template, resources, compileOptions);
+        var viewFactory = this.viewCompiler.compile(viewRegistryEntry.template, resources, compileInstruction);
         viewRegistryEntry.setFactory(viewFactory);
         return viewFactory;
       });
     });
   }
 
-  loadTemplateResources(viewRegistryEntry:TemplateRegistryEntry, associatedModuleId?:string, loadContext?:ResourceLoadContext):Promise<ViewResources>{
+  loadTemplateResources(viewRegistryEntry:TemplateRegistryEntry, compileInstruction?:ViewCompileInstruction, loadContext?:ResourceLoadContext):Promise<ViewResources>{
     var resources = new ViewResources(this.appResources, viewRegistryEntry.id),
         dependencies = viewRegistryEntry.dependencies,
         importIds, names;
 
-    if(dependencies.length === 0 && !associatedModuleId){
+    compileInstruction = compileInstruction || ViewCompileInstruction.normal;
+
+    if(dependencies.length === 0 && !compileInstruction.associatedModuleId){
       return Promise.resolve(resources);
     }
 
@@ -91,7 +93,7 @@ export class ViewEngine {
     names = dependencies.map(x => x.name);
     logger.debug(`importing resources for ${viewRegistryEntry.id}`, importIds);
 
-    return this.importViewResources(importIds, names, resources, associatedModuleId, loadContext);
+    return this.importViewResources(importIds, names, resources, compileInstruction, loadContext);
   }
 
   importViewModelResource(moduleImport:string, moduleMember:string):Promise<ResourceDescription>{
@@ -109,8 +111,9 @@ export class ViewEngine {
     });
   }
 
-  importViewResources(moduleIds:string[], names:string[], resources:ViewResources, associatedModuleId?:string, loadContext?:ResourceLoadContext):Promise<ViewResources>{
+  importViewResources(moduleIds:string[], names:string[], resources:ViewResources, compileInstruction?:ViewCompileInstruction, loadContext?:ResourceLoadContext):Promise<ViewResources>{
     loadContext = loadContext || new ResourceLoadContext();
+    compileInstruction = compileInstruction || ViewCompileInstruction.normal;
 
     return this.loader.loadAllModules(moduleIds).then(imports => {
       var i, ii, analysis, normalizedId, current, associatedModule,
@@ -132,8 +135,8 @@ export class ViewEngine {
         allAnalysis[i] = analysis;
       }
 
-      if(associatedModuleId){
-        associatedModule = moduleAnalyzer.getAnalysis(associatedModuleId);
+      if(compileInstruction.associatedModuleId){
+        associatedModule = moduleAnalyzer.getAnalysis(compileInstruction.associatedModuleId);
 
         if(associatedModule){
           associatedModule.register(resources);
