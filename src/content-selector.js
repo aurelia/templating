@@ -1,4 +1,4 @@
-import core from 'core-js';
+import * as core from 'core-js';
 
 if (Element && !Element.prototype.matches) {
     var proto = Element.prototype;

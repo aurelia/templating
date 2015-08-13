@@ -1,4 +1,4 @@
-import core from 'core-js';
+import * as core from 'core-js';
 import {hyphenate} from './util';
 import {bindingMode} from 'aurelia-binding';
 
