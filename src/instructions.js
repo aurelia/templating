@@ -113,7 +113,7 @@ export class TargetInstruction {
     instruction.behaviorInstructions = behaviorInstructions;
     instruction.expressions = expressions;
     instruction.anchorIsContainer = elementInstruction ? elementInstruction.anchorIsContainer : true;
-    instruction.isCustomElement = !!elementInstruction;
+    instruction.elementInstruction = elementInstruction;
     return instruction;
   }
 
@@ -127,18 +127,24 @@ export class TargetInstruction {
   }
 
   constructor(){
+    this.injectorId = null;
     this.parentInjectorId = null;
+
     this.contentSelector = false;
     this.selector = null;
     this.suppressBind = false;
+
     this.contentExpression = null;
-    this.anchorIsContainer = false;
+
     this.expressions = null;
     this.behaviorInstructions = null;
     this.providers = null;
+
     this.viewFactory = null;
-    this.isCustomElement = false;
-    this.injectorId = null;
+
+    this.anchorIsContainer = false;
+    this.elementInstruction = null;
+
     this.values = null;
   }
 }

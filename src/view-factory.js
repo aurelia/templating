@@ -3,7 +3,7 @@ import {View} from './view';
 import {ViewSlot} from './view-slot';
 import {ContentSelector} from './content-selector';
 import {ViewResources} from './view-resources';
-import {BehaviorInstruction} from './instructions';
+import {BehaviorInstruction, TargetInstruction} from './instructions';
 
 function elementContainerGet(key){
   if(key === Element){
@@ -38,6 +38,10 @@ function elementContainerGet(key){
     return this.viewResources;
   }
 
+  if(key === TargetInstruction){
+    return this.instruction;
+  }
+
   return this.superGet(key);
 }
 
@@ -66,10 +70,10 @@ function createElementContainer(parent, element, instruction, executionContext, 
   return container;
 }
 
-function makeElementIntoAnchor(element, isCustomElement){
+function makeElementIntoAnchor(element, elementInstruction){
   var anchor = document.createComment('anchor');
 
-  if(isCustomElement){
+  if(elementInstruction){
     anchor.hasAttribute = function(name) { return element.hasAttribute(name); };
     anchor.getAttribute = function(name){ return element.getAttribute(name); };
     anchor.setAttribute = function(name, value) { element.setAttribute(name, value); };
@@ -101,7 +105,7 @@ function applyInstructions(containers, executionContext, element, instruction,
 
   if(behaviorInstructions.length){
     if(!instruction.anchorIsContainer){
-      element = makeElementIntoAnchor(element, instruction.isCustomElement);
+      element = makeElementIntoAnchor(element, instruction.elementInstruction);
     }
 
     containers[instruction.injectorId] = elementContainer =
