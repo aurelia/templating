@@ -214,7 +214,6 @@ export class HtmlBehaviorResource {
       }
     }
 
-    instruction.suppressBind = true;
     return node;
   }
 
@@ -319,6 +318,10 @@ export class HtmlBehaviorResource {
       if(!(this.htmlName in element)){
         element[this.htmlName] = behaviorInstance;
       }
+    }
+
+    if(instruction.initiatedByBehavior && viewFactory){
+      behaviorInstance.view.created();
     }
 
     return behaviorInstance;

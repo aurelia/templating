@@ -273,8 +273,13 @@ export class ViewFactory{
     }
 
     view = new View(container, fragment, behaviors, bindings, children, createInstruction.systemControlled, contentSelectors);
-    view.created(executionContext);
 
+    //if iniated by an element behavior, let the behavior trigger this callback once it's done creating the element
+    if(!createInstruction.initiatedByBehavior){
+      view.created();
+    }
+
+    //if the view creation is part of a larger creation, wait to bind until the root view initiates binding
     if(!createInstruction.suppressBind){
       view.bind(executionContext);
     }

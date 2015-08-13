@@ -28,6 +28,7 @@ interface ViewCreateInstruction {
   systemControlled?:boolean;
   enhance?:boolean;
   partReplacements?:Object;
+  initiatedByBehavior?:boolean;
 }
 
 export class BehaviorInstruction {
@@ -35,15 +36,16 @@ export class BehaviorInstruction {
   static contentSelector = new BehaviorInstruction(true);
 
   static element(node:Node, type:HtmlBehaviorResource):BehaviorInstruction{
-    let instruction = new BehaviorInstruction();
+    let instruction = new BehaviorInstruction(true);
     instruction.type = type;
     instruction.attributes = {};
     instruction.anchorIsContainer = !(node.hasAttribute('containerless') || type.containerless);
+    instruction.initiatedByBehavior = true;
     return instruction;
   }
 
   static attribute(attrName:string, type?:HtmlBehaviorResource):BehaviorInstruction{
-    let instruction = new BehaviorInstruction();
+    let instruction = new BehaviorInstruction(true);
     instruction.attrName = attrName;
     instruction.type = type || null;
     instruction.attributes = {};
@@ -51,16 +53,16 @@ export class BehaviorInstruction {
   }
 
   static dynamic(host, executionContext, viewFactory){
-    let instruction = new BehaviorInstruction();
+    let instruction = new BehaviorInstruction(true);
     instruction.host = host;
     instruction.executionContext = executionContext;
     instruction.viewFactory = viewFactory;
-    instruction.suppressBind = true;
     return instruction;
   }
 
   constructor(suppressBind?:boolean=false){
     this.suppressBind = suppressBind;
+    this.initiatedByBehavior = false;
     this.systemControlled = false;
     this.enhance = false;
     this.partReplacements = null;

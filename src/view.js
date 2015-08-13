@@ -16,10 +16,10 @@ export class View {
     this.isAttached = false;
   }
 
-  created(executionContext){
+  created(){
     var i, ii, behaviors = this.behaviors;
     for(i = 0, ii = behaviors.length; i < ii; ++i){
-      behaviors[i].created(executionContext);
+      behaviors[i].created(this);
     }
   }
 
