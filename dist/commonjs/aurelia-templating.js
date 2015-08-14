@@ -1516,9 +1516,7 @@ function applySurrogateInstruction(container, element, instruction, behaviors, b
 
     if (currentAttributeValue) {
       if (key === 'class') {
-        if (currentAttributeValue !== 'au-target') {
-          element.setAttribute('class', currentAttributeValue + ' ' + values[key]);
-        }
+        element.setAttribute('class', currentAttributeValue + ' ' + values[key]);
       } else if (key === 'style') {
         var styleObject = styleStringToObject(values[key]);
         styleStringToObject(currentAttributeValue, styleObject);

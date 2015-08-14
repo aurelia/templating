@@ -1,3 +1,11 @@
+### 0.14.3 (2015-08-14)
+
+
+#### Bug Fixes
+
+* **view-factory:** always merge classes from surrogate ([e0e00c06](http://github.com/aurelia/templating/commit/e0e00c0683b2b82862596fa6dcee84dbf4282f06), closes [#147](http://github.com/aurelia/templating/issues/147))
+
+
 ### 0.14.2 (2015-08-14)
 
 

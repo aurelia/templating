@@ -1495,9 +1495,7 @@ define(['exports', 'core-js', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pa
 
       if (currentAttributeValue) {
         if (key === 'class') {
-          if (currentAttributeValue !== 'au-target') {
-            element.setAttribute('class', currentAttributeValue + ' ' + values[key]);
-          }
+          element.setAttribute('class', currentAttributeValue + ' ' + values[key]);
         } else if (key === 'style') {
           var styleObject = styleStringToObject(values[key]);
           styleStringToObject(currentAttributeValue, styleObject);
