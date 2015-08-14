@@ -181,10 +181,8 @@ function applySurrogateInstruction(container, element, instruction, behaviors, b
 
     if(currentAttributeValue){
       if(key === 'class'){
-        if(currentAttributeValue !== 'au-target'){
-          //merge the surrogate classes
-          element.setAttribute('class', currentAttributeValue + ' ' + values[key]);
-        }
+        //merge the surrogate classes
+        element.setAttribute('class', currentAttributeValue + ' ' + values[key]);
       }else if(key === 'style'){
         //merge the surrogate styles
         let styleObject = styleStringToObject(values[key]);
