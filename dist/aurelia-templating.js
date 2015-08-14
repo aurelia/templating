@@ -1,19 +1,30 @@
-import core from 'core-js';
+import * as core from 'core-js';
+import * as LogManager from 'aurelia-logging';
 import {Metadata,Origin,Decorators} from 'aurelia-metadata';
 import {relativeToFile} from 'aurelia-path';
 import {TemplateRegistryEntry,Loader} from 'aurelia-loader';
+import {ValueConverter,bindingMode,ObserverLocator,BindingExpression,Binding,ValueConverterResource,EventManager} from 'aurelia-binding';
 import {Container} from 'aurelia-dependency-injection';
-import {bindingMode,ObserverLocator,BindingExpression,Binding,ValueConverterResource,EventManager} from 'aurelia-binding';
 import {TaskQueue} from 'aurelia-task-queue';
 
 let needsTemplateFixup = !('content' in document.createElement('template'));
 let shadowPoly = window.ShadowDOMPolyfill || null;
 
 export let DOMBoundary = 'aurelia-dom-boundary';
+export let hasShadowDOM = !!HTMLElement.prototype.createShadowRoot;
 
-export function createTemplateFromMarkup(markup){
-  let temp = document.createElement('template');
-  temp.innerHTML = markup;
+export function nextElementSibling(element:Node):Element {
+  if (element.nextElementSibling){ return element.nextElementSibling; }
+  do { element = element.nextSibling }
+  while (element && element.nodeType !== 1);
+  return element;
+}
+
+export function createTemplateFromMarkup(markup:string):HTMLTemplateElement{
+  let parser = document.createElement('div');
+  parser.innerHTML = markup;
+
+  let temp = parser.firstChild;
 
   if(needsTemplateFixup){
     temp.content = document.createDocumentFragment();
@@ -25,7 +36,7 @@ export function createTemplateFromMarkup(markup){
   return temp;
 }
 
-export function replaceNode(newNode, node, parentNode){
+export function replaceNode(newNode:Node, node:Node, parentNode:Node):void{
   if(node.parentNode){
     node.parentNode.replaceChild(newNode, node);
   }else if(shadowPoly){ //HACK: IE template element and shadow dom polyfills not quite right...
@@ -38,7 +49,7 @@ export function replaceNode(newNode, node, parentNode){
   }
 }
 
-export function removeNode(node, parentNode) {
+export function removeNode(node:Node, parentNode:Node):void {
   if(node.parentNode){
     node.parentNode.removeChild(node);
   }else if(shadowPoly){ //HACK: IE template element and shadow dom polyfills not quite right...
@@ -189,19 +200,165 @@ export function hyphenate(name){
   return (name.charAt(0).toLowerCase() + name.slice(1)).replace(capitalMatcher, addHyphenAndLower);
 }
 
-export function nextElementSibling(element) {
-  if (element.nextElementSibling){ return element.nextElementSibling; }
-  do { element = element.nextSibling }
-  while (element && element.nodeType !== 1);
-  return element;
+export class ResourceLoadContext {
+  constructor(){
+    this.dependencies = {};
+  }
+
+  addDependency(url:string):void{
+    this.dependencies[url] = true;
+  }
+
+  doesNotHaveDependency(url:string):boolean{
+    return !(url in this.dependencies);
+  }
+}
+
+export class ViewCompileInstruction {
+  static normal = new ViewCompileInstruction();
+
+  constructor(targetShadowDOM?:boolean=false, compileSurrogate?:boolean=false, beforeCompile?:boolean=null){
+    this.targetShadowDOM = targetShadowDOM;
+    this.compileSurrogate = compileSurrogate;
+    this.associatedModuleId = null;
+    this.beforeCompile = beforeCompile; //this will be replaced soon
+  }
+}
+
+interface ViewCreateInstruction {
+  suppressBind?:boolean;
+  systemControlled?:boolean;
+  enhance?:boolean;
+  partReplacements?:Object;
+  initiatedByBehavior?:boolean;
+}
+
+export class BehaviorInstruction {
+  static normal = new BehaviorInstruction();
+  static contentSelector = new BehaviorInstruction(true);
+
+  static element(node:Node, type:HtmlBehaviorResource):BehaviorInstruction{
+    let instruction = new BehaviorInstruction(true);
+    instruction.type = type;
+    instruction.attributes = {};
+    instruction.anchorIsContainer = !(node.hasAttribute('containerless') || type.containerless);
+    instruction.initiatedByBehavior = true;
+    return instruction;
+  }
+
+  static attribute(attrName:string, type?:HtmlBehaviorResource):BehaviorInstruction{
+    let instruction = new BehaviorInstruction(true);
+    instruction.attrName = attrName;
+    instruction.type = type || null;
+    instruction.attributes = {};
+    return instruction;
+  }
+
+  static dynamic(host, executionContext, viewFactory){
+    let instruction = new BehaviorInstruction(true);
+    instruction.host = host;
+    instruction.executionContext = executionContext;
+    instruction.viewFactory = viewFactory;
+    return instruction;
+  }
+
+  constructor(suppressBind?:boolean=false){
+    this.suppressBind = suppressBind;
+    this.initiatedByBehavior = false;
+    this.systemControlled = false;
+    this.enhance = false;
+    this.partReplacements = null;
+    this.viewFactory = null;
+    this.originalAttrName = null;
+    this.skipContentProcessing = false;
+    this.contentFactory = null;
+    this.executionContext = null;
+    this.anchorIsContainer = false;
+    this.host = null;
+    this.attributes = null;
+    this.type = null;
+    this.attrName = null;
+  }
+}
+
+export class TargetInstruction {
+  static noExpressions = Object.freeze([]);
+
+  static contentSelector(node:Node, parentInjectorId:number):TargetInstruction{
+    let instruction = new TargetInstruction();
+    instruction.parentInjectorId = parentInjectorId;
+    instruction.contentSelector = true;
+    instruction.selector = node.getAttribute('select');
+    instruction.suppressBind = true
+    return instruction;
+  }
+
+  static contentExpression(expression):TargetInstruction{
+    let instruction = new TargetInstruction();
+    instruction.contentExpression = expression;
+    return instruction;
+  }
+
+  static lifting(parentInjectorId:number, liftingInstruction:BehaviorInstruction):TargetInstruction{
+    let instruction = new TargetInstruction();
+    instruction.parentInjectorId = parentInjectorId;
+    instruction.expressions = TargetInstruction.noExpressions;
+    instruction.behaviorInstructions = [liftingInstruction];
+    instruction.viewFactory = liftingInstruction.viewFactory;
+    instruction.providers = [liftingInstruction.type.target];
+    return instruction;
+  }
+
+  static normal(injectorId, parentInjectorId, providers, behaviorInstructions, expressions, elementInstruction):TargetInstruction{
+    let instruction = new TargetInstruction();
+    instruction.injectorId = injectorId;
+    instruction.parentInjectorId = parentInjectorId;
+    instruction.providers = providers;
+    instruction.behaviorInstructions = behaviorInstructions;
+    instruction.expressions = expressions;
+    instruction.anchorIsContainer = elementInstruction ? elementInstruction.anchorIsContainer : true;
+    instruction.elementInstruction = elementInstruction;
+    return instruction;
+  }
+
+  static surrogate(providers, behaviorInstructions, expressions, values):TargetInstruction{
+    let instruction = new TargetInstruction();
+    instruction.expressions = expressions;
+    instruction.behaviorInstructions = behaviorInstructions;
+    instruction.providers = providers;
+    instruction.values = values;
+    return instruction;
+  }
+
+  constructor(){
+    this.injectorId = null;
+    this.parentInjectorId = null;
+
+    this.contentSelector = false;
+    this.selector = null;
+    this.suppressBind = false;
+
+    this.contentExpression = null;
+
+    this.expressions = null;
+    this.behaviorInstructions = null;
+    this.providers = null;
+
+    this.viewFactory = null;
+
+    this.anchorIsContainer = false;
+    this.elementInstruction = null;
+
+    this.values = null;
+  }
 }
 
 export class ViewStrategy {
   static metadataKey:string = 'aurelia:view-strategy';
 
-  makeRelativeTo(baseUrl:string){}
+  makeRelativeTo(baseUrl:string):void{}
 
-  static normalize(value:string|ViewStrategy){
+  static normalize(value:string|ViewStrategy):ViewStrategy{
     if(typeof value === 'string'){
       value = new UseViewStrategy(value);
     }
@@ -243,15 +400,16 @@ export class UseViewStrategy extends ViewStrategy {
     this.path = path;
   }
 
-  loadViewFactory(viewEngine:ViewEngine, options:Object, loadContext?:string[]):Promise<ViewFactory>{
+  loadViewFactory(viewEngine:ViewEngine, compileInstruction:ViewCompileInstruction, loadContext?:ResourceLoadContext):Promise<ViewFactory>{
     if(!this.absolutePath && this.moduleId){
       this.absolutePath = relativeToFile(this.path, this.moduleId);
     }
 
-    return viewEngine.loadViewFactory(this.absolutePath || this.path, options, this.moduleId, loadContext);
+    compileInstruction.associatedModuleId = this.moduleId;
+    return viewEngine.loadViewFactory(this.absolutePath || this.path, compileInstruction, loadContext);
   }
 
-  makeRelativeTo(file:string){
+  makeRelativeTo(file:string):void{
     this.absolutePath = relativeToFile(this.path, file);
   }
 }
@@ -263,8 +421,9 @@ export class ConventionalViewStrategy extends ViewStrategy {
     this.viewUrl = ConventionalViewStrategy.convertModuleIdToViewUrl(moduleId);
   }
 
-  loadViewFactory(viewEngine:ViewEngine, options:Object, loadContext?:string[]):Promise<ViewFactory>{
-    return viewEngine.loadViewFactory(this.viewUrl, options, this.moduleId, loadContext);
+  loadViewFactory(viewEngine:ViewEngine, compileInstruction:ViewCompileInstruction, loadContext?:ResourceLoadContext):Promise<ViewFactory>{
+    compileInstruction.associatedModuleId = this.moduleId;
+    return viewEngine.loadViewFactory(this.viewUrl, compileInstruction, loadContext);
   }
 
   static convertModuleIdToViewUrl(moduleId:string):string{
@@ -274,7 +433,7 @@ export class ConventionalViewStrategy extends ViewStrategy {
 }
 
 export class NoViewStrategy extends ViewStrategy {
-  loadViewFactory(viewEngine:ViewEngine, options:Object, loadContext?:string[]):Promise<ViewFactory>{
+  loadViewFactory(viewEngine:ViewEngine, compileInstruction:ViewCompileInstruction, loadContext?:ResourceLoadContext):Promise<ViewFactory>{
     return Promise.resolve(null);
   }
 }
@@ -286,14 +445,15 @@ export class TemplateRegistryViewStrategy extends ViewStrategy {
     this.entry = entry;
   }
 
-  loadViewFactory(viewEngine:ViewEngine, options:Object, loadContext?:string[]):Promise<ViewFactory>{
+  loadViewFactory(viewEngine:ViewEngine, compileInstruction:ViewCompileInstruction, loadContext?:ResourceLoadContext):Promise<ViewFactory>{
     let entry = this.entry;
 
     if(entry.isReady){
       return Promise.resolve(entry.factory);
     }
 
-    return viewEngine.loadViewFactory(entry, options, this.moduleId, loadContext);
+    compileInstruction.associatedModuleId = this.moduleId;
+    return viewEngine.loadViewFactory(entry, compileInstruction, loadContext);
   }
 }
 
@@ -305,7 +465,7 @@ export class InlineViewStrategy extends ViewStrategy {
     this.dependencyBaseUrl = dependencyBaseUrl || '';
   }
 
-  loadViewFactory(viewEngine:ViewEngine, options:Object, loadContext?:string[]):Promise<ViewFactory>{
+  loadViewFactory(viewEngine:ViewEngine, compileInstruction:ViewCompileInstruction, loadContext?:ResourceLoadContext):Promise<ViewFactory>{
     let entry = this.entry,
         dependencies = this.dependencies;
 
@@ -328,7 +488,8 @@ export class InlineViewStrategy extends ViewStrategy {
       }
     }
 
-    return viewEngine.loadViewFactory(entry, options, this.moduleId, loadContext);
+    compileInstruction.associatedModuleId = this.moduleId
+    return viewEngine.loadViewFactory(entry, compileInstruction, loadContext);
   }
 }
 
@@ -352,7 +513,7 @@ function register(lookup, name, resource, type){
 
   var existing = lookup[name];
   if(existing){
-    if(existing != resource) {
+    if(existing !== resource) {
       throw new Error(`Attempted to register ${type} when one with the same name already exists. Name: ${name}.`);
     }
 
@@ -362,67 +523,67 @@ function register(lookup, name, resource, type){
   lookup[name] = resource;
 }
 
-export class ResourceRegistry {
-  constructor(){
+export class ViewResources {
+  constructor(parent?:ViewResources, viewUrl?:string){
+    this.parent = parent || null;
+    this.hasParent = this.parent !== null;
+    this.viewUrl = viewUrl || '';
+    this.valueConverterLookupFunction = this.getValueConverter.bind(this);
     this.attributes = {};
     this.elements = {};
     this.valueConverters = {};
     this.attributeMap = {};
     this.baseResourceUrl = '';
+    this.bindingLanguage = null;
   }
 
-  registerElement(tagName, behavior){
+  getBindingLanguage(bindingLanguageFallback){
+    return this.bindingLanguage || (this.bindingLanguage = bindingLanguageFallback);
+  }
+
+  patchInParent(newParent:ViewResources):void{
+    let originalParent = this.parent;
+
+    this.parent = newParent || null;
+    this.hasParent = this.parent !== null;
+
+    if(newParent.parent === null){
+      newParent.parent = originalParent;
+      newParent.hasParent = originalParent !== null;
+    }
+  }
+
+  relativeToView(path:string):string{
+    return relativeToFile(path, this.viewUrl);
+  }
+
+  registerElement(tagName:string, behavior:HtmlBehaviorResource):void{
     register(this.elements, tagName, behavior, 'an Element');
   }
 
-  getElement(tagName){
-    return this.elements[tagName];
+  getElement(tagName:string):HtmlBehaviorResource{
+    return this.elements[tagName] || (this.hasParent ? this.parent.getElement(tagName) : null);
   }
 
-  registerAttribute(attribute, behavior, knownAttribute){
+  mapAttribute(attribute:string):string{
+    return this.attributeMap[attribute] || (this.hasParent ? this.parent.mapAttribute(attribute) : null);
+  }
+
+  registerAttribute(attribute:string, behavior:HtmlBehaviorResource, knownAttribute:string):void{
     this.attributeMap[attribute] = knownAttribute;
     register(this.attributes, attribute, behavior, 'an Attribute');
   }
 
-  getAttribute(attribute){
-    return this.attributes[attribute];
+  getAttribute(attribute:string):HtmlBehaviorResource{
+    return this.attributes[attribute] || (this.hasParent ? this.parent.getAttribute(attribute) : null);
   }
 
-  registerValueConverter(name, valueConverter){
+  registerValueConverter(name:string, valueConverter:ValueConverter):void{
     register(this.valueConverters, name, valueConverter, 'a ValueConverter');
   }
 
-  getValueConverter(name){
-    return this.valueConverters[name];
-  }
-}
-
-export class ViewResources extends ResourceRegistry {
-  constructor(parent, viewUrl){
-    super();
-    this.parent = parent;
-    this.viewUrl = viewUrl;
-    this.valueConverterLookupFunction = this.getValueConverter.bind(this);
-  }
-
-  relativeToView(path){
-    return relativeToFile(path, this.viewUrl);
-  }
-
-  getElement(tagName){
-    return this.elements[tagName] || this.parent.getElement(tagName);
-  }
-
-  mapAttribute(attribute){
-    return this.attributeMap[attribute] || this.parent.attributeMap[attribute];
-  }
-
-  getAttribute(attribute){
-    return this.attributes[attribute] || this.parent.getAttribute(attribute);
-  }
-
-  getValueConverter(name){
-    return this.valueConverters[name] ||  this.parent.getValueConverter(name);
+  getValueConverter(name:string):ValueConverter{
+    return this.valueConverters[name] || (this.hasParent ? this.parent.getValueConverter(name) : null);
   }
 }
 
@@ -444,10 +605,10 @@ export class View {
     this.isAttached = false;
   }
 
-  created(executionContext){
+  created(){
     var i, ii, behaviors = this.behaviors;
     for(i = 0, ii = behaviors.length; i < ii; ++i){
-      behaviors[i].created(executionContext);
+      behaviors[i].created(this);
     }
   }
 
@@ -1067,6 +1228,10 @@ function elementContainerGet(key){
     return this.viewResources;
   }
 
+  if(key === TargetInstruction){
+    return this.instruction;
+  }
+
   return this.superGet(key);
 }
 
@@ -1095,10 +1260,10 @@ function createElementContainer(parent, element, instruction, executionContext, 
   return container;
 }
 
-function makeElementIntoAnchor(element, isCustomElement){
+function makeElementIntoAnchor(element, elementInstruction){
   var anchor = document.createComment('anchor');
 
-  if(isCustomElement){
+  if(elementInstruction){
     anchor.hasAttribute = function(name) { return element.hasAttribute(name); };
     anchor.getAttribute = function(name){ return element.getAttribute(name); };
     anchor.setAttribute = function(name, value) { element.setAttribute(name, value); };
@@ -1130,7 +1295,7 @@ function applyInstructions(containers, executionContext, element, instruction,
 
   if(behaviorInstructions.length){
     if(!instruction.anchorIsContainer){
-      element = makeElementIntoAnchor(element, instruction.isCustomElement);
+      element = makeElementIntoAnchor(element, instruction.elementInstruction);
     }
 
     containers[instruction.injectorId] = elementContainer =
@@ -1245,38 +1410,35 @@ function applySurrogateInstruction(container, element, instruction, behaviors, b
 }
 
 export class BoundViewFactory {
-  constructor(parentContainer, viewFactory, executionContext, partReplacements){
+  constructor(parentContainer:Container, viewFactory:ViewFactory, executionContext:Object, partReplacements?:Object){
     this.parentContainer = parentContainer;
     this.viewFactory = viewFactory;
     this.executionContext = executionContext;
-    this.factoryOptions = { behaviorInstance:false, partReplacements:partReplacements };
+    this.factoryCreateInstruction = { partReplacements:partReplacements };
   }
 
-  create(executionContext){
+  create(executionContext?:Object):View{
     var childContainer = this.parentContainer.createChild(),
         context = executionContext || this.executionContext;
 
-    this.factoryOptions.systemControlled = !executionContext;
+    this.factoryCreateInstruction.systemControlled = !executionContext;
 
-    return this.viewFactory.create(childContainer, context, this.factoryOptions);
+    return this.viewFactory.create(childContainer, context, this.factoryCreateInstruction);
   }
 }
 
-var defaultFactoryOptions = {
-  systemControlled:false,
-  suppressBind:false,
-  enhance:false
-};
-
 export class ViewFactory{
-  constructor(template, instructions, resources){
+  constructor(template:DocumentFragment, instructions:Object, resources:ViewResources){
     this.template = template;
     this.instructions = instructions;
     this.resources = resources;
   }
 
-  create(container, executionContext, options=defaultFactoryOptions, element=null){
-    var fragment = options.enhance ? this.template : this.template.cloneNode(true),
+  create(container:Container, executionContext?:Object, createInstruction?:ViewCreateInstruction, element?:Element):View{
+    createInstruction = createInstruction || BehaviorInstruction.normal;
+    element = element || null;
+
+    let fragment = createInstruction.enhance ? this.template : this.template.cloneNode(true),
         instructables = fragment.querySelectorAll('.au-target'),
         instructions = this.instructions,
         resources = this.resources,
@@ -1285,7 +1447,7 @@ export class ViewFactory{
         children = [],
         contentSelectors = [],
         containers = { root:container },
-        partReplacements = options.partReplacements,
+        partReplacements = createInstruction.partReplacements,
         i, ii, view, instructable, instruction;
 
     if(element !== null && this.surrogateInstruction !== null){
@@ -1300,10 +1462,15 @@ export class ViewFactory{
         instruction, behaviors, bindings, children, contentSelectors, partReplacements, resources);
     }
 
-    view = new View(container, fragment, behaviors, bindings, children, options.systemControlled, contentSelectors);
-    view.created(executionContext);
+    view = new View(container, fragment, behaviors, bindings, children, createInstruction.systemControlled, contentSelectors);
 
-    if(!options.suppressBind){
+    //if iniated by an element behavior, let the behavior trigger this callback once it's done creating the element
+    if(!createInstruction.initiatedByBehavior){
+      view.created();
+    }
+
+    //if the view creation is part of a larger creation, wait to bind until the root view initiates binding
+    if(!createInstruction.suppressBind){
       view.bind(executionContext);
     }
 
@@ -1311,10 +1478,7 @@ export class ViewFactory{
   }
 }
 
-var nextInjectorId = 0,
-    defaultCompileOptions = { targetShadowDOM:false },
-    hasShadowDOM = !!HTMLElement.prototype.createShadowRoot;
-
+let nextInjectorId = 0;
 function getNextInjectorId(){
   return ++nextInjectorId;
 }
@@ -1362,40 +1526,45 @@ function makeIntoInstructionTarget(element){
 }
 
 export class ViewCompiler {
-  static inject() { return [BindingLanguage]; }
-  constructor(bindingLanguage){
+  static inject() { return [BindingLanguage, ViewResources]; }
+  constructor(bindingLanguage:BindingLanguage, resources:ViewResources){
     this.bindingLanguage = bindingLanguage;
+    this.resources = resources;
   }
 
-  compile(templateOrFragment, resources, options=defaultCompileOptions){
-    var instructions = {},
-        targetShadowDOM = options.targetShadowDOM,
-        content, part, factory;
+  compile(source:HTMLTemplateElement|DocumentFragment|string, resources?:ViewResources, compileInstruction?:ViewCompileInstruction):ViewFactory{
+    resources = resources || this.resources;
+    compileInstruction = compileInstruction || ViewCompileInstruction.normal;
+
+    let instructions = {},
+        targetShadowDOM = compileInstruction.targetShadowDOM,
+        content, part;
 
     targetShadowDOM = targetShadowDOM && hasShadowDOM;
 
-    if(options.beforeCompile){
-      options.beforeCompile(templateOrFragment);
+    if(compileInstruction.beforeCompile){
+      compileInstruction.beforeCompile(source);
+      console.warn('In a future release, the beforeCompile hook will be replaced by an alternate mechanism');
     }
 
-    if(typeof templateOrFragment === 'string'){
-      templateOrFragment = createTemplateFromMarkup(templateOrFragment);
+    if(typeof source === 'string'){
+      source = createTemplateFromMarkup(source);
     }
 
-    if(templateOrFragment.content){
-      part = templateOrFragment.getAttribute('part');
-      content = document.adoptNode(templateOrFragment.content, true);
+    if(source.content){
+      part = source.getAttribute('part');
+      content = document.adoptNode(source.content, true);
     }else{
-      content = templateOrFragment;
+      content = source;
     }
 
-    this.compileNode(content, resources, instructions, templateOrFragment, 'root', !targetShadowDOM);
+    this.compileNode(content, resources, instructions, source, 'root', !targetShadowDOM);
 
     content.insertBefore(document.createComment('<view>'), content.firstChild);
     content.appendChild(document.createComment('</view>'));
 
-    var factory = new ViewFactory(content, instructions, resources);
-    factory.surrogateInstruction = options.compileSurrogate ? this.compileSurrogate(templateOrFragment, resources) : null;
+    let factory = new ViewFactory(content, instructions, resources);
+    factory.surrogateInstruction = compileInstruction.compileSurrogate ? this.compileSurrogate(source, resources) : null;
 
     if(part){
       factory.part = part;
@@ -1410,13 +1579,13 @@ export class ViewCompiler {
         return this.compileElement(node, resources, instructions, parentNode, parentInjectorId, targetLightDOM);
       case 3: //text node
         //use wholeText to retrieve the textContent of all adjacent text nodes.
-        var expression = this.bindingLanguage.parseText(resources, node.wholeText);
+        var expression = resources.getBindingLanguage(this.bindingLanguage).parseText(resources, node.wholeText);
         if(expression){
           let marker = document.createElement('au-marker'),
               auTargetID = makeIntoInstructionTarget(marker);
           (node.parentNode || parentNode).insertBefore(marker, node);
           node.textContent = ' ';
-          instructions[auTargetID] = { contentExpression:expression };
+          instructions[auTargetID] = TargetInstruction.contentExpression(expression);
           //remove adjacent text nodes.
           while(node.nextSibling && node.nextSibling.nodeType === 3) {
             (node.parentNode || parentNode).removeChild(node.nextSibling);
@@ -1441,7 +1610,7 @@ export class ViewCompiler {
 
   compileSurrogate(node, resources){
     let attributes = node.attributes,
-        bindingLanguage = this.bindingLanguage,
+        bindingLanguage = resources.getBindingLanguage(this.bindingLanguage),
         knownAttribute, property, instruction,
         i, ii, attr, attrName, attrValue, info, type,
         expressions = [], expression,
@@ -1497,7 +1666,7 @@ export class ViewCompiler {
         }
       }else{ //NO BINDINGS
         if(type){ //templator or attached behavior found
-          instruction = { attrName:attrName, type:type, attributes:{} };
+          instruction = BehaviorInstruction.attribute(attrName, type);
           instruction.attributes[resources.mapAttribute(attrName)] = attrValue;
 
           if(type.liftsContent){ //template controller
@@ -1526,16 +1695,7 @@ export class ViewCompiler {
         }
       }
 
-      return {
-        anchorIsContainer: false,
-        isCustomElement: false,
-        injectorId: null,
-        parentInjectorId: null,
-        expressions: expressions,
-        behaviorInstructions: behaviorInstructions,
-        providers: providers,
-        values:values
-      };
+      return TargetInstruction.surrogate(providers, behaviorInstructions, expressions, values);
     }
 
     return null;
@@ -1547,7 +1707,7 @@ export class ViewCompiler {
         expressions = [], expression,
         behaviorInstructions = [],
         providers = [],
-        bindingLanguage = this.bindingLanguage,
+        bindingLanguage = resources.getBindingLanguage(this.bindingLanguage),
         liftingInstruction, viewFactory, type, elementInstruction,
         elementProperty, i, ii, attr, attrName, attrValue, instruction, info,
         property, knownAttribute, auTargetID, injectorId;
@@ -1555,12 +1715,7 @@ export class ViewCompiler {
     if(tagName === 'content'){
       if(targetLightDOM){
         auTargetID = makeIntoInstructionTarget(node);
-        instructions[auTargetID] = {
-          parentInjectorId: parentInjectorId,
-          contentSelector: true,
-          selector:node.getAttribute('select'),
-          suppressBind: true
-        };
+        instructions[auTargetID] = TargetInstruction.contentSelector(node, parentInjectorId);
       }
       return node.nextSibling;
     } else if(tagName === 'template'){
@@ -1569,8 +1724,7 @@ export class ViewCompiler {
     } else{
       type = resources.getElement(tagName);
       if(type){
-        elementInstruction = {type:type, attributes:{}};
-        elementInstruction.anchorIsContainer = !node.hasAttribute('containerless') && !type.containerless;
+        elementInstruction = BehaviorInstruction.element(node, type);
         behaviorInstructions.push(elementInstruction);
       }
     }
@@ -1600,10 +1754,6 @@ export class ViewCompiler {
         elementProperty = elementInstruction.type.attributes[info.attrName];
         if(elementProperty){ //and this attribute is a custom property
           info.defaultBindingMode = elementProperty.defaultBindingMode; //set the default binding mode
-
-          if(!info.command && !info.expression){ // if there is no command or detected expression
-            info.command = elementProperty.hasOptions ? 'options' : null; //and it is an optons property, set the options command
-          }
         }
       }
 
@@ -1640,7 +1790,7 @@ export class ViewCompiler {
         }
       }else{ //NO BINDINGS
         if(type){ //templator or attached behavior found
-          instruction = { attrName:attrName, type:type, attributes:{} };
+          instruction = BehaviorInstruction.attribute(attrName, type);
           instruction.attributes[resources.mapAttribute(attrName)] = attrValue;
 
           if(type.liftsContent){ //template controller
@@ -1662,14 +1812,7 @@ export class ViewCompiler {
       liftingInstruction.viewFactory = viewFactory;
       node = liftingInstruction.type.compile(this, resources, node, liftingInstruction, parentNode);
       auTargetID = makeIntoInstructionTarget(node);
-      instructions[auTargetID] = {
-        anchorIsContainer: false,
-        parentInjectorId: parentInjectorId,
-        expressions: [],
-        behaviorInstructions: [liftingInstruction],
-        viewFactory: liftingInstruction.viewFactory,
-        providers: [liftingInstruction.type.target]
-      };
+      instructions[auTargetID] = TargetInstruction.lifting(parentInjectorId, liftingInstruction);
     }else{
       if(expressions.length || behaviorInstructions.length){
         injectorId = behaviorInstructions.length ? getNextInjectorId() : false;
@@ -1688,15 +1831,14 @@ export class ViewCompiler {
         }
 
         auTargetID = makeIntoInstructionTarget(node);
-        instructions[auTargetID] = {
-          anchorIsContainer: elementInstruction ? elementInstruction.anchorIsContainer : true,
-          isCustomElement: !!elementInstruction,
-          injectorId: injectorId,
-          parentInjectorId: parentInjectorId,
-          expressions: expressions,
-          behaviorInstructions: behaviorInstructions,
-          providers: providers
-        };
+        instructions[auTargetID] = TargetInstruction.normal(
+          injectorId,
+          parentInjectorId,
+          providers,
+          behaviorInstructions,
+          expressions,
+          elementInstruction
+        );
       }
 
       if(elementInstruction && elementInstruction.skipContentProcessing){
@@ -1713,7 +1855,6 @@ export class ViewCompiler {
   }
 }
 
-import * as LogManager from 'aurelia-logging';
 var logger = LogManager.getLogger('templating');
 
 function ensureRegistryEntry(loader, urlOrRegistryEntry){
@@ -1735,8 +1876,8 @@ class ProxyViewFactory {
 }
 
 export class ViewEngine {
-  static inject() { return [Loader, Container, ViewCompiler, ModuleAnalyzer, ResourceRegistry]; }
-  constructor(loader:Loader, container:Container, viewCompiler:ViewCompiler, moduleAnalyzer:ModuleAnalyzer, appResources:ResourceRegistry){
+  static inject() { return [Loader, Container, ViewCompiler, ModuleAnalyzer, ViewResources]; }
+  constructor(loader:Loader, container:Container, viewCompiler:ViewCompiler, moduleAnalyzer:ModuleAnalyzer, appResources:ViewResources){
     this.loader = loader;
     this.container = container;
     this.viewCompiler = viewCompiler;
@@ -1744,51 +1885,46 @@ export class ViewEngine {
     this.appResources = appResources;
   }
 
-  enhance(container, element, resources, bindingContext){
+  enhance(container:Container, element:Element, resources:ViewResources, bindingContext?:Object):View{
     let instructions = {};
-
     this.viewCompiler.compileNode(element, resources, instructions, element.parentNode, 'root', true);
 
     let factory = new ViewFactory(element, instructions, resources);
-    let options = {
-      systemControlled:false,
-      suppressBind:false,
-      enhance:true
-    };
-
-    return factory.create(container, bindingContext, options);
+    return factory.create(container, bindingContext, { enhance:true });
   }
 
-  loadViewFactory(urlOrRegistryEntry:string|TemplateRegistryEntry, compileOptions?:Object, associatedModuleId?:string, loadContext?:string[]):Promise<ViewFactory>{
-    loadContext = loadContext || [];
+  loadViewFactory(urlOrRegistryEntry:string|TemplateRegistryEntry, compileInstruction?:ViewCompileInstruction, loadContext?:ResourceLoadContext):Promise<ViewFactory>{
+    loadContext = loadContext || new ResourceLoadContext();
 
     return ensureRegistryEntry(this.loader, urlOrRegistryEntry).then(viewRegistryEntry => {
       if(viewRegistryEntry.onReady){
-        if(loadContext.indexOf(urlOrRegistryEntry) === -1){
-          loadContext.push(urlOrRegistryEntry);
+        if(loadContext.doesNotHaveDependency(urlOrRegistryEntry)){
+          loadContext.addDependency(urlOrRegistryEntry);
           return viewRegistryEntry.onReady;
         }
 
         return Promise.resolve(new ProxyViewFactory(viewRegistryEntry.onReady));
       }
 
-      loadContext.push(urlOrRegistryEntry);
+      loadContext.addDependency(urlOrRegistryEntry);
 
-      return viewRegistryEntry.onReady = this.loadTemplateResources(viewRegistryEntry, associatedModuleId, loadContext).then(resources => {
+      return viewRegistryEntry.onReady = this.loadTemplateResources(viewRegistryEntry, compileInstruction, loadContext).then(resources => {
         viewRegistryEntry.setResources(resources);
-        var viewFactory = this.viewCompiler.compile(viewRegistryEntry.template, resources, compileOptions);
+        var viewFactory = this.viewCompiler.compile(viewRegistryEntry.template, resources, compileInstruction);
         viewRegistryEntry.setFactory(viewFactory);
         return viewFactory;
       });
     });
   }
 
-  loadTemplateResources(viewRegistryEntry:TemplateRegistryEntry, associatedModuleId?:string, loadContext?:string[]):Promise<ResourceRegistry>{
+  loadTemplateResources(viewRegistryEntry:TemplateRegistryEntry, compileInstruction?:ViewCompileInstruction, loadContext?:ResourceLoadContext):Promise<ViewResources>{
     var resources = new ViewResources(this.appResources, viewRegistryEntry.id),
         dependencies = viewRegistryEntry.dependencies,
         importIds, names;
 
-    if(dependencies.length === 0 && !associatedModuleId){
+    compileInstruction = compileInstruction || ViewCompileInstruction.normal;
+
+    if(dependencies.length === 0 && !compileInstruction.associatedModuleId){
       return Promise.resolve(resources);
     }
 
@@ -1796,7 +1932,7 @@ export class ViewEngine {
     names = dependencies.map(x => x.name);
     logger.debug(`importing resources for ${viewRegistryEntry.id}`, importIds);
 
-    return this.importViewResources(importIds, names, resources, associatedModuleId, loadContext);
+    return this.importViewResources(importIds, names, resources, compileInstruction, loadContext);
   }
 
   importViewModelResource(moduleImport:string, moduleMember:string):Promise<ResourceDescription>{
@@ -1814,8 +1950,9 @@ export class ViewEngine {
     });
   }
 
-  importViewResources(moduleIds:string[], names:string[], resources:ResourceRegistry, associatedModuleId?:string, loadContext?:string[]):Promise<ResourceRegistry>{
-    loadContext = loadContext || [];
+  importViewResources(moduleIds:string[], names:string[], resources:ViewResources, compileInstruction?:ViewCompileInstruction, loadContext?:ResourceLoadContext):Promise<ViewResources>{
+    loadContext = loadContext || new ResourceLoadContext();
+    compileInstruction = compileInstruction || ViewCompileInstruction.normal;
 
     return this.loader.loadAllModules(moduleIds).then(imports => {
       var i, ii, analysis, normalizedId, current, associatedModule,
@@ -1837,8 +1974,8 @@ export class ViewEngine {
         allAnalysis[i] = analysis;
       }
 
-      if(associatedModuleId){
-        associatedModule = moduleAnalyzer.getAnalysis(associatedModuleId);
+      if(compileInstruction.associatedModuleId){
+        associatedModule = moduleAnalyzer.getAnalysis(compileInstruction.associatedModuleId);
 
         if(associatedModule){
           associatedModule.register(resources);
@@ -2233,9 +2370,7 @@ class BehaviorPropertyObserver {
   }
 }
 
-var defaultInstruction = { suppressBind:false },
-    contentSelectorFactoryOptions = { suppressBind:true, enhance:false },
-    hasShadowDOM = !!HTMLElement.prototype.createShadowRoot;
+var contentSelectorViewCreateInstruction = { suppressBind:true, enhance:false };
 
 function doProcessContent(){
   return true;
@@ -2257,7 +2392,7 @@ export class HtmlBehaviorResource {
     this.attributes = {};
   }
 
-  static convention(name:string, existing?:HtmlBehaviorResource){
+  static convention(name:string, existing?:HtmlBehaviorResource):HtmlBehaviorResource{
     var behavior;
 
     if(name.endsWith('CustomAttribute')){
@@ -2273,7 +2408,7 @@ export class HtmlBehaviorResource {
     return behavior;
   }
 
-  addChildBinding(behavior:BindingExpression){
+  addChildBinding(behavior:BindingExpression):void{
     if(this.childBindings === null){
       this.childBindings = [];
     }
@@ -2281,7 +2416,7 @@ export class HtmlBehaviorResource {
     this.childBindings.push(behavior);
   }
 
-  analyze(container:Container, target:Function){
+  analyze(container:Container, target:Function):void{
     var proto = target.prototype,
         properties = this.properties,
         attributeName = this.attributeName,
@@ -2338,16 +2473,12 @@ export class HtmlBehaviorResource {
     }
   }
 
-  load(container:Container, target:Function, viewStrategy?:ViewStrategy, transientView?:boolean, loadContext?:string[]):Promise<HtmlBehaviorResource>{
+  load(container:Container, target:Function, viewStrategy?:ViewStrategy, transientView?:boolean, loadContext?:ResourceLoadContext):Promise<HtmlBehaviorResource>{
     var options;
 
     if(this.elementName !== null){
       viewStrategy = viewStrategy || this.viewStrategy || ViewStrategy.getDefault(target);
-      options = {
-        targetShadowDOM:this.targetShadowDOM,
-        beforeCompile:target.beforeCompile,
-        compileSurrogate:true
-      };
+      options = new ViewCompileInstruction(this.targetShadowDOM, true, target.beforeCompile);
 
       if(!viewStrategy.moduleId){
         viewStrategy.moduleId = Origin.get(target).moduleId;
@@ -2365,7 +2496,7 @@ export class HtmlBehaviorResource {
     return Promise.resolve(this);
   }
 
-  register(registry:ResourceRegistry, name?:string){
+  register(registry:ViewResources, name?:string):void{
     if(this.attributeName !== null) {
       registry.registerAttribute(name || this.attributeName, this, this.attributeName);
     }
@@ -2375,7 +2506,7 @@ export class HtmlBehaviorResource {
     }
   }
 
-  compile(compiler:ViewCompiler, resources:ResourceRegistry, node:Node, instruction:Object, parentNode?:Node):Node{
+  compile(compiler:ViewCompiler, resources:ViewResources, node:Node, instruction:BehaviorInstruction, parentNode?:Node):Node{
     if(this.liftsContent){
       if(!instruction.viewFactory){
         var template = document.createElement('template'),
@@ -2440,12 +2571,15 @@ export class HtmlBehaviorResource {
       }
     }
 
-    instruction.suppressBind = true;
     return node;
   }
 
-  create(container:Container, instruction?:Object=defaultInstruction, element?:Element=null, bindings?:Binding[]=null):BehaviorInstance{
+  create(container:Container, instruction?:BehaviorInstruction, element?:Element, bindings?:Binding[]):BehaviorInstance{
     let host;
+
+    instruction = instruction || BehaviorInstruction.normal;
+    element = element || null;
+    bindings = bindings || null;
 
     if(this.elementName !== null && element){
       if(this.usesShadowDOM) {
@@ -2483,7 +2617,7 @@ export class HtmlBehaviorResource {
         if(behaviorInstance.view){
           if(!this.usesShadowDOM) {
             if(instruction.contentFactory){
-              var contentView = instruction.contentFactory.create(container, null, contentSelectorFactoryOptions);
+              var contentView = instruction.contentFactory.create(container, null, contentSelectorViewCreateInstruction);
 
               ContentSelector.applySelectors(
                 contentView,
@@ -2543,6 +2677,10 @@ export class HtmlBehaviorResource {
       }
     }
 
+    if(instruction.initiatedByBehavior && viewFactory){
+      behaviorInstance.view.created();
+    }
+
     return behaviorInstance;
   }
 
@@ -2600,7 +2738,7 @@ export class ResourceModule {
     }
   }
 
-  register(registry:ResourceRegistry, name?:string){
+  register(registry:ViewResources, name?:string){
     var i, ii, resources = this.resources;
 
     if(this.mainResource){
@@ -2614,7 +2752,7 @@ export class ResourceModule {
     }
   }
 
-  load(container:Container, loadContext?:string[]):Promise<void>{
+  load(container:Container, loadContext?:ResourceLoadContext):Promise<void>{
     if(this.onLoaded){
       return this.onLoaded;
     }
@@ -2676,11 +2814,11 @@ export class ResourceDescription {
     }
   }
 
-  register(registry:ResourceRegistry, name?:string){
+  register(registry:ViewResources, name?:string){
     this.metadata.register(registry, name);
   }
 
-  load(container:Container, loadContext?:string[]):Promise<void>|void{
+  load(container:Container, loadContext?:ResourceLoadContext):Promise<void>|void{
     let metadata = this.metadata,
         value = this.value;
 
@@ -2974,12 +3112,7 @@ export class CompositionEngine {
       }
 
       return doneLoading.then(viewFactory => {
-        return metadata.create(childContainer, {
-          executionContext:viewModel,
-          viewFactory:viewFactory,
-          suppressBind:true,
-          host:instruction.host
-        });
+        return metadata.create(childContainer, BehaviorInstruction.dynamic(instruction.host, viewModel, viewFactory));
       });
     });
   }

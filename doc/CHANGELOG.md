@@ -1,3 +1,26 @@
+## 0.14.0 (2015-08-14)
+
+
+#### Bug Fixes
+
+* **all:**
+  * cleanup and improving api ([9cb96ff8](http://github.com/aurelia/templating/commit/9cb96ff825519f38b9998d5936431c2b61038856))
+  * code cleanup and api stabilization work ([c0220a8d](http://github.com/aurelia/templating/commit/c0220a8da78edee893800958df020da3888a2ed3))
+* **dom:** string parsing of views now requires a template tag ([45113364](http://github.com/aurelia/templating/commit/45113364cbe00f91790a64be3a2d0c07144c549c))
+* **templating:** Use correct import for core-js We were previously using `import core from core-j ([29e4a62b](http://github.com/aurelia/templating/commit/29e4a62b96e594431682682259d852256c46af4b))
+* **view-engine:** api cleanup ([a203455a](http://github.com/aurelia/templating/commit/a203455a0d0093e13cdd6289621d111134c8b0ad))
+* **view-factory:** cleanup and standardizing api for view creation ([1258f476](http://github.com/aurelia/templating/commit/1258f476fb9d11979b810d6d7b967c6bed00b006))
+
+
+#### Features
+
+* **view-compiler:**
+  * working on cleanup of api ([5654d1a1](http://github.com/aurelia/templating/commit/5654d1a13ed0cc58482e824c08357a72baebb8e0))
+  * enable per-view binding languages ([e5e957d1](http://github.com/aurelia/templating/commit/e5e957d17493045b804b640903a4674595c20030))
+* **view-factory:** enable injection of TargetInstruction ([961604ab](http://github.com/aurelia/templating/commit/961604ab98e4f22326ad38d9cc369c80114c7921))
+* **view-resources:** remove ResourceRegistry and simplify class hierarchy ([bcba0896](http://github.com/aurelia/templating/commit/bcba08964bb7c5d188245fa028d1f7d8e2f2d20f))
+
+
 ### 0.13.16 (2015-08-05)
 
 

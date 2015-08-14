@@ -1,16 +1,27 @@
 declare module 'aurelia-templating' {
-  import core from 'core-js';
+  import * as core from 'core-js';
+  import * as LogManager from 'aurelia-logging';
   import { Metadata, Origin, Decorators }  from 'aurelia-metadata';
   import { relativeToFile }  from 'aurelia-path';
   import { TemplateRegistryEntry, Loader }  from 'aurelia-loader';
+  import { ValueConverter, bindingMode, ObserverLocator, BindingExpression, Binding, ValueConverterResource, EventManager }  from 'aurelia-binding';
   import { Container }  from 'aurelia-dependency-injection';
-  import { bindingMode, ObserverLocator, BindingExpression, Binding, ValueConverterResource, EventManager }  from 'aurelia-binding';
   import { TaskQueue }  from 'aurelia-task-queue';
-  import * as LogManager from 'aurelia-logging';
+  
+  // this will be replaced soon
+  export interface ViewCreateInstruction {
+    suppressBind?: boolean;
+    systemControlled?: boolean;
+    enhance?: boolean;
+    partReplacements?: Object;
+    initiatedByBehavior?: boolean;
+  }
   export let DOMBoundary: any;
-  export function createTemplateFromMarkup(markup: any): any;
-  export function replaceNode(newNode: any, node: any, parentNode: any): any;
-  export function removeNode(node: any, parentNode: any): any;
+  export let hasShadowDOM: any;
+  export function nextElementSibling(element: Node): Element;
+  export function createTemplateFromMarkup(markup: string): HTMLTemplateElement;
+  export function replaceNode(newNode: Node, node: Node, parentNode: Node): void;
+  export function removeNode(node: Node, parentNode: Node): void;
   export const animationEvent: any;
   export class Animator {
     static configureDefault(container: any, animatorInstance: any): any;
@@ -94,62 +105,83 @@ declare module 'aurelia-templating' {
     unregisterEffect(effectName: any): any;
   }
   export function hyphenate(name: any): any;
-  export function nextElementSibling(element: any): any;
+  export class ResourceLoadContext {
+    constructor();
+    addDependency(url: string): void;
+    doesNotHaveDependency(url: string): boolean;
+  }
+  export class ViewCompileInstruction {
+    static normal: any;
+    constructor(targetShadowDOM?: boolean, compileSurrogate?: boolean, beforeCompile?: boolean);
+  }
+  export class BehaviorInstruction {
+    static normal: any;
+    static contentSelector: any;
+    static element(node: Node, type: HtmlBehaviorResource): BehaviorInstruction;
+    static attribute(attrName: string, type?: HtmlBehaviorResource): BehaviorInstruction;
+    static dynamic(host: any, executionContext: any, viewFactory: any): any;
+    constructor(suppressBind?: boolean);
+  }
+  export class TargetInstruction {
+    static noExpressions: any;
+    static contentSelector(node: Node, parentInjectorId: number): TargetInstruction;
+    static contentExpression(expression: any): TargetInstruction;
+    static lifting(parentInjectorId: number, liftingInstruction: BehaviorInstruction): TargetInstruction;
+    static normal(injectorId: any, parentInjectorId: any, providers: any, behaviorInstructions: any, expressions: any, elementInstruction: any): TargetInstruction;
+    static surrogate(providers: any, behaviorInstructions: any, expressions: any, values: any): TargetInstruction;
+    constructor();
+  }
   export class ViewStrategy {
     static metadataKey: string;
-    makeRelativeTo(baseUrl: string): any;
-    static normalize(value: string | ViewStrategy): any;
+    makeRelativeTo(baseUrl: string): void;
+    static normalize(value: string | ViewStrategy): ViewStrategy;
     static getDefault(target: any): ViewStrategy;
   }
   export class UseViewStrategy extends ViewStrategy {
     constructor(path: string);
-    loadViewFactory(viewEngine: ViewEngine, options: Object, loadContext?: string[]): Promise<ViewFactory>;
-    makeRelativeTo(file: string): any;
+    loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewFactory>;
+    makeRelativeTo(file: string): void;
   }
   export class ConventionalViewStrategy extends ViewStrategy {
     constructor(moduleId: string);
-    loadViewFactory(viewEngine: ViewEngine, options: Object, loadContext?: string[]): Promise<ViewFactory>;
+    loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewFactory>;
     static convertModuleIdToViewUrl(moduleId: string): string;
   }
   export class NoViewStrategy extends ViewStrategy {
-    loadViewFactory(viewEngine: ViewEngine, options: Object, loadContext?: string[]): Promise<ViewFactory>;
+    loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewFactory>;
   }
   export class TemplateRegistryViewStrategy extends ViewStrategy {
     constructor(moduleId: string, entry: TemplateRegistryEntry);
-    loadViewFactory(viewEngine: ViewEngine, options: Object, loadContext?: string[]): Promise<ViewFactory>;
+    loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewFactory>;
   }
   export class InlineViewStrategy extends ViewStrategy {
     constructor(markup: string, dependencies?: Array<string | Function | Object>, dependencyBaseUrl?: string);
-    loadViewFactory(viewEngine: ViewEngine, options: Object, loadContext?: string[]): Promise<ViewFactory>;
+    loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewFactory>;
   }
   export class BindingLanguage {
     inspectAttribute(resources: any, attrName: any, attrValue: any): any;
     createAttributeInstruction(resources: any, element: any, info: any, existingInstruction: any): any;
     parseText(resources: any, value: any): any;
   }
-  export class ResourceRegistry {
-    constructor();
-    registerElement(tagName: any, behavior: any): any;
-    getElement(tagName: any): any;
-    registerAttribute(attribute: any, behavior: any, knownAttribute: any): any;
-    getAttribute(attribute: any): any;
-    registerValueConverter(name: any, valueConverter: any): any;
-    getValueConverter(name: any): any;
-  }
-  export class ViewResources extends ResourceRegistry {
-    constructor(parent: any, viewUrl: any);
-    relativeToView(path: any): any;
-    getElement(tagName: any): any;
-    mapAttribute(attribute: any): any;
-    getAttribute(attribute: any): any;
-    getValueConverter(name: any): any;
+  export class ViewResources {
+    constructor(parent?: ViewResources, viewUrl?: string);
+    getBindingLanguage(bindingLanguageFallback: any): any;
+    patchInParent(newParent: ViewResources): void;
+    relativeToView(path: string): string;
+    registerElement(tagName: string, behavior: HtmlBehaviorResource): void;
+    getElement(tagName: string): HtmlBehaviorResource;
+    mapAttribute(attribute: string): string;
+    registerAttribute(attribute: string, behavior: HtmlBehaviorResource, knownAttribute: string): void;
+    getAttribute(attribute: string): HtmlBehaviorResource;
+    registerValueConverter(name: string, valueConverter: ValueConverter): void;
+    getValueConverter(name: string): ValueConverter;
   }
   
   // NOTE: Adding a fragment to the document causes the nodes to be removed from the fragment.
   // NOTE: Adding to the fragment, causes the nodes to be removed from the document.
   export class View {
     constructor(container: any, fragment: any, behaviors: any, bindings: any, children: any, systemControlled: any, contentSelectors: any);
-    created(executionContext: any): any;
+    created(): any;
     bind(executionContext: any, systemUpdate: any): any;
     addBinding(binding: any): any;
     unbind(): any;
@@ -189,17 +221,17 @@ declare module 'aurelia-templating' {
     contentSelectorRemoveAll(): any;
   }
   export class BoundViewFactory {
-    constructor(parentContainer: any, viewFactory: any, executionContext: any, partReplacements: any);
-    create(executionContext: any): any;
+    constructor(parentContainer: Container, viewFactory: ViewFactory, executionContext: Object, partReplacements?: Object);
+    create(executionContext?: Object): View;
   }
   export class ViewFactory {
-    constructor(template: any, instructions: any, resources: any);
-    create(container: any, executionContext: any, options?: any, element?: any): any;
+    constructor(template: DocumentFragment, instructions: Object, resources: ViewResources);
+    create(container: Container, executionContext?: Object, createInstruction?: ViewCreateInstruction, element?: Element): View;
   }
   export class ViewCompiler {
     static inject(): any;
-    constructor(bindingLanguage: any);
-    compile(templateOrFragment: any, resources: any, options?: any): any;
+    constructor(bindingLanguage: BindingLanguage, resources: ViewResources);
+    compile(source: HTMLTemplateElement | DocumentFragment | string, resources?: ViewResources, compileInstruction?: ViewCompileInstruction): ViewFactory;
     compileNode(node: any, resources: any, instructions: any, parentNode: any, parentInjectorId: any, targetLightDOM: any): any;
     compileSurrogate(node: any, resources: any): any;
     compileElement(node: any, resources: any, instructions: any, parentNode: any, parentInjectorId: any, targetLightDOM: any): any;
@@ -210,12 +242,12 @@ declare module 'aurelia-templating' {
   }
   export class ViewEngine {
     static inject(): any;
-    constructor(loader: Loader, container: Container, viewCompiler: ViewCompiler, moduleAnalyzer: ModuleAnalyzer, appResources: ResourceRegistry);
-    enhance(container: any, element: any, resources: any, bindingContext: any): any;
-    loadViewFactory(urlOrRegistryEntry: string | TemplateRegistryEntry, compileOptions?: Object, associatedModuleId?: string, loadContext?: string[]): Promise<ViewFactory>;
-    loadTemplateResources(viewRegistryEntry: TemplateRegistryEntry, associatedModuleId?: string, loadContext?: string[]): Promise<ResourceRegistry>;
+    constructor(loader: Loader, container: Container, viewCompiler: ViewCompiler, moduleAnalyzer: ModuleAnalyzer, appResources: ViewResources);
+    enhance(container: Container, element: Element, resources: ViewResources, bindingContext?: Object): View;
+    loadViewFactory(urlOrRegistryEntry: string | TemplateRegistryEntry, compileInstruction?: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewFactory>;
+    loadTemplateResources(viewRegistryEntry: TemplateRegistryEntry, compileInstruction?: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewResources>;
     importViewModelResource(moduleImport: string, moduleMember: string): Promise<ResourceDescription>;
-    importViewResources(moduleIds: string[], names: string[], resources: ResourceRegistry, associatedModuleId?: string, loadContext?: string[]): Promise<ResourceRegistry>;
+    importViewResources(moduleIds: string[], names: string[], resources: ViewResources, compileInstruction?: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewResources>;
   }
   export class BehaviorInstance {
     constructor(behavior: any, executionContext: any, instruction: any);
@@ -244,26 +276,26 @@ declare module 'aurelia-templating' {
   }
   export class HtmlBehaviorResource {
     constructor();
-    static convention(name: string, existing?: HtmlBehaviorResource): any;
-    addChildBinding(behavior: BindingExpression): any;
-    analyze(container: Container, target: Function): any;
-    load(container: Container, target: Function, viewStrategy?: ViewStrategy, transientView?: boolean, loadContext?: string[]): Promise<HtmlBehaviorResource>;
-    register(registry: ResourceRegistry, name?: string): any;
-    compile(compiler: ViewCompiler, resources: ResourceRegistry, node: Node, instruction: Object, parentNode?: Node): Node;
-    create(container: Container, instruction?: Object, element?: Element, bindings?: Binding[]): BehaviorInstance;
+    static convention(name: string, existing?: HtmlBehaviorResource): HtmlBehaviorResource;
+    addChildBinding(behavior: BindingExpression): void;
+    analyze(container: Container, target: Function): void;
+    load(container: Container, target: Function, viewStrategy?: ViewStrategy, transientView?: boolean, loadContext?: ResourceLoadContext): Promise<HtmlBehaviorResource>;
+    register(registry: ViewResources, name?: string): void;
+    compile(compiler: ViewCompiler, resources: ViewResources, node: Node, instruction: BehaviorInstruction, parentNode?: Node): Node;
+    create(container: Container, instruction?: BehaviorInstruction, element?: Element, bindings?: Binding[]): BehaviorInstance;
     ensurePropertiesDefined(instance: Object, lookup: Object): any;
   }
   export class ResourceModule {
     constructor(moduleId: string);
     analyze(container: Container): any;
-    register(registry: ResourceRegistry, name?: string): any;
-    load(container: Container, loadContext?: string[]): Promise<void>;
+    register(registry: ViewResources, name?: string): any;
+    load(container: Container, loadContext?: ResourceLoadContext): Promise<void>;
   }
   export class ResourceDescription {
     constructor(key: string, exportedValue: any, resourceTypeMeta: Object);
     analyze(container: Container): any;
-    register(registry: ResourceRegistry, name?: string): any;
-    load(container: Container, loadContext?: string[]): Promise<void> | void;
+    register(registry: ViewResources, name?: string): any;
+    load(container: Container, loadContext?: ResourceLoadContext): Promise<void> | void;
     static get(resource: any, key?: string): ResourceDescription;
   }
   export class ModuleAnalyzer {
