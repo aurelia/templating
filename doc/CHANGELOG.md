@@ -1,3 +1,11 @@
+### 0.14.2 (2015-08-14)
+
+
+#### Bug Fixes
+
+* **dom:** return firstElementChild from parsed template markup ([ea230c84](http://github.com/aurelia/templating/commit/ea230c84f80ac629db6d0add4c1429d5b6fe2f9e))
+
+
 ### 0.14.1 (2015-08-14)
 
 

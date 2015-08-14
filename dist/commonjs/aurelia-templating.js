@@ -75,7 +75,7 @@ function createTemplateFromMarkup(markup) {
   var parser = document.createElement('div');
   parser.innerHTML = markup;
 
-  var temp = parser.firstChild;
+  var temp = parser.firstElementChild;
 
   if (needsTemplateFixup) {
     temp.content = document.createDocumentFragment();

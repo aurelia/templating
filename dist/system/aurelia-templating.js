@@ -65,7 +65,7 @@ System.register(['core-js', 'aurelia-logging', 'aurelia-metadata', 'aurelia-path
     var parser = document.createElement('div');
     parser.innerHTML = markup;
 
-    var temp = parser.firstChild;
+    var temp = parser.firstElementChild;
 
     if (needsTemplateFixup) {
       temp.content = document.createDocumentFragment();
