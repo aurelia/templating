@@ -1,3 +1,11 @@
+### 0.14.4 (2015-08-14)
+
+
+#### Bug Fixes
+
+* **composition-engine:** missed required compilation instruction in view only branch ([c3784f0a](http://github.com/aurelia/templating/commit/c3784f0acb0d49688f031993013545f349426ba0))
+
+
 ### 0.14.3 (2015-08-14)
 
 

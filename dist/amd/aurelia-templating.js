@@ -3423,7 +3423,7 @@ define(['exports', 'core-js', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pa
           instruction.view.makeRelativeTo(instruction.viewResources.viewUrl);
         }
 
-        return instruction.view.loadViewFactory(this.viewEngine).then(function (viewFactory) {
+        return instruction.view.loadViewFactory(this.viewEngine, new ViewCompileInstruction()).then(function (viewFactory) {
           var result = viewFactory.create(instruction.childContainer, instruction.executionContext);
           instruction.viewSlot.swap(result);
           return result;
