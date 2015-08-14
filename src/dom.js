@@ -15,7 +15,7 @@ export function createTemplateFromMarkup(markup:string):Element{
   let parser = document.createElement('div');
   parser.innerHTML = markup;
 
-  let temp = parser.firstChild;
+  let temp = parser.firstElementChild;
 
   if(needsTemplateFixup){
     temp.content = document.createDocumentFragment();
