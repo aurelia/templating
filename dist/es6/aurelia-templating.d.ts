@@ -19,7 +19,7 @@ declare module 'aurelia-templating' {
   export let DOMBoundary: any;
   export let hasShadowDOM: any;
   export function nextElementSibling(element: Node): Element;
-  export function createTemplateFromMarkup(markup: string): HTMLTemplateElement;
+  export function createTemplateFromMarkup(markup: string): Element;
   export function replaceNode(newNode: Node, node: Node, parentNode: Node): void;
   export function removeNode(node: Node, parentNode: Node): void;
   export const animationEvent: any;
@@ -231,7 +231,7 @@ declare module 'aurelia-templating' {
   export class ViewCompiler {
     static inject(): any;
     constructor(bindingLanguage: BindingLanguage, resources: ViewResources);
-    compile(source: HTMLTemplateElement | DocumentFragment | string, resources?: ViewResources, compileInstruction?: ViewCompileInstruction): ViewFactory;
+    compile(source: Element | DocumentFragment | string, resources?: ViewResources, compileInstruction?: ViewCompileInstruction): ViewFactory;
     compileNode(node: any, resources: any, instructions: any, parentNode: any, parentInjectorId: any, targetLightDOM: any): any;
     compileSurrogate(node: any, resources: any): any;
     compileElement(node: any, resources: any, instructions: any, parentNode: any, parentInjectorId: any, targetLightDOM: any): any;

@@ -1,3 +1,11 @@
+### 0.14.1 (2015-08-14)
+
+
+#### Bug Fixes
+
+* **all:** correct some types ([4ed12313](http://github.com/aurelia/templating/commit/4ed123138550c315862d1bdde01a5c691e88853e))
+
+
 ## 0.14.0 (2015-08-14)
 
 
