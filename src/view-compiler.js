@@ -59,7 +59,7 @@ export class ViewCompiler {
     this.resources = resources;
   }
 
-  compile(source:HTMLTemplateElement|DocumentFragment|string, resources?:ViewResources, compileInstruction?:ViewCompileInstruction):ViewFactory{
+  compile(source:Element|DocumentFragment|string, resources?:ViewResources, compileInstruction?:ViewCompileInstruction):ViewFactory{
     resources = resources || this.resources;
     compileInstruction = compileInstruction || ViewCompileInstruction.normal;
 

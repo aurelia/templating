@@ -11,7 +11,7 @@ export function nextElementSibling(element:Node):Element {
   return element;
 }
 
-export function createTemplateFromMarkup(markup:string):HTMLTemplateElement{
+export function createTemplateFromMarkup(markup:string):Element{
   let parser = document.createElement('div');
   parser.innerHTML = markup;
 
