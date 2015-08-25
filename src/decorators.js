@@ -12,6 +12,14 @@ function validateBehaviorName(name, type) {
   }
 }
 
+export function resource(instance){
+  return function(target){
+    Metadata.define(Metadata.resource, instance, target);
+  }
+}
+
+Decorators.configure.parameterizedDecorator('resource', resource);
+
 export function behavior(override){
   return function(target){
     if(override instanceof HtmlBehaviorResource){

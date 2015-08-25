@@ -69,11 +69,6 @@ export class ViewCompiler {
 
     targetShadowDOM = targetShadowDOM && hasShadowDOM;
 
-    if(compileInstruction.beforeCompile){
-      compileInstruction.beforeCompile(source);
-      console.warn('In a future release, the beforeCompile hook will be replaced by an alternate mechanism');
-    }
-
     if(typeof source === 'string'){
       source = createTemplateFromMarkup(source);
     }
@@ -85,17 +80,17 @@ export class ViewCompiler {
       content = source;
     }
 
-    this.compileNode(content, resources, instructions, source, 'root', !targetShadowDOM);
+    resources.onBeforeCompile(content, resources);
 
+    this.compileNode(content, resources, instructions, source, 'root', !targetShadowDOM);
     content.insertBefore(document.createComment('<view>'), content.firstChild);
     content.appendChild(document.createComment('</view>'));
 
     let factory = new ViewFactory(content, instructions, resources);
     factory.surrogateInstruction = compileInstruction.compileSurrogate ? this.compileSurrogate(source, resources) : null;
+    factory.part = part;
 
-    if(part){
-      factory.part = part;
-    }
+    resources.onAfterCompile(factory);
 
     return factory;
   }

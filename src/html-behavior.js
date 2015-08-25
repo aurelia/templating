@@ -121,7 +121,7 @@ export class HtmlBehaviorResource {
 
     if(this.elementName !== null){
       viewStrategy = viewStrategy || this.viewStrategy || ViewStrategy.getDefault(target);
-      options = new ViewCompileInstruction(this.targetShadowDOM, true, target.beforeCompile);
+      options = new ViewCompileInstruction(this.targetShadowDOM, true);
 
       if(!viewStrategy.moduleId){
         viewStrategy.moduleId = Origin.get(target).moduleId;

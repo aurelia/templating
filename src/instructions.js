@@ -15,11 +15,10 @@ export class ResourceLoadContext {
 export class ViewCompileInstruction {
   static normal = new ViewCompileInstruction();
 
-  constructor(targetShadowDOM?:boolean=false, compileSurrogate?:boolean=false, beforeCompile?:boolean=null){
+  constructor(targetShadowDOM?:boolean=false, compileSurrogate?:boolean=false){
     this.targetShadowDOM = targetShadowDOM;
     this.compileSurrogate = compileSurrogate;
     this.associatedModuleId = null;
-    this.beforeCompile = beforeCompile; //this will be replaced soon
   }
 }
 

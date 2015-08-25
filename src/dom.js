@@ -51,3 +51,16 @@ export function removeNode(node:Node, parentNode:Node):void {
     parentNode.removeChild(node);
   }
 }
+
+export function injectStyles(styles: string, scope?: Element, prepend?:boolean) {
+  let node = document.createElement('style');
+  node.innerHTML = styles;
+  node.type = 'text/css';
+  let destination = scope || document.head;
+
+  if(prepend && destination.childNodes.length > 0){
+      destination.insertBefore(node, destination.childNodes[0]);
+  }else{
+    destination.appendChild(node);
+  }
+}

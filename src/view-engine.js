@@ -37,6 +37,13 @@ export class ViewEngine {
     this.viewCompiler = viewCompiler;
     this.moduleAnalyzer = moduleAnalyzer;
     this.appResources = appResources;
+    this._pluginMap = {};
+  }
+
+  addResourcePlugin(extension: string, implementation: string){
+     let name = extension.replace('.', '') + '-resource-plugin';
+     this._pluginMap[extension] = name;
+     this.loader.addPlugin(name, implementation);
   }
 
   enhance(container:Container, element:Element, resources:ViewResources, bindingContext?:Object):View{
@@ -108,6 +115,8 @@ export class ViewEngine {
     loadContext = loadContext || new ResourceLoadContext();
     compileInstruction = compileInstruction || ViewCompileInstruction.normal;
 
+    moduleIds = moduleIds.map(x => this._applyLoaderPlugin(x));
+
     return this.loader.loadAllModules(moduleIds).then(imports => {
       var i, ii, analysis, normalizedId, current, associatedModule,
           container = this.container,
@@ -144,5 +153,21 @@ export class ViewEngine {
 
       return Promise.all(allAnalysis).then(() => resources);
     });
+  }
+
+  _applyLoaderPlugin(id){
+    let index = id.lastIndexOf('.');
+    if(index !== -1){
+      let ext = id.substring(index);
+      let pluginName = this._pluginMap[ext];
+
+      if(pluginName === undefined){
+        return id;
+      }
+
+      return this.loader.applyPluginToUrl(id, pluginName);
+    }
+
+    return id;
   }
 }

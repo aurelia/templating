@@ -258,6 +258,8 @@ export class ViewFactory{
         partReplacements = createInstruction.partReplacements,
         i, ii, view, instructable, instruction;
 
+    this.resources.onBeforeCreate(this, container, fragment);
+
     if(element !== null && this.surrogateInstruction !== null){
       applySurrogateInstruction(container, element, this.surrogateInstruction, behaviors, bindings, children);
     }
@@ -276,6 +278,8 @@ export class ViewFactory{
     if(!createInstruction.initiatedByBehavior){
       view.created();
     }
+
+    this.resources.onAfterCreate(view);
 
     //if the view creation is part of a larger creation, wait to bind until the root view initiates binding
     if(!createInstruction.suppressBind){
