@@ -233,18 +233,86 @@ export class BoundViewFactory {
 
     return this.viewFactory.create(childContainer, context, this.factoryCreateInstruction);
   }
+
+  setCacheSize(size: number, doNotOverrideIfAlreadySet: boolean): void {
+    this.viewFactory.setCacheSize(size, doNotOverrideIfAlreadySet);
+  }
+
+  getCachedView(): void {
+    return this.viewFactory.getCachedView();
+  }
+
+  returnViewToCache(view: View): void {
+    this.viewFactory.returnViewToCache(view);
+  }
 }
 
-export class ViewFactory{
-  constructor(template:DocumentFragment, instructions:Object, resources:ViewResources){
+export class ViewFactory {
+  constructor(template: DocumentFragment, instructions: Object, resources: ViewResources){
     this.template = template;
     this.instructions = instructions;
     this.resources = resources;
+    this.cacheSize = -1;
+    this.cache = null;
+    this.currentCacheIndex = 0;
+  }
+
+  setCacheSize(size: number, doNotOverrideIfAlreadySet: boolean): void {
+    if(this.cacheSize === -1 || !doNotOverrideIfAlreadySet){
+      this.cacheSize = size;
+    }
+
+    if(this.cacheSize > 0){
+      this.cache = new Array(this.cacheSize);
+      this.currentCacheIndex = 0;
+    } else {
+      this.cache = null;
+    }
+  }
+
+  getCachedView(): void {
+    let cache = this.cache;
+
+    if(cache !== null && this.currentCacheIndex < cache.length){
+      let cachedView = cache[this.currentCacheIndex];
+
+      if(cachedView !== undefined){
+        this.currentCacheIndex++;
+        return cachedView;
+      }
+
+      return null;
+    }
+
+    return null;
+  }
+
+  returnViewToCache(view: View): void {
+    let cache = this.cache;
+
+    if(cache !== null){
+      this.currentCacheIndex--;
+
+      if(this.currentCacheIndex < 0){
+        this.currentCacheIndex = 0;
+      }
+
+      this.cache[this.currentCacheIndex] = view;
+    }
   }
 
   create(container:Container, executionContext?:Object, createInstruction?:ViewCreateInstruction, element?:Element):View{
     createInstruction = createInstruction || BehaviorInstruction.normal;
     element = element || null;
+
+    let cachedView = this.getCachedView();
+    if(cachedView !== null){
+      if(!createInstruction.suppressBind){
+        cachedView.bind(executionContext);
+      }
+
+      return cachedView;
+    }
 
     let fragment = createInstruction.enhance ? this.template : this.template.cloneNode(true),
         instructables = fragment.querySelectorAll('.au-target'),
