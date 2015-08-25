@@ -297,7 +297,9 @@ export class ViewFactory {
         this.currentCacheIndex = 0;
       }
 
-      this.cache[this.currentCacheIndex] = view;
+      if(this.currentCacheIndex < cache.length){
+        this.cache[this.currentCacheIndex] = view;
+      }
     }
   }
 
