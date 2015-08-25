@@ -258,7 +258,7 @@ export class ViewFactory{
         partReplacements = createInstruction.partReplacements,
         i, ii, view, instructable, instruction;
 
-    this.resources.onBeforeCreate(this, container, fragment);
+    this.resources.onBeforeCreate(this, container, fragment, createInstruction, executionContext);
 
     if(element !== null && this.surrogateInstruction !== null){
       applySurrogateInstruction(container, element, this.surrogateInstruction, behaviors, bindings, children);

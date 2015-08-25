@@ -3,6 +3,7 @@ import {HtmlBehaviorResource} from './html-behavior';
 import {ValueConverter} from 'aurelia-binding';
 import {BindingLanguage} from './binding-language';
 import {Metadata} from 'aurelia-metadata';
+import {ViewCompileInstruction, ViewCreateInstruction} from './instructions';
 
 function register(lookup, name, resource, type){
   if(!name){
@@ -22,9 +23,9 @@ function register(lookup, name, resource, type){
 }
 
 interface ViewEngineHooks {
-  beforeCompile?: (content: DocumentFragment, resources: ViewResources) => void;
+  beforeCompile?: (content: DocumentFragment, resources: ViewResources, instruction: ViewCompileInstruction) => void;
   afterCompile?: (viewFactory: ViewFactory) => void;
-  beforeCreate?: (viewFactory: ViewFactory, container: Container, content: DocumentFragment) => void;
+  beforeCreate?: (viewFactory: ViewFactory, container: Container, content: DocumentFragment, instruction: ViewCreateInstruction, executionContext?:Object) => void;
   afterCreate?: (view: View) => void;
 }
 
@@ -46,24 +47,24 @@ export class ViewResources {
     this.additionalHooks = null;
   }
 
-  onBeforeCompile(content: DocumentFragment, resources:ViewResources): void {
+  onBeforeCompile(content: DocumentFragment, resources: ViewResources, instruction: ViewCompileInstruction): void {
     if(this.hasParent){
-      this.parent.onBeforeCompile(content, resources);
+      this.parent.onBeforeCompile(content, resources, instruction);
     }
 
     if(this.hook1 !== null){
-      this.hook1.beforeCompile(content, resources);
+      this.hook1.beforeCompile(content, resources, instruction);
 
       if(this.hook2 !== null){
-        this.hook2.beforeCompile(content, resources);
+        this.hook2.beforeCompile(content, resources, instruction);
 
         if(this.hook3 !== null){
-          this.hook3.beforeCompile(content, resources);
+          this.hook3.beforeCompile(content, resources, instruction);
 
           if(this.additionalHooks !== null){
             let hooks = this.additionalHooks;
             for(let i = 0, length = hooks.length; i < length; ++i){
-              hooks[i].beforeCompile(content, resources);
+              hooks[i].beforeCompile(content, resources, instruction);
             }
           }
         }
@@ -96,24 +97,24 @@ export class ViewResources {
     }
   }
 
-  onBeforeCreate(viewFactory: ViewFactory, container: Container, content: DocumentFragment): void {
+  onBeforeCreate(viewFactory: ViewFactory, container: Container, content: DocumentFragment, instruction: ViewCreateInstruction, executionContext?:Object): void {
     if(this.hasParent){
-      this.parent.onBeforeCreate(viewFactory, container, content);
+      this.parent.onBeforeCreate(viewFactory, container, content, instruction, executionContext);
     }
 
     if(this.hook1 !== null){
-      this.hook1.beforeCreate(viewFactory, container, content);
+      this.hook1.beforeCreate(viewFactory, container, content, instruction, executionContext);
 
       if(this.hook2 !== null){
-        this.hook2.beforeCreate(viewFactory, container, content);
+        this.hook2.beforeCreate(viewFactory, container, content, instruction, executionContext);
 
         if(this.hook3 !== null){
-          this.hook3.beforeCreate(viewFactory, container, content);
+          this.hook3.beforeCreate(viewFactory, container, content, instruction, executionContext);
 
           if(this.additionalHooks !== null){
             let hooks = this.additionalHooks;
             for(let i = 0, length = hooks.length; i < length; ++i){
-              hooks[i].beforeCreate(viewFactory, container, content);
+              hooks[i].beforeCreate(viewFactory, container, content, instruction, executionContext);
             }
           }
         }

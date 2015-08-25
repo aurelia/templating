@@ -4,6 +4,7 @@ import {BindingLanguage} from './binding-language';
 import {ViewCompileInstruction} from './instructions';
 import {createTemplateFromMarkup, hasShadowDOM} from './dom';
 import {BehaviorInstruction, TargetInstruction} from './instructions';
+import {inject} from 'aurelia-dependency-injection';
 
 let nextInjectorId = 0;
 function getNextInjectorId(){
@@ -52,26 +53,19 @@ function makeIntoInstructionTarget(element){
   return auTargetID;
 }
 
+@inject(BindingLanguage, ViewResources)
 export class ViewCompiler {
-  static inject() { return [BindingLanguage, ViewResources]; }
   constructor(bindingLanguage:BindingLanguage, resources:ViewResources){
     this.bindingLanguage = bindingLanguage;
     this.resources = resources;
   }
 
-  compile(source:Element|DocumentFragment|string, resources?:ViewResources, compileInstruction?:ViewCompileInstruction):ViewFactory{
+  compile(source: Element|DocumentFragment|string, resources?: ViewResources, compileInstruction?: ViewCompileInstruction): ViewFactory{
     resources = resources || this.resources;
     compileInstruction = compileInstruction || ViewCompileInstruction.normal;
+    source = typeof source === 'string' ? createTemplateFromMarkup(source) : source;
 
-    let instructions = {},
-        targetShadowDOM = compileInstruction.targetShadowDOM,
-        content, part;
-
-    targetShadowDOM = targetShadowDOM && hasShadowDOM;
-
-    if(typeof source === 'string'){
-      source = createTemplateFromMarkup(source);
-    }
+    let content, part;
 
     if(source.content){
       part = source.getAttribute('part');
@@ -80,9 +74,11 @@ export class ViewCompiler {
       content = source;
     }
 
-    resources.onBeforeCompile(content, resources);
+    compileInstruction.targetShadowDOM = compileInstruction.targetShadowDOM && hasShadowDOM;
+    resources.onBeforeCompile(content, resources, compileInstruction);
 
-    this.compileNode(content, resources, instructions, source, 'root', !targetShadowDOM);
+    let instructions = {};
+    this.compileNode(content, resources, instructions, source, 'root', !compileInstruction.targetShadowDOM);
     content.insertBefore(document.createComment('<view>'), content.firstChild);
     content.appendChild(document.createComment('</view>'));
 

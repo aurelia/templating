@@ -52,15 +52,18 @@ export function removeNode(node:Node, parentNode:Node):void {
   }
 }
 
-export function injectStyles(styles: string, scope?: Element, prepend?:boolean) {
+export function injectStyles(styles: string, destination?: Element, prepend?:boolean) {
   let node = document.createElement('style');
   node.innerHTML = styles;
   node.type = 'text/css';
-  let destination = scope || document.head;
+
+  destination = destination || document.head;
 
   if(prepend && destination.childNodes.length > 0){
-      destination.insertBefore(node, destination.childNodes[0]);
+    destination.insertBefore(node, destination.childNodes[0]);
   }else{
     destination.appendChild(node);
   }
+
+  return node;
 }
