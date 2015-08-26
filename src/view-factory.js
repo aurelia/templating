@@ -257,15 +257,16 @@ export class ViewFactory {
   }
 
   setCacheSize(size: number | string, doNotOverrideIfAlreadySet: boolean): void {
-    if(size === '*'){
-      size = Number.MAX_VALUE;
-    } else if(typeof size === "string") {
-      size = parseInt(size);
+    if(size){
+      if(size === '*'){
+        size = Number.MAX_VALUE;
+      } else if(typeof size === "string") {
+        size = parseInt(size);
+      }
     }
 
     if(this.cacheSize === -1 || !doNotOverrideIfAlreadySet){
       this.cacheSize = size;
-      this.maxCacheLength = size - 1;
     }
 
     if(this.cacheSize > 0){
@@ -284,7 +285,7 @@ export class ViewFactory {
       view.unbind();
     }
 
-    if(this.cache !== null && this.cache.length < this.maxCacheLength){
+    if(this.cache !== null && this.cache.length < this.cacheSize){
       this.cache.push(view);
     }
   }

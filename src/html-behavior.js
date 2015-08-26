@@ -154,6 +154,7 @@ export class HtmlBehaviorResource {
       if(!instruction.viewFactory){
         var template = document.createElement('template'),
             fragment = document.createDocumentFragment(),
+            cacheSize = node.getAttribute('view-cache'),
             part = node.getAttribute('part');
 
         node.removeAttribute(instruction.originalAttrName);
@@ -164,6 +165,11 @@ export class HtmlBehaviorResource {
         if(part){
           instruction.viewFactory.part = part;
           node.removeAttribute('part');
+        }
+
+        if(cacheSize){
+          instruction.viewFactory.setCacheSize(cacheSize);
+          node.removeAttribute('view-cache');
         }
 
         node = template;

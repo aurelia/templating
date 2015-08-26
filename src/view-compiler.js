@@ -65,10 +65,11 @@ export class ViewCompiler {
     compileInstruction = compileInstruction || ViewCompileInstruction.normal;
     source = typeof source === 'string' ? createTemplateFromMarkup(source) : source;
 
-    let content, part;
+    let content, part, cacheSize;
 
     if(source.content){
       part = source.getAttribute('part');
+      cacheSize = source.getAttribute('view-cache');
       content = document.adoptNode(source.content, true);
     }else{
       content = source;
@@ -83,8 +84,13 @@ export class ViewCompiler {
     content.appendChild(document.createComment('</view>'));
 
     let factory = new ViewFactory(content, instructions, resources);
+
     factory.surrogateInstruction = compileInstruction.compileSurrogate ? this.compileSurrogate(source, resources) : null;
     factory.part = part;
+
+    if(cacheSize){
+      factory.setCacheSize(cacheSize);
+    }
 
     resources.onAfterCompile(factory);
 
