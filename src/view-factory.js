@@ -234,6 +234,10 @@ export class BoundViewFactory {
     return this.viewFactory.create(childContainer, context, this.factoryCreateInstruction);
   }
 
+  get isCaching(){
+    return this.isCaching;
+  }
+
   setCacheSize(size: number | string, doNotOverrideIfAlreadySet: boolean): void {
     this.viewFactory.setCacheSize(size, doNotOverrideIfAlreadySet);
   }
@@ -254,6 +258,7 @@ export class ViewFactory {
     this.resources = resources;
     this.cacheSize = -1;
     this.cache = null;
+    this.isCaching = false;
   }
 
   setCacheSize(size: number | string, doNotOverrideIfAlreadySet: boolean): void {
@@ -274,6 +279,8 @@ export class ViewFactory {
     } else {
       this.cache = null;
     }
+
+    this.isCaching = this.cacheSize > 0;
   }
 
   getCachedView(): View {
@@ -281,6 +288,10 @@ export class ViewFactory {
   }
 
   returnViewToCache(view: View): void {
+    if(view.isAttached){
+      view.detached();
+    }
+
     if(view.isBound){
       view.unbind();
     }
