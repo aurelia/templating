@@ -119,11 +119,11 @@ export class ViewSlot {
     }
   }
 
-  remove(view: View, returnToCache?: boolean): void | Promise<View> {
-    return this.removeAt(this.children.indexOf(view), returnToCache);
+  remove(view: View, returnToCache?: boolean, skipAnimation?: boolean): void | Promise<View> {
+    return this.removeAt(this.children.indexOf(view), returnToCache, skipAnimation);
   }
 
-  removeAt(index: number, returnToCache?: boolean): void | Promise<View> {
+  removeAt(index: number, returnToCache?: boolean, skipAnimation?: boolean): void | Promise<View> {
     var view = this.children[index];
 
     var removeAction = () => {
@@ -141,15 +141,17 @@ export class ViewSlot {
       return view;
     };
 
-    let animatableElement = getAnimatableElement(view);
-    if(animatableElement !== null){
-      return this.animator.leave(animatableElement).then(() => removeAction());
+    if(!skipAnimation){
+      let animatableElement = getAnimatableElement(view);
+      if(animatableElement !== null){
+        return this.animator.leave(animatableElement).then(() => removeAction());
+      }
     }
 
     return removeAction();
   }
 
-  removeAll(returnToCache?: boolean): void | Promise<any> {
+  removeAll(returnToCache?: boolean, skipAnimation?: boolean): void | Promise<any> {
     var children = this.children,
         ii = children.length,
         i;
@@ -157,6 +159,11 @@ export class ViewSlot {
     var rmPromises = [];
 
     children.forEach(child => {
+      if(skipAnimation){
+        child.removeNodes();
+        return;
+      }
+
       let animatableElement = getAnimatableElement(child);
       if(animatableElement !== null){
         rmPromises.push(this.animator.leave(animatableElement).then(() => child.removeNodes()));
@@ -191,9 +198,9 @@ export class ViewSlot {
   swap(view: View, returnToCache?: boolean): void | Promise<any> {
     var removeResponse = this.removeAll(returnToCache);
 
-    if(removeResponse !== undefined) {
+    if(removeResponse instanceof Promise){
       return removeResponse.then(() => this.add(view));
-    } else {
+    } else{
       return this.add(view);
     }
   }
