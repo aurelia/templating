@@ -25,6 +25,7 @@ export class View {
     this.lastChild = fragment.lastChild;
     this.isBound = false;
     this.isAttached = false;
+    this.fromCache = false;
   }
 
   returnToCache(): void {

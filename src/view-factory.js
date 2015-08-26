@@ -286,6 +286,7 @@ export class ViewFactory {
     }
 
     if(this.cache !== null && this.cache.length < this.cacheSize){
+      view.fromCache = true;
       this.cache.push(view);
     }
   }
