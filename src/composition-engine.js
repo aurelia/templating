@@ -19,16 +19,33 @@ export class CompositionEngine {
   }
 
   createBehaviorAndSwap(instruction){
-    return this.createBehavior(instruction).then(behavior => {
-      behavior.view.bind(behavior.bindingContext);
-      instruction.viewSlot.swap(behavior.view);
+    var removeResponse = instruction.viewSlot.removeAll(true);
 
-      if(instruction.currentBehavior){
-        instruction.currentBehavior.unbind();
-      }
+    if(removeResponse instanceof Promise){
+      return removeResponse.then(() => {
+        return this.createBehavior(instruction).then(behavior => {
+          if(instruction.currentBehavior){
+            instruction.currentBehavior.unbind();
+          }
 
-      return behavior;
-    });
+          behavior.view.bind(behavior.bindingContext);
+          instruction.viewSlot.add(behavior.view);
+
+          return behavior;
+        });
+      });
+    } else{
+      return this.createBehavior(instruction).then(behavior => {
+        if(instruction.currentBehavior){
+          instruction.currentBehavior.unbind();
+        }
+
+        behavior.view.bind(behavior.bindingContext);
+        instruction.viewSlot.add(behavior.view);
+
+        return behavior;
+      });
+    }
   }
 
   createBehavior(instruction){
@@ -112,9 +129,19 @@ export class CompositionEngine {
       }
 
       return instruction.view.loadViewFactory(this.viewEngine, new ViewCompileInstruction()).then(viewFactory => {
-        var result = viewFactory.create(instruction.childContainer, instruction.bindingContext);
-        instruction.viewSlot.swap(result);
-        return result;
+        var removeResponse = instruction.viewSlot.removeAll(true);
+
+        if(removeResponse instanceof Promise) {
+          return removeResponse.then(() => {
+            var result = viewFactory.create(instruction.childContainer, instruction.bindingContext);
+            instruction.viewSlot.add(result);
+            return result;
+          });
+        } else {
+          var result = viewFactory.create(instruction.childContainer, instruction.bindingContext);
+          instruction.viewSlot.add(result);
+          return result;
+        }
       });
     }else if(instruction.viewSlot){
       instruction.viewSlot.removeAll();

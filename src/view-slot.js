@@ -40,6 +40,7 @@ export class ViewSlot {
       fragment:parent,
       firstChild:parent.firstChild,
       lastChild:parent.lastChild,
+      returnToCache(){},
       removeNodes(){
         var last;
 
