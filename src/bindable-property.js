@@ -87,7 +87,7 @@ export class BindableProperty {
     }
   }
 
-  createObserver(executionContext){
+  createObserver(bindingContext){
     var selfSubscriber = null,
         defaultValue = this.defaultValue,
         changeHandlerName = this.changeHandler,
@@ -98,34 +98,34 @@ export class BindableProperty {
       return;
     }
 
-    if(changeHandlerName in executionContext){
-      if('propertyChanged' in executionContext) {
+    if(changeHandlerName in bindingContext){
+      if('propertyChanged' in bindingContext) {
         selfSubscriber = (newValue, oldValue) => {
-          executionContext[changeHandlerName](newValue, oldValue);
-          executionContext.propertyChanged(name, newValue, oldValue);
+          bindingContext[changeHandlerName](newValue, oldValue);
+          bindingContext.propertyChanged(name, newValue, oldValue);
         };
       }else {
-        selfSubscriber = (newValue, oldValue) => executionContext[changeHandlerName](newValue, oldValue);
+        selfSubscriber = (newValue, oldValue) => bindingContext[changeHandlerName](newValue, oldValue);
       }
-    } else if('propertyChanged' in executionContext) {
-      selfSubscriber = (newValue, oldValue) => executionContext.propertyChanged(name, newValue, oldValue);
+    } else if('propertyChanged' in bindingContext) {
+      selfSubscriber = (newValue, oldValue) => bindingContext.propertyChanged(name, newValue, oldValue);
     } else if(changeHandlerName !== null){
       throw new Error(`Change handler ${changeHandlerName} was specified but not delcared on the class.`);
     }
 
     if(defaultValue !== undefined){
-      initialValue = typeof defaultValue === 'function' ? defaultValue.call(executionContext) : defaultValue;
+      initialValue = typeof defaultValue === 'function' ? defaultValue.call(bindingContext) : defaultValue;
     }
 
-    return new BehaviorPropertyObserver(this.owner.taskQueue, executionContext, this.name, selfSubscriber, initialValue);
+    return new BehaviorPropertyObserver(this.owner.taskQueue, bindingContext, this.name, selfSubscriber, initialValue);
   }
 
-  initialize(executionContext, observerLookup, attributes, behaviorHandlesBind, boundProperties){
+  initialize(bindingContext, observerLookup, attributes, behaviorHandlesBind, boundProperties){
     var selfSubscriber, observer, attribute, defaultValue = this.defaultValue;
 
     if(this.isDynamic){
       for(let key in attributes){
-        this.createDynamicProperty(executionContext, observerLookup, behaviorHandlesBind, key, attributes[key], boundProperties);
+        this.createDynamicProperty(bindingContext, observerLookup, behaviorHandlesBind, key, attributes[key], boundProperties);
       }
     } else if(!this.hasOptions){
       observer = observerLookup[this.name];
@@ -139,10 +139,10 @@ export class BindableProperty {
         }
 
         if(typeof attribute === 'string'){
-          executionContext[this.name] = attribute;
+          bindingContext[this.name] = attribute;
           observer.call();
         }else if(attribute){
-          boundProperties.push({observer:observer, binding:attribute.createBinding(executionContext)});
+          boundProperties.push({observer:observer, binding:attribute.createBinding(bindingContext)});
         }else if(defaultValue !== undefined){
           observer.call();
         }
@@ -154,31 +154,31 @@ export class BindableProperty {
     }
   }
 
-  createDynamicProperty(executionContext, observerLookup, behaviorHandlesBind, name, attribute, boundProperties){
+  createDynamicProperty(bindingContext, observerLookup, behaviorHandlesBind, name, attribute, boundProperties){
     var changeHandlerName = name + 'Changed',
         selfSubscriber = null, observer, info;
 
-    if(changeHandlerName in executionContext){
-      if('propertyChanged' in executionContext) {
+    if(changeHandlerName in bindingContext){
+      if('propertyChanged' in bindingContext) {
         selfSubscriber = (newValue, oldValue) => {
-          executionContext[changeHandlerName](newValue, oldValue);
-          executionContext.propertyChanged(name, newValue, oldValue);
+          bindingContext[changeHandlerName](newValue, oldValue);
+          bindingContext.propertyChanged(name, newValue, oldValue);
         };
       }else {
-        selfSubscriber = (newValue, oldValue) => executionContext[changeHandlerName](newValue, oldValue);
+        selfSubscriber = (newValue, oldValue) => bindingContext[changeHandlerName](newValue, oldValue);
       }
-    }else if('propertyChanged' in executionContext) {
-      selfSubscriber = (newValue, oldValue) => executionContext.propertyChanged(name, newValue, oldValue);
+    }else if('propertyChanged' in bindingContext) {
+      selfSubscriber = (newValue, oldValue) => bindingContext.propertyChanged(name, newValue, oldValue);
     }
 
     observer = observerLookup[name] = new BehaviorPropertyObserver(
         this.owner.taskQueue,
-        executionContext,
+        bindingContext,
         name,
         selfSubscriber
         );
 
-    Object.defineProperty(executionContext, name, {
+    Object.defineProperty(bindingContext, name, {
       configurable: true,
       enumerable: true,
       get: observer.getValue.bind(observer),
@@ -190,10 +190,10 @@ export class BindableProperty {
     }
 
     if(typeof attribute === 'string'){
-      executionContext[name] = attribute;
+      bindingContext[name] = attribute;
       observer.call();
     }else if(attribute){
-      info = {observer:observer, binding:attribute.createBinding(executionContext)};
+      info = {observer:observer, binding:attribute.createBinding(bindingContext)};
       boundProperties.push(info);
     }
 

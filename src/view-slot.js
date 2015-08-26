@@ -1,6 +1,8 @@
 import {ContentSelector} from './content-selector';
 import {Animator} from './animator';
 import {nextElementSibling} from './dom';
+import {View} from './view';
+import {ContentSelector} from './content-selector';
 
 function getAnimatableElement(view){
   let firstChild = view.firstChild;
@@ -19,18 +21,19 @@ function getAnimatableElement(view){
 }
 
 export class ViewSlot {
-  constructor(anchor, anchorIsContainer, executionContext, animator=Animator.instance){
+  constructor(anchor: Node, anchorIsContainer: boolean, bindingContext?: Object, animator?: Animator = Animator.instance){
     this.anchor = anchor;
     this.viewAddMethod = anchorIsContainer ? 'appendNodesTo' : 'insertNodesBefore';
-    this.executionContext = executionContext;
+    this.bindingContext = bindingContext;
     this.animator = animator;
     this.children = [];
     this.isBound = false;
     this.isAttached = false;
+    this.contentSelectors = null;
     anchor.viewSlot = this;
   }
 
-  transformChildNodesIntoView(){
+  transformChildNodesIntoView(): void {
     var parent = this.anchor;
 
     this.children.push({
@@ -52,11 +55,11 @@ export class ViewSlot {
     });
   }
 
-  bind(executionContext){
+  bind(bindingContext: Object): void {
     var i, ii, children;
 
     if(this.isBound){
-      if(this.executionContext === executionContext){
+      if(this.bindingContext === bindingContext){
         return;
       }
 
@@ -64,15 +67,15 @@ export class ViewSlot {
     }
 
     this.isBound = true;
-    this.executionContext = executionContext = executionContext || this.executionContext;
+    this.bindingContext = bindingContext = bindingContext || this.bindingContext;
 
     children = this.children;
     for(i = 0, ii = children.length; i < ii; ++i){
-      children[i].bind(executionContext, true);
+      children[i].bind(bindingContext, true);
     }
   }
 
-  unbind(){
+  unbind(): void {
     var i, ii, children = this.children;
     this.isBound = false;
 
@@ -81,7 +84,7 @@ export class ViewSlot {
     }
   }
 
-  add(view){
+  add(view: View): void {
     view[this.viewAddMethod](this.anchor);
     this.children.push(view);
 
@@ -95,7 +98,7 @@ export class ViewSlot {
     }
   }
 
-  insert(index, view){
+  insert(index: number, view: View): void | Promise<any> {
     let children = this.children,
         length = children.length;
 
@@ -116,11 +119,11 @@ export class ViewSlot {
     }
   }
 
-  remove(view){
-    return this.removeAt(this.children.indexOf(view));
+  remove(view: View, returnToCache?: boolean): void | Promise<View> {
+    return this.removeAt(this.children.indexOf(view), returnToCache);
   }
 
-  removeAt(index){
+  removeAt(index: number, returnToCache?: boolean): void | Promise<View> {
     var view = this.children[index];
 
     var removeAction = () => {
@@ -129,6 +132,10 @@ export class ViewSlot {
 
       if(this.isAttached){
         view.detached();
+      }
+
+      if(returnToCache){
+        view.returnToCache();
       }
 
       return view;
@@ -142,7 +149,7 @@ export class ViewSlot {
     return removeAction();
   }
 
-  removeAll(){
+  removeAll(returnToCache?: boolean): void | Promise<any> {
     var children = this.children,
         ii = children.length,
         i;
@@ -165,6 +172,12 @@ export class ViewSlot {
         }
       }
 
+      if(returnToCache){
+        for(i = 0; i < ii; ++i){
+          children[i].returnToCache();
+        }
+      }
+
       this.children = [];
     };
 
@@ -175,8 +188,8 @@ export class ViewSlot {
     }
   }
 
-  swap(view){
-    var removeResponse = this.removeAll();
+  swap(view: View, returnToCache?: boolean): void | Promise<any> {
+    var removeResponse = this.removeAll(returnToCache);
 
     if(removeResponse !== undefined) {
       return removeResponse.then(() => this.add(view));
@@ -185,7 +198,7 @@ export class ViewSlot {
     }
   }
 
-  attached(){
+  attached(): void {
     var i, ii, children, child;
 
     if(this.isAttached){
@@ -210,7 +223,7 @@ export class ViewSlot {
     }
   }
 
-  detached(){
+  detached(): void {
     var i, ii, children;
 
     if(this.isAttached){
@@ -222,16 +235,16 @@ export class ViewSlot {
     }
   }
 
-  installContentSelectors(contentSelectors){
+  installContentSelectors(contentSelectors: ContentSelector[]): void {
     this.contentSelectors = contentSelectors;
-    this.add = this.contentSelectorAdd;
-    this.insert = this.contentSelectorInsert;
-    this.remove = this.contentSelectorRemove;
-    this.removeAt = this.contentSelectorRemoveAt;
-    this.removeAll = this.contentSelectorRemoveAll;
+    this.add = this._contentSelectorAdd;
+    this.insert = this._contentSelectorInsert;
+    this.remove = this._contentSelectorRemove;
+    this.removeAt = this._contentSelectorRemoveAt;
+    this.removeAll = this._contentSelectorRemoveAll;
   }
 
-  contentSelectorAdd(view){
+  _contentSelectorAdd(view){
     ContentSelector.applySelectors(
       view,
       this.contentSelectors,
@@ -245,7 +258,7 @@ export class ViewSlot {
     }
   }
 
-  contentSelectorInsert(index, view){
+  _contentSelectorInsert(index, view){
     if((index === 0 && !this.children.length) || index >= this.children.length){
       this.add(view);
     } else{
@@ -263,7 +276,7 @@ export class ViewSlot {
     }
   }
 
-  contentSelectorRemove(view){
+  _contentSelectorRemove(view){
     var index = this.children.indexOf(view),
         contentSelectors = this.contentSelectors,
         i, ii;
@@ -279,7 +292,7 @@ export class ViewSlot {
     }
   }
 
-  contentSelectorRemoveAt(index){
+  _contentSelectorRemoveAt(index){
     var view = this.children[index],
         contentSelectors = this.contentSelectors,
         i, ii;
@@ -297,7 +310,7 @@ export class ViewSlot {
     return view;
   }
 
-  contentSelectorRemoveAll(){
+  _contentSelectorRemoveAll(){
     var children = this.children,
         contentSelectors = this.contentSelectors,
         ii = children.length,

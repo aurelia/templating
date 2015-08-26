@@ -22,12 +22,12 @@ function elementContainerGet(key){
       factory = partReplacements[factory.part] || factory;
     }
 
-    return this.boundViewFactory = new BoundViewFactory(this, factory, this.executionContext, partReplacements);
+    return this.boundViewFactory = new BoundViewFactory(this, factory, this.bindingContext, partReplacements);
   }
 
   if(key === ViewSlot){
     if(this.viewSlot === undefined){
-      this.viewSlot = new ViewSlot(this.element, this.instruction.anchorIsContainer, this.executionContext);
+      this.viewSlot = new ViewSlot(this.element, this.instruction.anchorIsContainer, this.bindingContext);
       this.children.push(this.viewSlot);
     }
 
@@ -45,14 +45,14 @@ function elementContainerGet(key){
   return this.superGet(key);
 }
 
-function createElementContainer(parent, element, instruction, executionContext, children, partReplacements, resources){
+function createElementContainer(parent, element, instruction, bindingContext, children, partReplacements, resources){
   var container = parent.createChild(),
                   providers,
                   i;
 
   container.element = element;
   container.instruction = instruction;
-  container.executionContext = executionContext;
+  container.bindingContext = bindingContext;
   container.children = children;
   container.viewResources = resources;
   container.partReplacements = partReplacements;
@@ -84,7 +84,7 @@ function makeElementIntoAnchor(element, elementInstruction){
   return anchor;
 }
 
-function applyInstructions(containers, executionContext, element, instruction,
+function applyInstructions(containers, bindingContext, element, instruction,
   behaviors, bindings, children, contentSelectors, partReplacements, resources){
   var behaviorInstructions = instruction.behaviorInstructions,
       expressions = instruction.expressions,
@@ -113,7 +113,7 @@ function applyInstructions(containers, executionContext, element, instruction,
         containers[instruction.parentInjectorId],
         element,
         instruction,
-        executionContext,
+        bindingContext,
         children,
         partReplacements,
         resources
@@ -218,27 +218,27 @@ function applySurrogateInstruction(container, element, instruction, behaviors, b
 }
 
 export class BoundViewFactory {
-  constructor(parentContainer:Container, viewFactory:ViewFactory, executionContext:Object, partReplacements?:Object){
+  constructor(parentContainer: Container, viewFactory: ViewFactory, bindingContext: Object, partReplacements?: Object){
     this.parentContainer = parentContainer;
     this.viewFactory = viewFactory;
-    this.executionContext = executionContext;
+    this.bindingContext = bindingContext;
     this.factoryCreateInstruction = { partReplacements:partReplacements };
   }
 
-  create(executionContext?:Object):View{
+  create(bindingContext?: Object): View {
     var childContainer = this.parentContainer.createChild(),
-        context = executionContext || this.executionContext;
+        context = bindingContext || this.bindingContext;
 
-    this.factoryCreateInstruction.systemControlled = !executionContext;
+    this.factoryCreateInstruction.systemControlled = !bindingContext;
 
     return this.viewFactory.create(childContainer, context, this.factoryCreateInstruction);
   }
 
-  setCacheSize(size: number, doNotOverrideIfAlreadySet: boolean): void {
+  setCacheSize(size: number | string, doNotOverrideIfAlreadySet: boolean): void {
     this.viewFactory.setCacheSize(size, doNotOverrideIfAlreadySet);
   }
 
-  getCachedView(): void {
+  getCachedView(): View {
     return this.viewFactory.getCachedView();
   }
 
@@ -248,69 +248,55 @@ export class BoundViewFactory {
 }
 
 export class ViewFactory {
-  constructor(template: DocumentFragment, instructions: Object, resources: ViewResources){
+  constructor(template: DocumentFragment, instructions: Object, resources: ViewResources) {
     this.template = template;
     this.instructions = instructions;
     this.resources = resources;
     this.cacheSize = -1;
     this.cache = null;
-    this.currentCacheIndex = 0;
   }
 
-  setCacheSize(size: number, doNotOverrideIfAlreadySet: boolean): void {
+  setCacheSize(size: number | string, doNotOverrideIfAlreadySet: boolean): void {
+    if(size === '*'){
+      size = Number.MAX_VALUE;
+    } else if(typeof size === "string") {
+      size = parseInt(size);
+    }
+
     if(this.cacheSize === -1 || !doNotOverrideIfAlreadySet){
       this.cacheSize = size;
+      this.maxCacheLength = size - 1;
     }
 
     if(this.cacheSize > 0){
-      this.cache = new Array(this.cacheSize);
-      this.currentCacheIndex = 0;
+      this.cache = [];
     } else {
       this.cache = null;
     }
   }
 
-  getCachedView(): void {
-    let cache = this.cache;
-
-    if(cache !== null && this.currentCacheIndex < cache.length){
-      let cachedView = cache[this.currentCacheIndex];
-
-      if(cachedView !== undefined){
-        this.currentCacheIndex++;
-        return cachedView;
-      }
-
-      return null;
-    }
-
-    return null;
+  getCachedView(): View {
+    return this.cache !== null ? (this.cache.pop() || null) : null;
   }
 
   returnViewToCache(view: View): void {
-    let cache = this.cache;
+    if(view.isBound){
+      view.unbind();
+    }
 
-    if(cache !== null){
-      this.currentCacheIndex--;
-
-      if(this.currentCacheIndex < 0){
-        this.currentCacheIndex = 0;
-      }
-
-      if(this.currentCacheIndex < cache.length){
-        this.cache[this.currentCacheIndex] = view;
-      }
+    if(this.cache !== null && this.cache.length < this.maxCacheLength){
+      this.cache.push(view);
     }
   }
 
-  create(container:Container, executionContext?:Object, createInstruction?:ViewCreateInstruction, element?:Element):View{
+  create(container: Container, bindingContext?: Object, createInstruction?: ViewCreateInstruction, element?: Element): View {
     createInstruction = createInstruction || BehaviorInstruction.normal;
     element = element || null;
 
     let cachedView = this.getCachedView();
     if(cachedView !== null){
       if(!createInstruction.suppressBind){
-        cachedView.bind(executionContext);
+        cachedView.bind(bindingContext);
       }
 
       return cachedView;
@@ -328,7 +314,7 @@ export class ViewFactory {
         partReplacements = createInstruction.partReplacements,
         i, ii, view, instructable, instruction;
 
-    this.resources.onBeforeCreate(this, container, fragment, createInstruction, executionContext);
+    this.resources.onBeforeCreate(this, container, fragment, createInstruction, bindingContext);
 
     if(element !== null && this.surrogateInstruction !== null){
       applySurrogateInstruction(container, element, this.surrogateInstruction, behaviors, bindings, children);
@@ -338,11 +324,11 @@ export class ViewFactory {
       instructable = instructables[i];
       instruction = instructions[instructable.getAttribute('au-target-id')];
 
-      applyInstructions(containers, executionContext, instructable,
+      applyInstructions(containers, bindingContext, instructable,
         instruction, behaviors, bindings, children, contentSelectors, partReplacements, resources);
     }
 
-    view = new View(container, fragment, behaviors, bindings, children, createInstruction.systemControlled, contentSelectors);
+    view = new View(this, container, fragment, behaviors, bindings, children, createInstruction.systemControlled, contentSelectors);
 
     //if iniated by an element behavior, let the behavior trigger this callback once it's done creating the element
     if(!createInstruction.initiatedByBehavior){
@@ -353,7 +339,7 @@ export class ViewFactory {
 
     //if the view creation is part of a larger creation, wait to bind until the root view initiates binding
     if(!createInstruction.suppressBind){
-      view.bind(executionContext);
+      view.bind(bindingContext);
     }
 
     return view;

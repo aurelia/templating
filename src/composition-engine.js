@@ -20,7 +20,7 @@ export class CompositionEngine {
 
   createBehaviorAndSwap(instruction){
     return this.createBehavior(instruction).then(behavior => {
-      behavior.view.bind(behavior.executionContext);
+      behavior.view.bind(behavior.bindingContext);
       instruction.viewSlot.swap(behavior.view);
 
       if(instruction.currentBehavior){
@@ -112,7 +112,7 @@ export class CompositionEngine {
       }
 
       return instruction.view.loadViewFactory(this.viewEngine, new ViewCompileInstruction()).then(viewFactory => {
-        var result = viewFactory.create(instruction.childContainer, instruction.executionContext);
+        var result = viewFactory.create(instruction.childContainer, instruction.bindingContext);
         instruction.viewSlot.swap(result);
         return result;
       });

@@ -51,10 +51,10 @@ export class BehaviorInstruction {
     return instruction;
   }
 
-  static dynamic(host, executionContext, viewFactory){
+  static dynamic(host, bindingContext, viewFactory){
     let instruction = new BehaviorInstruction(true);
     instruction.host = host;
-    instruction.executionContext = executionContext;
+    instruction.bindingContext = bindingContext;
     instruction.viewFactory = viewFactory;
     return instruction;
   }
@@ -69,7 +69,7 @@ export class BehaviorInstruction {
     this.originalAttrName = null;
     this.skipContentProcessing = false;
     this.contentFactory = null;
-    this.executionContext = null;
+    this.bindingContext = null;
     this.anchorIsContainer = false;
     this.host = null;
     this.attributes = null;

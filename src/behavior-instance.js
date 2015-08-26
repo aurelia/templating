@@ -2,22 +2,22 @@ import {ResourceDescription} from './module-analyzer';
 import {Container} from 'aurelia-dependency-injection';
 
 export class BehaviorInstance {
-  constructor(behavior, executionContext, instruction){
+  constructor(behavior, bindingContext, instruction){
     this.behavior = behavior;
-    this.executionContext = executionContext;
+    this.bindingContext = bindingContext;
     this.isAttached = false;
 
-    var observerLookup = behavior.observerLocator.getOrCreateObserversLookup(executionContext),
+    var observerLookup = behavior.observerLocator.getOrCreateObserversLookup(bindingContext),
         handlesBind = behavior.handlesBind,
         attributes = instruction.attributes,
         boundProperties = this.boundProperties = [],
         properties = behavior.properties,
         i, ii;
 
-    behavior.ensurePropertiesDefined(executionContext, observerLookup);
+    behavior.ensurePropertiesDefined(bindingContext, observerLookup);
 
     for(i = 0, ii = properties.length; i < ii; ++i){
-      properties[i].initialize(executionContext, observerLookup, attributes, handlesBind, boundProperties);
+      properties[i].initialize(bindingContext, observerLookup, attributes, handlesBind, boundProperties);
     }
   }
 
@@ -25,17 +25,17 @@ export class BehaviorInstance {
     let description = ResourceDescription.get(type);
     description.analyze(Container.instance);
 
-    let executionContext = Container.instance.get(type);
-    let behaviorInstance = new BehaviorInstance(description.metadata, executionContext, {attributes:attributes||{}});
+    let behaviorContext = Container.instance.get(type);
+    let behaviorInstance = new BehaviorInstance(description.metadata, behaviorContext, {attributes:attributes||{}});
 
     behaviorInstance.bind(bindingContext || {});
 
-    return executionContext;
+    return behaviorContext;
   }
 
   created(context){
     if(this.behavior.handlesCreated){
-      this.executionContext.created(context);
+      this.bindingContext.created(context);
     }
   }
 
@@ -62,11 +62,11 @@ export class BehaviorInstance {
     }
 
     if(skipSelfSubscriber){
-      this.executionContext.bind(context);
+      this.bindingContext.bind(context);
     }
 
     if(this.view){
-      this.view.bind(this.executionContext);
+      this.view.bind(this.bindingContext);
     }
   }
 
@@ -79,7 +79,7 @@ export class BehaviorInstance {
     }
 
     if(this.behavior.handlesUnbind){
-      this.executionContext.unbind();
+      this.bindingContext.unbind();
     }
 
     for(i = 0, ii = boundProperties.length; i < ii; ++i){
@@ -95,7 +95,7 @@ export class BehaviorInstance {
     this.isAttached = true;
 
     if(this.behavior.handlesAttached){
-      this.executionContext.attached();
+      this.bindingContext.attached();
     }
 
     if(this.view){
@@ -112,7 +112,7 @@ export class BehaviorInstance {
       }
 
       if(this.behavior.handlesDetached){
-        this.executionContext.detached();
+        this.bindingContext.detached();
       }
     }
   }

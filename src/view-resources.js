@@ -25,7 +25,7 @@ function register(lookup, name, resource, type){
 interface ViewEngineHooks {
   beforeCompile?: (content: DocumentFragment, resources: ViewResources, instruction: ViewCompileInstruction) => void;
   afterCompile?: (viewFactory: ViewFactory) => void;
-  beforeCreate?: (viewFactory: ViewFactory, container: Container, content: DocumentFragment, instruction: ViewCreateInstruction, executionContext?:Object) => void;
+  beforeCreate?: (viewFactory: ViewFactory, container: Container, content: DocumentFragment, instruction: ViewCreateInstruction, bindingContext?:Object) => void;
   afterCreate?: (view: View) => void;
 }
 
@@ -97,24 +97,24 @@ export class ViewResources {
     }
   }
 
-  onBeforeCreate(viewFactory: ViewFactory, container: Container, content: DocumentFragment, instruction: ViewCreateInstruction, executionContext?:Object): void {
+  onBeforeCreate(viewFactory: ViewFactory, container: Container, content: DocumentFragment, instruction: ViewCreateInstruction, bindingContext?:Object): void {
     if(this.hasParent){
-      this.parent.onBeforeCreate(viewFactory, container, content, instruction, executionContext);
+      this.parent.onBeforeCreate(viewFactory, container, content, instruction, bindingContext);
     }
 
     if(this.hook1 !== null){
-      this.hook1.beforeCreate(viewFactory, container, content, instruction, executionContext);
+      this.hook1.beforeCreate(viewFactory, container, content, instruction, bindingContext);
 
       if(this.hook2 !== null){
-        this.hook2.beforeCreate(viewFactory, container, content, instruction, executionContext);
+        this.hook2.beforeCreate(viewFactory, container, content, instruction, bindingContext);
 
         if(this.hook3 !== null){
-          this.hook3.beforeCreate(viewFactory, container, content, instruction, executionContext);
+          this.hook3.beforeCreate(viewFactory, container, content, instruction, bindingContext);
 
           if(this.additionalHooks !== null){
             let hooks = this.additionalHooks;
             for(let i = 0, length = hooks.length; i < length; ++i){
-              hooks[i].beforeCreate(viewFactory, container, content, instruction, executionContext);
+              hooks[i].beforeCreate(viewFactory, container, content, instruction, bindingContext);
             }
           }
         }

@@ -1,8 +1,19 @@
+import {Binding} from 'aurelia-binding';
+import {Container} from 'aurelia-dependency-injection';
+
 //NOTE: Adding a fragment to the document causes the nodes to be removed from the fragment.
 //NOTE: Adding to the fragment, causes the nodes to be removed from the document.
 
+interface ViewNode {
+  bind(bindingContext: Object, systemUpdate?: boolean): void;
+  attached(): void;
+  detached(): void;
+  unbind(): void;
+}
+
 export class View {
-  constructor(container, fragment, behaviors, bindings, children, systemControlled, contentSelectors){
+  constructor(viewFactory: ViewFactory, container: Container, fragment: DocumentFragment, behaviors: BehaviorInstance[], bindings: Binding[], children: ViewNode[], systemControlled: boolean, contentSelectors: ContentSelector[]){
+    this.viewFactory = viewFactory;
     this.container = container;
     this.fragment = fragment;
     this.behaviors = behaviors;
@@ -16,24 +27,28 @@ export class View {
     this.isAttached = false;
   }
 
-  created(){
+  returnToCache(): void {
+    this.viewFactory.returnViewToCache(this);
+  }
+
+  created(): void {
     var i, ii, behaviors = this.behaviors;
     for(i = 0, ii = behaviors.length; i < ii; ++i){
       behaviors[i].created(this);
     }
   }
 
-  bind(executionContext, systemUpdate){
+  bind(bindingContext: Object, systemUpdate?: boolean): void {
     var context, behaviors, bindings, children, i, ii;
 
     if(systemUpdate && !this.systemControlled){
-      context = this.executionContext || executionContext;
+      context = this.bindingContext || bindingContext;
     }else{
-      context = executionContext || this.executionContext;
+      context = bindingContext || this.bindingContext;
     }
 
     if(this.isBound){
-      if(this.executionContext === context){
+      if(this.bindingContext === context){
         return;
       }
 
@@ -41,7 +56,7 @@ export class View {
     }
 
     this.isBound = true;
-    this.executionContext = context;
+    this.bindingContext = context;
 
     if(this.owner){
       this.owner.bind(context);
@@ -63,15 +78,15 @@ export class View {
     }
   }
 
-  addBinding(binding){
+  addBinding(binding: Binding): void {
     this.bindings.push(binding);
 
     if(this.isBound){
-      binding.bind(this.executionContext);
+      binding.bind(this.bindingContext);
     }
   }
 
-  unbind(){
+  unbind(): void {
     var behaviors, bindings, children, i, ii;
 
     if(this.isBound){
@@ -98,16 +113,16 @@ export class View {
     }
   }
 
-  insertNodesBefore(refNode){
+  insertNodesBefore(refNode: Node): void {
     var parent = refNode.parentNode;
     parent.insertBefore(this.fragment, refNode);
   }
 
-  appendNodesTo(parent){
+  appendNodesTo(parent: Element): void {
     parent.appendChild(this.fragment);
   }
 
-  removeNodes(){
+  removeNodes(): void {
     var start = this.firstChild,
         end = this.lastChild,
         fragment = this.fragment,
@@ -128,7 +143,7 @@ export class View {
     }
   }
 
-  attached(){
+  attached(): void {
     var behaviors, children, i, ii;
 
     if(this.isAttached){
@@ -152,7 +167,7 @@ export class View {
     }
   }
 
-  detached(){
+  detached(): void {
     var behaviors, children, i, ii;
 
     if(this.isAttached){
