@@ -43,7 +43,7 @@ export function customElement(name){
 
 Decorators.configure.parameterizedDecorator('customElement', customElement);
 
-export function customAttribute(name, defaultBindingMode){
+export function customAttribute(name, defaultBindingMode?){
   validateBehaviorName(name, 'custom attribute');
   return function(target){
     var resource = Metadata.getOrCreateOwn(Metadata.resource, HtmlBehaviorResource, target);
