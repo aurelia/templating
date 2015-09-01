@@ -130,7 +130,7 @@ export class BindableProperty {
     } else if(!this.hasOptions){
       observer = observerLookup[this.name];
 
-      if(attributes !== undefined){
+      if (attributes !== null) {
         selfSubscriber = observer.selfSubscriber;
         attribute = attributes[this.attribute];
 
