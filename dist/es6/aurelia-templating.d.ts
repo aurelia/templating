@@ -4,11 +4,9 @@ declare module 'aurelia-templating' {
   import { Metadata, Origin, Decorators }  from 'aurelia-metadata';
   import { relativeToFile }  from 'aurelia-path';
   import { TemplateRegistryEntry, Loader }  from 'aurelia-loader';
-  import { ValueConverter, bindingMode, ObserverLocator, BindingExpression, Binding, ValueConverterResource, EventManager }  from 'aurelia-binding';
-  import { Container }  from 'aurelia-dependency-injection';
+  import { ValueConverter, Binding, bindingMode, ObserverLocator, BindingExpression, ValueConverterResource, EventManager }  from 'aurelia-binding';
+  import { Container, inject }  from 'aurelia-dependency-injection';
   import { TaskQueue }  from 'aurelia-task-queue';
-  
-  // this will be replaced soon
   export interface ViewCreateInstruction {
     suppressBind?: boolean;
     systemControlled?: boolean;
@@ -16,12 +14,28 @@ declare module 'aurelia-templating' {
     partReplacements?: Object;
     initiatedByBehavior?: boolean;
   }
+  export interface ViewEngineHooks {
+    beforeCompile(content: DocumentFragment, resources: ViewResources, instruction: ViewCompileInstruction): void;
+    afterCompile(viewFactory: ViewFactory): void;
+    beforeCreate(viewFactory: ViewFactory, container: Container, content: DocumentFragment, instruction: ViewCreateInstruction, bindingContext?: Object): void;
+    afterCreate(view: View): void;
+  }
+  
+  // NOTE: Adding a fragment to the document causes the nodes to be removed from the fragment.
+  // NOTE: Adding to the fragment, causes the nodes to be removed from the document.
+  export interface ViewNode {
+    bind(bindingContext: Object, systemUpdate?: boolean): void;
+    attached(): void;
+    detached(): void;
+    unbind(): void;
+  }
   export let DOMBoundary: any;
   export let hasShadowDOM: any;
   export function nextElementSibling(element: Node): Element;
   export function createTemplateFromMarkup(markup: string): Element;
   export function replaceNode(newNode: Node, node: Node, parentNode: Node): void;
   export function removeNode(node: Node, parentNode: Node): void;
+  export function injectStyles(styles: string, destination?: Element, prepend?: boolean): any;
   export const animationEvent: any;
   export class Animator {
     static configureDefault(container: any, animatorInstance: any): any;
@@ -112,14 +126,14 @@ declare module 'aurelia-templating' {
   }
   export class ViewCompileInstruction {
     static normal: any;
-    constructor(targetShadowDOM?: boolean, compileSurrogate?: boolean, beforeCompile?: boolean);
+    constructor(targetShadowDOM?: boolean, compileSurrogate?: boolean);
   }
   export class BehaviorInstruction {
     static normal: any;
     static contentSelector: any;
     static element(node: Node, type: HtmlBehaviorResource): BehaviorInstruction;
     static attribute(attrName: string, type?: HtmlBehaviorResource): BehaviorInstruction;
-    static dynamic(host: any, executionContext: any, viewFactory: any): any;
+    static dynamic(host: any, bindingContext: any, viewFactory: any): any;
     constructor(suppressBind?: boolean);
   }
   export class TargetInstruction {
@@ -165,7 +179,12 @@ declare module 'aurelia-templating' {
   }
   export class ViewResources {
     constructor(parent?: ViewResources, viewUrl?: string);
-    getBindingLanguage(bindingLanguageFallback: any): any;
+    onBeforeCompile(content: DocumentFragment, resources: ViewResources, instruction: ViewCompileInstruction): void;
+    onAfterCompile(viewFactory: ViewFactory): void;
+    onBeforeCreate(viewFactory: ViewFactory, container: Container, content: DocumentFragment, instruction: ViewCreateInstruction, bindingContext?: Object): void;
+    onAfterCreate(view: View): void;
+    registerViewEngineHooks(hooks: ViewEngineHooks): void;
+    getBindingLanguage(bindingLanguageFallback: BindingLanguage): BindingLanguage;
     patchInParent(newParent: ViewResources): void;
     relativeToView(path: string): string;
     registerElement(tagName: string, behavior: HtmlBehaviorResource): void;
@@ -176,20 +195,18 @@ declare module 'aurelia-templating' {
     registerValueConverter(name: string, valueConverter: ValueConverter): void;
     getValueConverter(name: string): ValueConverter;
   }
-  
-  // NOTE: Adding a fragment to the document causes the nodes to be removed from the fragment.
-  // NOTE: Adding to the fragment, causes the nodes to be removed from the document.
   export class View {
-    constructor(container: any, fragment: any, behaviors: any, bindings: any, children: any, systemControlled: any, contentSelectors: any);
-    created(): any;
-    bind(executionContext: any, systemUpdate: any): any;
-    addBinding(binding: any): any;
-    unbind(): any;
-    insertNodesBefore(refNode: any): any;
-    appendNodesTo(parent: any): any;
-    removeNodes(): any;
-    attached(): any;
-    detached(): any;
+    constructor(viewFactory: ViewFactory, container: Container, fragment: DocumentFragment, behaviors: BehaviorInstance[], bindings: Binding[], children: ViewNode[], systemControlled: boolean, contentSelectors: ContentSelector[]);
+    returnToCache(): void;
+    created(): void;
+    bind(bindingContext: Object, systemUpdate?: boolean): void;
+    addBinding(binding: Binding): void;
+    unbind(): void;
+    insertNodesBefore(refNode: Node): void;
+    appendNodesTo(parent: Element): void;
+    removeNodes(): void;
+    attached(): void;
+    detached(): void;
   }
   export class ContentSelector {
     static applySelectors(view: any, contentSelectors: any, callback: any): any;
@@ -201,35 +218,36 @@ declare module 'aurelia-templating' {
     removeAt(index: any, fragment: any): any;
   }
   export class ViewSlot {
-    constructor(anchor: any, anchorIsContainer: any, executionContext: any, animator?: any);
-    transformChildNodesIntoView(): any;
-    bind(executionContext: any): any;
-    unbind(): any;
-    add(view: any): any;
-    insert(index: any, view: any): any;
-    remove(view: any): any;
-    removeAt(index: any): any;
-    removeAll(): any;
-    swap(view: any): any;
-    attached(): any;
-    detached(): any;
-    installContentSelectors(contentSelectors: any): any;
-    contentSelectorAdd(view: any): any;
-    contentSelectorInsert(index: any, view: any): any;
-    contentSelectorRemove(view: any): any;
-    contentSelectorRemoveAt(index: any): any;
-    contentSelectorRemoveAll(): any;
+    constructor(anchor: Node, anchorIsContainer: boolean, bindingContext?: Object, animator?: Animator);
+    transformChildNodesIntoView(): void;
+    bind(bindingContext: Object): void;
+    unbind(): void;
+    add(view: View): void;
+    insert(index: number, view: View): void | Promise<any>;
+    remove(view: View, returnToCache?: boolean, skipAnimation?: boolean): void | Promise<View>;
+    removeAt(index: number, returnToCache?: boolean, skipAnimation?: boolean): void | Promise<View>;
+    removeAll(returnToCache?: boolean, skipAnimation?: boolean): void | Promise<any>;
+    swap(view: View, returnToCache?: boolean): void | Promise<any>;
+    attached(): void;
+    detached(): void;
+    installContentSelectors(contentSelectors: ContentSelector[]): void;
   }
   export class BoundViewFactory {
-    constructor(parentContainer: Container, viewFactory: ViewFactory, executionContext: Object, partReplacements?: Object);
-    create(executionContext?: Object): View;
+    constructor(parentContainer: Container, viewFactory: ViewFactory, bindingContext: Object, partReplacements?: Object);
+    create(bindingContext?: Object): View;
+    isCaching(): any;
+    setCacheSize(size: number | string, doNotOverrideIfAlreadySet: boolean): void;
+    getCachedView(): View;
+    returnViewToCache(view: View): void;
   }
   export class ViewFactory {
     constructor(template: DocumentFragment, instructions: Object, resources: ViewResources);
-    create(container: Container, executionContext?: Object, createInstruction?: ViewCreateInstruction, element?: Element): View;
+    setCacheSize(size: number | string, doNotOverrideIfAlreadySet: boolean): void;
+    getCachedView(): View;
+    returnViewToCache(view: View): void;
+    create(container: Container, bindingContext?: Object, createInstruction?: ViewCreateInstruction, element?: Element): View;
   }
   export class ViewCompiler {
-    static inject(): any;
     constructor(bindingLanguage: BindingLanguage, resources: ViewResources);
     compile(source: Element | DocumentFragment | string, resources?: ViewResources, compileInstruction?: ViewCompileInstruction): ViewFactory;
     compileNode(node: any, resources: any, instructions: any, parentNode: any, parentInjectorId: any, targetLightDOM: any): any;
@@ -243,6 +261,7 @@ declare module 'aurelia-templating' {
   export class ViewEngine {
     static inject(): any;
     constructor(loader: Loader, container: Container, viewCompiler: ViewCompiler, moduleAnalyzer: ModuleAnalyzer, appResources: ViewResources);
+    addResourcePlugin(extension: string, implementation: string): any;
     enhance(container: Container, element: Element, resources: ViewResources, bindingContext?: Object): View;
     loadViewFactory(urlOrRegistryEntry: string | TemplateRegistryEntry, compileInstruction?: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewFactory>;
     loadTemplateResources(viewRegistryEntry: TemplateRegistryEntry, compileInstruction?: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewResources>;
@@ -250,7 +269,7 @@ declare module 'aurelia-templating' {
     importViewResources(moduleIds: string[], names: string[], resources: ViewResources, compileInstruction?: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewResources>;
   }
   export class BehaviorInstance {
-    constructor(behavior: any, executionContext: any, instruction: any);
+    constructor(behavior: any, bindingContext: any, instruction: any);
     static createForUnitTest(type: any, attributes: any, bindingContext: any): any;
     created(context: any): any;
     bind(context: any): any;
@@ -263,9 +282,9 @@ declare module 'aurelia-templating' {
     registerWith(target: any, behavior: any, descriptor: any): any;
     configureDescriptor(behavior: any, descriptor: any): any;
     defineOn(target: any, behavior: any): any;
-    createObserver(executionContext: any): any;
-    initialize(executionContext: any, observerLookup: any, attributes: any, behaviorHandlesBind: any, boundProperties: any): any;
-    createDynamicProperty(executionContext: any, observerLookup: any, behaviorHandlesBind: any, name: any, attribute: any, boundProperties: any): any;
+    createObserver(bindingContext: any): any;
+    initialize(bindingContext: any, observerLookup: any, attributes: any, behaviorHandlesBind: any, boundProperties: any): any;
+    createDynamicProperty(bindingContext: any, observerLookup: any, behaviorHandlesBind: any, name: any, attribute: any, boundProperties: any): any;
   }
   class BehaviorPropertyObserver {
     constructor(taskQueue: any, obj: any, propertyName: any, selfSubscriber: any, initialValue: any);
@@ -329,9 +348,10 @@ declare module 'aurelia-templating' {
     load(container: any, target: any): any;
     register(): any;
   }
+  export function resource(instance: any): any;
   export function behavior(override: any): any;
   export function customElement(name: any): any;
-  export function customAttribute(name: any, defaultBindingMode: any): any;
+  export function customAttribute(name: any, defaultBindingMode?: any): any;
   export function templateController(target: any): any;
   export function bindable(nameOrConfigOrTarget?: any, key?: any, descriptor?: any): any;
   export function dynamicOptions(target: any): any;

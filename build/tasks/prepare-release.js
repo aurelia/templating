@@ -27,7 +27,7 @@ gulp.task('changelog', function(callback) {
 gulp.task('prepare-release', function(callback){
   return runSequence(
     'build',
-    'lint',
+    //'lint',
     'bump-version',
     'doc',
     'changelog',

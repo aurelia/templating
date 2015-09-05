@@ -1,3 +1,32 @@
+## 0.15.0 (2015-09-04)
+
+
+#### Bug Fixes
+
+* **all:** rename executionContext to bindingContext ([9f5437bf](http://github.com/aurelia/templating/commit/9f5437bf641026b9a6dfb6d918be272198861962))
+* **bindable:** bindable cannot be undefined ([d3e990be](http://github.com/aurelia/templating/commit/d3e990be5b52cc44c58c6ee4a32ba458d7e00ecc))
+* **build:** update linting, testing and tools ([6ab627dc](http://github.com/aurelia/templating/commit/6ab627dc6a36505b2e6f299fd488218e3b6ca0f1))
+* **decorators:** property defaultBindingMode in customAttribute decorator is optional ([11556537](http://github.com/aurelia/templating/commit/11556537f94b2ef7aa3636738040255ead901dad))
+* **view-factory:** additional guards on cache returns ([e7307893](http://github.com/aurelia/templating/commit/e7307893cb2c0d999f19edc156ac623448118520))
+* **views:** enhance view engine hook inputs ([02606f53](http://github.com/aurelia/templating/commit/02606f53de32481632d5ef539d612ab7fb08aa5c))
+
+
+#### Features
+
+* **all:**
+  * enable view-cache size configuration in html ([01ed43f3](http://github.com/aurelia/templating/commit/01ed43f31bdfd9f7d714383089fab4a434f5cecf))
+  * new extensible view engine pipeline ([82af961f](http://github.com/aurelia/templating/commit/82af961ff9108c9e1882f26d8c6119e18de66201))
+* **composition-engine:** enable view caching ([69c25b84](http://github.com/aurelia/templating/commit/69c25b84194761382fd88383a60f87a7857fa8b7))
+* **docs:**
+  * generate api.json from .d.ts file ([10c2e258](http://github.com/aurelia/templating/commit/10c2e25848fcec24d161a4f1cba56738c71c3132))
+  * generate api.json from .d.ts file ([65eb1b33](http://github.com/aurelia/templating/commit/65eb1b3385b6ae87bba0e7c16ef328e65df19574))
+* **view:** indicate if a view originates from the cache ([31bc37bc](http://github.com/aurelia/templating/commit/31bc37bc71a7fc8a0681bd2ae1e5dad5855e48fc))
+* **view-factory:**
+  * add some cache related data properties ([10cdc2f7](http://github.com/aurelia/templating/commit/10cdc2f7f7fc6016d4e5c4beecc5ffb296a534a7))
+  * add basic view caching capability to the factory ([c8cfa9b0](http://github.com/aurelia/templating/commit/c8cfa9b02b35d66b3301fb42474867e9adc4030a))
+* **view-slot:** enable remove with skip animation ([fa36e315](http://github.com/aurelia/templating/commit/fa36e3151e9651ca9de5590a8f849a932637b4b6))
+
+
 ### 0.14.4 (2015-08-14)
 
 

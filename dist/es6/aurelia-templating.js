@@ -3,8 +3,8 @@ import * as LogManager from 'aurelia-logging';
 import {Metadata,Origin,Decorators} from 'aurelia-metadata';
 import {relativeToFile} from 'aurelia-path';
 import {TemplateRegistryEntry,Loader} from 'aurelia-loader';
-import {ValueConverter,bindingMode,ObserverLocator,BindingExpression,Binding,ValueConverterResource,EventManager} from 'aurelia-binding';
-import {Container} from 'aurelia-dependency-injection';
+import {ValueConverter,Binding,bindingMode,ObserverLocator,BindingExpression,ValueConverterResource,EventManager} from 'aurelia-binding';
+import {Container,inject} from 'aurelia-dependency-injection';
 import {TaskQueue} from 'aurelia-task-queue';
 
 let needsTemplateFixup = !('content' in document.createElement('template'));
@@ -59,6 +59,22 @@ export function removeNode(node:Node, parentNode:Node):void {
   }else{ //HACK: same as above
     parentNode.removeChild(node);
   }
+}
+
+export function injectStyles(styles: string, destination?: Element, prepend?:boolean) {
+  let node = document.createElement('style');
+  node.innerHTML = styles;
+  node.type = 'text/css';
+
+  destination = destination || document.head;
+
+  if(prepend && destination.childNodes.length > 0){
+    destination.insertBefore(node, destination.childNodes[0]);
+  }else{
+    destination.appendChild(node);
+  }
+
+  return node;
 }
 
 export const animationEvent = {
@@ -217,11 +233,10 @@ export class ResourceLoadContext {
 export class ViewCompileInstruction {
   static normal = new ViewCompileInstruction();
 
-  constructor(targetShadowDOM?:boolean=false, compileSurrogate?:boolean=false, beforeCompile?:boolean=null){
+  constructor(targetShadowDOM?:boolean=false, compileSurrogate?:boolean=false){
     this.targetShadowDOM = targetShadowDOM;
     this.compileSurrogate = compileSurrogate;
     this.associatedModuleId = null;
-    this.beforeCompile = beforeCompile; //this will be replaced soon
   }
 }
 
@@ -254,10 +269,10 @@ export class BehaviorInstruction {
     return instruction;
   }
 
-  static dynamic(host, executionContext, viewFactory){
+  static dynamic(host, bindingContext, viewFactory){
     let instruction = new BehaviorInstruction(true);
     instruction.host = host;
-    instruction.executionContext = executionContext;
+    instruction.bindingContext = bindingContext;
     instruction.viewFactory = viewFactory;
     return instruction;
   }
@@ -272,7 +287,7 @@ export class BehaviorInstruction {
     this.originalAttrName = null;
     this.skipContentProcessing = false;
     this.contentFactory = null;
-    this.executionContext = null;
+    this.bindingContext = null;
     this.anchorIsContainer = false;
     this.host = null;
     this.attributes = null;
@@ -523,6 +538,13 @@ function register(lookup, name, resource, type){
   lookup[name] = resource;
 }
 
+interface ViewEngineHooks {
+  beforeCompile?: (content: DocumentFragment, resources: ViewResources, instruction: ViewCompileInstruction) => void;
+  afterCompile?: (viewFactory: ViewFactory) => void;
+  beforeCreate?: (viewFactory: ViewFactory, container: Container, content: DocumentFragment, instruction: ViewCreateInstruction, bindingContext?:Object) => void;
+  afterCreate?: (view: View) => void;
+}
+
 export class ViewResources {
   constructor(parent?:ViewResources, viewUrl?:string){
     this.parent = parent || null;
@@ -535,13 +557,135 @@ export class ViewResources {
     this.attributeMap = {};
     this.baseResourceUrl = '';
     this.bindingLanguage = null;
+    this.hook1 = null;
+    this.hook2 = null;
+    this.hook3 = null;
+    this.additionalHooks = null;
   }
 
-  getBindingLanguage(bindingLanguageFallback){
+  onBeforeCompile(content: DocumentFragment, resources: ViewResources, instruction: ViewCompileInstruction): void {
+    if(this.hasParent){
+      this.parent.onBeforeCompile(content, resources, instruction);
+    }
+
+    if(this.hook1 !== null){
+      this.hook1.beforeCompile(content, resources, instruction);
+
+      if(this.hook2 !== null){
+        this.hook2.beforeCompile(content, resources, instruction);
+
+        if(this.hook3 !== null){
+          this.hook3.beforeCompile(content, resources, instruction);
+
+          if(this.additionalHooks !== null){
+            let hooks = this.additionalHooks;
+            for(let i = 0, length = hooks.length; i < length; ++i){
+              hooks[i].beforeCompile(content, resources, instruction);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  onAfterCompile(viewFactory: ViewFactory): void {
+    if(this.hasParent){
+      this.parent.onAfterCompile(viewFactory);
+    }
+
+    if(this.hook1 !== null){
+      this.hook1.afterCompile(viewFactory);
+
+      if(this.hook2 !== null){
+        this.hook2.afterCompile(viewFactory);
+
+        if(this.hook3 !== null){
+          this.hook3.afterCompile(viewFactory);
+
+          if(this.additionalHooks !== null){
+            let hooks = this.additionalHooks;
+            for(let i = 0, length = hooks.length; i < length; ++i){
+              hooks[i].afterCompile(viewFactory);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  onBeforeCreate(viewFactory: ViewFactory, container: Container, content: DocumentFragment, instruction: ViewCreateInstruction, bindingContext?:Object): void {
+    if(this.hasParent){
+      this.parent.onBeforeCreate(viewFactory, container, content, instruction, bindingContext);
+    }
+
+    if(this.hook1 !== null){
+      this.hook1.beforeCreate(viewFactory, container, content, instruction, bindingContext);
+
+      if(this.hook2 !== null){
+        this.hook2.beforeCreate(viewFactory, container, content, instruction, bindingContext);
+
+        if(this.hook3 !== null){
+          this.hook3.beforeCreate(viewFactory, container, content, instruction, bindingContext);
+
+          if(this.additionalHooks !== null){
+            let hooks = this.additionalHooks;
+            for(let i = 0, length = hooks.length; i < length; ++i){
+              hooks[i].beforeCreate(viewFactory, container, content, instruction, bindingContext);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  onAfterCreate(view: View): void {
+    if(this.hasParent){
+      this.parent.onAfterCreate(view);
+    }
+
+    if(this.hook1 !== null){
+      this.hook1.afterCreate(view);
+
+      if(this.hook2 !== null){
+        this.hook2.afterCreate(view);
+
+        if(this.hook3 !== null){
+          this.hook3.afterCreate(view);
+
+          if(this.additionalHooks !== null){
+            let hooks = this.additionalHooks;
+            for(let i = 0, length = hooks.length; i < length; ++i){
+              hooks[i].afterCreate(view);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  registerViewEngineHooks(hooks:ViewEngineHooks): void {
+    if(hooks.beforeCompile === undefined) hooks.beforeCompile = Metadata.noop;
+    if(hooks.afterCompile === undefined) hooks.afterCompile = Metadata.noop;
+    if(hooks.beforeCreate === undefined) hooks.beforeCreate = Metadata.noop;
+    if(hooks.afterCreate === undefined) hooks.afterCreate = Metadata.noop;
+
+    if(this.hook1 === null) this.hook1 = hooks;
+    else if(this.hook2 === null) this.hook2 = hooks;
+    else if(this.hook3 === null) this.hook3 = hooks;
+    else {
+      if(this.additionalHooks === null){
+        this.additionalHooks = [];
+      }
+
+      this.additionalHooks.push(hooks);
+    }
+  }
+
+  getBindingLanguage(bindingLanguageFallback: BindingLanguage): BindingLanguage {
     return this.bindingLanguage || (this.bindingLanguage = bindingLanguageFallback);
   }
 
-  patchInParent(newParent:ViewResources):void{
+  patchInParent(newParent:ViewResources): void {
     let originalParent = this.parent;
 
     this.parent = newParent || null;
@@ -553,36 +697,36 @@ export class ViewResources {
     }
   }
 
-  relativeToView(path:string):string{
+  relativeToView(path:string): string {
     return relativeToFile(path, this.viewUrl);
   }
 
-  registerElement(tagName:string, behavior:HtmlBehaviorResource):void{
+  registerElement(tagName:string, behavior:HtmlBehaviorResource): void {
     register(this.elements, tagName, behavior, 'an Element');
   }
 
-  getElement(tagName:string):HtmlBehaviorResource{
+  getElement(tagName:string): HtmlBehaviorResource {
     return this.elements[tagName] || (this.hasParent ? this.parent.getElement(tagName) : null);
   }
 
-  mapAttribute(attribute:string):string{
+  mapAttribute(attribute:string): string{
     return this.attributeMap[attribute] || (this.hasParent ? this.parent.mapAttribute(attribute) : null);
   }
 
-  registerAttribute(attribute:string, behavior:HtmlBehaviorResource, knownAttribute:string):void{
+  registerAttribute(attribute:string, behavior:HtmlBehaviorResource, knownAttribute:string): void {
     this.attributeMap[attribute] = knownAttribute;
     register(this.attributes, attribute, behavior, 'an Attribute');
   }
 
-  getAttribute(attribute:string):HtmlBehaviorResource{
+  getAttribute(attribute:string): HtmlBehaviorResource {
     return this.attributes[attribute] || (this.hasParent ? this.parent.getAttribute(attribute) : null);
   }
 
-  registerValueConverter(name:string, valueConverter:ValueConverter):void{
+  registerValueConverter(name:string, valueConverter:ValueConverter): void {
     register(this.valueConverters, name, valueConverter, 'a ValueConverter');
   }
 
-  getValueConverter(name:string):ValueConverter{
+  getValueConverter(name:string): ValueConverter {
     return this.valueConverters[name] || (this.hasParent ? this.parent.getValueConverter(name) : null);
   }
 }
@@ -590,8 +734,16 @@ export class ViewResources {
 //NOTE: Adding a fragment to the document causes the nodes to be removed from the fragment.
 //NOTE: Adding to the fragment, causes the nodes to be removed from the document.
 
+interface ViewNode {
+  bind(bindingContext: Object, systemUpdate?: boolean): void;
+  attached(): void;
+  detached(): void;
+  unbind(): void;
+}
+
 export class View {
-  constructor(container, fragment, behaviors, bindings, children, systemControlled, contentSelectors){
+  constructor(viewFactory: ViewFactory, container: Container, fragment: DocumentFragment, behaviors: BehaviorInstance[], bindings: Binding[], children: ViewNode[], systemControlled: boolean, contentSelectors: ContentSelector[]){
+    this.viewFactory = viewFactory;
     this.container = container;
     this.fragment = fragment;
     this.behaviors = behaviors;
@@ -603,26 +755,31 @@ export class View {
     this.lastChild = fragment.lastChild;
     this.isBound = false;
     this.isAttached = false;
+    this.fromCache = false;
   }
 
-  created(){
+  returnToCache(): void {
+    this.viewFactory.returnViewToCache(this);
+  }
+
+  created(): void {
     var i, ii, behaviors = this.behaviors;
     for(i = 0, ii = behaviors.length; i < ii; ++i){
       behaviors[i].created(this);
     }
   }
 
-  bind(executionContext, systemUpdate){
+  bind(bindingContext: Object, systemUpdate?: boolean): void {
     var context, behaviors, bindings, children, i, ii;
 
     if(systemUpdate && !this.systemControlled){
-      context = this.executionContext || executionContext;
+      context = this.bindingContext || bindingContext;
     }else{
-      context = executionContext || this.executionContext;
+      context = bindingContext || this.bindingContext;
     }
 
     if(this.isBound){
-      if(this.executionContext === context){
+      if(this.bindingContext === context){
         return;
       }
 
@@ -630,7 +787,7 @@ export class View {
     }
 
     this.isBound = true;
-    this.executionContext = context;
+    this.bindingContext = context;
 
     if(this.owner){
       this.owner.bind(context);
@@ -652,15 +809,15 @@ export class View {
     }
   }
 
-  addBinding(binding){
+  addBinding(binding: Binding): void {
     this.bindings.push(binding);
 
     if(this.isBound){
-      binding.bind(this.executionContext);
+      binding.bind(this.bindingContext);
     }
   }
 
-  unbind(){
+  unbind(): void {
     var behaviors, bindings, children, i, ii;
 
     if(this.isBound){
@@ -687,16 +844,16 @@ export class View {
     }
   }
 
-  insertNodesBefore(refNode){
+  insertNodesBefore(refNode: Node): void {
     var parent = refNode.parentNode;
     parent.insertBefore(this.fragment, refNode);
   }
 
-  appendNodesTo(parent){
+  appendNodesTo(parent: Element): void {
     parent.appendChild(this.fragment);
   }
 
-  removeNodes(){
+  removeNodes(): void {
     var start = this.firstChild,
         end = this.lastChild,
         fragment = this.fragment,
@@ -717,7 +874,7 @@ export class View {
     }
   }
 
-  attached(){
+  attached(): void {
     var behaviors, children, i, ii;
 
     if(this.isAttached){
@@ -741,7 +898,7 @@ export class View {
     }
   }
 
-  detached(){
+  detached(): void {
     var behaviors, children, i, ii;
 
     if(this.isAttached){
@@ -892,24 +1049,26 @@ function getAnimatableElement(view){
 }
 
 export class ViewSlot {
-  constructor(anchor, anchorIsContainer, executionContext, animator=Animator.instance){
+  constructor(anchor: Node, anchorIsContainer: boolean, bindingContext?: Object, animator?: Animator = Animator.instance){
     this.anchor = anchor;
     this.viewAddMethod = anchorIsContainer ? 'appendNodesTo' : 'insertNodesBefore';
-    this.executionContext = executionContext;
+    this.bindingContext = bindingContext;
     this.animator = animator;
     this.children = [];
     this.isBound = false;
     this.isAttached = false;
+    this.contentSelectors = null;
     anchor.viewSlot = this;
   }
 
-  transformChildNodesIntoView(){
+  transformChildNodesIntoView(): void {
     var parent = this.anchor;
 
     this.children.push({
       fragment:parent,
       firstChild:parent.firstChild,
       lastChild:parent.lastChild,
+      returnToCache(){},
       removeNodes(){
         var last;
 
@@ -925,11 +1084,11 @@ export class ViewSlot {
     });
   }
 
-  bind(executionContext){
+  bind(bindingContext: Object): void {
     var i, ii, children;
 
     if(this.isBound){
-      if(this.executionContext === executionContext){
+      if(this.bindingContext === bindingContext){
         return;
       }
 
@@ -937,15 +1096,15 @@ export class ViewSlot {
     }
 
     this.isBound = true;
-    this.executionContext = executionContext = executionContext || this.executionContext;
+    this.bindingContext = bindingContext = bindingContext || this.bindingContext;
 
     children = this.children;
     for(i = 0, ii = children.length; i < ii; ++i){
-      children[i].bind(executionContext, true);
+      children[i].bind(bindingContext, true);
     }
   }
 
-  unbind(){
+  unbind(): void {
     var i, ii, children = this.children;
     this.isBound = false;
 
@@ -954,7 +1113,7 @@ export class ViewSlot {
     }
   }
 
-  add(view){
+  add(view: View): void {
     view[this.viewAddMethod](this.anchor);
     this.children.push(view);
 
@@ -968,7 +1127,7 @@ export class ViewSlot {
     }
   }
 
-  insert(index, view){
+  insert(index: number, view: View): void | Promise<any> {
     let children = this.children,
         length = children.length;
 
@@ -989,11 +1148,11 @@ export class ViewSlot {
     }
   }
 
-  remove(view){
-    return this.removeAt(this.children.indexOf(view));
+  remove(view: View, returnToCache?: boolean, skipAnimation?: boolean): void | Promise<View> {
+    return this.removeAt(this.children.indexOf(view), returnToCache, skipAnimation);
   }
 
-  removeAt(index){
+  removeAt(index: number, returnToCache?: boolean, skipAnimation?: boolean): void | Promise<View> {
     var view = this.children[index];
 
     var removeAction = () => {
@@ -1004,18 +1163,24 @@ export class ViewSlot {
         view.detached();
       }
 
+      if(returnToCache){
+        view.returnToCache();
+      }
+
       return view;
     };
 
-    let animatableElement = getAnimatableElement(view);
-    if(animatableElement !== null){
-      return this.animator.leave(animatableElement).then(() => removeAction());
+    if(!skipAnimation){
+      let animatableElement = getAnimatableElement(view);
+      if(animatableElement !== null){
+        return this.animator.leave(animatableElement).then(() => removeAction());
+      }
     }
 
     return removeAction();
   }
 
-  removeAll(){
+  removeAll(returnToCache?: boolean, skipAnimation?: boolean): void | Promise<any> {
     var children = this.children,
         ii = children.length,
         i;
@@ -1023,6 +1188,11 @@ export class ViewSlot {
     var rmPromises = [];
 
     children.forEach(child => {
+      if(skipAnimation){
+        child.removeNodes();
+        return;
+      }
+
       let animatableElement = getAnimatableElement(child);
       if(animatableElement !== null){
         rmPromises.push(this.animator.leave(animatableElement).then(() => child.removeNodes()));
@@ -1038,6 +1208,12 @@ export class ViewSlot {
         }
       }
 
+      if(returnToCache){
+        for(i = 0; i < ii; ++i){
+          children[i].returnToCache();
+        }
+      }
+
       this.children = [];
     };
 
@@ -1048,17 +1224,17 @@ export class ViewSlot {
     }
   }
 
-  swap(view){
-    var removeResponse = this.removeAll();
+  swap(view: View, returnToCache?: boolean): void | Promise<any> {
+    var removeResponse = this.removeAll(returnToCache);
 
-    if(removeResponse !== undefined) {
+    if(removeResponse instanceof Promise){
       return removeResponse.then(() => this.add(view));
-    } else {
+    } else{
       return this.add(view);
     }
   }
 
-  attached(){
+  attached(): void {
     var i, ii, children, child;
 
     if(this.isAttached){
@@ -1083,7 +1259,7 @@ export class ViewSlot {
     }
   }
 
-  detached(){
+  detached(): void {
     var i, ii, children;
 
     if(this.isAttached){
@@ -1095,16 +1271,16 @@ export class ViewSlot {
     }
   }
 
-  installContentSelectors(contentSelectors){
+  installContentSelectors(contentSelectors: ContentSelector[]): void {
     this.contentSelectors = contentSelectors;
-    this.add = this.contentSelectorAdd;
-    this.insert = this.contentSelectorInsert;
-    this.remove = this.contentSelectorRemove;
-    this.removeAt = this.contentSelectorRemoveAt;
-    this.removeAll = this.contentSelectorRemoveAll;
+    this.add = this._contentSelectorAdd;
+    this.insert = this._contentSelectorInsert;
+    this.remove = this._contentSelectorRemove;
+    this.removeAt = this._contentSelectorRemoveAt;
+    this.removeAll = this._contentSelectorRemoveAll;
   }
 
-  contentSelectorAdd(view){
+  _contentSelectorAdd(view){
     ContentSelector.applySelectors(
       view,
       this.contentSelectors,
@@ -1118,7 +1294,7 @@ export class ViewSlot {
     }
   }
 
-  contentSelectorInsert(index, view){
+  _contentSelectorInsert(index, view){
     if((index === 0 && !this.children.length) || index >= this.children.length){
       this.add(view);
     } else{
@@ -1136,7 +1312,7 @@ export class ViewSlot {
     }
   }
 
-  contentSelectorRemove(view){
+  _contentSelectorRemove(view){
     var index = this.children.indexOf(view),
         contentSelectors = this.contentSelectors,
         i, ii;
@@ -1152,7 +1328,7 @@ export class ViewSlot {
     }
   }
 
-  contentSelectorRemoveAt(index){
+  _contentSelectorRemoveAt(index){
     var view = this.children[index],
         contentSelectors = this.contentSelectors,
         i, ii;
@@ -1170,7 +1346,7 @@ export class ViewSlot {
     return view;
   }
 
-  contentSelectorRemoveAll(){
+  _contentSelectorRemoveAll(){
     var children = this.children,
         contentSelectors = this.contentSelectors,
         ii = children.length,
@@ -1212,12 +1388,12 @@ function elementContainerGet(key){
       factory = partReplacements[factory.part] || factory;
     }
 
-    return this.boundViewFactory = new BoundViewFactory(this, factory, this.executionContext, partReplacements);
+    return this.boundViewFactory = new BoundViewFactory(this, factory, this.bindingContext, partReplacements);
   }
 
   if(key === ViewSlot){
     if(this.viewSlot === undefined){
-      this.viewSlot = new ViewSlot(this.element, this.instruction.anchorIsContainer, this.executionContext);
+      this.viewSlot = new ViewSlot(this.element, this.instruction.anchorIsContainer, this.bindingContext);
       this.children.push(this.viewSlot);
     }
 
@@ -1235,14 +1411,14 @@ function elementContainerGet(key){
   return this.superGet(key);
 }
 
-function createElementContainer(parent, element, instruction, executionContext, children, partReplacements, resources){
+function createElementContainer(parent, element, instruction, bindingContext, children, partReplacements, resources){
   var container = parent.createChild(),
                   providers,
                   i;
 
   container.element = element;
   container.instruction = instruction;
-  container.executionContext = executionContext;
+  container.bindingContext = bindingContext;
   container.children = children;
   container.viewResources = resources;
   container.partReplacements = partReplacements;
@@ -1274,7 +1450,7 @@ function makeElementIntoAnchor(element, elementInstruction){
   return anchor;
 }
 
-function applyInstructions(containers, executionContext, element, instruction,
+function applyInstructions(containers, bindingContext, element, instruction,
   behaviors, bindings, children, contentSelectors, partReplacements, resources){
   var behaviorInstructions = instruction.behaviorInstructions,
       expressions = instruction.expressions,
@@ -1303,7 +1479,7 @@ function applyInstructions(containers, executionContext, element, instruction,
         containers[instruction.parentInjectorId],
         element,
         instruction,
-        executionContext,
+        bindingContext,
         children,
         partReplacements,
         resources
@@ -1408,33 +1584,102 @@ function applySurrogateInstruction(container, element, instruction, behaviors, b
 }
 
 export class BoundViewFactory {
-  constructor(parentContainer:Container, viewFactory:ViewFactory, executionContext:Object, partReplacements?:Object){
+  constructor(parentContainer: Container, viewFactory: ViewFactory, bindingContext: Object, partReplacements?: Object){
     this.parentContainer = parentContainer;
     this.viewFactory = viewFactory;
-    this.executionContext = executionContext;
+    this.bindingContext = bindingContext;
     this.factoryCreateInstruction = { partReplacements:partReplacements };
   }
 
-  create(executionContext?:Object):View{
+  create(bindingContext?: Object): View {
     var childContainer = this.parentContainer.createChild(),
-        context = executionContext || this.executionContext;
+        context = bindingContext || this.bindingContext;
 
-    this.factoryCreateInstruction.systemControlled = !executionContext;
+    this.factoryCreateInstruction.systemControlled = !bindingContext;
 
     return this.viewFactory.create(childContainer, context, this.factoryCreateInstruction);
   }
+
+  get isCaching(){
+    return this.isCaching;
+  }
+
+  setCacheSize(size: number | string, doNotOverrideIfAlreadySet: boolean): void {
+    this.viewFactory.setCacheSize(size, doNotOverrideIfAlreadySet);
+  }
+
+  getCachedView(): View {
+    return this.viewFactory.getCachedView();
+  }
+
+  returnViewToCache(view: View): void {
+    this.viewFactory.returnViewToCache(view);
+  }
 }
 
-export class ViewFactory{
-  constructor(template:DocumentFragment, instructions:Object, resources:ViewResources){
+export class ViewFactory {
+  constructor(template: DocumentFragment, instructions: Object, resources: ViewResources) {
     this.template = template;
     this.instructions = instructions;
     this.resources = resources;
+    this.cacheSize = -1;
+    this.cache = null;
+    this.isCaching = false;
   }
 
-  create(container:Container, executionContext?:Object, createInstruction?:ViewCreateInstruction, element?:Element):View{
+  setCacheSize(size: number | string, doNotOverrideIfAlreadySet: boolean): void {
+    if(size){
+      if(size === '*'){
+        size = Number.MAX_VALUE;
+      } else if(typeof size === "string") {
+        size = parseInt(size);
+      }
+    }
+
+    if(this.cacheSize === -1 || !doNotOverrideIfAlreadySet){
+      this.cacheSize = size;
+    }
+
+    if(this.cacheSize > 0){
+      this.cache = [];
+    } else {
+      this.cache = null;
+    }
+
+    this.isCaching = this.cacheSize > 0;
+  }
+
+  getCachedView(): View {
+    return this.cache !== null ? (this.cache.pop() || null) : null;
+  }
+
+  returnViewToCache(view: View): void {
+    if(view.isAttached){
+      view.detached();
+    }
+
+    if(view.isBound){
+      view.unbind();
+    }
+
+    if(this.cache !== null && this.cache.length < this.cacheSize){
+      view.fromCache = true;
+      this.cache.push(view);
+    }
+  }
+
+  create(container: Container, bindingContext?: Object, createInstruction?: ViewCreateInstruction, element?: Element): View {
     createInstruction = createInstruction || BehaviorInstruction.normal;
     element = element || null;
+
+    let cachedView = this.getCachedView();
+    if(cachedView !== null){
+      if(!createInstruction.suppressBind){
+        cachedView.bind(bindingContext);
+      }
+
+      return cachedView;
+    }
 
     let fragment = createInstruction.enhance ? this.template : this.template.cloneNode(true),
         instructables = fragment.querySelectorAll('.au-target'),
@@ -1448,6 +1693,8 @@ export class ViewFactory{
         partReplacements = createInstruction.partReplacements,
         i, ii, view, instructable, instruction;
 
+    this.resources.onBeforeCreate(this, container, fragment, createInstruction, bindingContext);
+
     if(element !== null && this.surrogateInstruction !== null){
       applySurrogateInstruction(container, element, this.surrogateInstruction, behaviors, bindings, children);
     }
@@ -1456,20 +1703,22 @@ export class ViewFactory{
       instructable = instructables[i];
       instruction = instructions[instructable.getAttribute('au-target-id')];
 
-      applyInstructions(containers, executionContext, instructable,
+      applyInstructions(containers, bindingContext, instructable,
         instruction, behaviors, bindings, children, contentSelectors, partReplacements, resources);
     }
 
-    view = new View(container, fragment, behaviors, bindings, children, createInstruction.systemControlled, contentSelectors);
+    view = new View(this, container, fragment, behaviors, bindings, children, createInstruction.systemControlled, contentSelectors);
 
     //if iniated by an element behavior, let the behavior trigger this callback once it's done creating the element
     if(!createInstruction.initiatedByBehavior){
       view.created();
     }
 
+    this.resources.onAfterCreate(view);
+
     //if the view creation is part of a larger creation, wait to bind until the root view initiates binding
     if(!createInstruction.suppressBind){
-      view.bind(executionContext);
+      view.bind(bindingContext);
     }
 
     return view;
@@ -1523,50 +1772,46 @@ function makeIntoInstructionTarget(element){
   return auTargetID;
 }
 
+@inject(BindingLanguage, ViewResources)
 export class ViewCompiler {
-  static inject() { return [BindingLanguage, ViewResources]; }
   constructor(bindingLanguage:BindingLanguage, resources:ViewResources){
     this.bindingLanguage = bindingLanguage;
     this.resources = resources;
   }
 
-  compile(source:Element|DocumentFragment|string, resources?:ViewResources, compileInstruction?:ViewCompileInstruction):ViewFactory{
+  compile(source: Element|DocumentFragment|string, resources?: ViewResources, compileInstruction?: ViewCompileInstruction): ViewFactory{
     resources = resources || this.resources;
     compileInstruction = compileInstruction || ViewCompileInstruction.normal;
+    source = typeof source === 'string' ? createTemplateFromMarkup(source) : source;
 
-    let instructions = {},
-        targetShadowDOM = compileInstruction.targetShadowDOM,
-        content, part;
-
-    targetShadowDOM = targetShadowDOM && hasShadowDOM;
-
-    if(compileInstruction.beforeCompile){
-      compileInstruction.beforeCompile(source);
-      console.warn('In a future release, the beforeCompile hook will be replaced by an alternate mechanism');
-    }
-
-    if(typeof source === 'string'){
-      source = createTemplateFromMarkup(source);
-    }
+    let content, part, cacheSize;
 
     if(source.content){
       part = source.getAttribute('part');
+      cacheSize = source.getAttribute('view-cache');
       content = document.adoptNode(source.content, true);
     }else{
       content = source;
     }
 
-    this.compileNode(content, resources, instructions, source, 'root', !targetShadowDOM);
+    compileInstruction.targetShadowDOM = compileInstruction.targetShadowDOM && hasShadowDOM;
+    resources.onBeforeCompile(content, resources, compileInstruction);
 
+    let instructions = {};
+    this.compileNode(content, resources, instructions, source, 'root', !compileInstruction.targetShadowDOM);
     content.insertBefore(document.createComment('<view>'), content.firstChild);
     content.appendChild(document.createComment('</view>'));
 
     let factory = new ViewFactory(content, instructions, resources);
-    factory.surrogateInstruction = compileInstruction.compileSurrogate ? this.compileSurrogate(source, resources) : null;
 
-    if(part){
-      factory.part = part;
+    factory.surrogateInstruction = compileInstruction.compileSurrogate ? this.compileSurrogate(source, resources) : null;
+    factory.part = part;
+
+    if(cacheSize){
+      factory.setCacheSize(cacheSize);
     }
+
+    resources.onAfterCompile(factory);
 
     return factory;
   }
@@ -1881,6 +2126,13 @@ export class ViewEngine {
     this.viewCompiler = viewCompiler;
     this.moduleAnalyzer = moduleAnalyzer;
     this.appResources = appResources;
+    this._pluginMap = {};
+  }
+
+  addResourcePlugin(extension: string, implementation: string){
+     let name = extension.replace('.', '') + '-resource-plugin';
+     this._pluginMap[extension] = name;
+     this.loader.addPlugin(name, implementation);
   }
 
   enhance(container:Container, element:Element, resources:ViewResources, bindingContext?:Object):View{
@@ -1952,6 +2204,8 @@ export class ViewEngine {
     loadContext = loadContext || new ResourceLoadContext();
     compileInstruction = compileInstruction || ViewCompileInstruction.normal;
 
+    moduleIds = moduleIds.map(x => this._applyLoaderPlugin(x));
+
     return this.loader.loadAllModules(moduleIds).then(imports => {
       var i, ii, analysis, normalizedId, current, associatedModule,
           container = this.container,
@@ -1989,25 +2243,41 @@ export class ViewEngine {
       return Promise.all(allAnalysis).then(() => resources);
     });
   }
+
+  _applyLoaderPlugin(id){
+    let index = id.lastIndexOf('.');
+    if(index !== -1){
+      let ext = id.substring(index);
+      let pluginName = this._pluginMap[ext];
+
+      if(pluginName === undefined){
+        return id;
+      }
+
+      return this.loader.applyPluginToUrl(id, pluginName);
+    }
+
+    return id;
+  }
 }
 
 export class BehaviorInstance {
-  constructor(behavior, executionContext, instruction){
+  constructor(behavior, bindingContext, instruction){
     this.behavior = behavior;
-    this.executionContext = executionContext;
+    this.bindingContext = bindingContext;
     this.isAttached = false;
 
-    var observerLookup = behavior.observerLocator.getOrCreateObserversLookup(executionContext),
+    var observerLookup = behavior.observerLocator.getOrCreateObserversLookup(bindingContext),
         handlesBind = behavior.handlesBind,
         attributes = instruction.attributes,
         boundProperties = this.boundProperties = [],
         properties = behavior.properties,
         i, ii;
 
-    behavior.ensurePropertiesDefined(executionContext, observerLookup);
+    behavior.ensurePropertiesDefined(bindingContext, observerLookup);
 
     for(i = 0, ii = properties.length; i < ii; ++i){
-      properties[i].initialize(executionContext, observerLookup, attributes, handlesBind, boundProperties);
+      properties[i].initialize(bindingContext, observerLookup, attributes, handlesBind, boundProperties);
     }
   }
 
@@ -2015,17 +2285,17 @@ export class BehaviorInstance {
     let description = ResourceDescription.get(type);
     description.analyze(Container.instance);
 
-    let executionContext = Container.instance.get(type);
-    let behaviorInstance = new BehaviorInstance(description.metadata, executionContext, {attributes:attributes||{}});
+    let behaviorContext = Container.instance.get(type);
+    let behaviorInstance = new BehaviorInstance(description.metadata, behaviorContext, {attributes:attributes||{}});
 
     behaviorInstance.bind(bindingContext || {});
 
-    return executionContext;
+    return behaviorContext;
   }
 
   created(context){
     if(this.behavior.handlesCreated){
-      this.executionContext.created(context);
+      this.bindingContext.created(context);
     }
   }
 
@@ -2052,11 +2322,11 @@ export class BehaviorInstance {
     }
 
     if(skipSelfSubscriber){
-      this.executionContext.bind(context);
+      this.bindingContext.bind(context);
     }
 
     if(this.view){
-      this.view.bind(this.executionContext);
+      this.view.bind(this.bindingContext);
     }
   }
 
@@ -2069,7 +2339,7 @@ export class BehaviorInstance {
     }
 
     if(this.behavior.handlesUnbind){
-      this.executionContext.unbind();
+      this.bindingContext.unbind();
     }
 
     for(i = 0, ii = boundProperties.length; i < ii; ++i){
@@ -2085,7 +2355,7 @@ export class BehaviorInstance {
     this.isAttached = true;
 
     if(this.behavior.handlesAttached){
-      this.executionContext.attached();
+      this.bindingContext.attached();
     }
 
     if(this.view){
@@ -2102,7 +2372,7 @@ export class BehaviorInstance {
       }
 
       if(this.behavior.handlesDetached){
-        this.executionContext.detached();
+        this.bindingContext.detached();
       }
     }
   }
@@ -2193,7 +2463,7 @@ export class BindableProperty {
     }
   }
 
-  createObserver(executionContext){
+  createObserver(bindingContext){
     var selfSubscriber = null,
         defaultValue = this.defaultValue,
         changeHandlerName = this.changeHandler,
@@ -2204,39 +2474,39 @@ export class BindableProperty {
       return;
     }
 
-    if(changeHandlerName in executionContext){
-      if('propertyChanged' in executionContext) {
+    if(changeHandlerName in bindingContext){
+      if('propertyChanged' in bindingContext) {
         selfSubscriber = (newValue, oldValue) => {
-          executionContext[changeHandlerName](newValue, oldValue);
-          executionContext.propertyChanged(name, newValue, oldValue);
+          bindingContext[changeHandlerName](newValue, oldValue);
+          bindingContext.propertyChanged(name, newValue, oldValue);
         };
       }else {
-        selfSubscriber = (newValue, oldValue) => executionContext[changeHandlerName](newValue, oldValue);
+        selfSubscriber = (newValue, oldValue) => bindingContext[changeHandlerName](newValue, oldValue);
       }
-    } else if('propertyChanged' in executionContext) {
-      selfSubscriber = (newValue, oldValue) => executionContext.propertyChanged(name, newValue, oldValue);
+    } else if('propertyChanged' in bindingContext) {
+      selfSubscriber = (newValue, oldValue) => bindingContext.propertyChanged(name, newValue, oldValue);
     } else if(changeHandlerName !== null){
       throw new Error(`Change handler ${changeHandlerName} was specified but not delcared on the class.`);
     }
 
     if(defaultValue !== undefined){
-      initialValue = typeof defaultValue === 'function' ? defaultValue.call(executionContext) : defaultValue;
+      initialValue = typeof defaultValue === 'function' ? defaultValue.call(bindingContext) : defaultValue;
     }
 
-    return new BehaviorPropertyObserver(this.owner.taskQueue, executionContext, this.name, selfSubscriber, initialValue);
+    return new BehaviorPropertyObserver(this.owner.taskQueue, bindingContext, this.name, selfSubscriber, initialValue);
   }
 
-  initialize(executionContext, observerLookup, attributes, behaviorHandlesBind, boundProperties){
+  initialize(bindingContext, observerLookup, attributes, behaviorHandlesBind, boundProperties){
     var selfSubscriber, observer, attribute, defaultValue = this.defaultValue;
 
     if(this.isDynamic){
       for(let key in attributes){
-        this.createDynamicProperty(executionContext, observerLookup, behaviorHandlesBind, key, attributes[key], boundProperties);
+        this.createDynamicProperty(bindingContext, observerLookup, behaviorHandlesBind, key, attributes[key], boundProperties);
       }
     } else if(!this.hasOptions){
       observer = observerLookup[this.name];
 
-      if(attributes !== undefined){
+      if (attributes !== null) {
         selfSubscriber = observer.selfSubscriber;
         attribute = attributes[this.attribute];
 
@@ -2245,10 +2515,10 @@ export class BindableProperty {
         }
 
         if(typeof attribute === 'string'){
-          executionContext[this.name] = attribute;
+          bindingContext[this.name] = attribute;
           observer.call();
         }else if(attribute){
-          boundProperties.push({observer:observer, binding:attribute.createBinding(executionContext)});
+          boundProperties.push({observer:observer, binding:attribute.createBinding(bindingContext)});
         }else if(defaultValue !== undefined){
           observer.call();
         }
@@ -2260,31 +2530,31 @@ export class BindableProperty {
     }
   }
 
-  createDynamicProperty(executionContext, observerLookup, behaviorHandlesBind, name, attribute, boundProperties){
+  createDynamicProperty(bindingContext, observerLookup, behaviorHandlesBind, name, attribute, boundProperties){
     var changeHandlerName = name + 'Changed',
         selfSubscriber = null, observer, info;
 
-    if(changeHandlerName in executionContext){
-      if('propertyChanged' in executionContext) {
+    if(changeHandlerName in bindingContext){
+      if('propertyChanged' in bindingContext) {
         selfSubscriber = (newValue, oldValue) => {
-          executionContext[changeHandlerName](newValue, oldValue);
-          executionContext.propertyChanged(name, newValue, oldValue);
+          bindingContext[changeHandlerName](newValue, oldValue);
+          bindingContext.propertyChanged(name, newValue, oldValue);
         };
       }else {
-        selfSubscriber = (newValue, oldValue) => executionContext[changeHandlerName](newValue, oldValue);
+        selfSubscriber = (newValue, oldValue) => bindingContext[changeHandlerName](newValue, oldValue);
       }
-    }else if('propertyChanged' in executionContext) {
-      selfSubscriber = (newValue, oldValue) => executionContext.propertyChanged(name, newValue, oldValue);
+    }else if('propertyChanged' in bindingContext) {
+      selfSubscriber = (newValue, oldValue) => bindingContext.propertyChanged(name, newValue, oldValue);
     }
 
     observer = observerLookup[name] = new BehaviorPropertyObserver(
         this.owner.taskQueue,
-        executionContext,
+        bindingContext,
         name,
         selfSubscriber
         );
 
-    Object.defineProperty(executionContext, name, {
+    Object.defineProperty(bindingContext, name, {
       configurable: true,
       enumerable: true,
       get: observer.getValue.bind(observer),
@@ -2296,10 +2566,10 @@ export class BindableProperty {
     }
 
     if(typeof attribute === 'string'){
-      executionContext[name] = attribute;
+      bindingContext[name] = attribute;
       observer.call();
     }else if(attribute){
-      info = {observer:observer, binding:attribute.createBinding(executionContext)};
+      info = {observer:observer, binding:attribute.createBinding(bindingContext)};
       boundProperties.push(info);
     }
 
@@ -2476,7 +2746,7 @@ export class HtmlBehaviorResource {
 
     if(this.elementName !== null){
       viewStrategy = viewStrategy || this.viewStrategy || ViewStrategy.getDefault(target);
-      options = new ViewCompileInstruction(this.targetShadowDOM, true, target.beforeCompile);
+      options = new ViewCompileInstruction(this.targetShadowDOM, true);
 
       if(!viewStrategy.moduleId){
         viewStrategy.moduleId = Origin.get(target).moduleId;
@@ -2509,6 +2779,7 @@ export class HtmlBehaviorResource {
       if(!instruction.viewFactory){
         var template = document.createElement('template'),
             fragment = document.createDocumentFragment(),
+            cacheSize = node.getAttribute('view-cache'),
             part = node.getAttribute('part');
 
         node.removeAttribute(instruction.originalAttrName);
@@ -2519,6 +2790,11 @@ export class HtmlBehaviorResource {
         if(part){
           instruction.viewFactory.part = part;
           node.removeAttribute('part');
+        }
+
+        if(cacheSize){
+          instruction.viewFactory.setCacheSize(cacheSize);
+          node.removeAttribute('view-cache');
         }
 
         node = template;
@@ -2592,8 +2868,8 @@ export class HtmlBehaviorResource {
       }
     }
 
-    let executionContext = instruction.executionContext || container.get(this.target),
-        behaviorInstance = new BehaviorInstance(this, executionContext, instruction),
+    let bindingContext = instruction.bindingContext || container.get(this.target),
+        behaviorInstance = new BehaviorInstance(this, bindingContext, instruction),
         childBindings = this.childBindings,
         viewFactory;
 
@@ -2603,10 +2879,10 @@ export class HtmlBehaviorResource {
     } else if(this.elementName !== null){
       //custom element
       viewFactory = instruction.viewFactory || this.viewFactory;
-      container.viewModel = executionContext;
+      container.viewModel = bindingContext;
 
       if(viewFactory){
-        behaviorInstance.view = viewFactory.create(container, executionContext, instruction, element);
+        behaviorInstance.view = viewFactory.create(container, bindingContext, instruction, element);
       }
 
       if(element){
@@ -2630,7 +2906,7 @@ export class HtmlBehaviorResource {
           if(instruction.anchorIsContainer){
             if(childBindings !== null){
               for(let i = 0, ii = childBindings.length; i < ii; ++i){
-                behaviorInstance.view.addBinding(childBindings[i].create(host, executionContext));
+                behaviorInstance.view.addBinding(childBindings[i].create(host, bindingContext));
               }
             }
 
@@ -2640,7 +2916,7 @@ export class HtmlBehaviorResource {
           }
         }else if(childBindings !== null){
           for(let i = 0, ii = childBindings.length; i < ii; ++i){
-            bindings.push(childBindings[i].create(element, executionContext));
+            bindings.push(childBindings[i].create(element, bindingContext));
           }
         }
       }else if(behaviorInstance.view){
@@ -2649,25 +2925,25 @@ export class HtmlBehaviorResource {
 
         if(childBindings !== null){
           for(let i = 0, ii = childBindings.length; i < ii; ++i){
-            behaviorInstance.view.addBinding(childBindings[i].create(instruction.host, executionContext));
+            behaviorInstance.view.addBinding(childBindings[i].create(instruction.host, bindingContext));
           }
         }
       }else if(childBindings !== null){
         //dynamic element without view
         for(let i = 0, ii = childBindings.length; i < ii; ++i){
-          bindings.push(childBindings[i].create(instruction.host, executionContext));
+          bindings.push(childBindings[i].create(instruction.host, bindingContext));
         }
       }
     } else if(childBindings !== null){
       //custom attribute
       for(let i = 0, ii = childBindings.length; i < ii; ++i){
-        bindings.push(childBindings[i].create(element, executionContext));
+        bindings.push(childBindings[i].create(element, bindingContext));
       }
     }
 
     if(element){
       if(!(this.apiName in element)){
-        element[this.apiName] = executionContext;
+        element[this.apiName] = bindingContext;
       }
 
       if(!(this.htmlName in element)){
@@ -2987,7 +3263,7 @@ export class ChildObserverBinder {
 
     for(i = 0, ii = results.length; i < ii; ++i){
       node = results[i];
-      items.push(node.primaryBehavior ? node.primaryBehavior.executionContext : node);
+      items.push(node.primaryBehavior ? node.primaryBehavior.bindingContext : node);
     }
 
     if(this.changeHandler !== null){
@@ -3012,7 +3288,7 @@ export class ChildObserverBinder {
       for(i = 0, ii = removed.length; i < ii; ++i){
         node = removed[i];
         if(node.nodeType === 1 && node.matches(selector)){
-          primary = node.primaryBehavior ? node.primaryBehavior.executionContext : node;
+          primary = node.primaryBehavior ? node.primaryBehavior.bindingContext : node;
           index = items.indexOf(primary);
           if(index != -1){
             items.splice(index, 1);
@@ -3023,7 +3299,7 @@ export class ChildObserverBinder {
       for(i = 0, ii = added.length; i < ii; ++i){
         node = added[i];
         if(node.nodeType === 1 && node.matches(selector)){
-          primary = node.primaryBehavior ? node.primaryBehavior.executionContext : node;
+          primary = node.primaryBehavior ? node.primaryBehavior.bindingContext : node;
           index = 0;
 
           while(prev){
@@ -3060,16 +3336,33 @@ export class CompositionEngine {
   }
 
   createBehaviorAndSwap(instruction){
-    return this.createBehavior(instruction).then(behavior => {
-      behavior.view.bind(behavior.executionContext);
-      instruction.viewSlot.swap(behavior.view);
+    var removeResponse = instruction.viewSlot.removeAll(true);
 
-      if(instruction.currentBehavior){
-        instruction.currentBehavior.unbind();
-      }
+    if(removeResponse instanceof Promise){
+      return removeResponse.then(() => {
+        return this.createBehavior(instruction).then(behavior => {
+          if(instruction.currentBehavior){
+            instruction.currentBehavior.unbind();
+          }
 
-      return behavior;
-    });
+          behavior.view.bind(behavior.bindingContext);
+          instruction.viewSlot.add(behavior.view);
+
+          return behavior;
+        });
+      });
+    } else{
+      return this.createBehavior(instruction).then(behavior => {
+        if(instruction.currentBehavior){
+          instruction.currentBehavior.unbind();
+        }
+
+        behavior.view.bind(behavior.bindingContext);
+        instruction.viewSlot.add(behavior.view);
+
+        return behavior;
+      });
+    }
   }
 
   createBehavior(instruction){
@@ -3153,9 +3446,19 @@ export class CompositionEngine {
       }
 
       return instruction.view.loadViewFactory(this.viewEngine, new ViewCompileInstruction()).then(viewFactory => {
-        var result = viewFactory.create(instruction.childContainer, instruction.executionContext);
-        instruction.viewSlot.swap(result);
-        return result;
+        var removeResponse = instruction.viewSlot.removeAll(true);
+
+        if(removeResponse instanceof Promise) {
+          return removeResponse.then(() => {
+            var result = viewFactory.create(instruction.childContainer, instruction.bindingContext);
+            instruction.viewSlot.add(result);
+            return result;
+          });
+        } else {
+          var result = viewFactory.create(instruction.childContainer, instruction.bindingContext);
+          instruction.viewSlot.add(result);
+          return result;
+        }
       });
     }else if(instruction.viewSlot){
       instruction.viewSlot.removeAll();
@@ -3182,6 +3485,14 @@ function validateBehaviorName(name, type) {
   }
 }
 
+export function resource(instance){
+  return function(target){
+    Metadata.define(Metadata.resource, instance, target);
+  }
+}
+
+Decorators.configure.parameterizedDecorator('resource', resource);
+
 export function behavior(override){
   return function(target){
     if(override instanceof HtmlBehaviorResource){
@@ -3205,7 +3516,7 @@ export function customElement(name){
 
 Decorators.configure.parameterizedDecorator('customElement', customElement);
 
-export function customAttribute(name, defaultBindingMode){
+export function customAttribute(name, defaultBindingMode?){
   validateBehaviorName(name, 'custom attribute');
   return function(target){
     var resource = Metadata.getOrCreateOwn(Metadata.resource, HtmlBehaviorResource, target);
