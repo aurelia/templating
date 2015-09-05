@@ -1718,7 +1718,7 @@ define(['exports', 'core-js', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pa
     _createClass(BoundViewFactory, [{
       key: 'isCaching',
       get: function get() {
-        return this.isCaching;
+        return this.viewFactory.isCaching;
       }
     }]);
 

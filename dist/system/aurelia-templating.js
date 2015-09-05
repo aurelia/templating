@@ -2012,7 +2012,7 @@ System.register(['core-js', 'aurelia-logging', 'aurelia-metadata', 'aurelia-path
         _createClass(BoundViewFactory, [{
           key: 'isCaching',
           get: function get() {
-            return this.isCaching;
+            return this.viewFactory.isCaching;
           }
         }]);
 

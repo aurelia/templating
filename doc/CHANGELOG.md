@@ -1,3 +1,11 @@
+### 0.15.1 (2015-09-05)
+
+
+#### Bug Fixes
+
+* **view-factory:** accidental recursion in isCaching property ([ed88333b](http://github.com/aurelia/templating/commit/ed88333bbf2e4e82d50d6a996243b71218229e91), closes [#168](http://github.com/aurelia/templating/issues/168))
+
+
 ## 0.15.0 (2015-09-04)
 
 
