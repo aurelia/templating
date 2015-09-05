@@ -235,7 +235,7 @@ export class BoundViewFactory {
   }
 
   get isCaching(){
-    return this.isCaching;
+    return this.viewFactory.isCaching;
   }
 
   setCacheSize(size: number | string, doNotOverrideIfAlreadySet: boolean): void {
