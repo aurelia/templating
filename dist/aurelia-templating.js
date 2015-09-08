@@ -2180,7 +2180,7 @@ export class ViewEngine {
 
     importIds = dependencies.map(x => x.src);
     names = dependencies.map(x => x.name);
-    logger.debug(`importing resources for ${viewRegistryEntry.id}`, importIds);
+    logger.debug(`importing resources for ${viewRegistryEntry.address}`, importIds);
 
     return this.importViewResources(importIds, names, resources, compileInstruction, loadContext);
   }

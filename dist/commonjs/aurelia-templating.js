@@ -2362,7 +2362,7 @@ var ViewEngine = (function () {
     names = dependencies.map(function (x) {
       return x.name;
     });
-    logger.debug('importing resources for ' + viewRegistryEntry.id, importIds);
+    logger.debug('importing resources for ' + viewRegistryEntry.address, importIds);
 
     return this.importViewResources(importIds, names, resources, compileInstruction, loadContext);
   };

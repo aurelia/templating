@@ -1,3 +1,11 @@
+### 0.15.2 (2015-09-08)
+
+
+#### Bug Fixes
+
+* **view-engine:** correct the view registry entry debug output ([7aff2289](http://github.com/aurelia/templating/commit/7aff2289a9e9f9eae2e480b6166932fd0c3ea627))
+
+
 ### 0.15.1 (2015-09-05)
 
 
