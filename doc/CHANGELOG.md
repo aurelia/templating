@@ -1,3 +1,11 @@
+### 0.15.3 (2015-09-08)
+
+
+#### Bug Fixes
+
+* **view-engine:** pass correct view address to resources ([ebf99415](http://github.com/aurelia/templating/commit/ebf994159dae11bd0b7a076470674f0877089ac6))
+
+
 ### 0.15.2 (2015-09-08)
 
 

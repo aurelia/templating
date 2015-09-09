@@ -627,7 +627,6 @@ define(['exports', 'core-js', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pa
       this.elements = {};
       this.valueConverters = {};
       this.attributeMap = {};
-      this.baseResourceUrl = '';
       this.bindingLanguage = null;
       this.hook1 = null;
       this.hook2 = null;
@@ -2324,7 +2323,7 @@ define(['exports', 'core-js', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pa
     };
 
     ViewEngine.prototype.loadTemplateResources = function loadTemplateResources(viewRegistryEntry, compileInstruction, loadContext) {
-      var resources = new ViewResources(this.appResources, viewRegistryEntry.id),
+      var resources = new ViewResources(this.appResources, viewRegistryEntry.address),
           dependencies = viewRegistryEntry.dependencies,
           importIds,
           names;

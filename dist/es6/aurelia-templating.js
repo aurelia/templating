@@ -555,7 +555,6 @@ export class ViewResources {
     this.elements = {};
     this.valueConverters = {};
     this.attributeMap = {};
-    this.baseResourceUrl = '';
     this.bindingLanguage = null;
     this.hook1 = null;
     this.hook2 = null;
@@ -2168,7 +2167,7 @@ export class ViewEngine {
   }
 
   loadTemplateResources(viewRegistryEntry:TemplateRegistryEntry, compileInstruction?:ViewCompileInstruction, loadContext?:ResourceLoadContext):Promise<ViewResources>{
-    var resources = new ViewResources(this.appResources, viewRegistryEntry.id),
+    var resources = new ViewResources(this.appResources, viewRegistryEntry.address),
         dependencies = viewRegistryEntry.dependencies,
         importIds, names;
 

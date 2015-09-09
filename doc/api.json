@@ -6020,7 +6020,7 @@
                   "type": {
                     "type": "reference",
                     "name": "TemplateRegistryEntry",
-                    "id": 2270,
+                    "id": 2223,
                     "moduleName": "\"aurelia-loader\""
                   }
                 }
@@ -7602,7 +7602,7 @@
                   "type": {
                     "type": "reference",
                     "name": "Loader",
-                    "id": 2291,
+                    "id": 2244,
                     "moduleName": "\"aurelia-loader\""
                   }
                 },
@@ -7966,7 +7966,7 @@
                   "type": {
                     "type": "reference",
                     "name": "TemplateRegistryEntry",
-                    "id": 2270,
+                    "id": 2223,
                     "moduleName": "\"aurelia-loader\""
                   }
                 },
@@ -8047,7 +8047,7 @@
                       {
                         "type": "reference",
                         "name": "TemplateRegistryEntry",
-                        "id": 2270
+                        "id": 2223
                       }
                     ]
                   }
