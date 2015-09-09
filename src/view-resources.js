@@ -39,7 +39,6 @@ export class ViewResources {
     this.elements = {};
     this.valueConverters = {};
     this.attributeMap = {};
-    this.baseResourceUrl = '';
     this.bindingLanguage = null;
     this.hook1 = null;
     this.hook2 = null;
