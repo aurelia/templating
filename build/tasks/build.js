@@ -30,6 +30,7 @@ gulp.task('build-index', function(){
     'view-compiler.js',
     'view-engine.js',
     'behavior-instance.js',
+    'behavior-property-observer.js',
     'bindable-property.js',
     'html-behavior.js',
     'module-analyzer.js',
