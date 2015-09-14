@@ -48,11 +48,11 @@ export class BehaviorPropertyObserver {
     this.oldValue = newValue;
   }
 
-  subscribe(callback) {
-    this.addSubscriber(callback);
+  subscribe(context, callable) {
+    this.addSubscriber(context, callable);
   }
 
-  unsubscribe(callback) {
-    this.removeSubscriber(callback);
+  unsubscribe(context, callable) {
+    this.removeSubscriber(context, callable);
   }
 }
