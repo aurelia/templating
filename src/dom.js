@@ -16,6 +16,9 @@ export function createTemplateFromMarkup(markup:string):Element{
   parser.innerHTML = markup;
 
   let temp = parser.firstElementChild;
+  if(!temp || temp.nodeName !== 'TEMPLATE'){
+    throw new Error(`Template markup must be wrapped in a <template> element e.g. <template> <!-- markup here --> </template>`);
+  }
 
   if(needsTemplateFixup){
     temp.content = document.createDocumentFragment();
