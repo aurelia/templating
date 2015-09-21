@@ -2,7 +2,7 @@
 
 describe('dom', () => {
   describe('createTemplateFromMarkup', () => {
-    it('should create template from valid markup', () => {
+    it('should create a template from valid markup', () => {
       expect(() => createTemplateFromMarkup('<template>this is valid!</template>')).toBeDefined();
     });
 
