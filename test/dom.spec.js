@@ -2,6 +2,10 @@
 
 describe('dom', () => {
   describe('createTemplateFromMarkup', () => {
+    it('should create template from valid markup', () => {
+      expect(() => createTemplateFromMarkup('<template>this is valid!</template>')).toBeDefined();
+    });
+
     it('should throw an error when creating a template from text-only markup', () => {
       expect(() => createTemplateFromMarkup('throw an error!')).toThrow();
     });
