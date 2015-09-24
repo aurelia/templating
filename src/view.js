@@ -92,6 +92,7 @@ export class View {
 
     if(this.isBound){
       this.isBound = false;
+      this.bindingContext = null;
 
       if(this.owner){
         this.owner.unbind();
