@@ -21,11 +21,27 @@ function ensureRegistryEntry(loader, urlOrRegistryEntry){
 
 class ProxyViewFactory {
   constructor(promise){
-    promise.then(x => this.absorb(x));
+    promise.then(x => this.viewFactory = x);
   }
 
-  absorb(factory){
-    this.create = factory.create.bind(factory);
+  create(container: Container, bindingContext?: Object, createInstruction?: ViewCreateInstruction, element?: Element): View {
+    return this.viewFactory.create(container, bindingContext, createInstruction, element);
+  }
+
+  get isCaching(){
+    return this.viewFactory.isCaching;
+  }
+
+  setCacheSize(size: number | string, doNotOverrideIfAlreadySet: boolean): void {
+    this.viewFactory.setCacheSize(size, doNotOverrideIfAlreadySet);
+  }
+
+  getCachedView(): View {
+    return this.viewFactory.getCachedView();
+  }
+
+  returnViewToCache(view: View): void {
+    this.viewFactory.returnViewToCache(view);
   }
 }
 
