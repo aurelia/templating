@@ -139,19 +139,6 @@ function doNotProcessContent(){
   return false;
 }
 
-//this is now deprecated in favor of the processContent decorator
-export function skipContentProcessing(target){
-  var deco = function(target){
-    var resource = Metadata.getOrCreateOwn(Metadata.resource, HtmlBehaviorResource, target);
-    resource.processContent = doNotProcessContent;
-    console.warn('The @skipContentProcessing decorator is deprecated and will be removed in a future release. Please use @processContent(false) instead.');
-  };
-
-  return target ? deco(target) : deco;
-}
-
-Decorators.configure.simpleDecorator('skipContentProcessing', skipContentProcessing);
-
 export function processContent(processor){
   return function(target){
     var resource = Metadata.getOrCreateOwn(Metadata.resource, HtmlBehaviorResource, target);
