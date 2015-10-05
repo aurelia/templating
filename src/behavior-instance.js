@@ -2,55 +2,60 @@ import {ResourceDescription} from './module-analyzer';
 import {Container} from 'aurelia-dependency-injection';
 
 export class BehaviorInstance {
-  constructor(behavior, bindingContext, instruction){
+  constructor(behavior, bindingContext, instruction) {
     this.behavior = behavior;
     this.bindingContext = bindingContext;
     this.isAttached = false;
 
-    var observerLookup = behavior.observerLocator.getOrCreateObserversLookup(bindingContext),
-        handlesBind = behavior.handlesBind,
-        attributes = instruction.attributes,
-        boundProperties = this.boundProperties = [],
-        properties = behavior.properties,
-        i, ii;
+    let observerLookup = behavior.observerLocator.getOrCreateObserversLookup(bindingContext);
+    let handlesBind = behavior.handlesBind;
+    let attributes = instruction.attributes;
+    let boundProperties = this.boundProperties = [];
+    let properties = behavior.properties;
+    let i;
+    let ii;
 
     behavior.ensurePropertiesDefined(bindingContext, observerLookup);
 
-    for(i = 0, ii = properties.length; i < ii; ++i){
+    for (i = 0, ii = properties.length; i < ii; ++i) {
       properties[i].initialize(bindingContext, observerLookup, attributes, handlesBind, boundProperties);
     }
   }
 
-  static createForUnitTest(type, attributes, bindingContext){
+  static createForUnitTest(type, attributes, bindingContext) {
     let description = ResourceDescription.get(type);
     description.analyze(Container.instance);
 
     let behaviorContext = Container.instance.get(type);
-    let behaviorInstance = new BehaviorInstance(description.metadata, behaviorContext, {attributes:attributes||{}});
+    let behaviorInstance = new BehaviorInstance(description.metadata, behaviorContext, {attributes: attributes || {}});
 
     behaviorInstance.bind(bindingContext || {});
 
     return behaviorContext;
   }
 
-  created(context){
-    if(this.behavior.handlesCreated){
+  created(context) {
+    if (this.behavior.handlesCreated) {
       this.bindingContext.created(context);
     }
   }
 
-  bind(context){
-    var skipSelfSubscriber = this.behavior.handlesBind,
-        boundProperties = this.boundProperties,
-        i, ii, x, observer, selfSubscriber;
+  bind(context) {
+    let skipSelfSubscriber = this.behavior.handlesBind;
+    let boundProperties = this.boundProperties;
+    let i;
+    let ii;
+    let x;
+    let observer;
+    let selfSubscriber;
 
-    for(i = 0, ii = boundProperties.length; i < ii; ++i){
+    for (i = 0, ii = boundProperties.length; i < ii; ++i) {
       x = boundProperties[i];
       observer = x.observer;
       selfSubscriber = observer.selfSubscriber;
       observer.publishing = false;
 
-      if(skipSelfSubscriber){
+      if (skipSelfSubscriber) {
         observer.selfSubscriber = null;
       }
 
@@ -61,57 +66,58 @@ export class BehaviorInstance {
       observer.selfSubscriber = selfSubscriber;
     }
 
-    if(skipSelfSubscriber){
+    if (skipSelfSubscriber) {
       this.bindingContext.bind(context);
     }
 
-    if(this.view){
+    if (this.view) {
       this.view.bind(this.bindingContext);
     }
   }
 
-  unbind(){
-    var boundProperties = this.boundProperties,
-        i, ii;
+  unbind() {
+    let boundProperties = this.boundProperties;
+    let i;
+    let ii;
 
-    if(this.view){
+    if (this.view) {
       this.view.unbind();
     }
 
-    if(this.behavior.handlesUnbind){
+    if (this.behavior.handlesUnbind) {
       this.bindingContext.unbind();
     }
 
-    for(i = 0, ii = boundProperties.length; i < ii; ++i){
+    for (i = 0, ii = boundProperties.length; i < ii; ++i) {
       boundProperties[i].binding.unbind();
     }
   }
 
-  attached(){
-    if(this.isAttached){
+  attached() {
+    if (this.isAttached) {
       return;
     }
 
     this.isAttached = true;
 
-    if(this.behavior.handlesAttached){
+    if (this.behavior.handlesAttached) {
       this.bindingContext.attached();
     }
 
-    if(this.view){
+    if (this.view) {
       this.view.attached();
     }
   }
 
-  detached(){
-    if(this.isAttached){
+  detached() {
+    if (this.isAttached) {
       this.isAttached = false;
 
-      if(this.view){
+      if (this.view) {
         this.view.detached();
       }
 
-      if(this.behavior.handlesDetached){
+      if (this.behavior.handlesDetached) {
         this.bindingContext.detached();
       }
     }

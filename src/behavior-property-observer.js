@@ -36,15 +36,15 @@ export class BehaviorPropertyObserver {
 
     this.notqueued = true;
 
-    if(newValue === oldValue) {
+    if (newValue === oldValue) {
       return;
     }
 
     if (this.selfSubscriber) {
       this.selfSubscriber(newValue, oldValue);
     }
-    this.callSubscribers(newValue, oldValue);
 
+    this.callSubscribers(newValue, oldValue);
     this.oldValue = newValue;
   }
 

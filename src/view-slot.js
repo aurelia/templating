@@ -1,15 +1,15 @@
 import {ContentSelector} from './content-selector';
 import {Animator} from './animator';
-import {nextElementSibling} from './dom';
 import {View} from './view';
+import {DOM} from 'aurelia-pal';
 
-function getAnimatableElement(view){
+function getAnimatableElement(view) {
   let firstChild = view.firstChild;
 
-  if(firstChild !== null && firstChild !== undefined && firstChild.nodeType === 8){
-    let element = nextElementSibling(firstChild);
+  if (firstChild !== null && firstChild !== undefined && firstChild.nodeType === 8) {
+    let element = DOM.nextElementSibling(firstChild);
 
-    if(element !== null && element !== undefined &&
+    if (element !== null && element !== undefined &&
       element.nodeType === 1 &&
       element.classList.contains('au-animate')) {
       return element;
@@ -20,7 +20,7 @@ function getAnimatableElement(view){
 }
 
 export class ViewSlot {
-  constructor(anchor: Node, anchorIsContainer: boolean, bindingContext?: Object, animator?: Animator = Animator.instance){
+  constructor(anchor: Node, anchorIsContainer: boolean, bindingContext?: Object, animator?: Animator = Animator.instance) {
     this.anchor = anchor;
     this.viewAddMethod = anchorIsContainer ? 'appendNodesTo' : 'insertNodesBefore';
     this.bindingContext = bindingContext;
@@ -33,33 +33,35 @@ export class ViewSlot {
   }
 
   transformChildNodesIntoView(): void {
-    var parent = this.anchor;
+    let parent = this.anchor;
 
     this.children.push({
-      fragment:parent,
-      firstChild:parent.firstChild,
-      lastChild:parent.lastChild,
-      returnToCache(){},
-      removeNodes(){
-        var last;
+      fragment: parent,
+      firstChild: parent.firstChild,
+      lastChild: parent.lastChild,
+      returnToCache() {},
+      removeNodes() {
+        let last;
 
-        while(last = parent.lastChild) {
+        while (last = parent.lastChild) {
           parent.removeChild(last);
         }
       },
-      created(){},
-      bind(){},
-      unbind(){},
-      attached(){},
-      detached(){}
+      created() {},
+      bind() {},
+      unbind() {},
+      attached() {},
+      detached() {}
     });
   }
 
   bind(bindingContext: Object): void {
-    var i, ii, children;
+    let i;
+    let ii;
+    let children;
 
-    if(this.isBound){
-      if(this.bindingContext === bindingContext){
+    if (this.isBound) {
+      if (this.bindingContext === bindingContext) {
         return;
       }
 
@@ -70,16 +72,19 @@ export class ViewSlot {
     this.bindingContext = bindingContext = bindingContext || this.bindingContext;
 
     children = this.children;
-    for(i = 0, ii = children.length; i < ii; ++i){
+    for (i = 0, ii = children.length; i < ii; ++i) {
       children[i].bind(bindingContext, true);
     }
   }
 
   unbind(): void {
-    var i, ii, children = this.children;
+    let i;
+    let ii;
+    let children = this.children;
+
     this.isBound = false;
 
-    for(i = 0, ii = children.length; i < ii; ++i){
+    for (i = 0, ii = children.length; i < ii; ++i) {
       children[i].unbind();
     }
   }
@@ -88,33 +93,33 @@ export class ViewSlot {
     view[this.viewAddMethod](this.anchor);
     this.children.push(view);
 
-    if(this.isAttached){
+    if (this.isAttached) {
       view.attached();
 
       let animatableElement = getAnimatableElement(view);
-      if(animatableElement !== null){
+      if (animatableElement !== null) {
         return this.animator.enter(animatableElement);
       }
     }
   }
 
   insert(index: number, view: View): void | Promise<any> {
-    let children = this.children,
-        length = children.length;
+    let children = this.children;
+    let length = children.length;
 
-    if((index === 0 && length === 0) || index >= length){
+    if ((index === 0 && length === 0) || index >= length) {
       return this.add(view);
-    } else{
-      view.insertNodesBefore(children[index].firstChild);
-      children.splice(index, 0, view);
+    }
 
-      if(this.isAttached){
-        view.attached();
+    view.insertNodesBefore(children[index].firstChild);
+    children.splice(index, 0, view);
 
-        let animatableElement = getAnimatableElement(view);
-        if(animatableElement !== null){
-          return this.animator.enter(animatableElement);
-        }
+    if (this.isAttached) {
+      view.attached();
+
+      let animatableElement = getAnimatableElement(view);
+      if (animatableElement !== null) {
+        return this.animator.enter(animatableElement);
       }
     }
   }
@@ -124,26 +129,26 @@ export class ViewSlot {
   }
 
   removeAt(index: number, returnToCache?: boolean, skipAnimation?: boolean): void | Promise<View> {
-    var view = this.children[index];
+    let view = this.children[index];
 
-    var removeAction = () => {
+    let removeAction = () => {
       view.removeNodes();
       this.children.splice(index, 1);
 
-      if(this.isAttached){
+      if (this.isAttached) {
         view.detached();
       }
 
-      if(returnToCache){
+      if (returnToCache) {
         view.returnToCache();
       }
 
       return view;
     };
 
-    if(!skipAnimation){
+    if (!skipAnimation) {
       let animatableElement = getAnimatableElement(view);
-      if(animatableElement !== null){
+      if (animatableElement !== null) {
         return this.animator.leave(animatableElement).then(() => removeAction());
       }
     }
@@ -152,35 +157,34 @@ export class ViewSlot {
   }
 
   removeAll(returnToCache?: boolean, skipAnimation?: boolean): void | Promise<any> {
-    var children = this.children,
-        ii = children.length,
-        i;
-
-    var rmPromises = [];
+    let children = this.children;
+    let ii = children.length;
+    let i;
+    let rmPromises = [];
 
     children.forEach(child => {
-      if(skipAnimation){
+      if (skipAnimation) {
         child.removeNodes();
         return;
       }
 
       let animatableElement = getAnimatableElement(child);
-      if(animatableElement !== null){
+      if (animatableElement !== null) {
         rmPromises.push(this.animator.leave(animatableElement).then(() => child.removeNodes()));
       } else {
         child.removeNodes();
       }
     });
 
-    var removeAction = () => {
-      if(this.isAttached){
-        for(i = 0; i < ii; ++i){
+    let removeAction = () => {
+      if (this.isAttached) {
+        for (i = 0; i < ii; ++i) {
           children[i].detached();
         }
       }
 
-      if(returnToCache){
-        for(i = 0; i < ii; ++i){
+      if (returnToCache) {
+        for (i = 0; i < ii; ++i) {
           children[i].returnToCache();
         }
       }
@@ -188,39 +192,42 @@ export class ViewSlot {
       this.children = [];
     };
 
-    if(rmPromises.length > 0) {
+    if (rmPromises.length > 0) {
       return Promise.all(rmPromises).then(() => removeAction());
-    } else {
-      removeAction();
     }
+
+    removeAction();
   }
 
   swap(view: View, returnToCache?: boolean): void | Promise<any> {
-    var removeResponse = this.removeAll(returnToCache);
+    let removeResponse = this.removeAll(returnToCache);
 
-    if(removeResponse instanceof Promise){
+    if (removeResponse instanceof Promise) {
       return removeResponse.then(() => this.add(view));
-    } else{
-      return this.add(view);
     }
+
+    return this.add(view);
   }
 
   attached(): void {
-    var i, ii, children, child;
+    let i;
+    let ii;
+    let children;
+    let child;
 
-    if(this.isAttached){
+    if (this.isAttached) {
       return;
     }
 
     this.isAttached = true;
 
     children = this.children;
-    for(i = 0, ii = children.length; i < ii; ++i){
+    for (i = 0, ii = children.length; i < ii; ++i) {
       child = children[i];
       child.attached();
 
-      var element = child.firstChild ? nextElementSibling(child.firstChild) : null;
-      if(child.firstChild &&
+      let element = child.firstChild ? DOM.nextElementSibling(child.firstChild) : null;
+      if (child.firstChild &&
         child.firstChild.nodeType === 8 &&
          element &&
          element.nodeType === 1 &&
@@ -231,12 +238,14 @@ export class ViewSlot {
   }
 
   detached(): void {
-    var i, ii, children;
+    let i;
+    let ii;
+    let children;
 
-    if(this.isAttached){
+    if (this.isAttached) {
       this.isAttached = false;
       children = this.children;
-      for(i = 0, ii = children.length; i < ii; ++i){
+      for (i = 0, ii = children.length; i < ii; ++i) {
         children[i].detached();
       }
     }
@@ -251,7 +260,7 @@ export class ViewSlot {
     this.removeAll = this._contentSelectorRemoveAll;
   }
 
-  _contentSelectorAdd(view){
+  _contentSelectorAdd(view) {
     ContentSelector.applySelectors(
       view,
       this.contentSelectors,
@@ -260,15 +269,15 @@ export class ViewSlot {
 
     this.children.push(view);
 
-    if(this.isAttached){
+    if (this.isAttached) {
       view.attached();
     }
   }
 
-  _contentSelectorInsert(index, view){
-    if((index === 0 && !this.children.length) || index >= this.children.length){
+  _contentSelectorInsert(index, view) {
+    if ((index === 0 && !this.children.length) || index >= this.children.length) {
       this.add(view);
-    } else{
+    } else {
       ContentSelector.applySelectors(
         view,
         this.contentSelectors,
@@ -277,63 +286,67 @@ export class ViewSlot {
 
       this.children.splice(index, 0, view);
 
-      if(this.isAttached){
+      if (this.isAttached) {
         view.attached();
       }
     }
   }
 
-  _contentSelectorRemove(view){
-    var index = this.children.indexOf(view),
-        contentSelectors = this.contentSelectors,
-        i, ii;
+  _contentSelectorRemove(view) {
+    let index = this.children.indexOf(view);
+    let contentSelectors = this.contentSelectors;
+    let i;
+    let ii;
 
-    for(i = 0, ii = contentSelectors.length; i < ii; ++i){
+    for (i = 0, ii = contentSelectors.length; i < ii; ++i) {
       contentSelectors[i].removeAt(index, view.fragment);
     }
 
     this.children.splice(index, 1);
 
-    if(this.isAttached){
+    if (this.isAttached) {
       view.detached();
     }
   }
 
-  _contentSelectorRemoveAt(index){
-    var view = this.children[index],
-        contentSelectors = this.contentSelectors,
-        i, ii;
+  _contentSelectorRemoveAt(index) {
+    let view = this.children[index];
+    let contentSelectors = this.contentSelectors;
+    let i;
+    let ii;
 
-    for(i = 0, ii = contentSelectors.length; i < ii; ++i){
+    for (i = 0, ii = contentSelectors.length; i < ii; ++i) {
       contentSelectors[i].removeAt(index, view.fragment);
     }
 
     this.children.splice(index, 1);
 
-    if(this.isAttached){
+    if (this.isAttached) {
       view.detached();
     }
 
     return view;
   }
 
-  _contentSelectorRemoveAll(){
-    var children = this.children,
-        contentSelectors = this.contentSelectors,
-        ii = children.length,
-        jj = contentSelectors.length,
-        i, j, view;
+  _contentSelectorRemoveAll() {
+    let children = this.children;
+    let contentSelectors = this.contentSelectors;
+    let ii = children.length;
+    let jj = contentSelectors.length;
+    let i;
+    let j;
+    let view;
 
-    for(i = 0; i < ii; ++i){
+    for (i = 0; i < ii; ++i) {
       view = children[i];
 
-      for(j = 0; j < jj; ++j){
+      for (j = 0; j < jj; ++j) {
         contentSelectors[j].removeAt(0, view.fragment);
       }
     }
 
-    if(this.isAttached){
-      for(i = 0; i < ii; ++i){
+    if (this.isAttached) {
+      for (i = 0; i < ii; ++i) {
         children[i].detached();
       }
     }

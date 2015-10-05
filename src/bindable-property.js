@@ -1,12 +1,12 @@
-import * as core from 'core-js';
+import 'core-js';
 import {hyphenate} from './util';
 import {BehaviorPropertyObserver} from './behavior-property-observer';
 import {bindingMode} from 'aurelia-binding';
 
-function getObserver(behavior, instance, name){
-  var lookup = instance.__observers__;
+function getObserver(behavior, instance, name) {
+  let lookup = instance.__observers__;
 
-  if(lookup === undefined){
+  if (lookup === undefined) {
     lookup = behavior.observerLocator.getOrCreateObserversLookup(instance);
     behavior.ensurePropertiesDefined(instance, lookup);
   }
@@ -15,10 +15,10 @@ function getObserver(behavior, instance, name){
 }
 
 export class BindableProperty {
-  constructor(nameOrConfig){
-    if(typeof nameOrConfig === 'string'){
+  constructor(nameOrConfig) {
+    if (typeof nameOrConfig === 'string') {
       this.name = nameOrConfig;
-    }else{
+    } else {
       Object.assign(this, nameOrConfig);
     }
 
@@ -28,123 +28,126 @@ export class BindableProperty {
     this.owner = null;
   }
 
-  registerWith(target, behavior, descriptor){
+  registerWith(target, behavior, descriptor) {
     behavior.properties.push(this);
     behavior.attributes[this.attribute] = this;
     this.owner = behavior;
 
-    if(descriptor){
+    if (descriptor) {
       this.descriptor = descriptor;
       return this.configureDescriptor(behavior, descriptor);
     }
   }
 
-  configureDescriptor(behavior, descriptor){
-    var name = this.name;
+  configureDescriptor(behavior, descriptor) {
+    let name = this.name;
 
     descriptor.configurable = true;
     descriptor.enumerable = true;
 
-    if('initializer' in descriptor){
+    if ('initializer' in descriptor) {
       this.defaultValue = descriptor.initializer;
       delete descriptor.initializer;
       delete descriptor.writable;
     }
 
-    if('value' in descriptor){
+    if ('value' in descriptor) {
       this.defaultValue = descriptor.value;
       delete descriptor.value;
       delete descriptor.writable;
     }
 
-    descriptor.get = function(){
+    descriptor.get = function() {
       return getObserver(behavior, this, name).getValue();
     };
 
-    descriptor.set = function(value){
+    descriptor.set = function(value) {
       getObserver(behavior, this, name).setValue(value);
     };
 
-    descriptor.get.getObserver = function(obj){
+    descriptor.get.getObserver = function(obj) {
       return getObserver(behavior, obj, name);
     };
 
     return descriptor;
   }
 
-  defineOn(target, behavior){
-    var name = this.name,
-        handlerName;
+  defineOn(target, behavior) {
+    let name = this.name;
+    let handlerName;
 
-    if(this.changeHandler === null){
+    if (this.changeHandler === null) {
       handlerName = name + 'Changed';
-      if(handlerName in target.prototype){
+      if (handlerName in target.prototype) {
         this.changeHandler = handlerName;
       }
     }
 
-    if(!this.descriptor){
+    if (!this.descriptor) {
       Object.defineProperty(target.prototype, name, this.configureDescriptor(behavior, {}));
     }
   }
 
-  createObserver(bindingContext){
-    var selfSubscriber = null,
-        defaultValue = this.defaultValue,
-        changeHandlerName = this.changeHandler,
-        name = this.name,
-        initialValue;
+  createObserver(bindingContext) {
+    let selfSubscriber = null;
+    let defaultValue = this.defaultValue;
+    let changeHandlerName = this.changeHandler;
+    let name = this.name;
+    let initialValue;
 
-    if(this.hasOptions){
-      return;
+    if (this.hasOptions) {
+      return undefined;
     }
 
-    if(changeHandlerName in bindingContext){
-      if('propertyChanged' in bindingContext) {
+    if (changeHandlerName in bindingContext) {
+      if ('propertyChanged' in bindingContext) {
         selfSubscriber = (newValue, oldValue) => {
           bindingContext[changeHandlerName](newValue, oldValue);
           bindingContext.propertyChanged(name, newValue, oldValue);
         };
-      }else {
+      } else {
         selfSubscriber = (newValue, oldValue) => bindingContext[changeHandlerName](newValue, oldValue);
       }
-    } else if('propertyChanged' in bindingContext) {
+    } else if ('propertyChanged' in bindingContext) {
       selfSubscriber = (newValue, oldValue) => bindingContext.propertyChanged(name, newValue, oldValue);
-    } else if(changeHandlerName !== null){
+    } else if (changeHandlerName !== null) {
       throw new Error(`Change handler ${changeHandlerName} was specified but not delcared on the class.`);
     }
 
-    if(defaultValue !== undefined){
+    if (defaultValue !== undefined) {
       initialValue = typeof defaultValue === 'function' ? defaultValue.call(bindingContext) : defaultValue;
     }
 
     return new BehaviorPropertyObserver(this.owner.taskQueue, bindingContext, this.name, selfSubscriber, initialValue);
   }
 
-  initialize(bindingContext, observerLookup, attributes, behaviorHandlesBind, boundProperties){
-    var selfSubscriber, observer, attribute, defaultValue = this.defaultValue;
+  initialize(bindingContext, observerLookup, attributes, behaviorHandlesBind, boundProperties) {
+    let selfSubscriber;
+    let observer;
+    let attribute;
+    let defaultValue = this.defaultValue;
 
-    if(this.isDynamic){
-      for(let key in attributes){
+    if (this.isDynamic) {
+      for (let key in attributes) {
         this.createDynamicProperty(bindingContext, observerLookup, behaviorHandlesBind, key, attributes[key], boundProperties);
       }
-    } else if(!this.hasOptions){
+    } else if (!this.hasOptions) {
       observer = observerLookup[this.name];
 
       if (attributes !== null) {
         selfSubscriber = observer.selfSubscriber;
         attribute = attributes[this.attribute];
 
-        if(behaviorHandlesBind){
+        if (behaviorHandlesBind) {
           observer.selfSubscriber = null;
         }
 
-        if(typeof attribute === 'string'){
+        if (typeof attribute === 'string') {
           bindingContext[this.name] = attribute;
           observer.call();
-        }else if(attribute){
-          boundProperties.push({observer:observer, binding:attribute.createBinding(bindingContext)});
-        }else if(defaultValue !== undefined){
+        } else if (attribute) {
+          boundProperties.push({observer: observer, binding: attribute.createBinding(bindingContext)});
+        } else if (defaultValue !== undefined) {
           observer.call();
         }
 
@@ -155,20 +158,22 @@ export class BindableProperty {
     }
   }
 
-  createDynamicProperty(bindingContext, observerLookup, behaviorHandlesBind, name, attribute, boundProperties){
-    var changeHandlerName = name + 'Changed',
-        selfSubscriber = null, observer, info;
+  createDynamicProperty(bindingContext, observerLookup, behaviorHandlesBind, name, attribute, boundProperties) {
+    let changeHandlerName = name + 'Changed';
+    let selfSubscriber = null;
+    let observer;
+    let info;
 
-    if(changeHandlerName in bindingContext){
-      if('propertyChanged' in bindingContext) {
+    if (changeHandlerName in bindingContext) {
+      if ('propertyChanged' in bindingContext) {
         selfSubscriber = (newValue, oldValue) => {
           bindingContext[changeHandlerName](newValue, oldValue);
           bindingContext.propertyChanged(name, newValue, oldValue);
         };
-      }else {
+      } else {
         selfSubscriber = (newValue, oldValue) => bindingContext[changeHandlerName](newValue, oldValue);
       }
-    }else if('propertyChanged' in bindingContext) {
+    } else if ('propertyChanged' in bindingContext) {
       selfSubscriber = (newValue, oldValue) => bindingContext.propertyChanged(name, newValue, oldValue);
     }
 
@@ -186,15 +191,15 @@ export class BindableProperty {
       set: observer.setValue.bind(observer)
     });
 
-    if(behaviorHandlesBind){
+    if (behaviorHandlesBind) {
       observer.selfSubscriber = null;
     }
 
-    if(typeof attribute === 'string'){
+    if (typeof attribute === 'string') {
       bindingContext[name] = attribute;
       observer.call();
-    }else if(attribute){
-      info = {observer:observer, binding:attribute.createBinding(bindingContext)};
+    } else if (attribute) {
+      info = {observer: observer, binding: attribute.createBinding(bindingContext)};
       boundProperties.push(info);
     }
 

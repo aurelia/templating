@@ -12,7 +12,7 @@ interface ViewNode {
 }
 
 export class View {
-  constructor(viewFactory: ViewFactory, container: Container, fragment: DocumentFragment, behaviors: BehaviorInstance[], bindings: Binding[], children: ViewNode[], systemControlled: boolean, contentSelectors: ContentSelector[]){
+  constructor(viewFactory: ViewFactory, container: Container, fragment: DocumentFragment, behaviors: BehaviorInstance[], bindings: Binding[], children: ViewNode[], systemControlled: boolean, contentSelectors: ContentSelector[]) {
     this.viewFactory = viewFactory;
     this.container = container;
     this.fragment = fragment;
@@ -33,23 +33,31 @@ export class View {
   }
 
   created(): void {
-    var i, ii, behaviors = this.behaviors;
-    for(i = 0, ii = behaviors.length; i < ii; ++i){
+    let i;
+    let ii;
+    let behaviors = this.behaviors;
+
+    for (i = 0, ii = behaviors.length; i < ii; ++i) {
       behaviors[i].created(this);
     }
   }
 
   bind(bindingContext: Object, systemUpdate?: boolean): void {
-    var context, behaviors, bindings, children, i, ii;
+    let context;
+    let behaviors;
+    let bindings;
+    let children;
+    let i;
+    let ii;
 
-    if(systemUpdate && !this.systemControlled){
+    if (systemUpdate && !this.systemControlled) {
       context = this.bindingContext || bindingContext;
-    }else{
+    } else {
       context = bindingContext || this.bindingContext;
     }
 
-    if(this.isBound){
-      if(this.bindingContext === context){
+    if (this.isBound) {
+      if (this.bindingContext === context) {
         return;
       }
 
@@ -59,22 +67,22 @@ export class View {
     this.isBound = true;
     this.bindingContext = context;
 
-    if(this.owner){
+    if (this.owner) {
       this.owner.bind(context);
     }
 
     bindings = this.bindings;
-    for(i = 0, ii = bindings.length; i < ii; ++i){
+    for (i = 0, ii = bindings.length; i < ii; ++i) {
       bindings[i].bind(context);
     }
 
     behaviors = this.behaviors;
-    for(i = 0, ii = behaviors.length; i < ii; ++i){
+    for (i = 0, ii = behaviors.length; i < ii; ++i) {
       behaviors[i].bind(context);
     }
 
     children = this.children;
-    for(i = 0, ii = children.length; i < ii; ++i){
+    for (i = 0, ii = children.length; i < ii; ++i) {
       children[i].bind(context, true);
     }
   }
@@ -82,41 +90,45 @@ export class View {
   addBinding(binding: Binding): void {
     this.bindings.push(binding);
 
-    if(this.isBound){
+    if (this.isBound) {
       binding.bind(this.bindingContext);
     }
   }
 
   unbind(): void {
-    var behaviors, bindings, children, i, ii;
+    let behaviors;
+    let bindings;
+    let children;
+    let i;
+    let ii;
 
-    if(this.isBound){
+    if (this.isBound) {
       this.isBound = false;
       this.bindingContext = null;
 
-      if(this.owner){
+      if (this.owner) {
         this.owner.unbind();
       }
 
       bindings = this.bindings;
-      for(i = 0, ii = bindings.length; i < ii; ++i){
+      for (i = 0, ii = bindings.length; i < ii; ++i) {
         bindings[i].unbind();
       }
 
       behaviors = this.behaviors;
-      for(i = 0, ii = behaviors.length; i < ii; ++i){
+      for (i = 0, ii = behaviors.length; i < ii; ++i) {
         behaviors[i].unbind();
       }
 
       children = this.children;
-      for(i = 0, ii = children.length; i < ii; ++i){
+      for (i = 0, ii = children.length; i < ii; ++i) {
         children[i].unbind();
       }
     }
   }
 
   insertNodesBefore(refNode: Node): void {
-    var parent = refNode.parentNode;
+    let parent = refNode.parentNode;
     parent.insertBefore(this.fragment, refNode);
   }
 
@@ -125,67 +137,71 @@ export class View {
   }
 
   removeNodes(): void {
-    var start = this.firstChild,
-        end = this.lastChild,
-        fragment = this.fragment,
-        next;
+    let start = this.firstChild;
+    let end = this.lastChild;
+    let fragment = this.fragment;
+    let next;
+    let current = start;
+    let loop = true;
 
-    var current = start,
-        loop = true,
-        nodes = [];
-
-    while(loop){
-      if(current === end){
+    while (loop) {
+      if (current === end) {
         loop = false;
       }
 
       next = current.nextSibling;
-      this.fragment.appendChild(current);
+      fragment.appendChild(current);
       current = next;
     }
   }
 
   attached(): void {
-    var behaviors, children, i, ii;
+    let behaviors;
+    let children;
+    let i;
+    let ii;
 
-    if(this.isAttached){
+    if (this.isAttached) {
       return;
     }
 
     this.isAttached = true;
 
-    if(this.owner){
+    if (this.owner) {
       this.owner.attached();
     }
 
     behaviors = this.behaviors;
-    for(i = 0, ii = behaviors.length; i < ii; ++i){
+    for (i = 0, ii = behaviors.length; i < ii; ++i) {
       behaviors[i].attached();
     }
 
     children = this.children;
-    for(i = 0, ii = children.length; i < ii; ++i){
+    for (i = 0, ii = children.length; i < ii; ++i) {
       children[i].attached();
     }
   }
 
   detached(): void {
-    var behaviors, children, i, ii;
+    let behaviors;
+    let children;
+    let i;
+    let ii;
 
-    if(this.isAttached){
+    if (this.isAttached) {
       this.isAttached = false;
 
-      if(this.owner){
+      if (this.owner) {
         this.owner.detached();
       }
 
       behaviors = this.behaviors;
-      for(i = 0, ii = behaviors.length; i < ii; ++i){
+      for (i = 0, ii = behaviors.length; i < ii; ++i) {
         behaviors[i].detached();
       }
 
       children = this.children;
-      for(i = 0, ii = children.length; i < ii; ++i){
+      for (i = 0, ii = children.length; i < ii; ++i) {
         children[i].detached();
       }
     }

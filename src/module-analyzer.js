@@ -3,13 +3,13 @@ import {Container} from 'aurelia-dependency-injection';
 import {TemplateRegistryEntry} from 'aurelia-loader';
 import {ValueConverterResource} from 'aurelia-binding';
 import {HtmlBehaviorResource} from './html-behavior';
-import {ViewStrategy,TemplateRegistryViewStrategy} from './view-strategy';
+import {ViewStrategy, TemplateRegistryViewStrategy} from './view-strategy';
 import {ViewResources} from './view-resources';
 import {ResourceLoadContext} from './instructions';
 import {hyphenate} from './util';
 
 export class ResourceModule {
-  constructor(moduleId:string){
+  constructor(moduleId: string) {
     this.id = moduleId;
     this.moduleInstance = null;
     this.mainResource = null;
@@ -18,58 +18,63 @@ export class ResourceModule {
     this.isAnalyzed = false;
   }
 
-  analyze(container:Container){
-    var current = this.mainResource,
-        resources = this.resources,
-        viewStrategy = this.viewStrategy,
-        i, ii;
+  analyze(container: Container) {
+    let current = this.mainResource;
+    let resources = this.resources;
+    let viewStrategy = this.viewStrategy;
+    let i;
+    let ii;
 
-    if(this.isAnalyzed){
+    if (this.isAnalyzed) {
       return;
     }
 
     this.isAnalyzed = true;
 
-    if(current){
+    if (current) {
       current.metadata.viewStrategy = viewStrategy;
       current.analyze(container);
     }
 
-    for(i = 0, ii = resources.length; i < ii; ++i){
+    for (i = 0, ii = resources.length; i < ii; ++i) {
       current = resources[i];
       current.metadata.viewStrategy = viewStrategy;
       current.analyze(container);
     }
   }
 
-  register(registry:ViewResources, name?:string){
-    var i, ii, resources = this.resources;
+  register(registry:ViewResources, name?:string) {
+    let i;
+    let ii;
+    let resources = this.resources;
 
-    if(this.mainResource){
+    if (this.mainResource) {
       this.mainResource.register(registry, name);
       name = null;
     }
 
-    for(i = 0, ii = resources.length; i < ii; ++i){
+    for (i = 0, ii = resources.length; i < ii; ++i) {
       resources[i].register(registry, name);
       name = null;
     }
   }
 
-  load(container:Container, loadContext?:ResourceLoadContext):Promise<void>{
-    if(this.onLoaded){
+  load(container: Container, loadContext?: ResourceLoadContext): Promise<void> {
+    if (this.onLoaded) {
       return this.onLoaded;
     }
 
-    var current = this.mainResource,
-        resources = this.resources,
-        i, ii, loads = [];
+    let current = this.mainResource;
+    let resources = this.resources;
+    let i;
+    let ii;
+    let loads = [];
 
-    if(current){
+    if (current) {
       loads.push(current.load(container, loadContext));
     }
 
-    for(i = 0, ii = resources.length; i < ii; ++i){
+    for (i = 0, ii = resources.length; i < ii; ++i) {
       loads.push(resources[i].load(container, loadContext));
     }
 
@@ -79,29 +84,29 @@ export class ResourceModule {
 }
 
 export class ResourceDescription {
-  constructor(key:string, exportedValue:any, resourceTypeMeta:Object){
-    if(!resourceTypeMeta){
+  constructor(key: string, exportedValue: any, resourceTypeMeta: Object) {
+    if (!resourceTypeMeta) {
       resourceTypeMeta = Metadata.get(Metadata.resource, exportedValue);
 
-      if(!resourceTypeMeta){
+      if (!resourceTypeMeta) {
         resourceTypeMeta = new HtmlBehaviorResource();
         resourceTypeMeta.elementName = hyphenate(key);
         Metadata.define(Metadata.resource, resourceTypeMeta, exportedValue);
       }
     }
 
-    if(resourceTypeMeta instanceof HtmlBehaviorResource){
-      if(resourceTypeMeta.elementName === undefined){
+    if (resourceTypeMeta instanceof HtmlBehaviorResource) {
+      if (resourceTypeMeta.elementName === undefined) {
         //customeElement()
         resourceTypeMeta.elementName = hyphenate(key);
-      } else if(resourceTypeMeta.attributeName === undefined){
+      } else if (resourceTypeMeta.attributeName === undefined) {
         //customAttribute()
         resourceTypeMeta.attributeName = hyphenate(key);
-      } else if(resourceTypeMeta.attributeName === null && resourceTypeMeta.elementName === null){
+      } else if (resourceTypeMeta.attributeName === null && resourceTypeMeta.elementName === null) {
         //no customeElement or customAttribute but behavior added by other metadata
         HtmlBehaviorResource.convention(key, resourceTypeMeta);
       }
-    }else if(!resourceTypeMeta.name){
+    } else if (!resourceTypeMeta.name) {
       resourceTypeMeta.name = hyphenate(key);
     }
 
@@ -109,49 +114,49 @@ export class ResourceDescription {
     this.value = exportedValue;
   }
 
-  analyze(container:Container){
-    let metadata = this.metadata,
-        value = this.value;
+  analyze(container: Container) {
+    let metadata = this.metadata;
+    let value = this.value;
 
-    if('analyze' in metadata){
+    if ('analyze' in metadata) {
       metadata.analyze(container, value);
     }
   }
 
-  register(registry:ViewResources, name?:string){
+  register(registry: ViewResources, name?: string) {
     this.metadata.register(registry, name);
   }
 
-  load(container:Container, loadContext?:ResourceLoadContext):Promise<void>|void{
-    let metadata = this.metadata,
-        value = this.value;
+  load(container: Container, loadContext?: ResourceLoadContext): Promise<void> | void {
+    let metadata = this.metadata;
+    let value = this.value;
 
-    if('load' in metadata){
+    if ('load' in metadata) {
       return metadata.load(container, value, null, null, loadContext);
     }
   }
 
-  static get(resource:any, key?:string='custom-resource'):ResourceDescription{
-    var resourceTypeMeta = Metadata.get(Metadata.resource, resource),
-        resourceDescription;
+  static get(resource: any, key?: string = 'custom-resource'): ResourceDescription {
+    let resourceTypeMeta = Metadata.get(Metadata.resource, resource);
+    let resourceDescription;
 
-    if(resourceTypeMeta){
-      if(resourceTypeMeta.attributeName === null && resourceTypeMeta.elementName === null){
+    if (resourceTypeMeta) {
+      if (resourceTypeMeta.attributeName === null && resourceTypeMeta.elementName === null) {
         //no customeElement or customAttribute but behavior added by other metadata
         HtmlBehaviorResource.convention(key, resourceTypeMeta);
       }
 
-      if(resourceTypeMeta.attributeName === null && resourceTypeMeta.elementName === null){
+      if (resourceTypeMeta.attributeName === null && resourceTypeMeta.elementName === null) {
         //no convention and no customeElement or customAttribute but behavior added by other metadata
         resourceTypeMeta.elementName = hyphenate(key);
       }
 
       resourceDescription = new ResourceDescription(key, resource, resourceTypeMeta);
     } else {
-      if(resourceTypeMeta = HtmlBehaviorResource.convention(key)){
+      if (resourceTypeMeta = HtmlBehaviorResource.convention(key)) {
         resourceDescription = new ResourceDescription(key, resource, resourceTypeMeta);
         Metadata.define(Metadata.resource, resourceTypeMeta, resource);
-      } else if(resourceTypeMeta = ValueConverterResource.convention(key)) {
+      } else if (resourceTypeMeta = ValueConverterResource.convention(key)) {
         resourceDescription = new ResourceDescription(key, resource, resourceTypeMeta);
         Metadata.define(Metadata.resource, resourceTypeMeta, resource);
       }
@@ -162,83 +167,91 @@ export class ResourceDescription {
 }
 
 export class ModuleAnalyzer {
-  constructor(){
+  constructor() {
     this.cache = {};
   }
 
-  getAnalysis(moduleId:string):ResourceModule{
+  getAnalysis(moduleId: string): ResourceModule {
     return this.cache[moduleId];
   }
 
-  analyze(moduleId:string, moduleInstance:any, viewModelMember?:string):ResourceModule{
-    var mainResource, fallbackValue, fallbackKey, resourceTypeMeta, key,
-        exportedValue, resources = [], conventional, viewStrategy, resourceModule;
+  analyze(moduleId: string, moduleInstance: any, viewModelMember?: string): ResourceModule {
+    let mainResource;
+    let fallbackValue;
+    let fallbackKey;
+    let resourceTypeMeta;
+    let key;
+    let exportedValue;
+    let resources = [];
+    let conventional;
+    let viewStrategy;
+    let resourceModule;
 
     resourceModule = this.cache[moduleId];
-    if(resourceModule){
+    if (resourceModule) {
       return resourceModule;
     }
 
     resourceModule = new ResourceModule(moduleId);
     this.cache[moduleId] = resourceModule;
 
-    if(typeof moduleInstance === 'function'){
+    if (typeof moduleInstance === 'function') {
       moduleInstance = {'default': moduleInstance};
     }
 
-    if(viewModelMember){
+    if (viewModelMember) {
       mainResource = new ResourceDescription(viewModelMember, moduleInstance[viewModelMember]);
     }
 
-    for(key in moduleInstance){
+    for (key in moduleInstance) {
       exportedValue = moduleInstance[key];
 
-      if(key === viewModelMember || typeof exportedValue !== 'function'){
+      if (key === viewModelMember || typeof exportedValue !== 'function') {
         continue;
       }
 
       resourceTypeMeta = Metadata.get(Metadata.resource, exportedValue);
 
-      if(resourceTypeMeta){
-        if(resourceTypeMeta.attributeName === null && resourceTypeMeta.elementName === null){
+      if (resourceTypeMeta) {
+        if (resourceTypeMeta.attributeName === null && resourceTypeMeta.elementName === null) {
           //no customeElement or customAttribute but behavior added by other metadata
           HtmlBehaviorResource.convention(key, resourceTypeMeta);
         }
 
-        if(resourceTypeMeta.attributeName === null && resourceTypeMeta.elementName === null){
+        if (resourceTypeMeta.attributeName === null && resourceTypeMeta.elementName === null) {
           //no convention and no customeElement or customAttribute but behavior added by other metadata
           resourceTypeMeta.elementName = hyphenate(key);
         }
 
-        if(!mainResource && resourceTypeMeta instanceof HtmlBehaviorResource && resourceTypeMeta.elementName !== null){
+        if (!mainResource && resourceTypeMeta instanceof HtmlBehaviorResource && resourceTypeMeta.elementName !== null) {
           mainResource = new ResourceDescription(key, exportedValue, resourceTypeMeta);
-        }else{
+        } else {
           resources.push(new ResourceDescription(key, exportedValue, resourceTypeMeta));
         }
-      } else if(exportedValue instanceof ViewStrategy){
+      } else if (exportedValue instanceof ViewStrategy) {
         viewStrategy = exportedValue;
-      } else if(exportedValue instanceof TemplateRegistryEntry){
+      } else if (exportedValue instanceof TemplateRegistryEntry) {
         viewStrategy = new TemplateRegistryViewStrategy(moduleId, exportedValue);
       } else {
-        if(conventional = HtmlBehaviorResource.convention(key)){
-          if(conventional.elementName !== null && !mainResource){
+        if (conventional = HtmlBehaviorResource.convention(key)) {
+          if (conventional.elementName !== null && !mainResource) {
             mainResource = new ResourceDescription(key, exportedValue, conventional);
-          }else{
+          } else {
             resources.push(new ResourceDescription(key, exportedValue, conventional));
           }
 
           Metadata.define(Metadata.resource, conventional, exportedValue);
-        } else if(conventional = ValueConverterResource.convention(key)) {
+        } else if (conventional = ValueConverterResource.convention(key)) {
           resources.push(new ResourceDescription(key, exportedValue, conventional));
           Metadata.define(Metadata.resource, conventional, exportedValue);
-        } else if(!fallbackValue){
+        } else if (!fallbackValue) {
           fallbackValue = exportedValue;
           fallbackKey = key;
         }
       }
     }
 
-    if(!mainResource && fallbackValue){
+    if (!mainResource && fallbackValue) {
       mainResource = new ResourceDescription(fallbackKey, fallbackValue);
     }
 

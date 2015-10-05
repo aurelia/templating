@@ -3,42 +3,43 @@ import {relativeToFile} from 'aurelia-path';
 import {TemplateRegistryEntry} from 'aurelia-loader';
 import {ViewEngine} from './view-engine';
 import {ResourceLoadContext, ViewCompileInstruction} from './instructions';
-import {createTemplateFromMarkup} from './dom';
+import {DOM} from 'aurelia-pal';
 
 export class ViewStrategy {
-  static metadataKey:string = 'aurelia:view-strategy';
+  static metadataKey: string = 'aurelia:view-strategy';
 
-  makeRelativeTo(baseUrl:string):void{}
+  makeRelativeTo(baseUrl: string): void {}
 
-  static normalize(value:string|ViewStrategy):ViewStrategy{
-    if(typeof value === 'string'){
+  static normalize(value: string|ViewStrategy): ViewStrategy {
+    if (typeof value === 'string') {
       value = new UseViewStrategy(value);
     }
 
-    if(value && !(value instanceof ViewStrategy)){
+    if (value && !(value instanceof ViewStrategy)) {
       throw new Error('The view must be a string or an instance of ViewStrategy.');
     }
 
     return value;
   }
 
-  static getDefault(target:any):ViewStrategy{
-    var strategy, annotation;
+  static getDefault(target: any): ViewStrategy {
+    let strategy;
+    let annotation;
 
-    if(typeof target !== 'function'){
+    if (typeof target !== 'function') {
       target = target.constructor;
     }
 
     annotation = Origin.get(target);
     strategy = Metadata.get(ViewStrategy.metadataKey, target);
 
-    if(!strategy){
-      if(!annotation){
+    if (!strategy) {
+      if (!annotation) {
         throw new Error('Cannot determinte default view strategy for object.', target);
       }
 
       strategy = new ConventionalViewStrategy(annotation.moduleId);
-    }else if(annotation){
+    } else if (annotation) {
       strategy.moduleId = annotation.moduleId;
     }
 
@@ -47,13 +48,13 @@ export class ViewStrategy {
 }
 
 export class UseViewStrategy extends ViewStrategy {
-  constructor(path:string){
+  constructor(path: string) {
     super();
     this.path = path;
   }
 
-  loadViewFactory(viewEngine:ViewEngine, compileInstruction:ViewCompileInstruction, loadContext?:ResourceLoadContext):Promise<ViewFactory>{
-    if(!this.absolutePath && this.moduleId){
+  loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewFactory> {
+    if (!this.absolutePath && this.moduleId) {
       this.absolutePath = relativeToFile(this.path, this.moduleId);
     }
 
@@ -61,46 +62,46 @@ export class UseViewStrategy extends ViewStrategy {
     return viewEngine.loadViewFactory(this.absolutePath || this.path, compileInstruction, loadContext);
   }
 
-  makeRelativeTo(file:string):void{
+  makeRelativeTo(file: string): void {
     this.absolutePath = relativeToFile(this.path, file);
   }
 }
 
 export class ConventionalViewStrategy extends ViewStrategy {
-  constructor(moduleId:string){
+  constructor(moduleId: string) {
     super();
     this.moduleId = moduleId;
     this.viewUrl = ConventionalViewStrategy.convertModuleIdToViewUrl(moduleId);
   }
 
-  loadViewFactory(viewEngine:ViewEngine, compileInstruction:ViewCompileInstruction, loadContext?:ResourceLoadContext):Promise<ViewFactory>{
+  loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewFactory> {
     compileInstruction.associatedModuleId = this.moduleId;
     return viewEngine.loadViewFactory(this.viewUrl, compileInstruction, loadContext);
   }
 
-  static convertModuleIdToViewUrl(moduleId:string):string{
-    var id = (moduleId.endsWith('.js') || moduleId.endsWith('.ts')) ? moduleId.substring(0, moduleId.length - 3) : moduleId;
+  static convertModuleIdToViewUrl(moduleId: string): string {
+    let id = (moduleId.endsWith('.js') || moduleId.endsWith('.ts')) ? moduleId.substring(0, moduleId.length - 3) : moduleId;
     return id + '.html';
   }
 }
 
 export class NoViewStrategy extends ViewStrategy {
-  loadViewFactory(viewEngine:ViewEngine, compileInstruction:ViewCompileInstruction, loadContext?:ResourceLoadContext):Promise<ViewFactory>{
+  loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewFactory> {
     return Promise.resolve(null);
   }
 }
 
 export class TemplateRegistryViewStrategy extends ViewStrategy {
-  constructor(moduleId:string, entry:TemplateRegistryEntry){
+  constructor(moduleId: string, entry: TemplateRegistryEntry) {
     super();
     this.moduleId = moduleId;
     this.entry = entry;
   }
 
-  loadViewFactory(viewEngine:ViewEngine, compileInstruction:ViewCompileInstruction, loadContext?:ResourceLoadContext):Promise<ViewFactory>{
+  loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewFactory> {
     let entry = this.entry;
 
-    if(entry.isReady){
+    if (entry.isReady) {
       return Promise.resolve(entry.factory);
     }
 
@@ -110,37 +111,37 @@ export class TemplateRegistryViewStrategy extends ViewStrategy {
 }
 
 export class InlineViewStrategy extends ViewStrategy {
-  constructor(markup:string, dependencies?:Array<string|Function|Object>, dependencyBaseUrl?:string){
+  constructor(markup: string, dependencies?: Array<string|Function|Object>, dependencyBaseUrl?: string) {
     super();
     this.markup = markup;
     this.dependencies = dependencies || null;
     this.dependencyBaseUrl = dependencyBaseUrl || '';
   }
 
-  loadViewFactory(viewEngine:ViewEngine, compileInstruction:ViewCompileInstruction, loadContext?:ResourceLoadContext):Promise<ViewFactory>{
-    let entry = this.entry,
-        dependencies = this.dependencies;
+  loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewFactory> {
+    let entry = this.entry;
+    let dependencies = this.dependencies;
 
-    if(entry && entry.isReady){
+    if (entry && entry.isReady) {
       return Promise.resolve(entry.factory);
     }
 
     this.entry = entry = new TemplateRegistryEntry(this.moduleId || this.dependencyBaseUrl);
-    entry.setTemplate(createTemplateFromMarkup(this.markup));
+    entry.setTemplate(DOM.createTemplateFromMarkup(this.markup));
 
-    if(dependencies !== null){
-      for(let i = 0, ii = dependencies.length; i < ii; ++i){
+    if (dependencies !== null) {
+      for (let i = 0, ii = dependencies.length; i < ii; ++i) {
         let current = dependencies[i];
 
-        if(typeof current === 'string' || typeof current === 'function'){
+        if (typeof current === 'string' || typeof current === 'function') {
           entry.addDependency(current);
-        }else{
+        } else {
           entry.addDependency(current.from, current.as);
         }
       }
     }
 
-    compileInstruction.associatedModuleId = this.moduleId
+    compileInstruction.associatedModuleId = this.moduleId;
     return viewEngine.loadViewFactory(entry, compileInstruction, loadContext);
   }
 }
