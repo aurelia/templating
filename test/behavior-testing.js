@@ -1,5 +1,5 @@
 import {Container} from 'aurelia-dependency-injection';
-import {BindingExpression} from 'aurelia-binding';
+import {BindingSystem} from 'aurelia-binding';
 import {BehaviorInstance} from '../src/behavior-instance';
 import {SimpleAttribute} from './behaviors/simple-attribute';
 import {SimpleElement} from './behaviors/simple-element';
@@ -57,7 +57,7 @@ describe('testing html behaviors', () => {
   it('should set values from bindings on simple custom element', done => {
     var attributesFromHTML = {
       foo:'new foo',
-      bar: BindingExpression.create('bar', 'address.city')
+      bar: BindingSystem.createBindingExpression('bar', 'address.city')
     };
 
     var bindingContext = {
