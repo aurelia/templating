@@ -39,6 +39,7 @@
       "core-js": "npm:core-js@^0.9.5"
     },
     "devDependencies": {
+      "aurelia-pal-browser": "github:aurelia/pal-browser@^0.1.12",
       "babel": "npm:babel-core@^5.1.13",
       "babel-runtime": "npm:babel-runtime@^5.1.13",
       "core-js": "npm:core-js@^0.9.5"
