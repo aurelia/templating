@@ -132,6 +132,7 @@ export class ViewSlot {
     let view = this.children[index];
 
     let removeAction = () => {
+      index = this.children.indexOf(view);
       view.removeNodes();
       this.children.splice(index, 1);
 
