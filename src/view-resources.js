@@ -2,7 +2,7 @@ import {relativeToFile} from 'aurelia-path';
 import {HtmlBehaviorResource} from './html-behavior';
 import {ValueConverter} from 'aurelia-binding';
 import {BindingLanguage} from './binding-language';
-import {Metadata} from 'aurelia-metadata';
+import {PLATFORM} from 'aurelia-pal';
 import {ViewCompileInstruction, ViewCreateInstruction} from './instructions';
 
 function register(lookup, name, resource, type) {
@@ -147,10 +147,10 @@ export class ViewResources {
   }
 
   registerViewEngineHooks(hooks:ViewEngineHooks): void {
-    if (hooks.beforeCompile === undefined) hooks.beforeCompile = Metadata.noop;
-    if (hooks.afterCompile === undefined) hooks.afterCompile = Metadata.noop;
-    if (hooks.beforeCreate === undefined) hooks.beforeCreate = Metadata.noop;
-    if (hooks.afterCreate === undefined) hooks.afterCreate = Metadata.noop;
+    if (hooks.beforeCompile === undefined) hooks.beforeCompile = PLATFORM.noop;
+    if (hooks.afterCompile === undefined) hooks.afterCompile = PLATFORM.noop;
+    if (hooks.beforeCreate === undefined) hooks.beforeCreate = PLATFORM.noop;
+    if (hooks.afterCreate === undefined) hooks.afterCreate = PLATFORM.noop;
 
     if (this.hook1 === null) this.hook1 = hooks;
     else if (this.hook2 === null) this.hook2 = hooks;
