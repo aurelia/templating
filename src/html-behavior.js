@@ -201,6 +201,7 @@ export class HtmlBehaviorResource {
           let fragment = DOM.createDocumentFragment();
           let currentChild = node.firstChild;
           let nextSibling;
+          let toReplace;
 
           while (currentChild) {
             nextSibling = currentChild.nextSibling;
