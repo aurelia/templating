@@ -20,37 +20,37 @@ export class CompositionEngine {
     return instruction.viewModel.activate(instruction.model) || Promise.resolve();
   }
 
-  createBehaviorAndSwap(instruction) {
+  createControllerAndSwap(instruction) {
     let removeResponse = instruction.viewSlot.removeAll(true);
 
     if (removeResponse instanceof Promise) {
       return removeResponse.then(() => {
-        return this.createBehavior(instruction).then(behavior => {
+        return this.createController(instruction).then(controller => {
           if (instruction.currentBehavior) {
             instruction.currentBehavior.unbind();
           }
 
-          behavior.view.bind(behavior.bindingContext);
-          instruction.viewSlot.add(behavior.view);
+          controller.view.bind(controller.model);
+          instruction.viewSlot.add(controller.view);
 
-          return behavior;
+          return controller;
         });
       });
     }
 
-    return this.createBehavior(instruction).then(behavior => {
+    return this.createController(instruction).then(controller => {
       if (instruction.currentBehavior) {
         instruction.currentBehavior.unbind();
       }
 
-      behavior.view.bind(behavior.bindingContext);
-      instruction.viewSlot.add(behavior.view);
+      controller.view.bind(controller.model);
+      instruction.viewSlot.add(controller.view);
 
-      return behavior;
+      return controller;
     });
   }
 
-  createBehavior(instruction) {
+  createController(instruction) {
     let childContainer = instruction.childContainer;
     let viewModelResource = instruction.viewModelResource;
     let viewModel = instruction.viewModel;
@@ -122,11 +122,11 @@ export class CompositionEngine {
     if (instruction.viewModel) {
       if (typeof instruction.viewModel === 'string') {
         return this.createViewModel(instruction).then(ins => {
-          return this.createBehaviorAndSwap(ins);
+          return this.createControllerAndSwap(ins);
         });
       }
 
-      return this.createBehaviorAndSwap(instruction);
+      return this.createControllerAndSwap(instruction);
     } else if (instruction.view) {
       if (instruction.viewResources) {
         instruction.view.makeRelativeTo(instruction.viewResources.viewUrl);

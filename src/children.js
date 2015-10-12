@@ -47,7 +47,7 @@ export class ChildObserverBinder {
 
     for (i = 0, ii = results.length; i < ii; ++i) {
       node = results[i];
-      items.push(node.primaryBehavior ? node.primaryBehavior.bindingContext : node);
+      items.push(node.au && node.au.controller ? node.au.controller.model : node);
     }
 
     if (this.changeHandler !== null) {
@@ -76,7 +76,7 @@ export class ChildObserverBinder {
       for (i = 0, ii = removed.length; i < ii; ++i) {
         node = removed[i];
         if (node.nodeType === 1 && node.matches(selector)) {
-          primary = node.primaryBehavior ? node.primaryBehavior.bindingContext : node;
+          primary = node.au && node.au.controller ? node.au.controller.model : node;
           index = items.indexOf(primary);
           if (index !== -1) {
             items.splice(index, 1);
@@ -87,7 +87,7 @@ export class ChildObserverBinder {
       for (i = 0, ii = added.length; i < ii; ++i) {
         node = added[i];
         if (node.nodeType === 1 && node.matches(selector)) {
-          primary = node.primaryBehavior ? node.primaryBehavior.bindingContext : node;
+          primary = node.au && node.au.controller ? node.au.controller.model : node;
           index = 0;
 
           while (prev) {

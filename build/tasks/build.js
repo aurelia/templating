@@ -29,7 +29,7 @@ gulp.task('build-index', function(){
     'view-compiler.js',
     'module-analyzer.js',
     'view-engine.js',
-    'behavior-instance.js',
+    'controller.js',
     'behavior-property-observer.js',
     'bindable-property.js',
     'html-behavior.js',

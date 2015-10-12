@@ -1,6 +1,6 @@
 import {Container} from 'aurelia-dependency-injection';
 import {bindingSystem} from 'aurelia-binding';
-import {BehaviorInstance} from '../src/behavior-instance';
+import {Controller} from '../src/controller';
 import {SimpleAttribute} from './behaviors/simple-attribute';
 import {SimpleElement} from './behaviors/simple-element';
 
@@ -10,13 +10,13 @@ describe('testing html behaviors', () => {
   });
 
   it('should set simple custom attribute value', () => {
-    var att = BehaviorInstance.createForUnitTest(SimpleAttribute);
+    var att = Controller.createForUnitTest(SimpleAttribute);
     att.value = 'foo';
     expect(att.value).toBe('foo');
   });
 
   it('should raise value change on simple custom attribute', done => {
-    var att = BehaviorInstance.createForUnitTest(SimpleAttribute);
+    var att = Controller.createForUnitTest(SimpleAttribute);
     spyOn(att, 'valueChanged');
 
     att.value = 'foo';
@@ -28,7 +28,7 @@ describe('testing html behaviors', () => {
   });
 
   it('should raise value change on simple custom element', done => {
-    var ele = BehaviorInstance.createForUnitTest(SimpleElement);
+    var ele = Controller.createForUnitTest(SimpleElement);
     spyOn(ele, 'fooChanged');
     spyOn(ele, 'barChanged');
 
@@ -48,7 +48,7 @@ describe('testing html behaviors', () => {
       bar:'new bar'
     };
 
-    var ele = BehaviorInstance.createForUnitTest(SimpleElement, attributesFromHTML);
+    var ele = Controller.createForUnitTest(SimpleElement, attributesFromHTML);
 
     expect(ele.foo).toBe(attributesFromHTML.foo);
     expect(ele.bar).toBe(attributesFromHTML.bar);
@@ -66,7 +66,7 @@ describe('testing html behaviors', () => {
       }
     };
 
-    var ele = BehaviorInstance.createForUnitTest(SimpleElement, attributesFromHTML, bindingContext);
+    var ele = Controller.createForUnitTest(SimpleElement, attributesFromHTML, bindingContext);
 
     expect(ele.foo).toBe(attributesFromHTML.foo);
     expect(ele.bar).toBe(bindingContext.address.city);

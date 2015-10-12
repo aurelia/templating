@@ -8,7 +8,7 @@ import {ViewCompiler} from './view-compiler';
 import {ContentSelector} from './content-selector';
 import {hyphenate} from './util';
 import {BindableProperty} from './bindable-property';
-import {BehaviorInstance} from './behavior-instance';
+import {Controller} from './controller';
 import {ViewResources} from './view-resources';
 import {ResourceLoadContext, ViewCompileInstruction, BehaviorInstruction} from './instructions';
 import {FEATURE, DOM} from 'aurelia-pal';
@@ -79,7 +79,6 @@ export class HtmlBehaviorResource {
     this.handlesAttached = ('attached' in proto);
     this.handlesDetached = ('detached' in proto);
     this.htmlName = this.elementName || this.attributeName;
-    this.apiName = this.htmlName.replace(/-([a-z])/g, (m, w) => w.toUpperCase());
 
     if (attributeName !== null) {
       if (properties.length === 0) { //default for custom attributes
@@ -227,8 +226,9 @@ export class HtmlBehaviorResource {
     return node;
   }
 
-  create(container: Container, instruction?: BehaviorInstruction, element?: Element, bindings?: Binding[]): BehaviorInstance {
+  create(container: Container, instruction?: BehaviorInstruction, element?: Element, bindings?: Binding[]): Controller {
     let host;
+    let au = null;
 
     instruction = instruction || BehaviorInstruction.normal;
     element = element || null;
@@ -247,94 +247,92 @@ export class HtmlBehaviorResource {
       }
     }
 
-    let bindingContext = instruction.bindingContext || container.get(this.target);
-    let behaviorInstance = new BehaviorInstance(this, bindingContext, instruction);
+    if (element !== null) {
+      element.au = au = element.au || {};
+    }
+
+    let model = instruction.bindingContext || container.get(this.target);
+    let controller = new Controller(this, model, instruction);
     let childBindings = this.childBindings;
     let viewFactory;
 
     if (this.liftsContent) {
       //template controller
-      element.primaryBehavior = behaviorInstance;
+      au.controller = controller;
     } else if (this.elementName !== null) {
       //custom element
       viewFactory = instruction.viewFactory || this.viewFactory;
-      container.viewModel = bindingContext;
+      container.viewModel = model;
 
       if (viewFactory) {
-        behaviorInstance.view = viewFactory.create(container, bindingContext, instruction, element);
+        controller.view = viewFactory.create(container, model, instruction, element);
       }
 
-      if (element) {
-        element.primaryBehavior = behaviorInstance;
+      if (element !== null) {
+        au.controller = controller;
 
-        if (behaviorInstance.view) {
+        if (controller.view) {
           if (!this.usesShadowDOM) {
             if (instruction.contentFactory) {
               let contentView = instruction.contentFactory.create(container, null, contentSelectorViewCreateInstruction);
 
               ContentSelector.applySelectors(
                 contentView,
-                behaviorInstance.view.contentSelectors,
+                controller.view.contentSelectors,
                 (contentSelector, group) => contentSelector.add(group)
               );
 
-              behaviorInstance.contentView = contentView;
+              controller.contentView = contentView;
             }
           }
 
           if (instruction.anchorIsContainer) {
             if (childBindings !== null) {
               for (let i = 0, ii = childBindings.length; i < ii; ++i) {
-                behaviorInstance.view.addBinding(childBindings[i].create(host, bindingContext));
+                controller.view.addBinding(childBindings[i].create(host, model));
               }
             }
 
-            behaviorInstance.view.appendNodesTo(host);
+            controller.view.appendNodesTo(host);
           } else {
-            behaviorInstance.view.insertNodesBefore(host);
+            controller.view.insertNodesBefore(host);
           }
         } else if (childBindings !== null) {
           for (let i = 0, ii = childBindings.length; i < ii; ++i) {
-            bindings.push(childBindings[i].create(element, bindingContext));
+            bindings.push(childBindings[i].create(element, model));
           }
         }
-      } else if (behaviorInstance.view) {
+      } else if (controller.view) {
         //dynamic element with view
-        behaviorInstance.view.owner = behaviorInstance;
+        controller.view.owner = controller;
 
         if (childBindings !== null) {
           for (let i = 0, ii = childBindings.length; i < ii; ++i) {
-            behaviorInstance.view.addBinding(childBindings[i].create(instruction.host, bindingContext));
+            controller.view.addBinding(childBindings[i].create(instruction.host, model));
           }
         }
       } else if (childBindings !== null) {
         //dynamic element without view
         for (let i = 0, ii = childBindings.length; i < ii; ++i) {
-          bindings.push(childBindings[i].create(instruction.host, bindingContext));
+          bindings.push(childBindings[i].create(instruction.host, model));
         }
       }
     } else if (childBindings !== null) {
       //custom attribute
       for (let i = 0, ii = childBindings.length; i < ii; ++i) {
-        bindings.push(childBindings[i].create(element, bindingContext));
+        bindings.push(childBindings[i].create(element, model));
       }
     }
 
-    if (element) {
-      if (!(this.apiName in element)) {
-        element[this.apiName] = bindingContext;
-      }
-
-      if (!(this.htmlName in element)) {
-        element[this.htmlName] = behaviorInstance;
-      }
+    if (au !== null) {
+      au[this.htmlName] = controller;
     }
 
     if (instruction.initiatedByBehavior && viewFactory) {
-      behaviorInstance.view.created();
+      controller.view.created();
     }
 
-    return behaviorInstance;
+    return controller;
   }
 
   ensurePropertiesDefined(instance: Object, lookup: Object) {

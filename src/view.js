@@ -12,11 +12,11 @@ interface ViewNode {
 }
 
 export class View {
-  constructor(viewFactory: ViewFactory, container: Container, fragment: DocumentFragment, behaviors: BehaviorInstance[], bindings: Binding[], children: ViewNode[], systemControlled: boolean, contentSelectors: ContentSelector[]) {
+  constructor(viewFactory: ViewFactory, container: Container, fragment: DocumentFragment, controllers: Controller[], bindings: Binding[], children: ViewNode[], systemControlled: boolean, contentSelectors: ContentSelector[]) {
     this.viewFactory = viewFactory;
     this.container = container;
     this.fragment = fragment;
-    this.behaviors = behaviors;
+    this.controllers = controllers;
     this.bindings = bindings;
     this.children = children;
     this.systemControlled = systemControlled;
@@ -35,16 +35,16 @@ export class View {
   created(): void {
     let i;
     let ii;
-    let behaviors = this.behaviors;
+    let controllers = this.controllers;
 
-    for (i = 0, ii = behaviors.length; i < ii; ++i) {
-      behaviors[i].created(this);
+    for (i = 0, ii = controllers.length; i < ii; ++i) {
+      controllers[i].created(this);
     }
   }
 
   bind(bindingContext: Object, systemUpdate?: boolean): void {
     let context;
-    let behaviors;
+    let controllers;
     let bindings;
     let children;
     let i;
@@ -76,9 +76,9 @@ export class View {
       bindings[i].bind(context);
     }
 
-    behaviors = this.behaviors;
-    for (i = 0, ii = behaviors.length; i < ii; ++i) {
-      behaviors[i].bind(context);
+    controllers = this.controllers;
+    for (i = 0, ii = controllers.length; i < ii; ++i) {
+      controllers[i].bind(context);
     }
 
     children = this.children;
@@ -96,7 +96,7 @@ export class View {
   }
 
   unbind(): void {
-    let behaviors;
+    let controllers;
     let bindings;
     let children;
     let i;
@@ -115,9 +115,9 @@ export class View {
         bindings[i].unbind();
       }
 
-      behaviors = this.behaviors;
-      for (i = 0, ii = behaviors.length; i < ii; ++i) {
-        behaviors[i].unbind();
+      controllers = this.controllers;
+      for (i = 0, ii = controllers.length; i < ii; ++i) {
+        controllers[i].unbind();
       }
 
       children = this.children;
@@ -156,7 +156,7 @@ export class View {
   }
 
   attached(): void {
-    let behaviors;
+    let controllers;
     let children;
     let i;
     let ii;
@@ -171,9 +171,9 @@ export class View {
       this.owner.attached();
     }
 
-    behaviors = this.behaviors;
-    for (i = 0, ii = behaviors.length; i < ii; ++i) {
-      behaviors[i].attached();
+    controllers = this.controllers;
+    for (i = 0, ii = controllers.length; i < ii; ++i) {
+      controllers[i].attached();
     }
 
     children = this.children;
@@ -183,7 +183,7 @@ export class View {
   }
 
   detached(): void {
-    let behaviors;
+    let controllers;
     let children;
     let i;
     let ii;
@@ -195,9 +195,9 @@ export class View {
         this.owner.detached();
       }
 
-      behaviors = this.behaviors;
-      for (i = 0, ii = behaviors.length; i < ii; ++i) {
-        behaviors[i].detached();
+      controllers = this.controllers;
+      for (i = 0, ii = controllers.length; i < ii; ++i) {
+        controllers[i].detached();
       }
 
       children = this.children;
