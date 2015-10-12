@@ -1,4 +1,4 @@
-﻿import {Metadata, Decorators} from 'aurelia-metadata';
+﻿import {metadata} from 'aurelia-metadata';
 import {bindingMode} from 'aurelia-binding';
 import {customAttribute} from '../src/decorators';
 
@@ -9,7 +9,7 @@ describe('decorators', () => {
         var decorator = customAttribute('test');
         decorator(target);
 
-        var resource = Metadata.get(Metadata.resource, target);
+        var resource = metadata.get(metadata.resource, target);
         expect(resource.attributeName).toBe('test');
         expect(resource.attributeDefaultBindingMode).toBeUndefined();
     });
@@ -20,7 +20,7 @@ describe('decorators', () => {
         var decorator = customAttribute('test', bindingMode.twoWay);
         decorator(target);
 
-        var resource = Metadata.get(Metadata.resource, target);
+        var resource = metadata.get(metadata.resource, target);
         expect(resource.attributeName).toBe('test');
         expect(resource.attributeDefaultBindingMode).toBe(bindingMode.twoWay);
     });

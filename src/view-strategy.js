@@ -1,4 +1,4 @@
-import {Metadata, Origin} from 'aurelia-metadata';
+import {metadata, Origin} from 'aurelia-metadata';
 import {relativeToFile} from 'aurelia-path';
 import {TemplateRegistryEntry} from 'aurelia-loader';
 import {ViewEngine} from './view-engine';
@@ -31,7 +31,7 @@ export class ViewStrategy {
     }
 
     annotation = Origin.get(target);
-    strategy = Metadata.get(ViewStrategy.metadataKey, target);
+    strategy = metadata.get(ViewStrategy.metadataKey, target);
 
     if (!strategy) {
       if (!annotation) {

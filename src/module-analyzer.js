@@ -1,4 +1,4 @@
-import {Metadata} from 'aurelia-metadata';
+import {metadata} from 'aurelia-metadata';
 import {Container} from 'aurelia-dependency-injection';
 import {TemplateRegistryEntry} from 'aurelia-loader';
 import {ValueConverterResource} from 'aurelia-binding';
@@ -86,12 +86,12 @@ export class ResourceModule {
 export class ResourceDescription {
   constructor(key: string, exportedValue: any, resourceTypeMeta: Object) {
     if (!resourceTypeMeta) {
-      resourceTypeMeta = Metadata.get(Metadata.resource, exportedValue);
+      resourceTypeMeta = metadata.get(metadata.resource, exportedValue);
 
       if (!resourceTypeMeta) {
         resourceTypeMeta = new HtmlBehaviorResource();
         resourceTypeMeta.elementName = hyphenate(key);
-        Metadata.define(Metadata.resource, resourceTypeMeta, exportedValue);
+        metadata.define(metadata.resource, resourceTypeMeta, exportedValue);
       }
     }
 
@@ -115,11 +115,11 @@ export class ResourceDescription {
   }
 
   analyze(container: Container) {
-    let metadata = this.metadata;
+    let m = this.metadata;
     let value = this.value;
 
-    if ('analyze' in metadata) {
-      metadata.analyze(container, value);
+    if ('analyze' in m) {
+      m.analyze(container, value);
     }
   }
 
@@ -128,16 +128,16 @@ export class ResourceDescription {
   }
 
   load(container: Container, loadContext?: ResourceLoadContext): Promise<void> | void {
-    let metadata = this.metadata;
+    let m = this.metadata;
     let value = this.value;
 
-    if ('load' in metadata) {
-      return metadata.load(container, value, null, null, loadContext);
+    if ('load' in m) {
+      return m.load(container, value, null, null, loadContext);
     }
   }
 
   static get(resource: any, key?: string = 'custom-resource'): ResourceDescription {
-    let resourceTypeMeta = Metadata.get(Metadata.resource, resource);
+    let resourceTypeMeta = metadata.get(metadata.resource, resource);
     let resourceDescription;
 
     if (resourceTypeMeta) {
@@ -155,10 +155,10 @@ export class ResourceDescription {
     } else {
       if (resourceTypeMeta = HtmlBehaviorResource.convention(key)) {
         resourceDescription = new ResourceDescription(key, resource, resourceTypeMeta);
-        Metadata.define(Metadata.resource, resourceTypeMeta, resource);
+        metadata.define(metadata.resource, resourceTypeMeta, resource);
       } else if (resourceTypeMeta = ValueConverterResource.convention(key)) {
         resourceDescription = new ResourceDescription(key, resource, resourceTypeMeta);
-        Metadata.define(Metadata.resource, resourceTypeMeta, resource);
+        metadata.define(metadata.resource, resourceTypeMeta, resource);
       }
     }
 
@@ -210,7 +210,7 @@ export class ModuleAnalyzer {
         continue;
       }
 
-      resourceTypeMeta = Metadata.get(Metadata.resource, exportedValue);
+      resourceTypeMeta = metadata.get(metadata.resource, exportedValue);
 
       if (resourceTypeMeta) {
         if (resourceTypeMeta.attributeName === null && resourceTypeMeta.elementName === null) {
@@ -240,10 +240,10 @@ export class ModuleAnalyzer {
             resources.push(new ResourceDescription(key, exportedValue, conventional));
           }
 
-          Metadata.define(Metadata.resource, conventional, exportedValue);
+          metadata.define(metadata.resource, conventional, exportedValue);
         } else if (conventional = ValueConverterResource.convention(key)) {
           resources.push(new ResourceDescription(key, exportedValue, conventional));
-          Metadata.define(Metadata.resource, conventional, exportedValue);
+          metadata.define(metadata.resource, conventional, exportedValue);
         } else if (!fallbackValue) {
           fallbackValue = exportedValue;
           fallbackKey = key;
