@@ -19,7 +19,7 @@ describe('html-behavior', () => {
 
         var target = function() {};
 
-        resource.analyze(container, target);
+        resource.initialize(container, target);
 
         expect(resource.attributes['test'].defaultBindingMode).toBe(defaultBindingMode);
     });
@@ -35,7 +35,7 @@ describe('html-behavior', () => {
 
         var target = function() {};
 
-        resource.analyze(container, target);
+        resource.initialize(container, target);
 
         expect(resource.attributes['test'].defaultBindingMode).toBe(bindingMode.twoWay);
     });

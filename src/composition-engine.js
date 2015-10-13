@@ -83,7 +83,7 @@ export class CompositionEngine {
       } else {
         metadata = new HtmlBehaviorResource();
         metadata.elementName = 'dynamic-element';
-        metadata.analyze(instruction.container || childContainer, viewModel.constructor);
+        metadata.initialize(instruction.container || childContainer, viewModel.constructor);
         doneLoading = metadata.load(childContainer, viewModel.constructor, instruction.view, true).then(viewFactory => {
           return viewFactory;
         });

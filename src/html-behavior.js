@@ -64,7 +64,7 @@ export class HtmlBehaviorResource {
     this.childBindings.push(behavior);
   }
 
-  analyze(container: Container, target: Function): void {
+  initialize(container: Container, target: Function): void {
     let proto = target.prototype;
     let properties = this.properties;
     let attributeName = this.attributeName;
@@ -124,6 +124,16 @@ export class HtmlBehaviorResource {
     }
   }
 
+  register(registry: ViewResources, name?: string): void {
+    if (this.attributeName !== null) {
+      registry.registerAttribute(name || this.attributeName, this, this.attributeName);
+    }
+
+    if (this.elementName !== null) {
+      registry.registerElement(name || this.elementName, this);
+    }
+  }
+
   load(container: Container, target: Function, viewStrategy?: ViewStrategy, transientView?: boolean, loadContext?: ResourceLoadContext): Promise<HtmlBehaviorResource> {
     let options;
 
@@ -145,16 +155,6 @@ export class HtmlBehaviorResource {
     }
 
     return Promise.resolve(this);
-  }
-
-  register(registry: ViewResources, name?: string): void {
-    if (this.attributeName !== null) {
-      registry.registerAttribute(name || this.attributeName, this, this.attributeName);
-    }
-
-    if (this.elementName !== null) {
-      registry.registerElement(name || this.elementName, this);
-    }
   }
 
   compile(compiler: ViewCompiler, resources: ViewResources, node: Node, instruction: BehaviorInstruction, parentNode?: Node): Node {

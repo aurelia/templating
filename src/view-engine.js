@@ -124,7 +124,7 @@ export class ViewEngine {
         throw new Error(`No view model found in module "${moduleImport}".`);
       }
 
-      resourceModule.analyze(this.container);
+      resourceModule.initialize(this.container);
 
       return resourceModule.mainResource;
     });
@@ -147,7 +147,7 @@ export class ViewEngine {
       let moduleAnalyzer = this.moduleAnalyzer;
       let allAnalysis = new Array(imports.length);
 
-      //analyze and register all resources first
+      //initialize and register all resources first
       //this enables circular references for global refs
       //and enables order independence
       for (i = 0, ii = imports.length; i < ii; ++i) {
@@ -155,7 +155,7 @@ export class ViewEngine {
         normalizedId = Origin.get(current).moduleId;
 
         analysis = moduleAnalyzer.analyze(normalizedId, current);
-        analysis.analyze(container);
+        analysis.initialize(container);
         analysis.register(resources, names[i]);
 
         allAnalysis[i] = analysis;

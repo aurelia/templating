@@ -15,67 +15,68 @@ export class ResourceModule {
     this.mainResource = null;
     this.resources = null;
     this.viewStrategy = null;
-    this.isAnalyzed = false;
+    this.isInitialized = false;
+    this.onLoaded = null;
   }
 
-  analyze(container: Container) {
+  initialize(container: Container) {
     let current = this.mainResource;
     let resources = this.resources;
     let viewStrategy = this.viewStrategy;
-    let i;
-    let ii;
 
-    if (this.isAnalyzed) {
+    if (this.isInitialized) {
       return;
     }
 
-    this.isAnalyzed = true;
+    this.isInitialized = true;
 
-    if (current) {
+    if (current !== undefined) {
       current.metadata.viewStrategy = viewStrategy;
-      current.analyze(container);
+      current.initialize(container);
     }
 
-    for (i = 0, ii = resources.length; i < ii; ++i) {
+    for (let i = 0, ii = resources.length; i < ii; ++i) {
       current = resources[i];
       current.metadata.viewStrategy = viewStrategy;
-      current.analyze(container);
+      current.initialize(container);
     }
   }
 
   register(registry:ViewResources, name?:string) {
-    let i;
-    let ii;
+    let main = this.mainResource;
     let resources = this.resources;
 
-    if (this.mainResource) {
-      this.mainResource.register(registry, name);
+    if (main !== undefined) {
+      main.register(registry, name);
       name = null;
     }
 
-    for (i = 0, ii = resources.length; i < ii; ++i) {
+    for (let i = 0, ii = resources.length; i < ii; ++i) {
       resources[i].register(registry, name);
       name = null;
     }
   }
 
   load(container: Container, loadContext?: ResourceLoadContext): Promise<void> {
-    if (this.onLoaded) {
+    if (this.onLoaded !== null) {
       return this.onLoaded;
     }
 
-    let current = this.mainResource;
+    let main = this.mainResource;
     let resources = this.resources;
-    let i;
-    let ii;
-    let loads = [];
+    let loads;
 
-    if (current) {
-      loads.push(current.load(container, loadContext));
-    }
-
-    for (i = 0, ii = resources.length; i < ii; ++i) {
-      loads.push(resources[i].load(container, loadContext));
+    if (main !== undefined) {
+      loads = new Array(resources.length + 1);
+      loads[0] = main.load(container, loadContext);
+      for (let i = 0, ii = resources.length; i < ii; ++i) {
+        loads[i + 1] = resources[i].load(container, loadContext);
+      }
+    } else {
+      loads = new Array(resources.length);
+      for (let i = 0, ii = resources.length; i < ii; ++i) {
+        loads[i] = resources[i].load(container, loadContext);
+      }
     }
 
     this.onLoaded = Promise.all(loads);
@@ -114,26 +115,16 @@ export class ResourceDescription {
     this.value = exportedValue;
   }
 
-  analyze(container: Container) {
-    let m = this.metadata;
-    let value = this.value;
-
-    if ('analyze' in m) {
-      m.analyze(container, value);
-    }
+  initialize(container: Container): void {
+    this.metadata.initialize(container, this.value);
   }
 
-  register(registry: ViewResources, name?: string) {
+  register(registry: ViewResources, name?: string): void {
     this.metadata.register(registry, name);
   }
 
   load(container: Container, loadContext?: ResourceLoadContext): Promise<void> | void {
-    let m = this.metadata;
-    let value = this.value;
-
-    if ('load' in m) {
-      return m.load(container, value, null, null, loadContext);
-    }
+    return this.metadata.load(container, this.value, null, null, loadContext);
   }
 
   static get(resource: any, key?: string = 'custom-resource'): ResourceDescription {

@@ -24,7 +24,7 @@ export class Controller {
 
   static createForUnitTest(modelType, attributes, bindingContext) {
     let description = ResourceDescription.get(modelType);
-    description.analyze(Container.instance);
+    description.initialize(Container.instance);
 
     let model = Container.instance.get(modelType);
     let controller = new Controller(description.metadata, model, {attributes: attributes || {}});
