@@ -1,6 +1,3 @@
-import {ResourceDescription} from './module-analyzer';
-import {Container} from 'aurelia-dependency-injection';
-
 export class Controller {
   constructor(behavior, model, instruction) {
     this.behavior = behavior;
@@ -20,18 +17,6 @@ export class Controller {
     for (i = 0, ii = properties.length; i < ii; ++i) {
       properties[i].initialize(model, observerLookup, attributes, handlesBind, boundProperties);
     }
-  }
-
-  static createForUnitTest(modelType, attributes, bindingContext) {
-    let description = ResourceDescription.get(modelType);
-    description.initialize(Container.instance);
-
-    let model = Container.instance.get(modelType);
-    let controller = new Controller(description.metadata, model, {attributes: attributes || {}});
-
-    controller.bind(bindingContext || {});
-
-    return model;
   }
 
   created(context) {

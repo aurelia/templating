@@ -1,22 +1,19 @@
-import {Container} from 'aurelia-dependency-injection';
-import {bindingSystem} from 'aurelia-binding';
-import {Controller} from '../src/controller';
+import {bindingEngine} from 'aurelia-binding';
+import {templatingEngine} from '../src/templating-engine';
 import {SimpleAttribute} from './behaviors/simple-attribute';
 import {SimpleElement} from './behaviors/simple-element';
 
 describe('testing html behaviors', () => {
-  beforeEach(() =>{
-    new Container().makeGlobal();
-  });
+  beforeEach(() => templatingEngine.initialize());
 
   it('should set simple custom attribute value', () => {
-    var att = Controller.createForUnitTest(SimpleAttribute);
+    var att = templatingEngine.createModelForUnitTest(SimpleAttribute);
     att.value = 'foo';
     expect(att.value).toBe('foo');
   });
 
   it('should raise value change on simple custom attribute', done => {
-    var att = Controller.createForUnitTest(SimpleAttribute);
+    var att = templatingEngine.createModelForUnitTest(SimpleAttribute);
     spyOn(att, 'valueChanged');
 
     att.value = 'foo';
@@ -28,7 +25,7 @@ describe('testing html behaviors', () => {
   });
 
   it('should raise value change on simple custom element', done => {
-    var ele = Controller.createForUnitTest(SimpleElement);
+    var ele = templatingEngine.createModelForUnitTest(SimpleElement);
     spyOn(ele, 'fooChanged');
     spyOn(ele, 'barChanged');
 
@@ -48,7 +45,7 @@ describe('testing html behaviors', () => {
       bar:'new bar'
     };
 
-    var ele = Controller.createForUnitTest(SimpleElement, attributesFromHTML);
+    var ele = templatingEngine.createModelForUnitTest(SimpleElement, attributesFromHTML);
 
     expect(ele.foo).toBe(attributesFromHTML.foo);
     expect(ele.bar).toBe(attributesFromHTML.bar);
@@ -57,7 +54,7 @@ describe('testing html behaviors', () => {
   it('should set values from bindings on simple custom element', done => {
     var attributesFromHTML = {
       foo:'new foo',
-      bar: bindingSystem.createBindingExpression('bar', 'address.city')
+      bar: bindingEngine.createBindingExpression('bar', 'address.city')
     };
 
     var bindingContext = {
@@ -66,7 +63,7 @@ describe('testing html behaviors', () => {
       }
     };
 
-    var ele = Controller.createForUnitTest(SimpleElement, attributesFromHTML, bindingContext);
+    var ele = templatingEngine.createModelForUnitTest(SimpleElement, attributesFromHTML, bindingContext);
 
     expect(ele.foo).toBe(attributesFromHTML.foo);
     expect(ele.bar).toBe(bindingContext.address.city);

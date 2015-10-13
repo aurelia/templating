@@ -36,7 +36,8 @@ gulp.task('build-index', function(){
     'children.js',
     'composition-engine.js',
     'element-config.js',
-    'decorators.js'
+    'decorators.js',
+    'templating-engine.js'
     ].map(function(file){
       return paths.root + file;
   });

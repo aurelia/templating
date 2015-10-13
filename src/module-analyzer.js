@@ -126,35 +126,6 @@ export class ResourceDescription {
   load(container: Container, loadContext?: ResourceLoadContext): Promise<void> | void {
     return this.metadata.load(container, this.value, null, null, loadContext);
   }
-
-  static get(resource: any, key?: string = 'custom-resource'): ResourceDescription {
-    let resourceTypeMeta = metadata.get(metadata.resource, resource);
-    let resourceDescription;
-
-    if (resourceTypeMeta) {
-      if (resourceTypeMeta.attributeName === null && resourceTypeMeta.elementName === null) {
-        //no customeElement or customAttribute but behavior added by other metadata
-        HtmlBehaviorResource.convention(key, resourceTypeMeta);
-      }
-
-      if (resourceTypeMeta.attributeName === null && resourceTypeMeta.elementName === null) {
-        //no convention and no customeElement or customAttribute but behavior added by other metadata
-        resourceTypeMeta.elementName = hyphenate(key);
-      }
-
-      resourceDescription = new ResourceDescription(key, resource, resourceTypeMeta);
-    } else {
-      if (resourceTypeMeta = HtmlBehaviorResource.convention(key)) {
-        resourceDescription = new ResourceDescription(key, resource, resourceTypeMeta);
-        metadata.define(metadata.resource, resourceTypeMeta, resource);
-      } else if (resourceTypeMeta = ValueConverterResource.convention(key)) {
-        resourceDescription = new ResourceDescription(key, resource, resourceTypeMeta);
-        metadata.define(metadata.resource, resourceTypeMeta, resource);
-      }
-    }
-
-    return resourceDescription;
-  }
 }
 
 export class ModuleAnalyzer {
