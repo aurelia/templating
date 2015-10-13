@@ -14,6 +14,11 @@ import {ResourceLoadContext, ViewCompileInstruction, BehaviorInstruction} from '
 import {FEATURE, DOM} from 'aurelia-pal';
 
 const contentSelectorViewCreateInstruction = { suppressBind: true, enhance: false };
+let lastProviderId = 0;
+
+function nextProviderId() {
+  return ++lastProviderId;
+}
 
 function doProcessContent() {
   return true;
@@ -67,6 +72,8 @@ export class HtmlBehaviorResource {
     let i;
     let ii;
     let current;
+
+    target.__providerId__ = nextProviderId();
 
     this.observerLocator = container.get(ObserverLocator);
     this.taskQueue = container.get(TaskQueue);

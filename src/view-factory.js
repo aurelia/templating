@@ -6,6 +6,13 @@ import {ViewResources} from './view-resources';
 import {BehaviorInstruction, TargetInstruction} from './instructions';
 import {DOM} from 'aurelia-pal';
 
+let providerResolverInstance = new (class ProviderResolver {
+  get(container, key) {
+    let id = key.__providerId__;
+    return id in container ? container[id] : (container[id] = container.invoke(key));
+  }
+});
+
 function elementContainerGet(key) {
   if (key === DOM.Element) {
     return this.element;
@@ -63,7 +70,7 @@ function createElementContainer(parent, element, instruction, bindingContext, ch
   i = providers.length;
 
   while (i--) {
-    container.registerSingleton(providers[i]);
+    container.resolvers.set(providers[i], providerResolverInstance);
   }
 
   container.superGet = container.get;
@@ -186,7 +193,7 @@ function applySurrogateInstruction(container, element, instruction, behaviors, b
 
   i = providers.length;
   while (i--) {
-    container.registerSingleton(providers[i]);
+    container.resolvers.set(providers[i], providerResolverInstance);
   }
 
   //apply surrogate attributes
