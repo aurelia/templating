@@ -1,10 +1,17 @@
 import {bindingEngine} from 'aurelia-binding';
-import {templatingEngine} from '../src/templating-engine';
+import {Container} from 'aurelia-dependency-injection';
+import {TemplatingEngine} from '../src/templating-engine';
 import {SimpleAttribute} from './behaviors/simple-attribute';
 import {SimpleElement} from './behaviors/simple-element';
 
 describe('testing html behaviors', () => {
-  beforeEach(() => templatingEngine.initialize());
+  let templatingEngine;
+  let container;
+
+  beforeEach(() => {
+    container = new Container();
+    templatingEngine = container.get(TemplatingEngine);
+  });
 
   it('should set simple custom attribute value', () => {
     var att = templatingEngine.createModelForUnitTest(SimpleAttribute);
