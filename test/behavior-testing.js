@@ -1,4 +1,4 @@
-import {bindingEngine} from 'aurelia-binding';
+import {BindingEngine} from 'aurelia-binding';
 import {Container} from 'aurelia-dependency-injection';
 import {TemplatingEngine} from '../src/templating-engine';
 import {SimpleAttribute} from './behaviors/simple-attribute';
@@ -7,10 +7,12 @@ import {SimpleElement} from './behaviors/simple-element';
 describe('testing html behaviors', () => {
   let templatingEngine;
   let container;
+  let bindingEngine;
 
   beforeEach(() => {
     container = new Container();
     templatingEngine = container.get(TemplatingEngine);
+    bindingEngine = container.get(BindingEngine);
   });
 
   it('should set simple custom attribute value', () => {
