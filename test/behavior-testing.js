@@ -3,6 +3,7 @@ import {Container} from 'aurelia-dependency-injection';
 import {TemplatingEngine} from '../src/templating-engine';
 import {SimpleAttribute} from './behaviors/simple-attribute';
 import {SimpleElement} from './behaviors/simple-element';
+import {PlainViewModel} from './behaviors/plain-viewmodel';
 
 describe('testing html behaviors', () => {
   let templatingEngine;
@@ -29,6 +30,11 @@ describe('testing html behaviors', () => {
       expect(att.valueChanged).toHaveBeenCalledWith('foo', undefined);
       done();
     });
+  });
+
+  it('can create a plain view model', () => {
+    var vm = templatingEngine.createModelForUnitTest(PlainViewModel);
+    expect(vm.test).toEqual('my test');
   });
 
   it('should raise value change on simple custom element', done => {
