@@ -34,10 +34,14 @@ export class ViewResources {
     this.parent = parent || null;
     this.hasParent = this.parent !== null;
     this.viewUrl = viewUrl || '';
-    this.valueConverterLookupFunction = this.getValueConverter.bind(this);
+    this.lookupFunctions = {
+      valueConverters: this.getValueConverter.bind(this),
+      bindingBehaviors: this.getBindingBehavior.bind(this)
+    };
     this.attributes = {};
     this.elements = {};
     this.valueConverters = {};
+    this.bindingBehaviors = {};
     this.attributeMap = {};
     this.bindingLanguage = null;
     this.hook1 = null;
@@ -211,5 +215,13 @@ export class ViewResources {
 
   getValueConverter(name: string): ValueConverter {
     return this.valueConverters[name] || (this.hasParent ? this.parent.getValueConverter(name) : null);
+  }
+
+  registerBindingBehavior(name: string, bindingBehavior: BindingBehavior): void {
+    register(this.bindingBehaviors, name, bindingBehavior, 'a BindingBehavior');
+  }
+
+  getBindingBehavior(name: string): BindingBehavior {
+    return this.bindingBehaviors[name] || (this.hasParent ? this.parent.getBindingBehavior(name) : null);
   }
 }
