@@ -1,5 +1,5 @@
 import 'core-js';
-import {metadata, decorators} from 'aurelia-metadata';
+import {metadata} from 'aurelia-metadata';
 import {BindableProperty} from './bindable-property';
 import {ChildObserver} from './children';
 import {ElementConfigResource} from './element-config';
@@ -18,8 +18,6 @@ export function resource(instance) {
   };
 }
 
-decorators.configure.parameterizedDecorator('resource', resource);
-
 export function behavior(override) {
   return function(target) {
     if (override instanceof HtmlBehaviorResource) {
@@ -31,8 +29,6 @@ export function behavior(override) {
   };
 }
 
-decorators.configure.parameterizedDecorator('behavior', behavior);
-
 export function customElement(name) {
   validateBehaviorName(name, 'custom element');
   return function(target) {
@@ -40,8 +36,6 @@ export function customElement(name) {
     r.elementName = name;
   };
 }
-
-decorators.configure.parameterizedDecorator('customElement', customElement);
 
 export function customAttribute(name, defaultBindingMode?) {
   validateBehaviorName(name, 'custom attribute');
@@ -52,8 +46,6 @@ export function customAttribute(name, defaultBindingMode?) {
   };
 }
 
-decorators.configure.parameterizedDecorator('customAttribute', customAttribute);
-
 export function templateController(target) {
   let deco = function(t) {
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
@@ -62,8 +54,6 @@ export function templateController(target) {
 
   return target ? deco(target) : deco;
 }
-
-decorators.configure.simpleDecorator('templateController', templateController);
 
 export function bindable(nameOrConfigOrTarget?, key?, descriptor?) {
   let deco = function(target, key2, descriptor2) {
@@ -93,8 +83,6 @@ export function bindable(nameOrConfigOrTarget?, key?, descriptor?) {
   return deco; //placed on a class
 }
 
-decorators.configure.parameterizedDecorator('bindable', bindable);
-
 export function dynamicOptions(target) {
   let deco = function(t) {
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
@@ -103,8 +91,6 @@ export function dynamicOptions(target) {
 
   return target ? deco(target) : deco;
 }
-
-decorators.configure.simpleDecorator('dynamicOptions', dynamicOptions);
 
 export function sync(selectorOrConfig) {
   return function(target, key, descriptor) {
@@ -122,8 +108,6 @@ export function sync(selectorOrConfig) {
   };
 }
 
-decorators.configure.parameterizedDecorator('sync', sync);
-
 export function useShadowDOM(target) {
   let deco = function(t) {
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
@@ -132,8 +116,6 @@ export function useShadowDOM(target) {
 
   return target ? deco(target) : deco;
 }
-
-decorators.configure.simpleDecorator('useShadowDOM', useShadowDOM);
 
 function doNotProcessContent() {
   return false;
@@ -146,8 +128,6 @@ export function processContent(processor) {
   };
 }
 
-decorators.configure.parameterizedDecorator('processContent', processContent);
-
 export function containerless(target) {
   let deco = function(t) {
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
@@ -157,27 +137,19 @@ export function containerless(target) {
   return target ? deco(target) : deco;
 }
 
-decorators.configure.simpleDecorator('containerless', containerless);
-
 export function viewStrategy(strategy) {
   return function(target) {
     metadata.define(ViewStrategy.metadataKey, strategy, target);
   };
 }
 
-decorators.configure.parameterizedDecorator('viewStrategy', useView);
-
 export function useView(path) {
   return viewStrategy(new UseViewStrategy(path));
 }
 
-decorators.configure.parameterizedDecorator('useView', useView);
-
 export function inlineView(markup:string, dependencies?:Array<string|Function|Object>, dependencyBaseUrl?:string) {
   return viewStrategy(new InlineViewStrategy(markup, dependencies, dependencyBaseUrl));
 }
-
-decorators.configure.parameterizedDecorator('inlineView', inlineView);
 
 export function noView(target) {
   let deco = function(t) {
@@ -187,8 +159,6 @@ export function noView(target) {
   return target ? deco(target) : deco;
 }
 
-decorators.configure.simpleDecorator('noView', noView);
-
 export function elementConfig(target) {
   let deco = function(t) {
     metadata.define(metadata.resource, new ElementConfigResource(), t);
@@ -196,5 +166,3 @@ export function elementConfig(target) {
 
   return target ? deco(target) : deco;
 }
-
-decorators.configure.simpleDecorator('elementConfig', elementConfig);
