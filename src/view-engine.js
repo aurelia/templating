@@ -73,32 +73,32 @@ export class ViewEngine {
   loadViewFactory(urlOrRegistryEntry: string|TemplateRegistryEntry, compileInstruction?: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewFactory> {
     loadContext = loadContext || new ResourceLoadContext();
 
-    return ensureRegistryEntry(this.loader, urlOrRegistryEntry).then(viewRegistryEntry => {
-      if (viewRegistryEntry.onReady) {
+    return ensureRegistryEntry(this.loader, urlOrRegistryEntry).then(registryEntry => {
+      if (registryEntry.onReady) {
         if (loadContext.doesNotHaveDependency(urlOrRegistryEntry)) {
           loadContext.addDependency(urlOrRegistryEntry);
-          return viewRegistryEntry.onReady;
+          return registryEntry.onReady;
         }
 
-        return Promise.resolve(new ProxyViewFactory(viewRegistryEntry.onReady));
+        return Promise.resolve(new ProxyViewFactory(registryEntry.onReady));
       }
 
       loadContext.addDependency(urlOrRegistryEntry);
 
-      viewRegistryEntry.onReady = this.loadTemplateResources(viewRegistryEntry, compileInstruction, loadContext).then(resources => {
-        viewRegistryEntry.setResources(resources);
-        let viewFactory = this.viewCompiler.compile(viewRegistryEntry.template, resources, compileInstruction);
-        viewRegistryEntry.setFactory(viewFactory);
+      registryEntry.onReady = this.loadTemplateResources(registryEntry, compileInstruction, loadContext).then(resources => {
+        registryEntry.resources = resources;
+        let viewFactory = this.viewCompiler.compile(registryEntry.template, resources, compileInstruction);
+        registryEntry.factory = viewFactory;
         return viewFactory;
       });
 
-      return viewRegistryEntry.onReady;
+      return registryEntry.onReady;
     });
   }
 
-  loadTemplateResources(viewRegistryEntry: TemplateRegistryEntry, compileInstruction?: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewResources> {
-    let resources = new ViewResources(this.appResources, viewRegistryEntry.address);
-    let dependencies = viewRegistryEntry.dependencies;
+  loadTemplateResources(registryEntry: TemplateRegistryEntry, compileInstruction?: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewResources> {
+    let resources = new ViewResources(this.appResources, registryEntry.address);
+    let dependencies = registryEntry.dependencies;
     let importIds;
     let names;
 
@@ -110,7 +110,7 @@ export class ViewEngine {
 
     importIds = dependencies.map(x => x.src);
     names = dependencies.map(x => x.name);
-    logger.debug(`importing resources for ${viewRegistryEntry.address}`, importIds);
+    logger.debug(`importing resources for ${registryEntry.address}`, importIds);
 
     return this.importViewResources(importIds, names, resources, compileInstruction, loadContext);
   }

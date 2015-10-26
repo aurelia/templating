@@ -101,7 +101,7 @@ export class TemplateRegistryViewStrategy extends ViewStrategy {
   loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewFactory> {
     let entry = this.entry;
 
-    if (entry.isReady) {
+    if (entry.factoryIsReady) {
       return Promise.resolve(entry.factory);
     }
 
@@ -122,12 +122,12 @@ export class InlineViewStrategy extends ViewStrategy {
     let entry = this.entry;
     let dependencies = this.dependencies;
 
-    if (entry && entry.isReady) {
+    if (entry && entry.factoryIsReady) {
       return Promise.resolve(entry.factory);
     }
 
     this.entry = entry = new TemplateRegistryEntry(this.moduleId || this.dependencyBaseUrl);
-    entry.setTemplate(DOM.createTemplateFromMarkup(this.markup));
+    entry.template = DOM.createTemplateFromMarkup(this.markup);
 
     if (dependencies !== null) {
       for (let i = 0, ii = dependencies.length; i < ii; ++i) {
