@@ -200,16 +200,6 @@ export class ViewSlot {
     removeAction();
   }
 
-  swap(view: View, returnToCache?: boolean): void | Promise<any> {
-    let removeResponse = this.removeAll(returnToCache);
-
-    if (removeResponse instanceof Promise) {
-      return removeResponse.then(() => this.add(view));
-    }
-
-    return this.add(view);
-  }
-
   attached(): void {
     let i;
     let ii;
