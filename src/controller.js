@@ -19,9 +19,9 @@ export class Controller {
     }
   }
 
-  created(context) {
+  created(view) {
     if (this.behavior.handlesCreated) {
-      this.model.created(context);
+      this.model.created(view);
     }
   }
 
