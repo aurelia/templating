@@ -24,10 +24,8 @@ export class ViewCompileInstruction {
 
 interface ViewCreateInstruction {
   suppressBind?: boolean;
-  systemControlled?: boolean;
   enhance?: boolean;
   partReplacements?: Object;
-  initiatedByBehavior?: boolean;
 }
 
 export class BehaviorInstruction {

@@ -9,7 +9,7 @@ initialize();
 describe('html-behavior', () => {
     var defaultBindingMode = bindingMode.oneWay;
 
-    it('should leave BindableProperty defaultBindingMode undefined after analyze when unspecified', () => {
+    it('should leave BindableProperty defaultBindingMode undefined after initialize when unspecified', () => {
         var resource = new HtmlBehaviorResource();
         resource.attributeName = 'test';
 
@@ -24,7 +24,7 @@ describe('html-behavior', () => {
         expect(resource.attributes['test'].defaultBindingMode).toBe(defaultBindingMode);
     });
 
-    it('should leave set BindableProperty defaultBindingMode after analyze when specified', () => {
+    it('should leave set BindableProperty defaultBindingMode after initialize when specified', () => {
         var resource = new HtmlBehaviorResource();
         resource.attributeName = 'test';
         resource.attributeDefaultBindingMode = bindingMode.twoWay;

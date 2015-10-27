@@ -3,15 +3,6 @@
  */
 export class Animator {
   /**
-   * Configures the default animator.
-   * @param container The root DI container instance.
-   * @param animatorInstance The animator instance.
-   */
-  static configureDefault(container, animatorInstance) {
-    container.registerInstance(Animator, Animator.instance = (animatorInstance || new Animator()));
-  }
-
-  /**
    * Execute an 'enter' animation on an element
    * @param element Element to animate
    * @returns Resolved when the animation is done

@@ -4,6 +4,17 @@ import {ViewEngine} from './view-engine';
 import {HtmlBehaviorResource} from './html-behavior';
 import {BehaviorInstruction, ViewCompileInstruction} from './instructions';
 import {DOM} from 'aurelia-pal';
+import {Container} from 'aurelia-dependency-injection';
+
+interface ComposeInstruction {
+  container: Container;
+  childContainer?: Container;
+  viewModel?: string | Object;
+  viewResources: ViewResources;
+  view?: string | ViewStrategy;
+  viewSlot: ViewSlot;
+  skipActivation?: boolean;
+}
 
 export class CompositionEngine {
   static inject = [ViewEngine];
@@ -115,7 +126,7 @@ export class CompositionEngine {
     });
   }
 
-  compose(instruction) {
+  compose(instruction: ComposeInstruction): Promise<View | Controller> {
     instruction.childContainer = instruction.childContainer || instruction.container.createChild();
     instruction.view = ViewStrategy.normalize(instruction.view);
 
