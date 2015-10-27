@@ -1,4 +1,4 @@
-import {Container} from 'aurelia-dependency-injection';
+import {Container, resolver} from 'aurelia-dependency-injection';
 import {View} from './view';
 import {ViewSlot} from './view-slot';
 import {ContentSelector} from './content-selector';
@@ -6,12 +6,15 @@ import {ViewResources} from './view-resources';
 import {BehaviorInstruction, TargetInstruction} from './instructions';
 import {DOM} from 'aurelia-pal';
 
-let providerResolverInstance = new (class ProviderResolver {
+@resolver
+class ProviderResolver {
   get(container, key) {
     let id = key.__providerId__;
     return id in container ? container[id] : (container[id] = container.invoke(key));
   }
-});
+}
+
+let providerResolverInstance = new ProviderResolver();
 
 function elementContainerGet(key) {
   if (key === DOM.Element) {
@@ -70,7 +73,7 @@ function createElementContainer(parent, element, instruction, bindingContext, ch
   i = providers.length;
 
   while (i--) {
-    container.resolvers.set(providers[i], providerResolverInstance);
+    container._resolvers.set(providers[i], providerResolverInstance);
   }
 
   container.superGet = container.get;
@@ -193,7 +196,7 @@ function applySurrogateInstruction(container, element, instruction, behaviors, b
 
   i = providers.length;
   while (i--) {
-    container.resolvers.set(providers[i], providerResolverInstance);
+    container._resolvers.set(providers[i], providerResolverInstance);
   }
 
   //apply surrogate attributes
