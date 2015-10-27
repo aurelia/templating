@@ -51,6 +51,7 @@ export class Controller {
       observer.selfSubscriber = selfSubscriber;
     }
 
+    //TODO: should this come after the call to view.bind?
     if (skipSelfSubscriber) {
       this.model.bind(context);
     }

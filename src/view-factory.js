@@ -97,7 +97,7 @@ function makeElementIntoAnchor(element, elementInstruction) {
 }
 
 function applyInstructions(containers, bindingContext, element, instruction,
-  behaviors, bindings, children, contentSelectors, partReplacements, resources) {
+  controllers, bindings, children, contentSelectors, partReplacements, resources) {
   let behaviorInstructions = instruction.behaviorInstructions;
   let expressions = instruction.expressions;
   let elementContainer;
@@ -137,13 +137,13 @@ function applyInstructions(containers, bindingContext, element, instruction,
 
     for (i = 0, ii = behaviorInstructions.length; i < ii; ++i) {
       current = behaviorInstructions[i];
-      instance = current.type.create(elementContainer, current, element, bindings, current.partReplacements);
+      instance = current.type.create(elementContainer, current, element, bindings);
 
       if (instance.contentView) {
         children.push(instance.contentView);
       }
 
-      behaviors.push(instance);
+      controllers.push(instance);
     }
   }
 
@@ -183,7 +183,7 @@ function styleObjectToString(obj) {
   return result;
 }
 
-function applySurrogateInstruction(container, element, instruction, behaviors, bindings, children) {
+function applySurrogateInstruction(container, element, instruction, controllers, bindings, children) {
   let behaviorInstructions = instruction.behaviorInstructions;
   let expressions = instruction.expressions;
   let providers = instruction.providers;
@@ -225,13 +225,13 @@ function applySurrogateInstruction(container, element, instruction, behaviors, b
   if (behaviorInstructions.length) {
     for (i = 0, ii = behaviorInstructions.length; i < ii; ++i) {
       current = behaviorInstructions[i];
-      instance = current.type.create(container, current, element, bindings, current.partReplacements);
+      instance = current.type.create(container, current, element, bindings);
 
       if (instance.contentView) {
         children.push(instance.contentView);
       }
 
-      behaviors.push(instance);
+      controllers.push(instance);
     }
   }
 
@@ -343,7 +343,7 @@ export class ViewFactory {
     let instructables = fragment.querySelectorAll('.au-target');
     let instructions = this.instructions;
     let resources = this.resources;
-    let behaviors = [];
+    let controllers = [];
     let bindings = [];
     let children = [];
     let contentSelectors = [];
@@ -358,7 +358,7 @@ export class ViewFactory {
     this.resources.onBeforeCreate(this, container, fragment, createInstruction, bindingContext);
 
     if (element !== null && this.surrogateInstruction !== null) {
-      applySurrogateInstruction(container, element, this.surrogateInstruction, behaviors, bindings, children);
+      applySurrogateInstruction(container, element, this.surrogateInstruction, controllers, bindings, children);
     }
 
     for (i = 0, ii = instructables.length; i < ii; ++i) {
@@ -366,10 +366,10 @@ export class ViewFactory {
       instruction = instructions[instructable.getAttribute('au-target-id')];
 
       applyInstructions(containers, bindingContext, instructable,
-        instruction, behaviors, bindings, children, contentSelectors, partReplacements, resources);
+        instruction, controllers, bindings, children, contentSelectors, partReplacements, resources);
     }
 
-    view = new View(this, container, fragment, behaviors, bindings, children, createInstruction.systemControlled, contentSelectors);
+    view = new View(this, container, fragment, controllers, bindings, children, createInstruction.systemControlled, contentSelectors);
 
     //if iniated by an element behavior, let the behavior trigger this callback once it's done creating the element
     if (!createInstruction.initiatedByBehavior) {
