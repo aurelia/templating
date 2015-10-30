@@ -20,10 +20,10 @@ function getAnimatableElement(view) {
 }
 
 export class ViewSlot {
-  constructor(anchor: Node, anchorIsContainer: boolean, bindingContext?: Object, animator?: Animator = Animator.instance) {
+  constructor(anchor: Node, anchorIsContainer: boolean, animator?: Animator = Animator.instance) {
     this.anchor = anchor;
     this.viewAddMethod = anchorIsContainer ? 'appendNodesTo' : 'insertNodesBefore';
-    this.bindingContext = bindingContext;
+    this.bindingContext = null;
     this.animator = animator;
     this.children = [];
     this.isBound = false;

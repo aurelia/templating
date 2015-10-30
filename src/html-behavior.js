@@ -272,7 +272,7 @@ export class HtmlBehaviorResource {
       container.viewModel = model;
 
       if (viewFactory) {
-        controller.view = viewFactory.create(container, model, instruction, element);
+        controller.view = viewFactory.create(container, instruction, element);
       }
 
       if (element !== null) {
@@ -281,7 +281,7 @@ export class HtmlBehaviorResource {
         if (controller.view) {
           if (!this.usesShadowDOM) {
             if (instruction.contentFactory) {
-              let contentView = instruction.contentFactory.create(container, null, contentSelectorViewCreateInstruction);
+              let contentView = instruction.contentFactory.create(container, contentSelectorViewCreateInstruction);
 
               ContentSelector.applySelectors(
                 contentView,

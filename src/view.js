@@ -5,21 +5,20 @@ import {Container} from 'aurelia-dependency-injection';
 //NOTE: Adding to the fragment, causes the nodes to be removed from the document.
 
 interface ViewNode {
-  bind(bindingContext: Object, systemUpdate?: boolean): void;
+  bind(bindingContext: Object): void;
   attached(): void;
   detached(): void;
   unbind(): void;
 }
 
 export class View {
-  constructor(viewFactory: ViewFactory, container: Container, fragment: DocumentFragment, controllers: Controller[], bindings: Binding[], children: ViewNode[], systemControlled: boolean, contentSelectors: ContentSelector[]) {
+  constructor(viewFactory: ViewFactory, container: Container, fragment: DocumentFragment, controllers: Controller[], bindings: Binding[], children: ViewNode[], contentSelectors: ContentSelector[]) {
     this.viewFactory = viewFactory;
     this.container = container;
     this.fragment = fragment;
     this.controllers = controllers;
     this.bindings = bindings;
     this.children = children;
-    this.systemControlled = systemControlled;
     this.contentSelectors = contentSelectors;
     this.firstChild = fragment.firstChild;
     this.lastChild = fragment.lastChild;
@@ -42,7 +41,7 @@ export class View {
     }
   }
 
-  bind(bindingContext: Object, systemUpdate?: boolean): void {
+  bind(bindingContext: Object, _systemUpdate?: boolean): void {
     let context;
     let controllers;
     let bindings;
@@ -50,7 +49,7 @@ export class View {
     let i;
     let ii;
 
-    if (systemUpdate && !this.systemControlled) {
+    if (_systemUpdate) {
       context = this.bindingContext || bindingContext;
     } else {
       context = bindingContext || this.bindingContext;

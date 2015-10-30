@@ -60,7 +60,6 @@ export class BehaviorInstruction {
   constructor(suppressBind?: boolean = false) {
     this.suppressBind = suppressBind;
     this.initiatedByBehavior = false;
-    this.systemControlled = false;
     this.enhance = false;
     this.partReplacements = null;
     this.viewFactory = null;
