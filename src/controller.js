@@ -25,7 +25,7 @@ export class Controller {
     }
   }
 
-  bind(context) {
+  bind(scope) {
     let skipSelfSubscriber = this.behavior.handlesBind;
     let boundProperties = this.boundProperties;
     let i;
@@ -44,7 +44,7 @@ export class Controller {
         observer.selfSubscriber = null;
       }
 
-      x.binding.bind(context);
+      x.binding.bind(scope);
       observer.call();
 
       observer.publishing = true;
@@ -53,11 +53,11 @@ export class Controller {
 
     //TODO: should this come after the call to view.bind?
     if (skipSelfSubscriber) {
-      this.model.bind(context);
+      this.model.bind(scope.bindingContext);
     }
 
     if (this.view) {
-      this.view.bind(this.model);
+      this.view.bind(this.model, scope.overrideContext);
     }
   }
 

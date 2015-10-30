@@ -5,7 +5,7 @@ import {Container} from 'aurelia-dependency-injection';
 //NOTE: Adding to the fragment, causes the nodes to be removed from the document.
 
 interface ViewNode {
-  bind(bindingContext: Object): void;
+  bind(bindingContext: Object, overrideContext: Object): void;
   attached(): void;
   detached(): void;
   unbind(): void;
@@ -25,6 +25,8 @@ export class View {
     this.isBound = false;
     this.isAttached = false;
     this.fromCache = false;
+    this.bindingContext = null;
+    this.overrideContext = null;
   }
 
   returnToCache(): void {
@@ -41,8 +43,9 @@ export class View {
     }
   }
 
-  bind(bindingContext: Object, _systemUpdate?: boolean): void {
+  bind(bindingContext: Object, overrideContext: Object, _systemUpdate?: boolean): void {
     let context;
+    let oContext;
     let controllers;
     let bindings;
     let children;
@@ -51,8 +54,10 @@ export class View {
 
     if (_systemUpdate) {
       context = this.bindingContext || bindingContext;
+      oContext = this.overrideContext || overrideContext;
     } else {
       context = bindingContext || this.bindingContext;
+      oContext = overrideContext || this.overrideContext;
     }
 
     if (this.isBound) {
@@ -65,24 +70,25 @@ export class View {
 
     this.isBound = true;
     this.bindingContext = context;
+    this.overrideContext = oContext;
 
     if (this.owner) {
-      this.owner.bind(context);
+      this.owner.bind(this);
     }
 
     bindings = this.bindings;
     for (i = 0, ii = bindings.length; i < ii; ++i) {
-      bindings[i].bind(context);
+      bindings[i].bind(this);
     }
 
     controllers = this.controllers;
     for (i = 0, ii = controllers.length; i < ii; ++i) {
-      controllers[i].bind(context);
+      controllers[i].bind(this);
     }
 
     children = this.children;
     for (i = 0, ii = children.length; i < ii; ++i) {
-      children[i].bind(context, true);
+      children[i].bind(context, oContext, true);
     }
   }
 

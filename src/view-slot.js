@@ -55,7 +55,7 @@ export class ViewSlot {
     });
   }
 
-  bind(bindingContext: Object): void {
+  bind(bindingContext: Object, overrideContext: Object): void {
     let i;
     let ii;
     let children;
@@ -73,7 +73,7 @@ export class ViewSlot {
 
     children = this.children;
     for (i = 0, ii = children.length; i < ii; ++i) {
-      children[i].bind(bindingContext, true);
+      children[i].bind(bindingContext, overrideContext, true);
     }
   }
 
