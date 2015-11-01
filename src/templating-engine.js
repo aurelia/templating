@@ -1,3 +1,4 @@
+import {createScopeForTest} from 'aurelia-binding';
 import {Controller} from './controller';
 import {Container, inject} from 'aurelia-dependency-injection';
 import {ModuleAnalyzer} from './module-analyzer';
@@ -57,7 +58,7 @@ export class TemplatingEngine {
 
   createModelForUnitTest(modelType: Function, attributesFromHTML?: Object, bindingContext?: any): Object {
     let controller = this.createControllerForUnitTest(modelType, attributesFromHTML);
-    controller.bind(bindingContext || {});
+    controller.bind(createScopeForTest(bindingContext));
     return controller.model;
   }
 }

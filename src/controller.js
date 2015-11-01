@@ -53,7 +53,7 @@ export class Controller {
 
     //TODO: should this come after the call to view.bind?
     if (skipSelfSubscriber) {
-      this.model.bind(scope.bindingContext);
+      this.model.bind(scope.bindingContext, scope.overrideContext);
     }
 
     if (this.view) {

@@ -1,11 +1,11 @@
-import {Binding} from 'aurelia-binding';
+import {Binding, createOverrideContext} from 'aurelia-binding';
 import {Container} from 'aurelia-dependency-injection';
 
 //NOTE: Adding a fragment to the document causes the nodes to be removed from the fragment.
 //NOTE: Adding to the fragment, causes the nodes to be removed from the document.
 
 interface ViewNode {
-  bind(bindingContext: Object, overrideContext: Object): void;
+  bind(bindingContext: Object, overrideContext?: Object): void;
   attached(): void;
   detached(): void;
   unbind(): void;
@@ -43,7 +43,7 @@ export class View {
     }
   }
 
-  bind(bindingContext: Object, overrideContext: Object, _systemUpdate?: boolean): void {
+  bind(bindingContext: Object, overrideContext?: Object, _systemUpdate?: boolean): void {
     let context;
     let oContext;
     let controllers;
@@ -70,7 +70,7 @@ export class View {
 
     this.isBound = true;
     this.bindingContext = context;
-    this.overrideContext = oContext;
+    this.overrideContext = oContext || createOverrideContext(context);
 
     if (this.owner) {
       this.owner.bind(this);
