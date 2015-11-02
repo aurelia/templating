@@ -92,22 +92,6 @@ export function dynamicOptions(target) {
   return target ? deco(target) : deco;
 }
 
-export function sync(selectorOrConfig) {
-  return function(target, key, descriptor) {
-    let actualTarget = key ? target.constructor : target; //is it on a property or a class?
-    let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, actualTarget);
-
-    if (typeof selectorOrConfig === 'string') {
-      selectorOrConfig = {
-        selector: selectorOrConfig,
-        name: key
-      };
-    }
-
-    r.addChildBinding(new ChildObserver(selectorOrConfig));
-  };
-}
-
 export function useShadowDOM(target) {
   let deco = function(t) {
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);

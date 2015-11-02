@@ -33,7 +33,7 @@ gulp.task('build-index', function(){
     'behavior-property-observer.js',
     'bindable-property.js',
     'html-behavior.js',
-    'children.js',
+    'child-observation.js',
     'composition-engine.js',
     'element-config.js',
     'decorators.js',
