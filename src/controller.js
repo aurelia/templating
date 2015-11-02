@@ -1,3 +1,5 @@
+import {createOverrideContext} from 'aurelia-binding';
+
 export class Controller {
   constructor(behavior, model, instruction) {
     this.behavior = behavior;
@@ -57,7 +59,7 @@ export class Controller {
     }
 
     if (this.view) {
-      this.view.bind(this.model, scope.overrideContext);
+      this.view.bind(this.model, createOverrideContext(this.model, scope.overrideContext));
     }
   }
 
