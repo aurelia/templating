@@ -1,7 +1,6 @@
 import 'core-js';
 import {metadata} from 'aurelia-metadata';
 import {BindableProperty} from './bindable-property';
-import {ChildObserver} from './children';
 import {ElementConfigResource} from './element-config';
 import {ViewStrategy, UseViewStrategy, NoViewStrategy, InlineViewStrategy} from './view-strategy';
 import {HtmlBehaviorResource} from './html-behavior';

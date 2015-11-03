@@ -112,11 +112,11 @@ class ChildObserverBinder {
     let viewModel = this.viewModel;
     let selector = this.selector;
     let current = target.firstElementChild;
-    let observer;
+    let observer = target.__childObserver__;
 
-    if(!target.__childObserver__) {
+    if (!observer) {
       observer = target.__childObserver__ = DOM.createMutationObserver(onChildChange);
-      observer.observe(target, {childList: true})
+      observer.observe(target, {childList: true});
       observer.binders = [];
     }
 
