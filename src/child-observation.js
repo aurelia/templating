@@ -4,7 +4,7 @@ import {HtmlBehaviorResource} from './html-behavior';
 
 function createChildObserverDecorator(selectorOrConfig, all) {
   return function(target, key, descriptor) {
-    let actualTarget = key ? target.constructor : target; //is it on a property or a class?
+    let actualTarget = descriptor ? target.constructor : target; //is it on a property or a class?
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, actualTarget);
 
     if (typeof selectorOrConfig === 'string') {
@@ -12,6 +12,10 @@ function createChildObserverDecorator(selectorOrConfig, all) {
         selector: selectorOrConfig,
         name: key
       };
+    }
+
+    if (descriptor) {
+      descriptor.writable = true;
     }
 
     selectorOrConfig.all = all;
@@ -144,7 +148,8 @@ class ChildObserverBinder {
     } else {
       while (current) {
         if (current.matches(selector)) {
-          this.viewModel[this.property] = current.au && current.au.controller ? current.au.controller.model : current;
+          let value = current.au && current.au.controller ? current.au.controller.model : current;
+          this.viewModel[this.property] = value;
 
           if (this.changeHandler !== null) {
             this.viewModel[this.changeHandler](value);
