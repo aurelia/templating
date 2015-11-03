@@ -311,7 +311,7 @@ export class HtmlBehaviorResource {
         }
       } else if (controller.view) {
         //dynamic element with view
-        controller.view.owner = controller;
+        controller.view.controller = controller;
 
         if (childBindings !== null) {
           for (let i = 0, ii = childBindings.length; i < ii; ++i) {

@@ -27,6 +27,7 @@ export class View {
     this.fromCache = false;
     this.bindingContext = null;
     this.overrideContext = null;
+    this.controller = null;
   }
 
   returnToCache(): void {
@@ -72,10 +73,6 @@ export class View {
     this.bindingContext = context;
     this.overrideContext = oContext || createOverrideContext(context);
 
-    if (this.owner) {
-      this.owner.bind(this);
-    }
-
     bindings = this.bindings;
     for (i = 0, ii = bindings.length; i < ii; ++i) {
       bindings[i].bind(this);
@@ -110,10 +107,6 @@ export class View {
     if (this.isBound) {
       this.isBound = false;
       this.bindingContext = null;
-
-      if (this.owner) {
-        this.owner.unbind();
-      }
 
       bindings = this.bindings;
       for (i = 0, ii = bindings.length; i < ii; ++i) {
@@ -172,8 +165,8 @@ export class View {
 
     this.isAttached = true;
 
-    if (this.owner) {
-      this.owner.attached();
+    if(this.controller !== null) {
+      this.controller.attached();
     }
 
     controllers = this.controllers;
@@ -196,8 +189,8 @@ export class View {
     if (this.isAttached) {
       this.isAttached = false;
 
-      if (this.owner) {
-        this.owner.detached();
+      if(this.controller !== null) {
+        this.controller.detached();
       }
 
       controllers = this.controllers;

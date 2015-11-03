@@ -5,6 +5,7 @@ export class Controller {
     this.behavior = behavior;
     this.model = model;
     this.isAttached = false;
+    this.view = null;
 
     let observerLookup = behavior.observerLocator.getOrCreateObserversLookup(model);
     let handlesBind = behavior.handlesBind;
@@ -58,7 +59,7 @@ export class Controller {
       this.model.bind(scope.bindingContext, scope.overrideContext);
     }
 
-    if (this.view) {
+    if (this.view !== null) {
       this.view.bind(this.model, createOverrideContext(this.model, scope.overrideContext));
     }
   }
@@ -68,7 +69,7 @@ export class Controller {
     let i;
     let ii;
 
-    if (this.view) {
+    if (this.view !== null) {
       this.view.unbind();
     }
 
@@ -92,7 +93,7 @@ export class Controller {
       this.model.attached();
     }
 
-    if (this.view) {
+    if (this.view !== null) {
       this.view.attached();
     }
   }
@@ -101,7 +102,7 @@ export class Controller {
     if (this.isAttached) {
       this.isAttached = false;
 
-      if (this.view) {
+      if (this.view !== null) {
         this.view.detached();
       }
 

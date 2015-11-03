@@ -41,7 +41,7 @@ export class CompositionEngine {
             instruction.currentBehavior.unbind();
           }
 
-          controller.view.bind(controller.model);
+          controller.bind(controller.view);
           instruction.viewSlot.add(controller.view);
 
           return controller;
@@ -54,7 +54,7 @@ export class CompositionEngine {
         instruction.currentBehavior.unbind();
       }
 
-      controller.view.bind(controller.model);
+      controller.bind(controller.view);
       instruction.viewSlot.add(controller.view);
 
       return controller;
@@ -148,13 +148,15 @@ export class CompositionEngine {
 
         if (removeResponse instanceof Promise) {
           return removeResponse.then(() => {
-            let result = viewFactory.create(instruction.childContainer, instruction.bindingContext);
+            let result = viewFactory.create(instruction.childContainer);
+            result.bind(instruction.bindingContext);
             instruction.viewSlot.add(result);
             return result;
           });
         }
 
-        let result = viewFactory.create(instruction.childContainer, instruction.bindingContext);
+        let result = viewFactory.create(instruction.childContainer);
+        result.bind(instruction.bindingContext);
         instruction.viewSlot.add(result);
         return result;
       });
