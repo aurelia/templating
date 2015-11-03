@@ -1,15 +1,15 @@
 import {createOverrideContext} from 'aurelia-binding';
 
 export class Controller {
-  constructor(behavior, model, instruction) {
+  constructor(behavior, viewModel, instruction) {
     this.behavior = behavior;
-    this.model = model;
+    this.viewModel = viewModel;
     this.isAttached = false;
     this.view = null;
     this.isBound = false;
     this.bindingContext = null;
 
-    let observerLookup = behavior.observerLocator.getOrCreateObserversLookup(model);
+    let observerLookup = behavior.observerLocator.getOrCreateObserversLookup(viewModel);
     let handlesBind = behavior.handlesBind;
     let attributes = instruction.attributes;
     let boundProperties = this.boundProperties = [];
@@ -17,22 +17,23 @@ export class Controller {
     let i;
     let ii;
 
-    behavior.ensurePropertiesDefined(model, observerLookup);
+    behavior.ensurePropertiesDefined(viewModel, observerLookup);
 
     for (i = 0, ii = properties.length; i < ii; ++i) {
-      properties[i].initialize(model, observerLookup, attributes, handlesBind, boundProperties);
+      properties[i].initialize(viewModel, observerLookup, attributes, handlesBind, boundProperties);
     }
   }
 
   created(view) {
     if (this.behavior.handlesCreated) {
-      this.model.created(view);
+      this.viewModel.created(view);
     }
   }
 
   automate(overrideContext?: Object) {
-    this.view.bindingContext = this.model;
-    this.view.overrideContext = overrideContext || createOverrideContext(this.model);
+    this.view.bindingContext = this.viewModel;
+    this.view.overrideContext = overrideContext || createOverrideContext(this.viewModel);
+    this.view._isUserControlled = true;
     this.bind(this.view);
   }
 
@@ -76,12 +77,12 @@ export class Controller {
 
     if (this.view !== null) {
       if(skipSelfSubscriber) {
-        this.view.modelScope = scope;
+        this.view.viewModelScope = scope;
       }
 
-      this.view.bind(this.model, createOverrideContext(this.model, scope.overrideContext));
+      this.view.bind(this.viewModel, createOverrideContext(this.viewModel, scope.overrideContext));
     } else if (skipSelfSubscriber) {
-      this.model.bind(context, scope.overrideContext);
+      this.viewModel.bind(context, scope.overrideContext);
     }
   }
 
@@ -99,7 +100,7 @@ export class Controller {
       }
 
       if (this.behavior.handlesUnbind) {
-        this.model.unbind();
+        this.viewModel.unbind();
       }
 
       for (i = 0, ii = boundProperties.length; i < ii; ++i) {
@@ -116,7 +117,7 @@ export class Controller {
     this.isAttached = true;
 
     if (this.behavior.handlesAttached) {
-      this.model.attached();
+      this.viewModel.attached();
     }
 
     if (this.view !== null) {
@@ -133,7 +134,7 @@ export class Controller {
       }
 
       if (this.behavior.handlesDetached) {
-        this.model.detached();
+        this.viewModel.detached();
       }
     }
   }

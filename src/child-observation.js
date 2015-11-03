@@ -136,7 +136,7 @@ class ChildObserverBinder {
 
       while (current) {
         if (current.matches(selector)) {
-          items.push(current.au && current.au.controller ? current.au.controller.model : current);
+          items.push(current.au && current.au.controller ? current.au.controller.viewModel : current);
         }
 
         current = current.nextElementSibling;
@@ -148,7 +148,7 @@ class ChildObserverBinder {
     } else {
       while (current) {
         if (current.matches(selector)) {
-          let value = current.au && current.au.controller ? current.au.controller.model : current;
+          let value = current.au && current.au.controller ? current.au.controller.viewModel : current;
           this.viewModel[this.property] = value;
 
           if (this.changeHandler !== null) {
@@ -165,7 +165,7 @@ class ChildObserverBinder {
 
   onRemove(element) {
     if (element.matches(this.selector)) {
-      let value = element.au && element.au.controller ? element.au.controller.model : element;
+      let value = element.au && element.au.controller ? element.au.controller.viewModel : element;
 
       if (this.all) {
         let items = this.viewModel[this.property];
@@ -186,7 +186,7 @@ class ChildObserverBinder {
 
   onAdd(element) {
     if (element.matches(this.selector)) {
-      let value = element.au && element.au.controller ? element.au.controller.model : element;
+      let value = element.au && element.au.controller ? element.au.controller.viewModel : element;
 
       if (this.all) {
         let items = this.viewModel[this.property];

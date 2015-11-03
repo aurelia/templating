@@ -258,8 +258,8 @@ export class HtmlBehaviorResource {
       element.au = au = element.au || {};
     }
 
-    let model = instruction.bindingContext || container.get(this.target);
-    let controller = new Controller(this, model, instruction);
+    let viewModel = instruction.bindingContext || container.get(this.target);
+    let controller = new Controller(this, viewModel, instruction);
     let childBindings = this.childBindings;
     let viewFactory;
 
@@ -269,7 +269,7 @@ export class HtmlBehaviorResource {
     } else if (this.elementName !== null) {
       //custom element
       viewFactory = instruction.viewFactory || this.viewFactory;
-      container.viewModel = model;
+      container.viewModel = viewModel;
 
       if (viewFactory) {
         controller.view = viewFactory.create(container, instruction, element);
@@ -296,7 +296,7 @@ export class HtmlBehaviorResource {
           if (instruction.anchorIsContainer) {
             if (childBindings !== null) {
               for (let i = 0, ii = childBindings.length; i < ii; ++i) {
-                controller.view.addBinding(childBindings[i].create(element, model));
+                controller.view.addBinding(childBindings[i].create(element, viewModel));
               }
             }
 
@@ -306,7 +306,7 @@ export class HtmlBehaviorResource {
           }
         } else if (childBindings !== null) {
           for (let i = 0, ii = childBindings.length; i < ii; ++i) {
-            bindings.push(childBindings[i].create(element, model));
+            bindings.push(childBindings[i].create(element, viewModel));
           }
         }
       } else if (controller.view) {
@@ -315,19 +315,19 @@ export class HtmlBehaviorResource {
 
         if (childBindings !== null) {
           for (let i = 0, ii = childBindings.length; i < ii; ++i) {
-            controller.view.addBinding(childBindings[i].create(instruction.host, model));
+            controller.view.addBinding(childBindings[i].create(instruction.host, viewModel));
           }
         }
       } else if (childBindings !== null) {
         //dynamic element without view
         for (let i = 0, ii = childBindings.length; i < ii; ++i) {
-          bindings.push(childBindings[i].create(instruction.host, model));
+          bindings.push(childBindings[i].create(instruction.host, viewModel));
         }
       }
     } else if (childBindings !== null) {
       //custom attribute
       for (let i = 0, ii = childBindings.length; i < ii; ++i) {
-        bindings.push(childBindings[i].create(element, model));
+        bindings.push(childBindings[i].create(element, viewModel));
       }
     }
 

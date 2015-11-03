@@ -45,20 +45,20 @@ export class TemplatingEngine {
     return factory.create(instruction.container, instruction.bindingContext, { enhance: true });
   }
 
-  createControllerForUnitTest(modelType: Function, attributesFromHTML?: Object): Controller {
-    let exportName = modelType.name;
-    let resourceModule = this._moduleAnalyzer.analyze('test-module', { [exportName]: modelType }, exportName);
+  createControllerForUnitTest(viewModelType: Function, attributesFromHTML?: Object): Controller {
+    let exportName = viewModelType.name;
+    let resourceModule = this._moduleAnalyzer.analyze('test-module', { [exportName]: viewModelType }, exportName);
     let description = resourceModule.mainResource;
 
     description.initialize(this._container);
 
-    let model = this._container.get(modelType);
-    return new Controller(description.metadata, model, {attributes: attributesFromHTML || {}});
+    let viewModel = this._container.get(viewModelType);
+    return new Controller(description.metadata, viewModel, {attributes: attributesFromHTML || {}});
   }
 
-  createModelForUnitTest(modelType: Function, attributesFromHTML?: Object, bindingContext?: any): Object {
-    let controller = this.createControllerForUnitTest(modelType, attributesFromHTML);
+  createModelForUnitTest(viewModelType: Function, attributesFromHTML?: Object, bindingContext?: any): Object {
+    let controller = this.createControllerForUnitTest(viewModelType, attributesFromHTML);
     controller.bind(createScopeForTest(bindingContext));
-    return controller.model;
+    return controller.viewModel;
   }
 }

@@ -28,7 +28,7 @@ export class View {
     this.bindingContext = null;
     this.overrideContext = null;
     this.controller = null;
-    this.modelScope = null;
+    this.viewModelScope = null;
     this._isUserControlled = false;
   }
 
@@ -74,9 +74,9 @@ export class View {
       bindings[i].bind(this);
     }
 
-    if(this.modelScope !== null) {
-      bindingContext.bind(this.modelScope.bindingContext, this.modelScope.overrideContext);
-      this.modelScope = null;
+    if(this.viewModelScope !== null) {
+      bindingContext.bind(this.viewModelScope.bindingContext, this.viewModelScope.overrideContext);
+      this.viewModelScope = null;
     }
 
     controllers = this.controllers;
