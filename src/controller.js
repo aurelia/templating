@@ -6,6 +6,8 @@ export class Controller {
     this.model = model;
     this.isAttached = false;
     this.view = null;
+    this.isBound = false;
+    this.scope = null;
 
     let observerLookup = behavior.observerLocator.getOrCreateObserversLookup(model);
     let handlesBind = behavior.handlesBind;
@@ -37,6 +39,17 @@ export class Controller {
     let observer;
     let selfSubscriber;
 
+    if (this.isBound) {
+      if (this.scope === scope) {
+        return;
+      }
+
+      this.unbind();
+    }
+
+    this.isBound = true;
+    this.scope = scope;
+
     for (i = 0, ii = boundProperties.length; i < ii; ++i) {
       x = boundProperties[i];
       observer = x.observer;
@@ -65,20 +78,25 @@ export class Controller {
   }
 
   unbind() {
-    let boundProperties = this.boundProperties;
-    let i;
-    let ii;
+    if(this.isBound) {
+      let boundProperties = this.boundProperties;
+      let i;
+      let ii;
 
-    if (this.view !== null) {
-      this.view.unbind();
-    }
+      this.isBound = false;
+      this.scope = null;
 
-    if (this.behavior.handlesUnbind) {
-      this.model.unbind();
-    }
+      if (this.view !== null) {
+        this.view.unbind();
+      }
 
-    for (i = 0, ii = boundProperties.length; i < ii; ++i) {
-      boundProperties[i].binding.unbind();
+      if (this.behavior.handlesUnbind) {
+        this.model.unbind();
+      }
+
+      for (i = 0, ii = boundProperties.length; i < ii; ++i) {
+        boundProperties[i].binding.unbind();
+      }
     }
   }
 

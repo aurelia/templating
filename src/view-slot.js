@@ -78,14 +78,17 @@ export class ViewSlot {
   }
 
   unbind(): void {
-    let i;
-    let ii;
-    let children = this.children;
+    if (this.isBound) {
+      let i;
+      let ii;
+      let children = this.children;
 
-    this.isBound = false;
+      this.isBound = false;
+      this.bindingContext = null;
 
-    for (i = 0, ii = children.length; i < ii; ++i) {
-      children[i].unbind();
+      for (i = 0, ii = children.length; i < ii; ++i) {
+        children[i].unbind();
+      }
     }
   }
 

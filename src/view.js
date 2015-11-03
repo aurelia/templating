@@ -107,6 +107,11 @@ export class View {
     if (this.isBound) {
       this.isBound = false;
       this.bindingContext = null;
+      this.overrideContext = null;
+
+      if(this.controller !== null) {
+        this.controller.unbind();
+      }
 
       bindings = this.bindings;
       for (i = 0, ii = bindings.length; i < ii; ++i) {
