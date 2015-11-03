@@ -246,7 +246,9 @@ export class BoundViewFactory {
   }
 
   create(): View {
-    return this.viewFactory.create(this.parentContainer.createChild(), this.factoryCreateInstruction);
+    let view = this.viewFactory.create(this.parentContainer.createChild(), this.factoryCreateInstruction);
+    view._isUserControlled = true;
+    return view;
   }
 
   get isCaching() {

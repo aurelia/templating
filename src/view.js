@@ -29,6 +29,7 @@ export class View {
     this.overrideContext = null;
     this.controller = null;
     this.modelScope = null;
+    this._isUserControlled = false;
   }
 
   returnToCache(): void {
@@ -46,24 +47,18 @@ export class View {
   }
 
   bind(bindingContext: Object, overrideContext?: Object, _systemUpdate?: boolean): void {
-    let context;
-    let oContext;
     let controllers;
     let bindings;
     let children;
     let i;
     let ii;
 
-    if (_systemUpdate) {
-      context = this.bindingContext || bindingContext;
-      oContext = this.overrideContext || overrideContext;
-    } else {
-      context = bindingContext || this.bindingContext;
-      oContext = overrideContext || this.overrideContext;
+    if (_systemUpdate && this._isUserControlled) {
+      return;
     }
 
     if (this.isBound) {
-      if (this.bindingContext === context) {
+      if (this.bindingContext === bindingContext) {
         return;
       }
 
@@ -71,8 +66,8 @@ export class View {
     }
 
     this.isBound = true;
-    this.bindingContext = context;
-    this.overrideContext = oContext || createOverrideContext(context);
+    this.bindingContext = bindingContext;
+    this.overrideContext = overrideContext || createOverrideContext(bindingContext);
 
     bindings = this.bindings;
     for (i = 0, ii = bindings.length; i < ii; ++i) {
@@ -91,7 +86,7 @@ export class View {
 
     children = this.children;
     for (i = 0, ii = children.length; i < ii; ++i) {
-      children[i].bind(context, oContext, true);
+      children[i].bind(bindingContext, overrideContext, true);
     }
   }
 

@@ -41,7 +41,7 @@ export class CompositionEngine {
             instruction.currentBehavior.unbind();
           }
 
-          controller.bind(controller.view);
+          controller.automate();
           instruction.viewSlot.add(controller.view);
 
           return controller;
@@ -54,7 +54,7 @@ export class CompositionEngine {
         instruction.currentBehavior.unbind();
       }
 
-      controller.bind(controller.view);
+      controller.automate();
       instruction.viewSlot.add(controller.view);
 
       return controller;

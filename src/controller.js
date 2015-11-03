@@ -7,7 +7,7 @@ export class Controller {
     this.isAttached = false;
     this.view = null;
     this.isBound = false;
-    this.scope = null;
+    this.bindingContext = null;
 
     let observerLookup = behavior.observerLocator.getOrCreateObserversLookup(model);
     let handlesBind = behavior.handlesBind;
@@ -30,6 +30,12 @@ export class Controller {
     }
   }
 
+  automate(overrideContext?: Object) {
+    this.view.bindingContext = this.model;
+    this.view.overrideContext = overrideContext || createOverrideContext(this.model);
+    this.bind(this.view);
+  }
+
   bind(scope) {
     let skipSelfSubscriber = this.behavior.handlesBind;
     let boundProperties = this.boundProperties;
@@ -38,9 +44,10 @@ export class Controller {
     let x;
     let observer;
     let selfSubscriber;
+    let context = scope.bindingContext;
 
     if (this.isBound) {
-      if (this.scope === scope) {
+      if (this.bindingContext === context) {
         return;
       }
 
@@ -48,7 +55,7 @@ export class Controller {
     }
 
     this.isBound = true;
-    this.scope = scope;
+    this.bindingContext = context;
 
     for (i = 0, ii = boundProperties.length; i < ii; ++i) {
       x = boundProperties[i];
@@ -74,7 +81,7 @@ export class Controller {
 
       this.view.bind(this.model, createOverrideContext(this.model, scope.overrideContext));
     } else if (skipSelfSubscriber) {
-      this.model.bind(scope.bindingContext, scope.overrideContext);
+      this.model.bind(context, scope.overrideContext);
     }
   }
 
