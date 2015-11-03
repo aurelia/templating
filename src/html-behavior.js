@@ -296,7 +296,7 @@ export class HtmlBehaviorResource {
           if (instruction.anchorIsContainer) {
             if (childBindings !== null) {
               for (let i = 0, ii = childBindings.length; i < ii; ++i) {
-                controller.view.addBinding(childBindings[i].create(host, model));
+                controller.view.addBinding(childBindings[i].create(element, model));
               }
             }
 
