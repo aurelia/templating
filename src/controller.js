@@ -67,13 +67,14 @@ export class Controller {
       observer.selfSubscriber = selfSubscriber;
     }
 
-    //TODO: should this come after the call to view.bind?
-    if (skipSelfSubscriber) {
-      this.model.bind(scope.bindingContext, scope.overrideContext);
-    }
-
     if (this.view !== null) {
+      if(skipSelfSubscriber) {
+        this.view.modelScope = scope;
+      }
+
       this.view.bind(this.model, createOverrideContext(this.model, scope.overrideContext));
+    } else if (skipSelfSubscriber) {
+      this.model.bind(scope.bindingContext, scope.overrideContext);
     }
   }
 

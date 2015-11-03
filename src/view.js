@@ -28,6 +28,7 @@ export class View {
     this.bindingContext = null;
     this.overrideContext = null;
     this.controller = null;
+    this.modelScope = null;
   }
 
   returnToCache(): void {
@@ -76,6 +77,11 @@ export class View {
     bindings = this.bindings;
     for (i = 0, ii = bindings.length; i < ii; ++i) {
       bindings[i].bind(this);
+    }
+
+    if(this.modelScope !== null) {
+      bindingContext.bind(this.modelScope.bindingContext, this.modelScope.overrideContext);
+      this.modelScope = null;
     }
 
     controllers = this.controllers;
