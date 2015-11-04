@@ -1,7 +1,7 @@
 import {Container, resolver} from 'aurelia-dependency-injection';
 import {View} from './view';
 import {ViewSlot} from './view-slot';
-import {ContentSelector} from './content-selector';
+import {_ContentSelector} from './content-selector';
 import {ViewResources} from './view-resources';
 import {BehaviorInstruction, TargetInstruction} from './instructions';
 import {DOM} from 'aurelia-pal';
@@ -113,7 +113,7 @@ function applyInstructions(containers, element, instruction, controllers, bindin
   if (instruction.contentSelector) {
     let commentAnchor = DOM.createComment('anchor');
     DOM.replaceNode(commentAnchor, element);
-    contentSelectors.push(new ContentSelector(commentAnchor, instruction.selector));
+    contentSelectors.push(new _ContentSelector(commentAnchor, instruction.selector));
     return;
   }
 

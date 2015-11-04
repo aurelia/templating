@@ -13,7 +13,7 @@ function findInsertionPoint(groups, index) {
   return insertionPoint;
 }
 
-export class ContentSelector {
+export class _ContentSelector {
   static applySelectors(view, contentSelectors, callback) {
     let currentChild = view.fragment.firstChild;
     let contentMap = new Map();
@@ -61,7 +61,7 @@ export class ContentSelector {
   }
 
   copyForViewSlot() {
-    return new ContentSelector(this.anchor, this.selector);
+    return new _ContentSelector(this.anchor, this.selector);
   }
 
   matches(node) {

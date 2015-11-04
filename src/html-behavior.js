@@ -5,7 +5,7 @@ import {Container} from 'aurelia-dependency-injection';
 import {ViewStrategy} from './view-strategy';
 import {ViewEngine} from './view-engine';
 import {ViewCompiler} from './view-compiler';
-import {ContentSelector} from './content-selector';
+import {_ContentSelector} from './content-selector';
 import {hyphenate} from './util';
 import {BindableProperty} from './bindable-property';
 import {Controller} from './controller';
@@ -283,7 +283,7 @@ export class HtmlBehaviorResource {
             if (instruction.contentFactory) {
               let contentView = instruction.contentFactory.create(container, contentSelectorViewCreateInstruction);
 
-              ContentSelector.applySelectors(
+              _ContentSelector.applySelectors(
                 contentView,
                 controller.view.contentSelectors,
                 (contentSelector, group) => contentSelector.add(group)

@@ -1,4 +1,4 @@
-import {ContentSelector} from './content-selector';
+import {_ContentSelector} from './content-selector';
 import {Animator} from './animator';
 import {View} from './view';
 import {DOM} from 'aurelia-pal';
@@ -245,7 +245,7 @@ export class ViewSlot {
     }
   }
 
-  installContentSelectors(contentSelectors: ContentSelector[]): void {
+  installContentSelectors(contentSelectors: _ContentSelector[]): void {
     this.contentSelectors = contentSelectors;
     this.add = this._contentSelectorAdd;
     this.insert = this._contentSelectorInsert;
@@ -255,7 +255,7 @@ export class ViewSlot {
   }
 
   _contentSelectorAdd(view) {
-    ContentSelector.applySelectors(
+    _ContentSelector.applySelectors(
       view,
       this.contentSelectors,
       (contentSelector, group) => contentSelector.add(group)
@@ -272,7 +272,7 @@ export class ViewSlot {
     if ((index === 0 && !this.children.length) || index >= this.children.length) {
       this.add(view);
     } else {
-      ContentSelector.applySelectors(
+      _ContentSelector.applySelectors(
         view,
         this.contentSelectors,
         (contentSelector, group) => contentSelector.insert(index, group)

@@ -14,8 +14,15 @@ function getObserver(behavior, instance, name) {
   return lookup[name];
 }
 
+/**
+* Represents a bindable property on a behavior.
+*/
 export class BindableProperty {
-  constructor(nameOrConfig) {
+  /**
+  * Creates an instance of BindableProperty.
+  * @param nameOrConfig The name of the property or a cofiguration object.
+  */
+  constructor(nameOrConfig: string | Object) {
     if (typeof nameOrConfig === 'string') {
       this.name = nameOrConfig;
     } else {
@@ -26,20 +33,27 @@ export class BindableProperty {
     this.defaultBindingMode = this.defaultBindingMode || bindingMode.oneWay;
     this.changeHandler = this.changeHandler || null;
     this.owner = null;
+    this.descriptor = null;
   }
 
-  registerWith(target, behavior, descriptor) {
+  /**
+  * Registers this bindable property with particular Class and Behavior instance.
+  * @param target The class to register this behavior with.
+  * @param behavior The behavior instance to register this property with.
+  * @param descriptor The property descriptor for this property.
+  */
+  registerWith(target: Function, behavior: HtmlBehaviorResource, descriptor?: Object): void {
     behavior.properties.push(this);
     behavior.attributes[this.attribute] = this;
     this.owner = behavior;
 
     if (descriptor) {
       this.descriptor = descriptor;
-      return this.configureDescriptor(behavior, descriptor);
+      return this._configureDescriptor(behavior, descriptor);
     }
   }
 
-  configureDescriptor(behavior, descriptor) {
+  _configureDescriptor(behavior: HtmlBehaviorResource, descriptor: Object): Object {
     let name = this.name;
 
     descriptor.configurable = true;
@@ -72,7 +86,12 @@ export class BindableProperty {
     return descriptor;
   }
 
-  defineOn(target, behavior) {
+  /**
+  * Defines this property on the specified class and behavior.
+  * @param target The class to define the property on.
+  * @param behavior The behavior to define the property on.
+  */
+  defineOn(target: Function, behavior: HtmlBehaviorResource): void {
     let name = this.name;
     let handlerName;
 
@@ -83,12 +102,17 @@ export class BindableProperty {
       }
     }
 
-    if (!this.descriptor) {
-      Object.defineProperty(target.prototype, name, this.configureDescriptor(behavior, {}));
+    if (this.descriptor === null) {
+      Object.defineProperty(target.prototype, name, this._configureDescriptor(behavior, {}));
     }
   }
 
-  createObserver(bindingContext) {
+  /**
+  * Creates an observer for this property.
+  * @param viewModel The view model instance on which to create the observer.
+  * @return The property observer.
+  */
+  createObserver(viewModel: Object): BehaviorPropertyObserver {
     let selfSubscriber = null;
     let defaultValue = this.defaultValue;
     let changeHandlerName = this.changeHandler;
@@ -99,29 +123,29 @@ export class BindableProperty {
       return undefined;
     }
 
-    if (changeHandlerName in bindingContext) {
-      if ('propertyChanged' in bindingContext) {
+    if (changeHandlerName in viewModel) {
+      if ('propertyChanged' in viewModel) {
         selfSubscriber = (newValue, oldValue) => {
-          bindingContext[changeHandlerName](newValue, oldValue);
-          bindingContext.propertyChanged(name, newValue, oldValue);
+          viewModel[changeHandlerName](newValue, oldValue);
+          viewModel.propertyChanged(name, newValue, oldValue);
         };
       } else {
-        selfSubscriber = (newValue, oldValue) => bindingContext[changeHandlerName](newValue, oldValue);
+        selfSubscriber = (newValue, oldValue) => viewModel[changeHandlerName](newValue, oldValue);
       }
-    } else if ('propertyChanged' in bindingContext) {
-      selfSubscriber = (newValue, oldValue) => bindingContext.propertyChanged(name, newValue, oldValue);
+    } else if ('propertyChanged' in viewModel) {
+      selfSubscriber = (newValue, oldValue) => viewModel.propertyChanged(name, newValue, oldValue);
     } else if (changeHandlerName !== null) {
       throw new Error(`Change handler ${changeHandlerName} was specified but not delcared on the class.`);
     }
 
     if (defaultValue !== undefined) {
-      initialValue = typeof defaultValue === 'function' ? defaultValue.call(bindingContext) : defaultValue;
+      initialValue = typeof defaultValue === 'function' ? defaultValue.call(viewModel) : defaultValue;
     }
 
-    return new BehaviorPropertyObserver(this.owner.taskQueue, bindingContext, this.name, selfSubscriber, initialValue);
+    return new BehaviorPropertyObserver(this.owner.taskQueue, viewModel, this.name, selfSubscriber, initialValue);
   }
 
-  initialize(bindingContext, observerLookup, attributes, behaviorHandlesBind, boundProperties) {
+  _initialize(viewModel, observerLookup, attributes, behaviorHandlesBind, boundProperties): void {
     let selfSubscriber;
     let observer;
     let attribute;
@@ -129,7 +153,7 @@ export class BindableProperty {
 
     if (this.isDynamic) {
       for (let key in attributes) {
-        this.createDynamicProperty(bindingContext, observerLookup, behaviorHandlesBind, key, attributes[key], boundProperties);
+        this._createDynamicProperty(viewModel, observerLookup, behaviorHandlesBind, key, attributes[key], boundProperties);
       }
     } else if (!this.hasOptions) {
       observer = observerLookup[this.name];
@@ -143,10 +167,10 @@ export class BindableProperty {
         }
 
         if (typeof attribute === 'string') {
-          bindingContext[this.name] = attribute;
+          viewModel[this.name] = attribute;
           observer.call();
         } else if (attribute) {
-          boundProperties.push({observer: observer, binding: attribute.createBinding(bindingContext)});
+          boundProperties.push({observer: observer, binding: attribute.createBinding(viewModel)});
         } else if (defaultValue !== undefined) {
           observer.call();
         }
@@ -158,33 +182,33 @@ export class BindableProperty {
     }
   }
 
-  createDynamicProperty(bindingContext, observerLookup, behaviorHandlesBind, name, attribute, boundProperties) {
+  _createDynamicProperty(viewModel, observerLookup, behaviorHandlesBind, name, attribute, boundProperties) {
     let changeHandlerName = name + 'Changed';
     let selfSubscriber = null;
     let observer;
     let info;
 
-    if (changeHandlerName in bindingContext) {
-      if ('propertyChanged' in bindingContext) {
+    if (changeHandlerName in viewModel) {
+      if ('propertyChanged' in viewModel) {
         selfSubscriber = (newValue, oldValue) => {
-          bindingContext[changeHandlerName](newValue, oldValue);
-          bindingContext.propertyChanged(name, newValue, oldValue);
+          viewModel[changeHandlerName](newValue, oldValue);
+          viewModel.propertyChanged(name, newValue, oldValue);
         };
       } else {
-        selfSubscriber = (newValue, oldValue) => bindingContext[changeHandlerName](newValue, oldValue);
+        selfSubscriber = (newValue, oldValue) => viewModel[changeHandlerName](newValue, oldValue);
       }
-    } else if ('propertyChanged' in bindingContext) {
-      selfSubscriber = (newValue, oldValue) => bindingContext.propertyChanged(name, newValue, oldValue);
+    } else if ('propertyChanged' in viewModel) {
+      selfSubscriber = (newValue, oldValue) => viewModel.propertyChanged(name, newValue, oldValue);
     }
 
     observer = observerLookup[name] = new BehaviorPropertyObserver(
         this.owner.taskQueue,
-        bindingContext,
+        viewModel,
         name,
         selfSubscriber
         );
 
-    Object.defineProperty(bindingContext, name, {
+    Object.defineProperty(viewModel, name, {
       configurable: true,
       enumerable: true,
       get: observer.getValue.bind(observer),
@@ -196,10 +220,10 @@ export class BindableProperty {
     }
 
     if (typeof attribute === 'string') {
-      bindingContext[name] = attribute;
+      viewModel[name] = attribute;
       observer.call();
     } else if (attribute) {
-      info = {observer: observer, binding: attribute.createBinding(bindingContext)};
+      info = {observer: observer, binding: attribute.createBinding(viewModel)};
       boundProperties.push(info);
     }
 

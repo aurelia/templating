@@ -23,15 +23,21 @@ function createChildObserverDecorator(selectorOrConfig, all) {
   };
 }
 
-export function children(selectorOrConfig) {
+/**
+* Creates a behavior property that references an array of immediate content child elememnts that matches the provided selector.
+*/
+export function children(selectorOrConfig: string | Object): Function {
   return createChildObserverDecorator(selectorOrConfig, true);
 }
 
-export function child(selectorOrConfig) {
+/**
+* Creates a behavior property that references an immediate content child elememnt that matches the provided selector.
+*/
+export function child(selectorOrConfig: string | Object): Function {
   return createChildObserverDecorator(selectorOrConfig, false);
 }
 
-export class ChildObserver {
+class ChildObserver {
   constructor(config) {
     this.name = config.name;
     this.changeHandler = config.changeHandler || this.name + 'Changed';
@@ -61,10 +67,8 @@ function onChildChange(mutations, observer) {
   let binders = observer.binders;
   let bindersLength = binders.length;
   let groupedMutations = new Map();
-  let i;
-  let ii;
 
-  for(let i = 0, ii = mutations.length; i < ii; ++i) {
+  for (let i = 0, ii = mutations.length; i < ii; ++i) {
     let record = mutations[i];
     let added = record.addedNodes;
     let removed = record.removedNodes;
@@ -72,9 +76,9 @@ function onChildChange(mutations, observer) {
     for (let j = 0, jj = removed.length; j < jj; ++j) {
       let node = removed[j];
       if (node.nodeType === 1) {
-        for(let k = 0; k < bindersLength; ++k) {
+        for (let k = 0; k < bindersLength; ++k) {
           let binder = binders[k];
-          if(binder.onRemove(node)) {
+          if (binder.onRemove(node)) {
             trackMutation(groupedMutations, binder, record);
           }
         }
@@ -84,9 +88,9 @@ function onChildChange(mutations, observer) {
     for (let j = 0, jj = added.length; j < jj; ++j) {
       let node = added[j];
       if (node.nodeType === 1) {
-        for(let k = 0; k < bindersLength; ++k) {
+        for (let k = 0; k < bindersLength; ++k) {
           let binder = binders[k];
-          if(binder.onAdd(node)) {
+          if (binder.onAdd(node)) {
             trackMutation(groupedMutations, binder, record);
           }
         }
@@ -176,8 +180,6 @@ class ChildObserverBinder {
         }
 
         return true;
-      } else {
-        //should we do something here or not?
       }
 
       return false;
@@ -203,12 +205,12 @@ class ChildObserverBinder {
 
         items.splice(index, 0, value);
         return true;
-      } else {
-        this.viewModel[this.property] = value;
+      }
 
-        if (this.changeHandler !== null) {
-          this.viewModel[this.changeHandler](value);
-        }
+      this.viewModel[this.property] = value;
+
+      if (this.changeHandler !== null) {
+        this.viewModel[this.changeHandler](value);
       }
     }
 

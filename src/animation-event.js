@@ -1,3 +1,6 @@
+/**
+* List the events that an Animator should raise.
+*/
 export const animationEvent = {
   enterBegin: 'animation:enter:begin',
   enterActive: 'animation:enter:active',

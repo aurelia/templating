@@ -12,7 +12,7 @@ interface ViewNode {
 }
 
 export class View {
-  constructor(viewFactory: ViewFactory, container: Container, fragment: DocumentFragment, controllers: Controller[], bindings: Binding[], children: ViewNode[], contentSelectors: ContentSelector[]) {
+  constructor(viewFactory: ViewFactory, container: Container, fragment: DocumentFragment, controllers: Controller[], bindings: Binding[], children: ViewNode[], contentSelectors: _ContentSelector[]) {
     this.viewFactory = viewFactory;
     this.container = container;
     this.fragment = fragment;
@@ -74,7 +74,7 @@ export class View {
       bindings[i].bind(this);
     }
 
-    if(this.viewModelScope !== null) {
+    if (this.viewModelScope !== null) {
       bindingContext.bind(this.viewModelScope.bindingContext, this.viewModelScope.overrideContext);
       this.viewModelScope = null;
     }
@@ -110,7 +110,7 @@ export class View {
       this.bindingContext = null;
       this.overrideContext = null;
 
-      if(this.controller !== null) {
+      if (this.controller !== null) {
         this.controller.unbind();
       }
 
@@ -171,7 +171,7 @@ export class View {
 
     this.isAttached = true;
 
-    if(this.controller !== null) {
+    if (this.controller !== null) {
       this.controller.attached();
     }
 
@@ -195,7 +195,7 @@ export class View {
     if (this.isAttached) {
       this.isAttached = false;
 
-      if(this.controller !== null) {
+      if (this.controller !== null) {
         this.controller.detached();
       }
 

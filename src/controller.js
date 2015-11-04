@@ -20,7 +20,7 @@ export class Controller {
     behavior.ensurePropertiesDefined(viewModel, observerLookup);
 
     for (i = 0, ii = properties.length; i < ii; ++i) {
-      properties[i].initialize(viewModel, observerLookup, attributes, handlesBind, boundProperties);
+      properties[i]._initialize(viewModel, observerLookup, attributes, handlesBind, boundProperties);
     }
   }
 
@@ -76,7 +76,7 @@ export class Controller {
     }
 
     if (this.view !== null) {
-      if(skipSelfSubscriber) {
+      if (skipSelfSubscriber) {
         this.view.viewModelScope = scope;
       }
 
@@ -87,7 +87,7 @@ export class Controller {
   }
 
   unbind() {
-    if(this.isBound) {
+    if (this.isBound) {
       let boundProperties = this.boundProperties;
       let i;
       let ii;
