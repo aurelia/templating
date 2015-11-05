@@ -23,17 +23,29 @@ export class ViewCompileInstruction {
 }
 
 interface ViewCreateInstruction {
-  suppressBind?: boolean;
   enhance?: boolean;
   partReplacements?: Object;
 }
 
 export class BehaviorInstruction {
   static normal = new BehaviorInstruction();
-  static contentSelector = new BehaviorInstruction(true);
+  static contentSelector = new BehaviorInstruction();
+
+  static enhance() {
+    let instruction = new BehaviorInstruction();
+    instruction.enhance = true;
+    return instruction;
+  }
+
+  static unitTest(type: HtmlBehaviorResource, attributes: Object): BehaviorInstruction {
+    let instruction = new BehaviorInstruction();
+    instruction.type = type;
+    instruction.attributes = attributes || {};
+    return instruction;
+  }
 
   static element(node: Node, type: HtmlBehaviorResource): BehaviorInstruction {
-    let instruction = new BehaviorInstruction(true);
+    let instruction = new BehaviorInstruction();
     instruction.type = type;
     instruction.attributes = {};
     instruction.anchorIsContainer = !(node.hasAttribute('containerless') || type.containerless);
@@ -42,23 +54,22 @@ export class BehaviorInstruction {
   }
 
   static attribute(attrName: string, type?: HtmlBehaviorResource): BehaviorInstruction {
-    let instruction = new BehaviorInstruction(true);
+    let instruction = new BehaviorInstruction();
     instruction.attrName = attrName;
     instruction.type = type || null;
     instruction.attributes = {};
     return instruction;
   }
 
-  static dynamic(host, bindingContext, viewFactory) {
-    let instruction = new BehaviorInstruction(true);
+  static dynamic(host, viewModel, viewFactory) {
+    let instruction = new BehaviorInstruction();
     instruction.host = host;
-    instruction.bindingContext = bindingContext;
+    instruction.viewModel = viewModel;
     instruction.viewFactory = viewFactory;
     return instruction;
   }
 
-  constructor(suppressBind?: boolean = false) {
-    this.suppressBind = suppressBind;
+  constructor() {
     this.initiatedByBehavior = false;
     this.enhance = false;
     this.partReplacements = null;
@@ -66,7 +77,7 @@ export class BehaviorInstruction {
     this.originalAttrName = null;
     this.skipContentProcessing = false;
     this.contentFactory = null;
-    this.bindingContext = null;
+    this.viewModel = null;
     this.anchorIsContainer = false;
     this.host = null;
     this.attributes = null;
@@ -83,7 +94,6 @@ export class TargetInstruction {
     instruction.parentInjectorId = parentInjectorId;
     instruction.contentSelector = true;
     instruction.selector = node.getAttribute('select');
-    instruction.suppressBind = true;
     return instruction;
   }
 
@@ -130,7 +140,6 @@ export class TargetInstruction {
 
     this.contentSelector = false;
     this.selector = null;
-    this.suppressBind = false;
 
     this.contentExpression = null;
 

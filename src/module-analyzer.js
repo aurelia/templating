@@ -4,7 +4,7 @@ import {TemplateRegistryEntry} from 'aurelia-loader';
 import {ValueConverterResource} from 'aurelia-binding';
 import {BindingBehaviorResource} from 'aurelia-binding';
 import {HtmlBehaviorResource} from './html-behavior';
-import {ViewStrategy, TemplateRegistryViewStrategy} from './view-strategy';
+import {viewStrategy, TemplateRegistryViewStrategy} from './view-strategy';
 import {ViewResources} from './view-resources';
 import {ResourceLoadContext} from './instructions';
 import {hyphenate} from './util';
@@ -23,7 +23,7 @@ export class ResourceModule {
   initialize(container: Container) {
     let current = this.mainResource;
     let resources = this.resources;
-    let viewStrategy = this.viewStrategy;
+    let vs = this.viewStrategy;
 
     if (this.isInitialized) {
       return;
@@ -32,13 +32,13 @@ export class ResourceModule {
     this.isInitialized = true;
 
     if (current !== undefined) {
-      current.metadata.viewStrategy = viewStrategy;
+      current.metadata.viewStrategy = vs;
       current.initialize(container);
     }
 
     for (let i = 0, ii = resources.length; i < ii; ++i) {
       current = resources[i];
-      current.metadata.viewStrategy = viewStrategy;
+      current.metadata.viewStrategy = vs;
       current.initialize(container);
     }
   }
@@ -147,7 +147,7 @@ export class ModuleAnalyzer {
     let exportedValue;
     let resources = [];
     let conventional;
-    let viewStrategy;
+    let vs;
     let resourceModule;
 
     resourceModule = this.cache[moduleId];
@@ -191,10 +191,10 @@ export class ModuleAnalyzer {
         } else {
           resources.push(new ResourceDescription(key, exportedValue, resourceTypeMeta));
         }
-      } else if (exportedValue instanceof ViewStrategy) {
-        viewStrategy = exportedValue;
+      } else if (viewStrategy.decorates(exportedValue)) {
+        vs = exportedValue;
       } else if (exportedValue instanceof TemplateRegistryEntry) {
-        viewStrategy = new TemplateRegistryViewStrategy(moduleId, exportedValue);
+        vs = new TemplateRegistryViewStrategy(moduleId, exportedValue);
       } else {
         if (conventional = HtmlBehaviorResource.convention(key)) {
           if (conventional.elementName !== null && !mainResource) {
@@ -224,7 +224,7 @@ export class ModuleAnalyzer {
     resourceModule.moduleInstance = moduleInstance;
     resourceModule.mainResource = mainResource;
     resourceModule.resources = resources;
-    resourceModule.viewStrategy = viewStrategy;
+    resourceModule.viewStrategy = vs;
 
     return resourceModule;
   }

@@ -1,60 +1,41 @@
-import {metadata, Origin} from 'aurelia-metadata';
+import {Origin, protocol} from 'aurelia-metadata';
 import {relativeToFile} from 'aurelia-path';
 import {TemplateRegistryEntry} from 'aurelia-loader';
 import {ViewEngine} from './view-engine';
 import {ResourceLoadContext, ViewCompileInstruction} from './instructions';
-import {DOM} from 'aurelia-pal';
+import {DOM, PLATFORM} from 'aurelia-pal';
 
-export class ViewStrategy {
-  static metadataKey: string = 'aurelia:view-strategy';
-
-  makeRelativeTo(baseUrl: string): void {}
-
-  static normalize(value: string|ViewStrategy): ViewStrategy {
-    if (typeof value === 'string') {
-      value = new UseViewStrategy(value);
-    }
-
-    if (value && !(value instanceof ViewStrategy)) {
-      throw new Error('The view must be a string or an instance of ViewStrategy.');
-    }
-
-    return value;
-  }
-
-  static getDefault(target: any): ViewStrategy {
-    let strategy;
-    let annotation;
-
-    if (typeof target !== 'function') {
-      target = target.constructor;
-    }
-
-    annotation = Origin.get(target);
-    strategy = metadata.get(ViewStrategy.metadataKey, target);
-
-    if (!strategy) {
-      if (!annotation) {
-        throw new Error('Cannot determinte default view strategy for object.', target);
-      }
-
-      strategy = new ConventionalViewStrategy(annotation.moduleId);
-    } else if (annotation) {
-      strategy.moduleId = annotation.moduleId;
-    }
-
-    return strategy;
-  }
+interface ViewStrategy {
+  loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewFactory>;
 }
 
-export class UseViewStrategy extends ViewStrategy {
+/**
+* Decorator: Indicates that the decorated class/object is a view strategy.
+*/
+export const viewStrategy: Function = protocol.create('aurelia:view-strategy', {
+  validate(target) {
+    if (!(typeof target.loadViewFactory === 'function')) {
+      return 'View strategies must implement: loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewFactory>';
+    }
+
+    return true;
+  },
+  compose(target) {
+    if (!(typeof target.makeRelativeTo === 'function')) {
+      target.makeRelativeTo = PLATFORM.noop;
+    }
+  }
+});
+
+@viewStrategy()
+export class RelativeViewStrategy {
   constructor(path: string) {
-    super();
     this.path = path;
+    this.absolutePath = null;
   }
 
   loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewFactory> {
-    if (!this.absolutePath && this.moduleId) {
+    if (this.absolutePath === null && this.moduleId) {
       this.absolutePath = relativeToFile(this.path, this.moduleId);
     }
 
@@ -63,37 +44,35 @@ export class UseViewStrategy extends ViewStrategy {
   }
 
   makeRelativeTo(file: string): void {
-    this.absolutePath = relativeToFile(this.path, file);
+    if (this.absolutePath === null) {
+      this.absolutePath = relativeToFile(this.path, file);
+    }
   }
 }
 
-export class ConventionalViewStrategy extends ViewStrategy {
-  constructor(moduleId: string) {
-    super();
-    this.moduleId = moduleId;
-    this.viewUrl = ConventionalViewStrategy.convertModuleIdToViewUrl(moduleId);
+@viewStrategy()
+export class ConventionalViewStrategy {
+  constructor(viewLocator: ViewLocator, origin: Origin) {
+    this.moduleId = origin.moduleId;
+    this.viewUrl = viewLocator.convertOriginToViewUrl(origin);
   }
 
   loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewFactory> {
     compileInstruction.associatedModuleId = this.moduleId;
     return viewEngine.loadViewFactory(this.viewUrl, compileInstruction, loadContext);
   }
-
-  static convertModuleIdToViewUrl(moduleId: string): string {
-    let id = (moduleId.endsWith('.js') || moduleId.endsWith('.ts')) ? moduleId.substring(0, moduleId.length - 3) : moduleId;
-    return id + '.html';
-  }
 }
 
-export class NoViewStrategy extends ViewStrategy {
+@viewStrategy()
+export class NoViewStrategy {
   loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewFactory> {
     return Promise.resolve(null);
   }
 }
 
-export class TemplateRegistryViewStrategy extends ViewStrategy {
+@viewStrategy()
+export class TemplateRegistryViewStrategy {
   constructor(moduleId: string, entry: TemplateRegistryEntry) {
-    super();
     this.moduleId = moduleId;
     this.entry = entry;
   }
@@ -110,9 +89,9 @@ export class TemplateRegistryViewStrategy extends ViewStrategy {
   }
 }
 
-export class InlineViewStrategy extends ViewStrategy {
+@viewStrategy()
+export class InlineViewStrategy {
   constructor(markup: string, dependencies?: Array<string|Function|Object>, dependencyBaseUrl?: string) {
-    super();
     this.markup = markup;
     this.dependencies = dependencies || null;
     this.dependencyBaseUrl = dependencyBaseUrl || '';

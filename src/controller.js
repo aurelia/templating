@@ -1,8 +1,18 @@
 import {createOverrideContext} from 'aurelia-binding';
 
+/**
+* Controls a view model (and optionally its view), according to a particular behavior and by following a set of instructions.
+*/
 export class Controller {
-  constructor(behavior, viewModel, instruction) {
+  /**
+  * Creates an instance of Controller.
+  * @param behavior The HtmlBehaviorResource that provides the behavior for this controller.
+  * @param instruction The instructions pertaining to the controller's behavior.
+  * @param viewModel The user's view model instance which provides their custom behavior.
+  */
+  constructor(behavior: HtmlBehaviorResource, instruction: BehaviorInstruction, viewModel: Object) {
     this.behavior = behavior;
+    this.instruction = instruction;
     this.viewModel = viewModel;
     this.isAttached = false;
     this.view = null;
@@ -24,20 +34,33 @@ export class Controller {
     }
   }
 
-  created(view) {
+  /**
+  * Invoked when the view which contains this controller is created.
+  * @param view The view inside which this controller resides.
+  */
+  created(view): void {
     if (this.behavior.handlesCreated) {
       this.viewModel.created(view);
     }
   }
 
-  automate(overrideContext?: Object) {
+  /**
+  * Used to automate the proper binding of this controller and its view. Used by the composition engine for dynamic component creation.
+  * This should be considered a semi-private API and is subject to change without notice, even across minor or patch releases.
+  * @param overrideContext An override context for binding.
+  */
+  automate(overrideContext?: Object): void {
     this.view.bindingContext = this.viewModel;
     this.view.overrideContext = overrideContext || createOverrideContext(this.viewModel);
     this.view._isUserControlled = true;
     this.bind(this.view);
   }
 
-  bind(scope) {
+  /**
+  * Binds the controller to the scope.
+  * @param scope The binding scope.
+  */
+  bind(scope: Object): void {
     let skipSelfSubscriber = this.behavior.handlesBind;
     let boundProperties = this.boundProperties;
     let i;
@@ -86,7 +109,10 @@ export class Controller {
     }
   }
 
-  unbind() {
+  /**
+  * Unbinds the controller.
+  */
+  unbind(): void {
     if (this.isBound) {
       let boundProperties = this.boundProperties;
       let i;
@@ -109,7 +135,10 @@ export class Controller {
     }
   }
 
-  attached() {
+  /**
+  * Attaches the controller.
+  */
+  attached(): void {
     if (this.isAttached) {
       return;
     }
@@ -125,7 +154,10 @@ export class Controller {
     }
   }
 
-  detached() {
+  /**
+  * Detaches the controller.
+  */
+  detached(): void {
     if (this.isAttached) {
       this.isAttached = false;
 

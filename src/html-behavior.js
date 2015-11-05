@@ -2,7 +2,7 @@ import {Origin} from 'aurelia-metadata';
 import {ObserverLocator, BindingExpression, Binding} from 'aurelia-binding';
 import {TaskQueue} from 'aurelia-task-queue';
 import {Container} from 'aurelia-dependency-injection';
-import {ViewStrategy} from './view-strategy';
+import {ViewLocator} from './view-locator';
 import {ViewEngine} from './view-engine';
 import {ViewCompiler} from './view-compiler';
 import {_ContentSelector} from './content-selector';
@@ -13,7 +13,7 @@ import {ViewResources} from './view-resources';
 import {ResourceLoadContext, ViewCompileInstruction, BehaviorInstruction} from './instructions';
 import {FEATURE, DOM} from 'aurelia-pal';
 
-const contentSelectorViewCreateInstruction = { suppressBind: true, enhance: false };
+const contentSelectorViewCreateInstruction = { enhance: false };
 let lastProviderId = 0;
 
 function nextProviderId() {
@@ -138,7 +138,7 @@ export class HtmlBehaviorResource {
     let options;
 
     if (this.elementName !== null) {
-      viewStrategy = viewStrategy || this.viewStrategy || ViewStrategy.getDefault(target);
+      viewStrategy = container.get(ViewLocator).getViewStrategy(viewStrategy || this.viewStrategy || target);
       options = new ViewCompileInstruction(this.targetShadowDOM, true);
 
       if (!viewStrategy.moduleId) {
@@ -258,8 +258,8 @@ export class HtmlBehaviorResource {
       element.au = au = element.au || {};
     }
 
-    let viewModel = instruction.bindingContext || container.get(this.target);
-    let controller = new Controller(this, viewModel, instruction);
+    let viewModel = instruction.viewModel || container.get(this.target);
+    let controller = new Controller(this, instruction, viewModel);
     let childBindings = this.childBindings;
     let viewFactory;
 

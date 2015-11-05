@@ -1,93 +1,9 @@
-import {Origin} from 'aurelia-metadata';
-import {ViewStrategy} from './view-strategy';
+import {ViewLocator} from './view-locator';
 import {ViewEngine} from './view-engine';
 import {HtmlBehaviorResource} from './html-behavior';
 import {BehaviorInstruction, ViewCompileInstruction} from './instructions';
 import {DOM} from 'aurelia-pal';
 import {Container, inject} from 'aurelia-dependency-injection';
-
-function tryActivateViewModel(instruction) {
-  if (instruction.skipActivation || typeof instruction.viewModel.activate !== 'function') {
-    return Promise.resolve();
-  }
-
-  return instruction.viewModel.activate(instruction.model) || Promise.resolve();
-}
-
-function createCompositionControllerAndSwap(instruction) {
-  let removeResponse = instruction.viewSlot.removeAll(true);
-
-  if (removeResponse instanceof Promise) {
-    return removeResponse.then(() => {
-      return createCompositionController(instruction).then(controller => {
-        if (instruction.currentController) {
-          instruction.currentController.unbind();
-        }
-
-        controller.automate();
-        instruction.viewSlot.add(controller.view);
-
-        return controller;
-      });
-    });
-  }
-
-  return createCompositionController(instruction).then(controller => {
-    if (instruction.currentController) {
-      instruction.currentController.unbind();
-    }
-
-    controller.automate();
-    instruction.viewSlot.add(controller.view);
-
-    return controller;
-  });
-}
-
-function createCompositionController(instruction) {
-  let childContainer = instruction.childContainer;
-  let viewModelResource = instruction.viewModelResource;
-  let viewModel = instruction.viewModel;
-  let metadata;
-
-  return tryActivateViewModel(instruction).then(() => {
-    let doneLoading;
-    let viewStrategyFromViewModel;
-    let origin;
-
-    if ('getViewStrategy' in viewModel && !instruction.view) {
-      viewStrategyFromViewModel = true;
-      instruction.view = ViewStrategy.normalize(viewModel.getViewStrategy());
-    }
-
-    if (instruction.view) {
-      if (viewStrategyFromViewModel) {
-        origin = Origin.get(viewModel.constructor);
-        if (origin) {
-          instruction.view.makeRelativeTo(origin.moduleId);
-        }
-      } else if (instruction.viewResources) {
-        instruction.view.makeRelativeTo(instruction.viewResources.viewUrl);
-      }
-    }
-
-    if (viewModelResource) {
-      metadata = viewModelResource.metadata;
-      doneLoading = metadata.load(childContainer, viewModelResource.value, instruction.view, true);
-    } else {
-      metadata = new HtmlBehaviorResource();
-      metadata.elementName = 'dynamic-element';
-      metadata.initialize(instruction.container || childContainer, viewModel.constructor);
-      doneLoading = metadata.load(childContainer, viewModel.constructor, instruction.view, true).then(viewFactory => {
-        return viewFactory;
-      });
-    }
-
-    return doneLoading.then(viewFactory => {
-      return metadata.create(childContainer, BehaviorInstruction.dynamic(instruction.host, viewModel, viewFactory));
-    });
-  });
-}
 
 /**
 * Instructs the composition engine how to dynamically compose a component.
@@ -114,9 +30,9 @@ interface ComposeInstruction {
   */
   viewResources: ViewResources;
   /**
-  * The view url or ViewStrategy to override the default view location convention.
+  * The view url or view strategy to override the default view location convention.
   */
-  view?: string | ViewStrategy;
+  view?: string | ViewStategy;
   /**
   * The slot to push the dynamically composed component into.
   */
@@ -127,17 +43,75 @@ interface ComposeInstruction {
   skipActivation?: boolean;
 }
 
+function tryActivateViewModel(instruction) {
+  if (instruction.skipActivation || typeof instruction.viewModel.activate !== 'function') {
+    return Promise.resolve();
+  }
+
+  return instruction.viewModel.activate(instruction.model) || Promise.resolve();
+}
+
 /**
 * Used to dynamically compose components.
 */
-@inject(ViewEngine)
+@inject(ViewEngine, ViewLocator)
 export class CompositionEngine {
   /**
   * Creates an instance of the CompositionEngine.
   * @param viewEngine The ViewEngine used during composition.
   */
-  constructor(viewEngine: ViewEngine) {
+  constructor(viewEngine: ViewEngine, viewLocator: ViewLocator) {
     this.viewEngine = viewEngine;
+    this.viewLocator = viewLocator;
+  }
+
+  _createControllerAndSwap(instruction) {
+    let removeResponse = instruction.viewSlot.removeAll(true);
+    let afterRemove = () => {
+      return this.createController(instruction).then(controller => {
+        if (instruction.currentController) {
+          instruction.currentController.unbind();
+        }
+
+        controller.automate();
+        instruction.viewSlot.add(controller.view);
+
+        return controller;
+      });
+    };
+
+    if (removeResponse instanceof Promise) {
+      return removeResponse.then(afterRemove);
+    }
+
+    return afterRemove();
+  }
+
+  /**
+  * Creates a controller instance for the component described in the instruction.
+  * @param instruction The ComposeInstruction that describes the component.
+  * @return A Promise for the Controller.
+  */
+  createController(instruction: ComposeInstruction): Promise<Controller> {
+    let childContainer;
+    let viewModel;
+    let viewModelResource;
+    let metadata;
+
+    return this.ensureViewModel(instruction).then(tryActivateViewModel).then(() => {
+      childContainer = instruction.childContainer;
+      viewModel = instruction.viewModel;
+      viewModelResource = instruction.viewModelResource;
+      metadata = viewModelResource.metadata;
+
+      let viewStrategy = this.viewLocator.getViewStrategy(instruction.view || viewModel);
+
+      if (instruction.viewResources) {
+        viewStrategy.makeRelativeTo(instruction.viewResources.viewUrl);
+      }
+
+      return metadata.load(childContainer, viewModelResource.value, viewStrategy, true);
+    }).then(viewFactory => metadata.create(childContainer, BehaviorInstruction.dynamic(instruction.host, viewModel, viewFactory)));
   }
 
   /**
@@ -146,23 +120,32 @@ export class CompositionEngine {
   * @return A Promise for the instruction.
   */
   ensureViewModel(instruction: ComposeInstruction): Promise<ComposeInstruction> {
-    let childContainer = instruction.childContainer || instruction.container.createChild();
+    let childContainer = instruction.childContainer = (instruction.childContainer || instruction.container.createChild());
 
-    instruction.viewModel = instruction.viewResources
-        ? instruction.viewResources.relativeToView(instruction.viewModel)
-        : instruction.viewModel;
+    if (typeof instruction.viewModel === 'string') {
+      instruction.viewModel = instruction.viewResources
+          ? instruction.viewResources.relativeToView(instruction.viewModel)
+          : instruction.viewModel;
 
-    return this.viewEngine.importViewModelResource(instruction.viewModel).then(viewModelResource => {
-      childContainer.autoRegister(viewModelResource.value);
+      return this.viewEngine.importViewModelResource(instruction.viewModel).then(viewModelResource => {
+        childContainer.autoRegister(viewModelResource.value);
 
-      if (instruction.host) {
-        childContainer.registerInstance(DOM.Element, instruction.host);
-      }
+        if (instruction.host) {
+          childContainer.registerInstance(DOM.Element, instruction.host);
+        }
 
-      instruction.viewModel = childContainer.viewModel = childContainer.get(viewModelResource.value);
-      instruction.viewModelResource = viewModelResource;
-      return instruction;
-    });
+        instruction.viewModel = childContainer.viewModel = childContainer.get(viewModelResource.value);
+        instruction.viewModelResource = viewModelResource;
+        return instruction;
+      });
+    }
+
+    let metadata = new HtmlBehaviorResource();
+    metadata.elementName = 'dynamic-element';
+    metadata.initialize(instruction.container || childContainer, viewModel.constructor);
+    instruction.viewModelResource = { metadata: metadata, value: instruction.viewModel.constructor };
+    childContainer.viewModel = instruction.viewModel;
+    return Promise.resolve(instruction);
   }
 
   /**
@@ -172,14 +155,10 @@ export class CompositionEngine {
   */
   compose(instruction: ComposeInstruction): Promise<View | Controller> {
     instruction.childContainer = instruction.childContainer || instruction.container.createChild();
-    instruction.view = ViewStrategy.normalize(instruction.view);
+    instruction.view = this.viewLocator.getViewStrategy(instruction.view);
 
     if (instruction.viewModel) {
-      if (typeof instruction.viewModel === 'string') {
-        return this.ensureViewModel(instruction).then(createCompositionControllerAndSwap);
-      }
-
-      return createCompositionControllerAndSwap(instruction);
+      return this._createControllerAndSwap(instruction);
     } else if (instruction.view) {
       if (instruction.viewResources) {
         instruction.view.makeRelativeTo(instruction.viewResources.viewUrl);

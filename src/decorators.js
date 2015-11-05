@@ -2,7 +2,7 @@ import 'core-js';
 import {metadata} from 'aurelia-metadata';
 import {BindableProperty} from './bindable-property';
 import {ElementConfigResource} from './element-config';
-import {ViewStrategy, UseViewStrategy, NoViewStrategy, InlineViewStrategy} from './view-strategy';
+import {ViewLocator, RelativeViewStrategy, NoViewStrategy, InlineViewStrategy} from './view-strategy';
 import {HtmlBehaviorResource} from './html-behavior';
 
 function validateBehaviorName(name, type) {
@@ -11,13 +11,21 @@ function validateBehaviorName(name, type) {
   }
 }
 
-export function resource(instance) {
+/**
+* Decorator: Specifies a resource instance that describes the decorated class.
+* @param instance The resource instance.
+*/
+export function resource(instance: Object): Function {
   return function(target) {
     metadata.define(metadata.resource, instance, target);
   };
 }
 
-export function behavior(override) {
+/**
+* Decorator: Specifies a custom HtmlBehaviorResource instance or an object that overrides various implementation details of the default HtmlBehaviorResource.
+* @param override The customized HtmlBehaviorResource or an object to override the default with.
+*/
+export function behavior(override: HtmlBehaviorResource | Object): Function {
   return function(target) {
     if (override instanceof HtmlBehaviorResource) {
       metadata.define(metadata.resource, override, target);
@@ -28,7 +36,11 @@ export function behavior(override) {
   };
 }
 
-export function customElement(name) {
+/**
+* Decorator: Indicates that the decorated class is a custom element.
+* @param name The name of the custom element.
+*/
+export function customElement(name: string): Function {
   validateBehaviorName(name, 'custom element');
   return function(target) {
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, target);
@@ -36,7 +48,12 @@ export function customElement(name) {
   };
 }
 
-export function customAttribute(name, defaultBindingMode?) {
+/**
+* Decorator: Indicates that the decorated class is a custom attribute.
+* @param name The name of the custom attribute.
+* @param defaultBindingMode The default binding mode to use when the attribute is bound wtih .bind.
+*/
+export function customAttribute(name: string, defaultBindingMode?: number): Function {
   validateBehaviorName(name, 'custom attribute');
   return function(target) {
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, target);
@@ -45,7 +62,12 @@ export function customAttribute(name, defaultBindingMode?) {
   };
 }
 
-export function templateController(target) {
+/**
+* Decorator: Applied to custom attributes. Indicates that whatever element the
+* attribute is placed on should be converted into a template and that this
+* attribute controls the instantiation of the template.
+*/
+export function templateController(target?): Function {
   let deco = function(t) {
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
     r.liftsContent = true;
@@ -54,7 +76,11 @@ export function templateController(target) {
   return target ? deco(target) : deco;
 }
 
-export function bindable(nameOrConfigOrTarget?, key?, descriptor?) {
+/**
+* Decorator: Specifies that a property is bindable through HTML.
+* @param nameOrConfigOrTarget The name of the property, or a configuration object.
+*/
+export function bindable(nameOrConfigOrTarget?: string | Object, key?, descriptor?): Function {
   let deco = function(target, key2, descriptor2) {
     let actualTarget = key2 ? target.constructor : target; //is it on a property or a class?
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, actualTarget);
@@ -82,7 +108,11 @@ export function bindable(nameOrConfigOrTarget?, key?, descriptor?) {
   return deco; //placed on a class
 }
 
-export function dynamicOptions(target) {
+/**
+* Decorator: Specifies that the decorated custom attribute has options that
+* are dynamic, based on their presence in HTML and not statically known.
+*/
+export function dynamicOptions(target?): Function {
   let deco = function(t) {
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
     r.hasDynamicOptions = true;
@@ -91,7 +121,11 @@ export function dynamicOptions(target) {
   return target ? deco(target) : deco;
 }
 
-export function useShadowDOM(target) {
+/**
+* Decorator: Indicates that the custom element should render its view in Shadow
+* DOM. This decorator may change slighly when Aurelia updates to Shadow DOM v1.
+*/
+export function useShadowDOM(target?): Function {
   let deco = function(t) {
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
     r.targetShadowDOM = true;
@@ -104,14 +138,26 @@ function doNotProcessContent() {
   return false;
 }
 
-export function processContent(processor) {
+/**
+* Decorator: Enables custom processing of the content that is places inside the
+* custom element by its consumer.
+* @param processor Pass a boolean to direct the template compiler to not process
+* the content placed inside this element. Alternatively, pass a function which
+* can provide custom processing of the content. This function should then return
+* a boolean indicating whether the compiler should also process the content.
+*/
+export function processContent(processor: boolean | Function): Function {
   return function(t) {
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
     r.processContent = processor || doNotProcessContent;
   };
 }
 
-export function containerless(target) {
+/**
+* Decorator: Indicates that the custom element should be rendered without its
+* element container.
+*/
+export function containerless(target?): Function {
   let deco = function(t) {
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
     r.containerless = true;
@@ -120,29 +166,51 @@ export function containerless(target) {
   return target ? deco(target) : deco;
 }
 
-export function viewStrategy(strategy) {
+/**
+* Decorator: Associates a custom view strategy with the component.
+* @param strategy The view strategy instance.
+*/
+export function useViewStrategy(strategy: Object): Function {
   return function(target) {
-    metadata.define(ViewStrategy.metadataKey, strategy, target);
+    metadata.define(ViewLocator.viewStrategyMetadataKey, strategy, target);
   };
 }
 
-export function useView(path) {
-  return viewStrategy(new UseViewStrategy(path));
+/**
+* Decorator: Provides a relative path to a view for the component.
+* @param path The path to the view.
+*/
+export function useView(path: string): Function {
+  return useViewStrategy(new RelativeViewStrategy(path));
 }
 
-export function inlineView(markup:string, dependencies?:Array<string|Function|Object>, dependencyBaseUrl?:string) {
-  return viewStrategy(new InlineViewStrategy(markup, dependencies, dependencyBaseUrl));
+/**
+* Decorator: Provides a view template, directly inline, for the component. Be
+* sure to wrap the markup in a template element.
+* @param markup The markup for the view.
+* @param dependencies A list of dependencies that the template has.
+* @param dependencyBaseUrl A base url from which the dependencies will be loaded.
+*/
+export function inlineView(markup:string, dependencies?:Array<string|Function|Object>, dependencyBaseUrl?:string): Function {
+  return useViewStrategy(new InlineViewStrategy(markup, dependencies, dependencyBaseUrl));
 }
 
-export function noView(target) {
+/**
+* Decorator: Indicates that the component has no view.
+*/
+export function noView(target?): Function {
   let deco = function(t) {
-    metadata.define(ViewStrategy.metadataKey, new NoViewStrategy(), t);
+    metadata.define(ViewLocator.viewStrategyMetadataKey, new NoViewStrategy(), t);
   };
 
   return target ? deco(target) : deco;
 }
 
-export function elementConfig(target) {
+/**
+* Decorator: Indicates that the decorated class provides element configuration
+* to the EventManager for one or more Web Components.
+*/
+export function elementConfig(target?): Function {
   let deco = function(t) {
     metadata.define(metadata.resource, new ElementConfigResource(), t);
   };
