@@ -20,6 +20,7 @@ gulp.task('build-index', function(){
     'util.js',
     'instructions.js',
     'view-strategy.js',
+    'view-locator.js',
     'binding-language.js',
     'view-resources.js',
     'view.js',
