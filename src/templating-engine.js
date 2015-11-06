@@ -10,15 +10,40 @@ import {ViewFactory} from './view-factory';
 import {ViewCompiler} from './view-compiler';
 import {BehaviorInstruction} from './instructions';
 
+/**
+* Instructs the framework in how to enhance an existing DOM structure.
+*/
 interface EnhanceInstruction {
+  /**
+  * The DI container to use as the root for UI enhancement.
+  */
   container?: Container;
+  /**
+  * The element to enhance.
+  */
   element: Element;
+  /**
+  * The resources available for enhancement.
+  */
   resources?: ViewResources;
+  /**
+  * A binding context for the enhancement.
+  */
   bindingContext?: Object;
 }
 
+/**
+* A facade of the templating engine capabilties which provides a more user friendly API for common use cases.
+*/
 @inject(Container, ModuleAnalyzer, ViewCompiler, CompositionEngine)
 export class TemplatingEngine {
+  /**
+  * Creates an instance of TemplatingEngine.
+  * @param container The root DI container.
+  * @param moduleAnalyzer The module analyzer for discovering view resources.
+  * @param viewCompiler The view compiler...for compiling views ;)
+  * @param compositionEngine The composition engine used during dynamic component composition.
+  */
   constructor(container: Container, moduleAnalyzer: ModuleAnalyzer, viewCompiler: ViewCompiler, compositionEngine: CompositionEngine) {
     this._container = container;
     this._moduleAnalyzer = moduleAnalyzer;
@@ -36,10 +61,22 @@ export class TemplatingEngine {
     this._container.registerInstance(Animator, Animator.instance = animator);
   }
 
+  /**
+   * Dynamically composes components and views.
+   * @param context The composition context to use.
+   * @return A promise for the resulting Controller or View. Consumers of this API
+   * are responsible for enforcing the Controller/View lifecyle.
+   */
   compose(context: CompositionContext): Promise<View | Controller> {
     return this._compositionEngine.compose(context);
   }
 
+  /**
+   * Enhances existing DOM with behaviors and bindings.
+   * @param instruction The element to enhance or a set of instructions for the enhancement process.
+   * @return A View representing the enhanced UI. Consumers of this API
+   * are responsible for enforcing the View lifecyle.
+   */
   enhance(instruction: Element | EnhanceInstruction): View {
     if (instruction instanceof DOM.Element) {
       instruction = { element: instruction };
@@ -59,6 +96,12 @@ export class TemplatingEngine {
     return view;
   }
 
+  /**
+   * Creates a behavior's controller for use in unit testing.
+   * @param viewModelType The constructor of the behavior view model to test.
+   * @param attributesFromHTML A key/value lookup of attributes representing what would be in HTML (values can be literals or binding expressions).
+   * @return The Controller of the behavior.
+   */
   createControllerForUnitTest(viewModelType: Function, attributesFromHTML?: Object): Controller {
     let exportName = viewModelType.name;
     let resourceModule = this._moduleAnalyzer.analyze('test-module', { [exportName]: viewModelType }, exportName);
@@ -72,7 +115,14 @@ export class TemplatingEngine {
     return new Controller(description.metadata, instruction, viewModel);
   }
 
-  createModelForUnitTest(viewModelType: Function, attributesFromHTML?: Object, bindingContext?: any): Object {
+  /**
+   * Creates a behavior's view model for use in unit testing.
+   * @param viewModelType The constructor of the behavior view model to test.
+   * @param attributesFromHTML A key/value lookup of attributes representing what would be in HTML (values can be literals or binding expressions).
+   * @param bindingContext
+   * @return The view model instance.
+   */
+  createViewModelForUnitTest(viewModelType: Function, attributesFromHTML?: Object, bindingContext?: any): Object {
     let controller = this.createControllerForUnitTest(viewModelType, attributesFromHTML);
     controller.bind(createScopeForTest(bindingContext));
     return controller.viewModel;

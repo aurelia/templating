@@ -17,13 +17,13 @@ describe('testing html behaviors', () => {
   });
 
   it('should set simple custom attribute value', () => {
-    var att = templatingEngine.createModelForUnitTest(SimpleAttribute);
+    var att = templatingEngine.createViewModelForUnitTest(SimpleAttribute);
     att.value = 'foo';
     expect(att.value).toBe('foo');
   });
 
   it('should raise value change on simple custom attribute', done => {
-    var att = templatingEngine.createModelForUnitTest(SimpleAttribute);
+    var att = templatingEngine.createViewModelForUnitTest(SimpleAttribute);
     spyOn(att, 'valueChanged');
 
     att.value = 'foo';
@@ -35,12 +35,12 @@ describe('testing html behaviors', () => {
   });
 
   it('can create a plain view model', () => {
-    var vm = templatingEngine.createModelForUnitTest(PlainViewModel);
+    var vm = templatingEngine.createViewModelForUnitTest(PlainViewModel);
     expect(vm.test).toEqual('my test');
   });
 
   it('should raise value change on simple custom element', done => {
-    var ele = templatingEngine.createModelForUnitTest(SimpleElement);
+    var ele = templatingEngine.createViewModelForUnitTest(SimpleElement);
     spyOn(ele, 'fooChanged');
     spyOn(ele, 'barChanged');
 
@@ -60,7 +60,7 @@ describe('testing html behaviors', () => {
       bar:'new bar'
     };
 
-    var ele = templatingEngine.createModelForUnitTest(SimpleElement, attributesFromHTML);
+    var ele = templatingEngine.createViewModelForUnitTest(SimpleElement, attributesFromHTML);
 
     expect(ele.foo).toBe(attributesFromHTML.foo);
     expect(ele.bar).toBe(attributesFromHTML.bar);
@@ -78,7 +78,7 @@ describe('testing html behaviors', () => {
       }
     };
 
-    var ele = templatingEngine.createModelForUnitTest(SimpleElement, attributesFromHTML, bindingContext);
+    var ele = templatingEngine.createViewModelForUnitTest(SimpleElement, attributesFromHTML, bindingContext);
 
     expect(ele.foo).toBe(attributesFromHTML.foo);
     expect(ele.bar).toBe(bindingContext.address.city);
