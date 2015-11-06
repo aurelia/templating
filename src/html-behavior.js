@@ -1,5 +1,5 @@
 import {Origin} from 'aurelia-metadata';
-import {ObserverLocator, BindingExpression, Binding} from 'aurelia-binding';
+import {ObserverLocator, Binding} from 'aurelia-binding';
 import {TaskQueue} from 'aurelia-task-queue';
 import {Container} from 'aurelia-dependency-injection';
 import {ViewLocator} from './view-locator';
@@ -24,7 +24,14 @@ function doProcessContent() {
   return true;
 }
 
+/**
+* Identifies a class as a resource that implements custom element or custom
+* attribute functionality.
+*/
 export class HtmlBehaviorResource {
+  /**
+  * Creates an instance of HtmlBehaviorResource.
+  */
   constructor() {
     this.elementName = null;
     this.attributeName = null;
@@ -40,6 +47,11 @@ export class HtmlBehaviorResource {
     this.attributes = {};
   }
 
+  /**
+  * Checks whether the provided name matches any naming conventions for HtmlBehaviorResource.
+  * @param name The name of the potential resource.
+  * @param existing An already existing resource that may need a convention name applied.
+  */
   static convention(name: string, existing?: HtmlBehaviorResource): HtmlBehaviorResource {
     let behavior;
 
@@ -56,7 +68,11 @@ export class HtmlBehaviorResource {
     return behavior;
   }
 
-  addChildBinding(behavior: BindingExpression): void {
+  /**
+  * Adds a binding expression to the component created by this resource.
+  * @param behavior The binding expression.
+  */
+  addChildBinding(behavior: Object): void {
     if (this.childBindings === null) {
       this.childBindings = [];
     }
@@ -64,6 +80,12 @@ export class HtmlBehaviorResource {
     this.childBindings.push(behavior);
   }
 
+  /**
+  * Provides an opportunity for the resource to initialize iteself.
+  * @param container The dependency injection container from which the resource
+  * can aquire needed services.
+  * @param target The class to which this resource metadata is attached.
+  */
   initialize(container: Container, target: Function): void {
     let proto = target.prototype;
     let properties = this.properties;
@@ -124,6 +146,13 @@ export class HtmlBehaviorResource {
     }
   }
 
+  /**
+  * Allows the resource to be registered in the view resources for the particular
+  * view into which it was required.
+  * @param registry The view resource registry for the view that required this resource.
+  * @param name The name provided by the end user for this resource, within the
+  * particular view it's being used.
+  */
   register(registry: ViewResources, name?: string): void {
     if (this.attributeName !== null) {
       registry.registerAttribute(name || this.attributeName, this, this.attributeName);
@@ -134,6 +163,16 @@ export class HtmlBehaviorResource {
     }
   }
 
+  /**
+  * Enables the resource to asynchronously load additional resources.
+  * @param container The dependency injection container from which the resource
+  * can aquire needed services.
+  * @param target The class to which this resource metadata is attached.
+  * @param viewStrategy A view strategy to overload the default strategy defined by the resource.
+  * @param transientView Indicated whether the view strategy is transient or
+  * permanently tied to this component.
+  * @param loadContext The loading context object provided by the view engine.
+  */
   load(container: Container, target: Function, viewStrategy?: ViewStrategy, transientView?: boolean, loadContext?: ResourceLoadContext): Promise<HtmlBehaviorResource> {
     let options;
 
@@ -157,6 +196,15 @@ export class HtmlBehaviorResource {
     return Promise.resolve(this);
   }
 
+  /**
+  * Plugs into the compiler and enables custom processing of the node on which this behavior is located.
+  * @param compiler The compiler that is currently compiling the view that this behavior exists within.
+  * @param resources The resources for the view that this behavior exists within.
+  * @param node The node on which this behavior exists.
+  * @param instruction The behavior instruction created for this behavior.
+  * @param parentNode The parent node of the current node.
+  * @return The current node.
+  */
   compile(compiler: ViewCompiler, resources: ViewResources, node: Node, instruction: BehaviorInstruction, parentNode?: Node): Node {
     if (this.liftsContent) {
       if (!instruction.viewFactory) {
@@ -233,6 +281,14 @@ export class HtmlBehaviorResource {
     return node;
   }
 
+  /**
+  * Creates an instance of this behavior.
+  * @param container The DI container to create the instance in.
+  * @param instruction The instruction for this behavior that was constructed during compilation.
+  * @param element The element on which this behavior exists.
+  * @param bindings The bindings that are associated with the view in which this behavior exists.
+  * @return The Controller of this behavior.
+  */
   create(container: Container, instruction?: BehaviorInstruction, element?: Element, bindings?: Binding[]): Controller {
     let host;
     let au = null;
@@ -342,7 +398,7 @@ export class HtmlBehaviorResource {
     return controller;
   }
 
-  ensurePropertiesDefined(instance: Object, lookup: Object) {
+  _ensurePropertiesDefined(instance: Object, lookup: Object) {
     let properties;
     let i;
     let ii;

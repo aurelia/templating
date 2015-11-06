@@ -8,7 +8,7 @@ function getObserver(behavior, instance, name) {
 
   if (lookup === undefined) {
     lookup = behavior.observerLocator.getOrCreateObserversLookup(instance);
-    behavior.ensurePropertiesDefined(instance, lookup);
+    behavior._ensurePropertiesDefined(instance, lookup);
   }
 
   return lookup[name];

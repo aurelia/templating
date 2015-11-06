@@ -8,7 +8,7 @@ import {Container, inject} from 'aurelia-dependency-injection';
 /**
 * Instructs the composition engine how to dynamically compose a component.
 */
-interface ComposeInstruction {
+interface CompositionContext {
   /**
   * The parent Container for the component creation.
   */
@@ -43,12 +43,12 @@ interface ComposeInstruction {
   skipActivation?: boolean;
 }
 
-function tryActivateViewModel(instruction) {
-  if (instruction.skipActivation || typeof instruction.viewModel.activate !== 'function') {
+function tryActivateViewModel(context) {
+  if (context.skipActivation || typeof context.viewModel.activate !== 'function') {
     return Promise.resolve();
   }
 
-  return instruction.viewModel.activate(instruction.model) || Promise.resolve();
+  return context.viewModel.activate(context.model) || Promise.resolve();
 }
 
 /**
@@ -65,16 +65,16 @@ export class CompositionEngine {
     this.viewLocator = viewLocator;
   }
 
-  _createControllerAndSwap(instruction) {
-    let removeResponse = instruction.viewSlot.removeAll(true);
+  _createControllerAndSwap(context) {
+    let removeResponse = context.viewSlot.removeAll(true);
     let afterRemove = () => {
-      return this.createController(instruction).then(controller => {
-        if (instruction.currentController) {
-          instruction.currentController.unbind();
+      return this.createController(context).then(controller => {
+        if (context.currentController) {
+          context.currentController.unbind();
         }
 
         controller.automate();
-        instruction.viewSlot.add(controller.view);
+        context.viewSlot.add(controller.view);
 
         return controller;
       });
@@ -88,101 +88,101 @@ export class CompositionEngine {
   }
 
   /**
-  * Creates a controller instance for the component described in the instruction.
-  * @param instruction The ComposeInstruction that describes the component.
+  * Creates a controller instance for the component described in the context.
+  * @param context The CompositionContext that describes the component.
   * @return A Promise for the Controller.
   */
-  createController(instruction: ComposeInstruction): Promise<Controller> {
+  createController(context: CompositionContext): Promise<Controller> {
     let childContainer;
     let viewModel;
     let viewModelResource;
     let metadata;
 
-    return this.ensureViewModel(instruction).then(tryActivateViewModel).then(() => {
-      childContainer = instruction.childContainer;
-      viewModel = instruction.viewModel;
-      viewModelResource = instruction.viewModelResource;
+    return this.ensureViewModel(context).then(tryActivateViewModel).then(() => {
+      childContainer = context.childContainer;
+      viewModel = context.viewModel;
+      viewModelResource = context.viewModelResource;
       metadata = viewModelResource.metadata;
 
-      let viewStrategy = this.viewLocator.getViewStrategy(instruction.view || viewModel);
+      let viewStrategy = this.viewLocator.getViewStrategy(context.view || viewModel);
 
-      if (instruction.viewResources) {
-        viewStrategy.makeRelativeTo(instruction.viewResources.viewUrl);
+      if (context.viewResources) {
+        viewStrategy.makeRelativeTo(context.viewResources.viewUrl);
       }
 
       return metadata.load(childContainer, viewModelResource.value, viewStrategy, true);
-    }).then(viewFactory => metadata.create(childContainer, BehaviorInstruction.dynamic(instruction.host, viewModel, viewFactory)));
+    }).then(viewFactory => metadata.create(childContainer, BehaviorInstruction.dynamic(context.host, viewModel, viewFactory)));
   }
 
   /**
-  * Ensures that the view model and its resource are loaded for this instruction.
-  * @param instruction The ComposeInstruction to load the view model and its resource for.
-  * @return A Promise for the instruction.
+  * Ensures that the view model and its resource are loaded for this context.
+  * @param context The CompositionContext to load the view model and its resource for.
+  * @return A Promise for the context.
   */
-  ensureViewModel(instruction: ComposeInstruction): Promise<ComposeInstruction> {
-    let childContainer = instruction.childContainer = (instruction.childContainer || instruction.container.createChild());
+  ensureViewModel(context: CompositionContext): Promise<CompositionContext> {
+    let childContainer = context.childContainer = (context.childContainer || context.container.createChild());
 
-    if (typeof instruction.viewModel === 'string') {
-      instruction.viewModel = instruction.viewResources
-          ? instruction.viewResources.relativeToView(instruction.viewModel)
-          : instruction.viewModel;
+    if (typeof context.viewModel === 'string') {
+      context.viewModel = context.viewResources
+          ? context.viewResources.relativeToView(context.viewModel)
+          : context.viewModel;
 
-      return this.viewEngine.importViewModelResource(instruction.viewModel).then(viewModelResource => {
+      return this.viewEngine.importViewModelResource(context.viewModel).then(viewModelResource => {
         childContainer.autoRegister(viewModelResource.value);
 
-        if (instruction.host) {
-          childContainer.registerInstance(DOM.Element, instruction.host);
+        if (context.host) {
+          childContainer.registerInstance(DOM.Element, context.host);
         }
 
-        instruction.viewModel = childContainer.viewModel = childContainer.get(viewModelResource.value);
-        instruction.viewModelResource = viewModelResource;
-        return instruction;
+        context.viewModel = childContainer.viewModel = childContainer.get(viewModelResource.value);
+        context.viewModelResource = viewModelResource;
+        return context;
       });
     }
 
     let metadata = new HtmlBehaviorResource();
     metadata.elementName = 'dynamic-element';
-    metadata.initialize(instruction.container || childContainer, viewModel.constructor);
-    instruction.viewModelResource = { metadata: metadata, value: instruction.viewModel.constructor };
-    childContainer.viewModel = instruction.viewModel;
-    return Promise.resolve(instruction);
+    metadata.initialize(context.container || childContainer, viewModel.constructor);
+    context.viewModelResource = { metadata: metadata, value: context.viewModel.constructor };
+    childContainer.viewModel = context.viewModel;
+    return Promise.resolve(context);
   }
 
   /**
   * Dynamically composes a component.
-  * @param instruction The ComposeInstruction providing information on how the composition should occur.
+  * @param context The CompositionContext providing information on how the composition should occur.
   * @return A Promise for the View or the Controller that results from the dynamic composition.
   */
-  compose(instruction: ComposeInstruction): Promise<View | Controller> {
-    instruction.childContainer = instruction.childContainer || instruction.container.createChild();
-    instruction.view = this.viewLocator.getViewStrategy(instruction.view);
+  compose(context: CompositionContext): Promise<View | Controller> {
+    context.childContainer = context.childContainer || context.container.createChild();
+    context.view = this.viewLocator.getViewStrategy(context.view);
 
-    if (instruction.viewModel) {
-      return this._createControllerAndSwap(instruction);
-    } else if (instruction.view) {
-      if (instruction.viewResources) {
-        instruction.view.makeRelativeTo(instruction.viewResources.viewUrl);
+    if (context.viewModel) {
+      return this._createControllerAndSwap(context);
+    } else if (context.view) {
+      if (context.viewResources) {
+        context.view.makeRelativeTo(context.viewResources.viewUrl);
       }
 
-      return instruction.view.loadViewFactory(this.viewEngine, new ViewCompileInstruction()).then(viewFactory => {
-        let removeResponse = instruction.viewSlot.removeAll(true);
+      return context.view.loadViewFactory(this.viewEngine, new ViewCompileInstruction()).then(viewFactory => {
+        let removeResponse = context.viewSlot.removeAll(true);
 
         if (removeResponse instanceof Promise) {
           return removeResponse.then(() => {
-            let result = viewFactory.create(instruction.childContainer);
-            result.bind(instruction.bindingContext);
-            instruction.viewSlot.add(result);
+            let result = viewFactory.create(context.childContainer);
+            result.bind(context.bindingContext);
+            context.viewSlot.add(result);
             return result;
           });
         }
 
-        let result = viewFactory.create(instruction.childContainer);
-        result.bind(instruction.bindingContext);
-        instruction.viewSlot.add(result);
+        let result = viewFactory.create(context.childContainer);
+        result.bind(context.bindingContext);
+        context.viewSlot.add(result);
         return result;
       });
-    } else if (instruction.viewSlot) {
-      instruction.viewSlot.removeAll();
+    } else if (context.viewSlot) {
+      context.viewSlot.removeAll();
       return Promise.resolve(null);
     }
   }

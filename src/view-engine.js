@@ -67,7 +67,7 @@ export class ViewEngine {
 
     return ensureRegistryEntry(this.loader, urlOrRegistryEntry).then(registryEntry => {
       if (registryEntry.onReady) {
-        if (loadContext.doesNotHaveDependency(urlOrRegistryEntry)) {
+        if (!loadContext.hasDependency(urlOrRegistryEntry)) {
           loadContext.addDependency(urlOrRegistryEntry);
           return registryEntry.onReady;
         }

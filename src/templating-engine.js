@@ -36,8 +36,8 @@ export class TemplatingEngine {
     this._container.registerInstance(Animator, Animator.instance = animator);
   }
 
-  compose(instruction: ComposeInstruction): Promise<View | Controller> {
-    return this._compositionEngine.compose(instruction);
+  compose(context: CompositionContext): Promise<View | Controller> {
+    return this._compositionEngine.compose(context);
   }
 
   enhance(instruction: Element | EnhanceInstruction): View {

@@ -27,7 +27,7 @@ export class Controller {
     let i;
     let ii;
 
-    behavior.ensurePropertiesDefined(viewModel, observerLookup);
+    behavior._ensurePropertiesDefined(viewModel, observerLookup);
 
     for (i = 0, ii = properties.length; i < ii; ++i) {
       properties[i]._initialize(viewModel, observerLookup, attributes, handlesBind, boundProperties);
