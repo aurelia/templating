@@ -110,7 +110,7 @@ export class CompositionEngine {
         viewStrategy.makeRelativeTo(context.viewResources.viewUrl);
       }
 
-      return metadata.load(childContainer, viewModelResource.value, viewStrategy, true);
+      return metadata.load(childContainer, viewModelResource.value, null, viewStrategy, true);
     }).then(viewFactory => metadata.create(childContainer, BehaviorInstruction.dynamic(context.host, viewModel, viewFactory)));
   }
 

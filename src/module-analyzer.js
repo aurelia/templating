@@ -9,7 +9,14 @@ import {ViewResources} from './view-resources';
 import {ResourceLoadContext} from './instructions';
 import {hyphenate} from './util';
 
+/**
+* Represents a module with view resources.
+*/
 export class ResourceModule {
+  /**
+  * Creates an instance of ResourceModule.
+  * @param moduleId The id of the module that contains view resources.
+  */
   constructor(moduleId: string) {
     this.id = moduleId;
     this.moduleInstance = null;
@@ -20,7 +27,11 @@ export class ResourceModule {
     this.onLoaded = null;
   }
 
-  initialize(container: Container) {
+  /**
+  * Initializes the resources within the module.
+  * @param container The dependency injection container usable during resource initialization.
+  */
+  initialize(container: Container): void {
     let current = this.mainResource;
     let resources = this.resources;
     let vs = this.viewStrategy;
@@ -43,7 +54,12 @@ export class ResourceModule {
     }
   }
 
-  register(registry:ViewResources, name?:string) {
+  /**
+  * Registrers the resources in the module with the view resources.
+  * @param registry The registry of view resources to regiser within.
+  * @param name The name to use in registering the default resource.
+  */
+  register(registry:ViewResources, name?:string): void {
     let main = this.mainResource;
     let resources = this.resources;
 
@@ -58,6 +74,12 @@ export class ResourceModule {
     }
   }
 
+  /**
+  * Loads any dependencies of the resources within this module.
+  * @param container The DI container to use during dependency resolution.
+  * @param loadContext The loading context used for loading all resources and dependencies.
+  * @return A promise that resolves when all loading is complete.
+  */
   load(container: Container, loadContext?: ResourceLoadContext): Promise<void> {
     if (this.onLoaded !== null) {
       return this.onLoaded;
@@ -85,8 +107,17 @@ export class ResourceModule {
   }
 }
 
+/**
+* Represents a single view resource with a ResourceModule.
+*/
 export class ResourceDescription {
-  constructor(key: string, exportedValue: any, resourceTypeMeta: Object) {
+  /**
+  * Creates an instance of ResourceDescription.
+  * @param key The key that the resource was exported as.
+  * @param exportedValue The exported resource.
+  * @param resourceTypeMeta The metadata located on the resource.
+  */
+  constructor(key: string, exportedValue: any, resourceTypeMeta?: Object) {
     if (!resourceTypeMeta) {
       resourceTypeMeta = metadata.get(metadata.resource, exportedValue);
 
@@ -116,29 +147,62 @@ export class ResourceDescription {
     this.value = exportedValue;
   }
 
+  /**
+  * Initializes the resource.
+  * @param container The dependency injection container usable during resource initialization.
+  */
   initialize(container: Container): void {
     this.metadata.initialize(container, this.value);
   }
 
+  /**
+  * Registrers the resource with the view resources.
+  * @param registry The registry of view resources to regiser within.
+  * @param name The name to use in registering the resource.
+  */
   register(registry: ViewResources, name?: string): void {
     this.metadata.register(registry, name);
   }
 
+  /**
+  * Loads any dependencies of the resource.
+  * @param container The DI container to use during dependency resolution.
+  * @param loadContext The loading context used for loading all resources and dependencies.
+  * @return A promise that resolves when all loading is complete.
+  */
   load(container: Container, loadContext?: ResourceLoadContext): Promise<void> | void {
-    return this.metadata.load(container, this.value, null, null, loadContext);
+    return this.metadata.load(container, this.value, loadContext);
   }
 }
 
+/**
+* Analyzes a module in order to discover the view resources that it exports.
+*/
 export class ModuleAnalyzer {
+  /**
+  * Creates an instance of ModuleAnalyzer.
+  */
   constructor() {
     this.cache = {};
   }
 
+  /**
+  * Retrieves the ResourceModule analysis for a previously analyzed module.
+  * @param moduleId The id of the module to lookup.
+  * @return The ResouceModule if found, undefined otherwise.
+  */
   getAnalysis(moduleId: string): ResourceModule {
     return this.cache[moduleId];
   }
 
-  analyze(moduleId: string, moduleInstance: any, viewModelMember?: string): ResourceModule {
+  /**
+  * Analyzes a module.
+  * @param moduleId The id of the module to analyze.
+  * @param moduleInstance The module instance to analyze.
+  * @param mainResourceKey The name of the main resource.
+  * @return The ResouceModule representing the analysis.
+  */
+  analyze(moduleId: string, moduleInstance: any, mainResourceKey?: string): ResourceModule {
     let mainResource;
     let fallbackValue;
     let fallbackKey;
@@ -162,14 +226,14 @@ export class ModuleAnalyzer {
       moduleInstance = {'default': moduleInstance};
     }
 
-    if (viewModelMember) {
-      mainResource = new ResourceDescription(viewModelMember, moduleInstance[viewModelMember]);
+    if (mainResourceKey) {
+      mainResource = new ResourceDescription(mainResourceKey, moduleInstance[mainResourceKey]);
     }
 
     for (key in moduleInstance) {
       exportedValue = moduleInstance[key];
 
-      if (key === viewModelMember || typeof exportedValue !== 'function') {
+      if (key === mainResourceKey || typeof exportedValue !== 'function') {
         continue;
       }
 

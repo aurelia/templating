@@ -168,12 +168,12 @@ export class HtmlBehaviorResource {
   * @param container The dependency injection container from which the resource
   * can aquire needed services.
   * @param target The class to which this resource metadata is attached.
+  * @param loadContext The loading context object provided by the view engine.
   * @param viewStrategy A view strategy to overload the default strategy defined by the resource.
   * @param transientView Indicated whether the view strategy is transient or
   * permanently tied to this component.
-  * @param loadContext The loading context object provided by the view engine.
   */
-  load(container: Container, target: Function, viewStrategy?: ViewStrategy, transientView?: boolean, loadContext?: ResourceLoadContext): Promise<HtmlBehaviorResource> {
+  load(container: Container, target: Function, loadContext?: ResourceLoadContext, viewStrategy?: ViewStrategy, transientView?: boolean): Promise<HtmlBehaviorResource> {
     let options;
 
     if (this.elementName !== null) {
