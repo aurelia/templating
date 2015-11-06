@@ -7,7 +7,7 @@ import {HtmlBehaviorResource} from './html-behavior';
 import {viewStrategy, TemplateRegistryViewStrategy} from './view-strategy';
 import {ViewResources} from './view-resources';
 import {ResourceLoadContext} from './instructions';
-import {hyphenate} from './util';
+import {_hyphenate} from './util';
 
 /**
 * Represents a module with view resources.
@@ -123,7 +123,7 @@ export class ResourceDescription {
 
       if (!resourceTypeMeta) {
         resourceTypeMeta = new HtmlBehaviorResource();
-        resourceTypeMeta.elementName = hyphenate(key);
+        resourceTypeMeta.elementName = _hyphenate(key);
         metadata.define(metadata.resource, resourceTypeMeta, exportedValue);
       }
     }
@@ -131,16 +131,16 @@ export class ResourceDescription {
     if (resourceTypeMeta instanceof HtmlBehaviorResource) {
       if (resourceTypeMeta.elementName === undefined) {
         //customeElement()
-        resourceTypeMeta.elementName = hyphenate(key);
+        resourceTypeMeta.elementName = _hyphenate(key);
       } else if (resourceTypeMeta.attributeName === undefined) {
         //customAttribute()
-        resourceTypeMeta.attributeName = hyphenate(key);
+        resourceTypeMeta.attributeName = _hyphenate(key);
       } else if (resourceTypeMeta.attributeName === null && resourceTypeMeta.elementName === null) {
         //no customeElement or customAttribute but behavior added by other metadata
         HtmlBehaviorResource.convention(key, resourceTypeMeta);
       }
     } else if (!resourceTypeMeta.name) {
-      resourceTypeMeta.name = hyphenate(key);
+      resourceTypeMeta.name = _hyphenate(key);
     }
 
     this.metadata = resourceTypeMeta;
@@ -247,7 +247,7 @@ export class ModuleAnalyzer {
 
         if (resourceTypeMeta.attributeName === null && resourceTypeMeta.elementName === null) {
           //no convention and no customeElement or customAttribute but behavior added by other metadata
-          resourceTypeMeta.elementName = hyphenate(key);
+          resourceTypeMeta.elementName = _hyphenate(key);
         }
 
         if (!mainResource && resourceTypeMeta instanceof HtmlBehaviorResource && resourceTypeMeta.elementName !== null) {

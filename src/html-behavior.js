@@ -6,7 +6,7 @@ import {ViewLocator} from './view-locator';
 import {ViewEngine} from './view-engine';
 import {ViewCompiler} from './view-compiler';
 import {_ContentSelector} from './content-selector';
-import {hyphenate} from './util';
+import {_hyphenate} from './util';
 import {BindableProperty} from './bindable-property';
 import {Controller} from './controller';
 import {ViewResources} from './view-resources';
@@ -57,12 +57,12 @@ export class HtmlBehaviorResource {
 
     if (name.endsWith('CustomAttribute')) {
       behavior = existing || new HtmlBehaviorResource();
-      behavior.attributeName = hyphenate(name.substring(0, name.length - 15));
+      behavior.attributeName = _hyphenate(name.substring(0, name.length - 15));
     }
 
     if (name.endsWith('CustomElement')) {
       behavior = existing || new HtmlBehaviorResource();
-      behavior.elementName = hyphenate(name.substring(0, name.length - 13));
+      behavior.elementName = _hyphenate(name.substring(0, name.length - 13));
     }
 
     return behavior;

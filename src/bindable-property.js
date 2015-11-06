@@ -1,5 +1,5 @@
 import 'core-js';
-import {hyphenate} from './util';
+import {_hyphenate} from './util';
 import {BehaviorPropertyObserver} from './behavior-property-observer';
 import {bindingMode} from 'aurelia-binding';
 
@@ -29,7 +29,7 @@ export class BindableProperty {
       Object.assign(this, nameOrConfig);
     }
 
-    this.attribute = this.attribute || hyphenate(this.name);
+    this.attribute = this.attribute || _hyphenate(this.name);
     this.defaultBindingMode = this.defaultBindingMode || bindingMode.oneWay;
     this.changeHandler = this.changeHandler || null;
     this.owner = null;
