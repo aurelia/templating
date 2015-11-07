@@ -22,6 +22,7 @@ export class View {
     this.contentSelectors = contentSelectors;
     this.firstChild = fragment.firstChild;
     this.lastChild = fragment.lastChild;
+    this.fromCache = false;
     this.isBound = false;
     this.isAttached = false;
     this.fromCache = false;

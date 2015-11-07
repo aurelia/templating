@@ -85,7 +85,7 @@ export class TemplatingEngine {
     let compilerInstructions = {};
     let resources = instruction.resources || this._container.get(ViewResources);
 
-    this._viewCompiler.compileNode(instruction.element, resources, compilerInstructions, instruction.element.parentNode, 'root', true);
+    this._viewCompiler._compileNode(instruction.element, resources, compilerInstructions, instruction.element.parentNode, 'root', true);
 
     let factory = new ViewFactory(instruction.element, compilerInstructions, resources);
     let container = instruction.container || this._container.createChild();

@@ -1,6 +1,5 @@
 import {relativeToFile} from 'aurelia-path';
 import {HtmlBehaviorResource} from './html-behavior';
-import {ValueConverter} from 'aurelia-binding';
 import {BindingLanguage} from './binding-language';
 import {PLATFORM} from 'aurelia-pal';
 import {ViewCompileInstruction, ViewCreateInstruction} from './instructions';
@@ -22,37 +21,73 @@ function register(lookup, name, resource, type) {
   lookup[name] = resource;
 }
 
+/**
+* View engine hooks that enable a view resource to provide custom processing during the compilation or creation of a view.
+*/
 interface ViewEngineHooks {
+  /**
+  * Invoked before a template is compiled.
+  * @param content The DocumentFragment to compile.
+  * @param resources The resources to compile the view against.
+  * @param instruction The compilation instruction associated with the compilation process.
+  */
   beforeCompile?: (content: DocumentFragment, resources: ViewResources, instruction: ViewCompileInstruction) => void;
+  /**
+  * Invoked after a template is compiled.
+  * @param viewFactory The view factory that was produced from the compilation process.
+  */
   afterCompile?: (viewFactory: ViewFactory) => void;
-  beforeCreate?: (viewFactory: ViewFactory, container: Container, content: DocumentFragment, instruction: ViewCreateInstruction, bindingContext?:Object) => void;
+  /**
+  * Invoked before a view is created.
+  * @param viewFactory The view factory that will be used to create the view.
+  * @param container The DI container used during view creation.
+  * @param content The cloned document fragment representing the view.
+  * @param instruction The view creation instruction associated with this creation process.
+  */
+  beforeCreate?: (viewFactory: ViewFactory, container: Container, content: DocumentFragment, instruction: ViewCreateInstruction) => void;
+  /**
+  * Invoked after a view is created.
+  * @param view The view that was created by the factory.
+  */
   afterCreate?: (view: View) => void;
 }
 
+/**
+* Represents a collection of resources used during the compilation of a view.
+*/
 export class ViewResources {
+  /**
+  * A custom binding language used in the view.
+  */
+  bindingLanguage = null;
+
+  /**
+  * Creates an instance of ViewResources.
+  * @param parent The parent resources. This resources can override them, but if a resource is not found, it will be looked up in the parent.
+  * @param viewUrl The url of the view to which these resources apply.
+  */
   constructor(parent?: ViewResources, viewUrl?: string) {
     this.parent = parent || null;
     this.hasParent = this.parent !== null;
     this.viewUrl = viewUrl || '';
     this.lookupFunctions = {
-      valueConverters: this.getValueConverter.bind(this),
-      bindingBehaviors: this.getBindingBehavior.bind(this)
+      valueConverters: this._getValueConverter.bind(this),
+      bindingBehaviors: this._getBindingBehavior.bind(this)
     };
     this.attributes = {};
     this.elements = {};
     this.valueConverters = {};
     this.bindingBehaviors = {};
     this.attributeMap = {};
-    this.bindingLanguage = null;
     this.hook1 = null;
     this.hook2 = null;
     this.hook3 = null;
     this.additionalHooks = null;
   }
 
-  onBeforeCompile(content: DocumentFragment, resources: ViewResources, instruction: ViewCompileInstruction): void {
+  _onBeforeCompile(content: DocumentFragment, resources: ViewResources, instruction: ViewCompileInstruction): void {
     if (this.hasParent) {
-      this.parent.onBeforeCompile(content, resources, instruction);
+      this.parent._onBeforeCompile(content, resources, instruction);
     }
 
     if (this.hook1 !== null) {
@@ -75,9 +110,9 @@ export class ViewResources {
     }
   }
 
-  onAfterCompile(viewFactory: ViewFactory): void {
+  _onAfterCompile(viewFactory: ViewFactory): void {
     if (this.hasParent) {
-      this.parent.onAfterCompile(viewFactory);
+      this.parent._onAfterCompile(viewFactory);
     }
 
     if (this.hook1 !== null) {
@@ -100,9 +135,9 @@ export class ViewResources {
     }
   }
 
-  onBeforeCreate(viewFactory: ViewFactory, container: Container, content: DocumentFragment, instruction: ViewCreateInstruction, bindingContext?:Object): void {
+  _onBeforeCreate(viewFactory: ViewFactory, container: Container, content: DocumentFragment, instruction: ViewCreateInstruction, bindingContext?:Object): void {
     if (this.hasParent) {
-      this.parent.onBeforeCreate(viewFactory, container, content, instruction, bindingContext);
+      this.parent._onBeforeCreate(viewFactory, container, content, instruction, bindingContext);
     }
 
     if (this.hook1 !== null) {
@@ -125,9 +160,9 @@ export class ViewResources {
     }
   }
 
-  onAfterCreate(view: View): void {
+  _onAfterCreate(view: View): void {
     if (this.hasParent) {
-      this.parent.onAfterCreate(view);
+      this.parent._onAfterCreate(view);
     }
 
     if (this.hook1 !== null) {
@@ -150,6 +185,10 @@ export class ViewResources {
     }
   }
 
+  /**
+  * Registers view engine hooks for the view.
+  * @param hooks The hooks to register.
+  */
   registerViewEngineHooks(hooks:ViewEngineHooks): void {
     if (hooks.beforeCompile === undefined) hooks.beforeCompile = PLATFORM.noop;
     if (hooks.afterCompile === undefined) hooks.afterCompile = PLATFORM.noop;
@@ -168,11 +207,11 @@ export class ViewResources {
     }
   }
 
-  getBindingLanguage(bindingLanguageFallback: BindingLanguage): BindingLanguage {
+  _getBindingLanguage(bindingLanguageFallback: BindingLanguage): BindingLanguage {
     return this.bindingLanguage || (this.bindingLanguage = bindingLanguageFallback);
   }
 
-  patchInParent(newParent: ViewResources): void {
+  _patchInParent(newParent: ViewResources): void {
     let originalParent = this.parent;
 
     this.parent = newParent || null;
@@ -184,44 +223,70 @@ export class ViewResources {
     }
   }
 
+  /**
+  * Maps a path relative to the associated view's origin.
+  * @param path The relative path.
+  * @return The calcualted path.
+  */
   relativeToView(path: string): string {
     return relativeToFile(path, this.viewUrl);
   }
 
+  /**
+  * Registers an HTML element.
+  * @param tagName The name of the custom element.
+  * @param behavior The behavior of the element.
+  */
   registerElement(tagName: string, behavior: HtmlBehaviorResource): void {
     register(this.elements, tagName, behavior, 'an Element');
   }
 
-  getElement(tagName: string): HtmlBehaviorResource {
-    return this.elements[tagName] || (this.hasParent ? this.parent.getElement(tagName) : null);
+  _getElement(tagName: string): HtmlBehaviorResource {
+    return this.elements[tagName] || (this.hasParent ? this.parent._getElement(tagName) : null);
   }
 
-  mapAttribute(attribute: string): string {
-    return this.attributeMap[attribute] || (this.hasParent ? this.parent.mapAttribute(attribute) : null);
+  _mapAttribute(attribute: string): string {
+    return this.attributeMap[attribute] || (this.hasParent ? this.parent._mapAttribute(attribute) : null);
   }
 
+  /**
+  * Registers an HTML attribute.
+  * @param attribute The name of the attribute.
+  * @param behavior The behavior of the attribute.
+  * @param knownAttribute The well-known name of the attribute (in lieu of the local name).
+  */
   registerAttribute(attribute: string, behavior: HtmlBehaviorResource, knownAttribute: string): void {
     this.attributeMap[attribute] = knownAttribute;
     register(this.attributes, attribute, behavior, 'an Attribute');
   }
 
-  getAttribute(attribute: string): HtmlBehaviorResource {
-    return this.attributes[attribute] || (this.hasParent ? this.parent.getAttribute(attribute) : null);
+  _getAttribute(attribute: string): HtmlBehaviorResource {
+    return this.attributes[attribute] || (this.hasParent ? this.parent._getAttribute(attribute) : null);
   }
 
-  registerValueConverter(name: string, valueConverter: ValueConverter): void {
+  /**
+  * Registers a value converter.
+  * @param name The name of the value converter.
+  * @param valueConverter The value converter instance.
+  */
+  registerValueConverter(name: string, valueConverter: Object): void {
     register(this.valueConverters, name, valueConverter, 'a ValueConverter');
   }
 
-  getValueConverter(name: string): ValueConverter {
-    return this.valueConverters[name] || (this.hasParent ? this.parent.getValueConverter(name) : null);
+  _getValueConverter(name: string): Object {
+    return this.valueConverters[name] || (this.hasParent ? this.parent._getValueConverter(name) : null);
   }
 
-  registerBindingBehavior(name: string, bindingBehavior: BindingBehavior): void {
+  /**
+  * Registers a binding behavior.
+  * @param name The name of the binding behavior.
+  * @param bindingBehavior The binding behavior instance.
+  */
+  registerBindingBehavior(name: string, bindingBehavior: Object): void {
     register(this.bindingBehaviors, name, bindingBehavior, 'a BindingBehavior');
   }
 
-  getBindingBehavior(name: string): BindingBehavior {
-    return this.bindingBehaviors[name] || (this.hasParent ? this.parent.getBindingBehavior(name) : null);
+  _getBindingBehavior(name: string): Object {
+    return this.bindingBehaviors[name] || (this.hasParent ? this.parent._getBindingBehavior(name) : null);
   }
 }

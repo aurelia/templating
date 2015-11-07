@@ -18,7 +18,7 @@ function configureProperties(instruction, resources) {
   let key;
   let value;
 
-  let knownAttribute = resources.mapAttribute(attrName);
+  let knownAttribute = resources._mapAttribute(attrName);
   if (knownAttribute && attrName in attributes && knownAttribute !== attrName) {
     attributes[knownAttribute] = attributes[attrName];
     delete attributes[attrName];
@@ -54,13 +54,28 @@ function makeIntoInstructionTarget(element) {
   return auTargetID;
 }
 
+/**
+* Compiles html templates, dom fragments and strings into ViewFactory instances, capable of instantiating Views.
+*/
 @inject(BindingLanguage, ViewResources)
 export class ViewCompiler {
+  /**
+  * Creates an instance of ViewCompiler.
+  * @param bindingLanguage The default data binding language and syntax used during view compilation.
+  * @param resources The global resources used during compilation when none are provided for compilation.
+  */
   constructor(bindingLanguage: BindingLanguage, resources: ViewResources) {
     this.bindingLanguage = bindingLanguage;
     this.resources = resources;
   }
 
+  /**
+  * Compiles an html template, dom fragment or string into ViewFactory instances, capable of instantiating Views.
+  * @param source The template, fragment or string to compile.
+  * @param resources The view resources used during compilation.
+  * @param compileInstruction A set of instructions that customize how compilation occurs.
+  * @return The compiled ViewFactory.
+  */
   compile(source: Element|DocumentFragment|string, resources?: ViewResources, compileInstruction?: ViewCompileInstruction): ViewFactory {
     resources = resources || this.resources;
     compileInstruction = compileInstruction || ViewCompileInstruction.normal;
@@ -79,34 +94,34 @@ export class ViewCompiler {
     }
 
     compileInstruction.targetShadowDOM = compileInstruction.targetShadowDOM && FEATURE.shadowDOM;
-    resources.onBeforeCompile(content, resources, compileInstruction);
+    resources._onBeforeCompile(content, resources, compileInstruction);
 
     let instructions = {};
-    this.compileNode(content, resources, instructions, source, 'root', !compileInstruction.targetShadowDOM);
+    this._compileNode(content, resources, instructions, source, 'root', !compileInstruction.targetShadowDOM);
     content.insertBefore(DOM.createComment('<view>'), content.firstChild);
     content.appendChild(DOM.createComment('</view>'));
 
     let factory = new ViewFactory(content, instructions, resources);
 
-    factory.surrogateInstruction = compileInstruction.compileSurrogate ? this.compileSurrogate(source, resources) : null;
+    factory.surrogateInstruction = compileInstruction.compileSurrogate ? this._compileSurrogate(source, resources) : null;
     factory.part = part;
 
     if (cacheSize) {
       factory.setCacheSize(cacheSize);
     }
 
-    resources.onAfterCompile(factory);
+    resources._onAfterCompile(factory);
 
     return factory;
   }
 
-  compileNode(node, resources, instructions, parentNode, parentInjectorId, targetLightDOM) {
+  _compileNode(node, resources, instructions, parentNode, parentInjectorId, targetLightDOM) {
     switch (node.nodeType) {
     case 1: //element node
-      return this.compileElement(node, resources, instructions, parentNode, parentInjectorId, targetLightDOM);
+      return this._compileElement(node, resources, instructions, parentNode, parentInjectorId, targetLightDOM);
     case 3: //text node
       //use wholeText to retrieve the textContent of all adjacent text nodes.
-      let expression = resources.getBindingLanguage(this.bindingLanguage).parseText(resources, node.wholeText);
+      let expression = resources._getBindingLanguage(this.bindingLanguage).parseText(resources, node.wholeText);
       if (expression) {
         let marker = DOM.createElement('au-marker');
         let auTargetID = makeIntoInstructionTarget(marker);
@@ -127,7 +142,7 @@ export class ViewCompiler {
     case 11: //document fragment node
       let currentChild = node.firstChild;
       while (currentChild) {
-        currentChild = this.compileNode(currentChild, resources, instructions, node, parentInjectorId, targetLightDOM);
+        currentChild = this._compileNode(currentChild, resources, instructions, node, parentInjectorId, targetLightDOM);
       }
       break;
     default:
@@ -137,9 +152,9 @@ export class ViewCompiler {
     return node.nextSibling;
   }
 
-  compileSurrogate(node, resources) {
+  _compileSurrogate(node, resources) {
     let attributes = node.attributes;
-    let bindingLanguage = resources.getBindingLanguage(this.bindingLanguage);
+    let bindingLanguage = resources._getBindingLanguage(this.bindingLanguage);
     let knownAttribute;
     let property;
     let instruction;
@@ -163,10 +178,10 @@ export class ViewCompiler {
       attrValue = attr.value;
 
       info = bindingLanguage.inspectAttribute(resources, attrName, attrValue);
-      type = resources.getAttribute(info.attrName);
+      type = resources._getAttribute(info.attrName);
 
       if (type) { //do we have an attached behavior?
-        knownAttribute = resources.mapAttribute(info.attrName); //map the local name to real name
+        knownAttribute = resources._mapAttribute(info.attrName); //map the local name to real name
         if (knownAttribute) {
           property = type.attributes[knownAttribute];
 
@@ -184,7 +199,7 @@ export class ViewCompiler {
 
       if (instruction) { //HAS BINDINGS
         if (instruction.alteredAttr) {
-          type = resources.getAttribute(instruction.attrName);
+          type = resources._getAttribute(instruction.attrName);
         }
 
         if (instruction.discrete) { //ref binding or listener binding
@@ -206,7 +221,7 @@ export class ViewCompiler {
       } else { //NO BINDINGS
         if (type) { //templator or attached behavior found
           instruction = BehaviorInstruction.attribute(attrName, type);
-          instruction.attributes[resources.mapAttribute(attrName)] = attrValue;
+          instruction.attributes[resources._mapAttribute(attrName)] = attrValue;
 
           if (type.liftsContent) { //template controller
             throw new Error('You cannot place a template controller on a surrogate element.');
@@ -240,14 +255,14 @@ export class ViewCompiler {
     return null;
   }
 
-  compileElement(node, resources, instructions, parentNode, parentInjectorId, targetLightDOM) {
+  _compileElement(node, resources, instructions, parentNode, parentInjectorId, targetLightDOM) {
     let tagName = node.tagName.toLowerCase();
     let attributes = node.attributes;
     let expressions = [];
     let expression;
     let behaviorInstructions = [];
     let providers = [];
-    let bindingLanguage = resources.getBindingLanguage(this.bindingLanguage);
+    let bindingLanguage = resources._getBindingLanguage(this.bindingLanguage);
     let liftingInstruction;
     let viewFactory;
     let type;
@@ -275,7 +290,7 @@ export class ViewCompiler {
       viewFactory = this.compile(node, resources);
       viewFactory.part = node.getAttribute('part');
     } else {
-      type = resources.getElement(tagName);
+      type = resources._getElement(tagName);
       if (type) {
         elementInstruction = BehaviorInstruction.element(node, type);
         behaviorInstructions.push(elementInstruction);
@@ -287,11 +302,11 @@ export class ViewCompiler {
       attrName = attr.name;
       attrValue = attr.value;
       info = bindingLanguage.inspectAttribute(resources, attrName, attrValue);
-      type = resources.getAttribute(info.attrName);
+      type = resources._getAttribute(info.attrName);
       elementProperty = null;
 
       if (type) { //do we have an attached behavior?
-        knownAttribute = resources.mapAttribute(info.attrName); //map the local name to real name
+        knownAttribute = resources._mapAttribute(info.attrName); //map the local name to real name
         if (knownAttribute) {
           property = type.attributes[knownAttribute];
 
@@ -318,7 +333,7 @@ export class ViewCompiler {
 
       if (instruction) { //HAS BINDINGS
         if (instruction.alteredAttr) {
-          type = resources.getAttribute(instruction.attrName);
+          type = resources._getAttribute(instruction.attrName);
         }
 
         if (instruction.discrete) { //ref binding or listener binding
@@ -344,7 +359,7 @@ export class ViewCompiler {
       } else { //NO BINDINGS
         if (type) { //templator or attached behavior found
           instruction = BehaviorInstruction.attribute(attrName, type);
-          instruction.attributes[resources.mapAttribute(attrName)] = attrValue;
+          instruction.attributes[resources._mapAttribute(attrName)] = attrValue;
 
           if (type.liftsContent) { //template controller
             instruction.originalAttrName = attrName;
@@ -400,7 +415,7 @@ export class ViewCompiler {
 
       let currentChild = node.firstChild;
       while (currentChild) {
-        currentChild = this.compileNode(currentChild, resources, instructions, node, injectorId || parentInjectorId, targetLightDOM);
+        currentChild = this._compileNode(currentChild, resources, instructions, node, injectorId || parentInjectorId, targetLightDOM);
       }
     }
 

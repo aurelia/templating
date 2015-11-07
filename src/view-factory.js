@@ -238,46 +238,93 @@ function applySurrogateInstruction(container, element, instruction, controllers,
   }
 }
 
+/**
+* A factory capable of creating View instances, bound to a location within another view hierarchy.
+*/
 export class BoundViewFactory {
+  /**
+  * Creates an instance of BoundViewFactory.
+  * @param parentContainer The parent DI container.
+  * @param viewFactory The internal unbound factory.
+  * @param partReplacements Part replacement overrides for the internal factory.
+  */
   constructor(parentContainer: Container, viewFactory: ViewFactory, partReplacements?: Object) {
     this.parentContainer = parentContainer;
     this.viewFactory = viewFactory;
     this.factoryCreateInstruction = { partReplacements: partReplacements };
   }
 
+  /**
+  * Creates a view or returns one from the internal cache, if available.
+  * @return The created view.
+  */
   create(): View {
     let view = this.viewFactory.create(this.parentContainer.createChild(), this.factoryCreateInstruction);
     view._isUserControlled = true;
     return view;
   }
 
+  /**
+  * Indicates whether this factory is currently using caching.
+  */
   get isCaching() {
     return this.viewFactory.isCaching;
   }
 
+  /**
+  * Sets the cache size for this factory.
+  * @param size The number of views to cache or "*" to cache all.
+  * @param doNotOverrideIfAlreadySet Indicates that setting the cache should not override the setting if previously set.
+  */
   setCacheSize(size: number | string, doNotOverrideIfAlreadySet: boolean): void {
     this.viewFactory.setCacheSize(size, doNotOverrideIfAlreadySet);
   }
 
+  /**
+  * Gets a cached view if available...
+  * @return A cached view or null if one isn't available.
+  */
   getCachedView(): View {
     return this.viewFactory.getCachedView();
   }
 
+  /**
+  * Returns a view to the cache.
+  * @param view The view to return to the cache if space is available.
+  */
   returnViewToCache(view: View): void {
     this.viewFactory.returnViewToCache(view);
   }
 }
 
+/**
+* A factory capable of creating View instances.
+*/
 export class ViewFactory {
+  /**
+  * Indicates whether this factory is currently using caching.
+  */
+  isCaching = false;
+
+  /**
+  * Creates an instance of ViewFactory.
+  * @param template The document fragment that serves as a template for the view to be created.
+  * @param instructions The instructions to be applied ot the template during the creation of a view.
+  * @param resources The resources used to compile this factory.
+  */
   constructor(template: DocumentFragment, instructions: Object, resources: ViewResources) {
     this.template = template;
     this.instructions = instructions;
     this.resources = resources;
     this.cacheSize = -1;
     this.cache = null;
-    this.isCaching = false;
   }
 
+  /**
+  * Sets the cache size for this factory.
+  * @param size The number of views to cache or "*" to cache all.
+  * @param doNotOverrideIfAlreadySet Indicates that setting the cache should not override the setting if previously set.
+  */
   setCacheSize(size: number | string, doNotOverrideIfAlreadySet: boolean): void {
     if (size) {
       if (size === '*') {
@@ -300,10 +347,18 @@ export class ViewFactory {
     this.isCaching = this.cacheSize > 0;
   }
 
+  /**
+  * Gets a cached view if available...
+  * @return A cached view or null if one isn't available.
+  */
   getCachedView(): View {
     return this.cache !== null ? (this.cache.pop() || null) : null;
   }
 
+  /**
+  * Returns a view to the cache.
+  * @param view The view to return to the cache if space is available.
+  */
   returnViewToCache(view: View): void {
     if (view.isAttached) {
       view.detached();
@@ -319,6 +374,13 @@ export class ViewFactory {
     }
   }
 
+  /**
+  * Creates a view or returns one from the internal cache, if available.
+  * @param container The container to create the view from.
+  * @param createInstruction The instruction used to customize view creation.
+  * @param element The custom element that hosts the view.
+  * @return The created view.
+  */
   create(container: Container, createInstruction?: ViewCreateInstruction, element?: Element): View {
     createInstruction = createInstruction || BehaviorInstruction.normal;
     element = element || null;
@@ -344,7 +406,7 @@ export class ViewFactory {
     let instructable;
     let instruction;
 
-    this.resources.onBeforeCreate(this, container, fragment, createInstruction);
+    this.resources._onBeforeCreate(this, container, fragment, createInstruction);
 
     if (element !== null && this.surrogateInstruction !== null) {
       applySurrogateInstruction(container, element, this.surrogateInstruction, controllers, bindings, children);
@@ -364,7 +426,7 @@ export class ViewFactory {
       view.created();
     }
 
-    this.resources.onAfterCreate(view);
+    this.resources._onAfterCreate(view);
 
     return view;
   }

@@ -2,7 +2,7 @@ import 'core-js';
 import * as LogManager from 'aurelia-logging';
 import {Origin} from 'aurelia-metadata';
 import {Loader, TemplateRegistryEntry} from 'aurelia-loader';
-import {Container} from 'aurelia-dependency-injection';
+import {Container, inject} from 'aurelia-dependency-injection';
 import {ViewCompiler} from './view-compiler';
 import {ViewResources} from './view-resources';
 import {ModuleAnalyzer, ResourceDescription} from './module-analyzer';
@@ -45,8 +45,19 @@ class ProxyViewFactory {
   }
 }
 
+/**
+* Controls the view resource loading pipeline.
+*/
+@inject(Loader, Container, ViewCompiler, ModuleAnalyzer, ViewResources)
 export class ViewEngine {
-  static inject = [Loader, Container, ViewCompiler, ModuleAnalyzer, ViewResources];
+  /**
+  * Creates an instance of ViewEngine.
+  * @param loader The module loader.
+  * @param container The root DI container for the app.
+  * @param viewCompiler The view compiler.
+  * @param moduleAnalyzer The module analyzer.
+  * @param appResources The app-level global resources.
+  */
   constructor(loader: Loader, container: Container, viewCompiler: ViewCompiler, moduleAnalyzer: ModuleAnalyzer, appResources: ViewResources) {
     this.loader = loader;
     this.container = container;
@@ -56,12 +67,24 @@ export class ViewEngine {
     this._pluginMap = {};
   }
 
-  addResourcePlugin(extension: string, implementation: string) {
+  /**
+  * Adds a resource plugin to the resource loading pipeline.
+  * @param extension The file extension to match in require elements.
+  * @param implementation The plugin implementation that handles the resource type.
+  */
+  addResourcePlugin(extension: string, implementation: Object): void {
     let name = extension.replace('.', '') + '-resource-plugin';
     this._pluginMap[extension] = name;
     this.loader.addPlugin(name, implementation);
   }
 
+  /**
+  * Loads and compiles a ViewFactory from a url or template registry entry.
+  * @param urlOrRegistryEntry A url or template registry entry to generate the view factory for.
+  * @param compileInstruction Instructions detailing how the factory should be compiled.
+  * @param loadContext The load context if this factory load is happening within the context of a larger load operation.
+  * @return A promise for the compiled view factory.
+  */
   loadViewFactory(urlOrRegistryEntry: string|TemplateRegistryEntry, compileInstruction?: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewFactory> {
     loadContext = loadContext || new ResourceLoadContext();
 
@@ -88,6 +111,13 @@ export class ViewEngine {
     });
   }
 
+  /**
+  * Loads all the resources specified by the registry entry.
+  * @param registryEntry The template registry entry to load the resources for.
+  * @param compileInstruction The compile instruction associated with the load.
+  * @param loadContext The load context if this is happening within the context of a larger load operation.
+  * @return A promise of ViewResources for the registry entry.
+  */
   loadTemplateResources(registryEntry: TemplateRegistryEntry, compileInstruction?: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewResources> {
     let resources = new ViewResources(this.appResources, registryEntry.address);
     let dependencies = registryEntry.dependencies;
@@ -107,6 +137,12 @@ export class ViewEngine {
     return this.importViewResources(importIds, names, resources, compileInstruction, loadContext);
   }
 
+  /**
+  * Loads a view model as a resource.
+  * @param moduleImport The module to import.
+  * @param moduleMember The export from the module to generate the resource for.
+  * @return A promise for the ResourceDescription.
+  */
   importViewModelResource(moduleImport: string, moduleMember: string): Promise<ResourceDescription> {
     return this.loader.loadModule(moduleImport).then(viewModelModule => {
       let normalizedId = Origin.get(viewModelModule).moduleId;
@@ -122,6 +158,14 @@ export class ViewEngine {
     });
   }
 
+  /**
+  * Imports the specified resources with the specified names into the view resources object.
+  * @param moduleIds The modules to load.
+  * @param names The names associated with resource modules to import.
+  * @param resources The resources lookup to add the loaded resources to.
+  * @param compileInstruction The compilation instruction associated with the resource imports.
+  * @return A promise for the ViewResources.
+  */
   importViewResources(moduleIds: string[], names: string[], resources: ViewResources, compileInstruction?: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewResources> {
     loadContext = loadContext || new ResourceLoadContext();
     compileInstruction = compileInstruction || ViewCompileInstruction.normal;

@@ -32,7 +32,7 @@ describe('compileNode', () => {
     parentNode.appendChild(document.createTextNode('!'));
     spyOn(language, 'parseText');
 
-    node = viewCompiler.compileNode(node, resources, instructions, parentNode, parentInjectorId, targetLightDOM);
+    node = viewCompiler._compileNode(node, resources, instructions, parentNode, parentInjectorId, targetLightDOM);
     expect(language.parseText).toHaveBeenCalledWith(resources, 'Hello World!');
     expect(node).toBe(null);
   });
@@ -51,7 +51,7 @@ describe('compileNode', () => {
     parentNode.appendChild(document.createTextNode('!'));
     spyOn(language, 'parseText');
 
-    node = viewCompiler.compileNode(node, resources, instructions, parentNode, parentInjectorId, targetLightDOM);
+    node = viewCompiler._compileNode(node, resources, instructions, parentNode, parentInjectorId, targetLightDOM);
     expect(language.parseText).toHaveBeenCalledWith(resources, 'Hello ');
     expect(node).toBe(nextNode);
   });
@@ -62,7 +62,7 @@ describe('compileNode', () => {
     node.setAttribute('class', 'foo ${bar} baz');
     spyOn(language, 'inspectAttribute').and.returnValue({ attrName: 'class', expression: {attrToRemove:'class'}, command: null });
     spyOn(language, 'createAttributeInstruction').and.returnValue({ attributes:{ 'class': { discrete:true,attrToRemove:'class' } }, attrName:'class'  });
-    viewCompiler.compileNode(node, resources, instructions, parentNode, parentInjectorId, targetLightDOM);
+    viewCompiler._compileNode(node, resources, instructions, parentNode, parentInjectorId, targetLightDOM);
     expect(node.className).toBe('au-target');
   });
 
@@ -89,7 +89,7 @@ describe('compileNode', () => {
       }
     });
 
-    viewCompiler.compileNode(node, resources, instructions, parentNode, parentInjectorId, targetLightDOM);
+    viewCompiler._compileNode(node, resources, instructions, parentNode, parentInjectorId, targetLightDOM);
     expect(node.className).toBe('foo bar baz au-target');
   });
 

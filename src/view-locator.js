@@ -1,9 +1,20 @@
 import {metadata, Origin} from 'aurelia-metadata';
 import {RelativeViewStrategy, ConventionalViewStrategy, viewStrategy} from './view-strategy';
 
+/**
+* Locates a view for an object.
+*/
 export class ViewLocator {
+  /**
+  * The metadata key for storing/finding view strategies associated with an class/object.
+  */
   static viewStrategyMetadataKey = 'aurelia:view-strategy';
 
+  /**
+  * Gets the view strategy for the value.
+  * @param value The value to locate the view strategy for.
+  * @return The located ViewStrategy instance.
+  */
   getViewStrategy(value: any): ViewStategy {
     if (!value) {
       return null;
@@ -47,7 +58,7 @@ export class ViewLocator {
         throw new Error('Cannot determinte default view strategy for object.', value);
       }
 
-      strategy = this.createConventionalViewStrategy(origin);
+      strategy = this.createFallbackViewStrategy(origin);
     } else if (origin) {
       strategy.moduleId = origin.moduleId;
     }
@@ -55,10 +66,22 @@ export class ViewLocator {
     return strategy;
   }
 
-  createConventionalViewStrategy(origin: Origin): ViewStategy {
+  /**
+  * Creates a fallback View Strategy. Used when unable to locate a configured strategy.
+  * The default implementation returns and instance of ConventionalViewStrategy.
+  * @param origin The origin of the view model to return the strategy for.
+  * @return The fallback ViewStrategy.
+  */
+  createFallbackViewStrategy(origin: Origin): ViewStategy {
     return new ConventionalViewStrategy(this, origin);
   }
 
+  /**
+  * Conventionally converts a view model origin to a view url.
+  * Used by the ConventionalViewStrategy.
+  * @param origin The origin of the view model to convert.
+  * @return The view url.
+  */
   convertOriginToViewUrl(origin: Origin): string {
     let moduleId = origin.moduleId;
     let id = (moduleId.endsWith('.js') || moduleId.endsWith('.ts')) ? moduleId.substring(0, moduleId.length - 3) : moduleId;
