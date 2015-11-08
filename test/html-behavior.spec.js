@@ -7,36 +7,36 @@ import {initialize} from 'aurelia-pal-browser';
 initialize();
 
 describe('html-behavior', () => {
-    var defaultBindingMode = bindingMode.oneWay;
+  var defaultBindingMode = bindingMode.oneWay;
 
-    it('should leave BindableProperty defaultBindingMode undefined after initialize when unspecified', () => {
-        var resource = new HtmlBehaviorResource();
-        resource.attributeName = 'test';
+  it('should leave BindableProperty defaultBindingMode undefined after initialize when unspecified', () => {
+    var resource = new HtmlBehaviorResource();
+    resource.attributeName = 'test';
 
-        var container = new Container();
-        container.registerInstance(ObserverLocator, {});
-        container.registerInstance(TaskQueue, {});
+    var container = new Container();
+    container.registerInstance(ObserverLocator, {});
+    container.registerInstance(TaskQueue, {});
 
-        var target = function() {};
+    var target = function() {};
 
-        resource.initialize(container, target);
+    resource.initialize(container, target);
 
-        expect(resource.attributes['test'].defaultBindingMode).toBe(defaultBindingMode);
-    });
+    expect(resource.attributes['test'].defaultBindingMode).toBe(defaultBindingMode);
+  });
 
-    it('should leave set BindableProperty defaultBindingMode after initialize when specified', () => {
-        var resource = new HtmlBehaviorResource();
-        resource.attributeName = 'test';
-        resource.attributeDefaultBindingMode = bindingMode.twoWay;
+  it('should leave set BindableProperty defaultBindingMode after initialize when specified', () => {
+    var resource = new HtmlBehaviorResource();
+    resource.attributeName = 'test';
+    resource.attributeDefaultBindingMode = bindingMode.twoWay;
 
-        var container = new Container();
-        container.registerInstance(ObserverLocator, {});
-        container.registerInstance(TaskQueue, {});
+    var container = new Container();
+    container.registerInstance(ObserverLocator, {});
+    container.registerInstance(TaskQueue, {});
 
-        var target = function() {};
+    var target = function() {};
 
-        resource.initialize(container, target);
+    resource.initialize(container, target);
 
-        expect(resource.attributes['test'].defaultBindingMode).toBe(bindingMode.twoWay);
-    });
+    expect(resource.attributes['test'].defaultBindingMode).toBe(bindingMode.twoWay);
+  });
 });
