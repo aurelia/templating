@@ -27,7 +27,7 @@ export class _ContentSelector {
 
       if (currentChild.viewSlot) {
         let viewSlotSelectors = contentSelectors.map(x => x.copyForViewSlot());
-        currentChild.viewSlot.installContentSelectors(viewSlotSelectors);
+        currentChild.viewSlot._installContentSelectors(viewSlotSelectors);
       } else {
         for (i = 0, ii = contentSelectors.length; i < ii; i++) {
           contentSelector = contentSelectors[i];

@@ -5,7 +5,17 @@ import {ViewEngine} from './view-engine';
 import {ResourceLoadContext, ViewCompileInstruction} from './instructions';
 import {DOM, PLATFORM} from 'aurelia-pal';
 
+/**
+* Implemented by classes that describe how a view factory should be loaded.
+*/
 interface ViewStrategy {
+  /**
+  * Loads a view factory.
+  * @param viewEngine The view engine to use during the load process.
+  * @param compileInstruction Additional instructions to use during compilation of the view.
+  * @param loadContext The loading context used for loading all resources and dependencies.
+  * @return A promise for the view factory that is produced by this strategy.
+  */
   loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewFactory>;
 }
 
@@ -27,13 +37,27 @@ export const viewStrategy: Function = protocol.create('aurelia:view-strategy', {
   }
 });
 
+/**
+* A view strategy that loads a view relative to its associated view-model.
+*/
 @viewStrategy()
 export class RelativeViewStrategy {
+  /**
+  * Creates an instance of RelativeViewStrategy.
+  * @param path The relative path to the view.
+  */
   constructor(path: string) {
     this.path = path;
     this.absolutePath = null;
   }
 
+  /**
+  * Loads a view factory.
+  * @param viewEngine The view engine to use during the load process.
+  * @param compileInstruction Additional instructions to use during compilation of the view.
+  * @param loadContext The loading context used for loading all resources and dependencies.
+  * @return A promise for the view factory that is produced by this strategy.
+  */
   loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewFactory> {
     if (this.absolutePath === null && this.moduleId) {
       this.absolutePath = relativeToFile(this.path, this.moduleId);
@@ -43,6 +67,10 @@ export class RelativeViewStrategy {
     return viewEngine.loadViewFactory(this.absolutePath || this.path, compileInstruction, loadContext);
   }
 
+  /**
+  * Makes the view loaded by this strategy relative to the provided file path.
+  * @param file The path to load the view relative to.
+  */
   makeRelativeTo(file: string): void {
     if (this.absolutePath === null) {
       this.absolutePath = relativeToFile(this.path, file);
@@ -50,33 +78,74 @@ export class RelativeViewStrategy {
   }
 }
 
+/**
+* A view strategy based on naming conventions.
+*/
 @viewStrategy()
 export class ConventionalViewStrategy {
+  /**
+  * Creates an instance of ConventionalViewStrategy.
+  * @param viewLocator The view locator service for conventionally locating the view.
+  * @param origin The origin of the view model to conventionally load the view for.
+  */
   constructor(viewLocator: ViewLocator, origin: Origin) {
     this.moduleId = origin.moduleId;
     this.viewUrl = viewLocator.convertOriginToViewUrl(origin);
   }
 
+  /**
+  * Loads a view factory.
+  * @param viewEngine The view engine to use during the load process.
+  * @param compileInstruction Additional instructions to use during compilation of the view.
+  * @param loadContext The loading context used for loading all resources and dependencies.
+  * @return A promise for the view factory that is produced by this strategy.
+  */
   loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewFactory> {
     compileInstruction.associatedModuleId = this.moduleId;
     return viewEngine.loadViewFactory(this.viewUrl, compileInstruction, loadContext);
   }
 }
 
+/**
+* A view strategy that indicates that the component has no view that the templating engine needs to manage.
+* Typically used when the component author wishes to take over fine-grained rendering control.
+*/
 @viewStrategy()
 export class NoViewStrategy {
+  /**
+  * Loads a view factory.
+  * @param viewEngine The view engine to use during the load process.
+  * @param compileInstruction Additional instructions to use during compilation of the view.
+  * @param loadContext The loading context used for loading all resources and dependencies.
+  * @return A promise for the view factory that is produced by this strategy.
+  */
   loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewFactory> {
     return Promise.resolve(null);
   }
 }
 
+/**
+* A view strategy created directly from the template registry entry.
+*/
 @viewStrategy()
 export class TemplateRegistryViewStrategy {
+  /**
+  * Creates an instance of TemplateRegistryViewStrategy.
+  * @param moduleId The associated moduleId of the view to be loaded.
+  * @param entry The template registry entry used in loading the view factory.
+  */
   constructor(moduleId: string, entry: TemplateRegistryEntry) {
     this.moduleId = moduleId;
     this.entry = entry;
   }
 
+  /**
+  * Loads a view factory.
+  * @param viewEngine The view engine to use during the load process.
+  * @param compileInstruction Additional instructions to use during compilation of the view.
+  * @param loadContext The loading context used for loading all resources and dependencies.
+  * @return A promise for the view factory that is produced by this strategy.
+  */
   loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewFactory> {
     let entry = this.entry;
 
@@ -89,14 +158,30 @@ export class TemplateRegistryViewStrategy {
   }
 }
 
+/**
+* A view strategy that allows the component authore to inline the html for the view.
+*/
 @viewStrategy()
 export class InlineViewStrategy {
+  /**
+  * Creates an instance of InlineViewStrategy.
+  * @param markup The markup for the view. Be sure to include the wrapping template tag.
+  * @param dependencies A list of view resource dependencies of this view.
+  * @param dependencyBaseUrl The base url for the view dependencies.
+  */
   constructor(markup: string, dependencies?: Array<string|Function|Object>, dependencyBaseUrl?: string) {
     this.markup = markup;
     this.dependencies = dependencies || null;
     this.dependencyBaseUrl = dependencyBaseUrl || '';
   }
 
+  /**
+  * Loads a view factory.
+  * @param viewEngine The view engine to use during the load process.
+  * @param compileInstruction Additional instructions to use during compilation of the view.
+  * @param loadContext The loading context used for loading all resources and dependencies.
+  * @return A promise for the view factory that is produced by this strategy.
+  */
   loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewFactory> {
     let entry = this.entry;
     let dependencies = this.dependencies;

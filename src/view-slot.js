@@ -19,7 +19,17 @@ function getAnimatableElement(view) {
   return null;
 }
 
+/**
+* Represents a slot or location within the DOM to which views can be added and removed.
+* Manages the view lifecycle for its children.
+*/
 export class ViewSlot {
+  /**
+  * Creates an instance of ViewSlot.
+  * @param anchor The DOM node which will server as the anchor or container for insertion.
+  * @param anchorIsContainer Indicates whether the node is a container.
+  * @param animator The animator that will controll enter/leave transitions for this slot.
+  */
   constructor(anchor: Node, anchorIsContainer: boolean, animator?: Animator = Animator.instance) {
     this.anchor = anchor;
     this.viewAddMethod = anchorIsContainer ? 'appendNodesTo' : 'insertNodesBefore';
@@ -32,6 +42,10 @@ export class ViewSlot {
     anchor.viewSlot = this;
   }
 
+  /**
+  * Takes the child nodes of an existing element that has been converted into a ViewSlot
+  * and makes those nodes into a View within the slot.
+  */
   transformChildNodesIntoView(): void {
     let parent = this.anchor;
 
@@ -55,6 +69,11 @@ export class ViewSlot {
     });
   }
 
+  /**
+  * Binds the slot and it's children.
+  * @param bindingContext The binding context to bind to.
+  * @param overrideContext A secondary binding context that can override the standard context.
+  */
   bind(bindingContext: Object, overrideContext: Object): void {
     let i;
     let ii;
@@ -77,6 +96,9 @@ export class ViewSlot {
     }
   }
 
+  /**
+  * Unbinds the slot and its children.
+  */
   unbind(): void {
     if (this.isBound) {
       let i;
@@ -92,7 +114,12 @@ export class ViewSlot {
     }
   }
 
-  add(view: View): void {
+  /**
+  * Adds a view to the slot.
+  * @param view The view to add.
+  * @return May return a promise if the view addition triggered an animation.
+  */
+  add(view: View): void | Promise<any> {
     view[this.viewAddMethod](this.anchor);
     this.children.push(view);
 
@@ -106,6 +133,12 @@ export class ViewSlot {
     }
   }
 
+  /**
+  * Inserts a view into the slot.
+  * @param index The index to insert the view at.
+  * @param view The view to insert.
+  * @return May return a promise if the view insertion triggered an animation.
+  */
   insert(index: number, view: View): void | Promise<any> {
     let children = this.children;
     let length = children.length;
@@ -127,10 +160,24 @@ export class ViewSlot {
     }
   }
 
+  /**
+  * Removes a view from the slot.
+  * @param view The view to remove.
+  * @param returnToCache Should the view be returned to the view cache?
+  * @param skipAnimation Should the removal animation be skipped?
+  * @return May return a promise if the view removal triggered an animation.
+  */
   remove(view: View, returnToCache?: boolean, skipAnimation?: boolean): void | Promise<View> {
     return this.removeAt(this.children.indexOf(view), returnToCache, skipAnimation);
   }
 
+  /**
+  * Removes a view an a specified index from the slot.
+  * @param index The index to remove the view at.
+  * @param returnToCache Should the view be returned to the view cache?
+  * @param skipAnimation Should the removal animation be skipped?
+  * @return May return a promise if the view removal triggered an animation.
+  */
   removeAt(index: number, returnToCache?: boolean, skipAnimation?: boolean): void | Promise<View> {
     let view = this.children[index];
 
@@ -160,6 +207,12 @@ export class ViewSlot {
     return removeAction();
   }
 
+  /**
+  * Removes all views from the slot.
+  * @param returnToCache Should the view be returned to the view cache?
+  * @param skipAnimation Should the removal animation be skipped?
+  * @return May return a promise if the view removals triggered an animation.
+  */
   removeAll(returnToCache?: boolean, skipAnimation?: boolean): void | Promise<any> {
     let children = this.children;
     let ii = children.length;
@@ -203,6 +256,9 @@ export class ViewSlot {
     removeAction();
   }
 
+  /**
+  * Triggers the attach for the slot and its children.
+  */
   attached(): void {
     let i;
     let ii;
@@ -231,6 +287,9 @@ export class ViewSlot {
     }
   }
 
+  /**
+  * Triggers the detach for the slot and its children.
+  */
   detached(): void {
     let i;
     let ii;
@@ -245,7 +304,7 @@ export class ViewSlot {
     }
   }
 
-  installContentSelectors(contentSelectors: _ContentSelector[]): void {
+  _installContentSelectors(contentSelectors: _ContentSelector[]): void {
     this.contentSelectors = contentSelectors;
     this.add = this._contentSelectorAdd;
     this.insert = this._contentSelectorInsert;
