@@ -142,7 +142,7 @@ export class CompositionEngine {
 
     let metadata = new HtmlBehaviorResource();
     metadata.elementName = 'dynamic-element';
-    metadata.initialize(context.container || childContainer, viewModel.constructor);
+    metadata.initialize(context.container || childContainer, context.viewModel.constructor);
     context.viewModelResource = { metadata: metadata, value: context.viewModel.constructor };
     childContainer.viewModel = context.viewModel;
     return Promise.resolve(context);
