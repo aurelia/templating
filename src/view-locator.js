@@ -15,7 +15,7 @@ export class ViewLocator {
   * @param value The value to locate the view strategy for.
   * @return The located ViewStrategy instance.
   */
-  getViewStrategy(value: any): ViewStategy {
+  getViewStrategy(value: any): ViewStrategy {
     if (!value) {
       return null;
     }
@@ -72,7 +72,7 @@ export class ViewLocator {
   * @param origin The origin of the view model to return the strategy for.
   * @return The fallback ViewStrategy.
   */
-  createFallbackViewStrategy(origin: Origin): ViewStategy {
+  createFallbackViewStrategy(origin: Origin): ViewStrategy {
     return new ConventionalViewStrategy(this, origin);
   }
 

@@ -21,7 +21,7 @@ export class BindingLanguage {
   * @param existingInstruction A previously created instruction for this attribute.
   * @return The instruction instance.
   */
-  createAttributeInstruction(resources: ViewResources, element: Elemenmt, info: Object, existingInstruction?: Object): BehaviorInstruction {
+  createAttributeInstruction(resources: ViewResources, element: Element, info: Object, existingInstruction?: Object): BehaviorInstruction {
     throw new Error('A BindingLanguage must implement createAttributeInstruction(...)');
   }
 

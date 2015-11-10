@@ -1,3 +1,49 @@
+## 0.17.0 (2015-11-10)
+
+
+#### Bug Fixes
+
+* **CompositionEngine:** use context.viewModel ([07b6cc92](http://github.com/aurelia/templating/commit/07b6cc92823a62c820a9b26fd1d0a50136f98f0e))
+* **all:**
+  * privitize the hyphenate utility ([ed8968de](http://github.com/aurelia/templating/commit/ed8968ded292fb7e8f121f56a69658da4eb37a01))
+  * better parameter order for resource load ([dc7ce4f0](http://github.com/aurelia/templating/commit/dc7ce4f08905c51d3ac5739fd9813093f5584776))
+  * linting, locking down apis, adding types and documenting ([4e163164](http://github.com/aurelia/templating/commit/4e16316449bf71d96de3987f21037568b7651bb8))
+  * improve internal representations and fix bugs in static/dynamic views ([7f970da1](http://github.com/aurelia/templating/commit/7f970da107a3e59a1052fde50a4c5b3a11d85931))
+  * conflicts in user controlled views and automated controllers ([49576015](http://github.com/aurelia/templating/commit/49576015b734dd6bf3b1208c64bae0fb6c1ca24f))
+  * more consistent internal state for controller, view and view-slot ([281edf4b](http://github.com/aurelia/templating/commit/281edf4bfa714b23e018a63f7ba40a3af342c596))
+  * update to latest template registry entry api ([fa5ad967](http://github.com/aurelia/templating/commit/fa5ad9675b7303f98b5c3b52adacaa6efed65195))
+* **bind:** overrideContext fixes ([936bf482](http://github.com/aurelia/templating/commit/936bf48207abf3a9abb0f91f86989ef3877c28a3))
+* **build:** add view locator to build ([404c984f](http://github.com/aurelia/templating/commit/404c984f450047d3ec0597ef71f4aaa74c618a90))
+* **child-observation:**
+  * bug in decorator and undefined value ([be2044bd](http://github.com/aurelia/templating/commit/be2044bd8c203d6f0e788a4a920c935b704c4ce4))
+  * null reference when adding second child observer ([b5fb1691](http://github.com/aurelia/templating/commit/b5fb1691fa26191f19db7414d6096c3d3cf9d045))
+* **controller:**
+  * make static vs. dynamic element binding order consistent ([bd41b22d](http://github.com/aurelia/templating/commit/bd41b22d7e0ed0cefb3837d2383892a01ea89632))
+  * correct view override context binding ([6a962e4a](http://github.com/aurelia/templating/commit/6a962e4a486499c927f053f821cdf626571117cc))
+* **decorators:** work with new decorators api ([003b92c9](http://github.com/aurelia/templating/commit/003b92c980e93a253963be64e49347ba9246b0a5))
+* **html-behavior:** child bindings always operate on the light dom element ([2f2a13e7](http://github.com/aurelia/templating/commit/2f2a13e73b535f074612add53608ddc18b6b81a1))
+* **templating-engine:**
+  * rename createModelForUnitTest to createViewModelForUnitTest ([070137e3](http://github.com/aurelia/templating/commit/070137e312a9df0f0df2f7ca61ba91b2f1c06c71))
+  * make object into a class ([65ef597c](http://github.com/aurelia/templating/commit/65ef597c23b505d2bf22af1ff3dc98dfaf8b3b4c))
+* **view-factory:** update to latest container api ([a34e7be7](http://github.com/aurelia/templating/commit/a34e7be728f434b297502e7b2b7e450c034c3d32))
+* **view-slot:** remove unused swap and move ([64160e35](http://github.com/aurelia/templating/commit/64160e357cc94f557cd9428874a4bc2a723373ea))
+
+
+#### Features
+
+* **all:**
+  * finish api lockdown and code docs ([078bac07](http://github.com/aurelia/templating/commit/078bac074b485e5e33c217039ed7e79f683aa67c))
+  * more docs and api cleanup ([78018c83](http://github.com/aurelia/templating/commit/78018c83e3f48a22d86dc6838afaf4d461f3d13c))
+  * more docs and api refinement ([f884cca3](http://github.com/aurelia/templating/commit/f884cca3944e0b127c2d8578dc348ba3211d244e))
+  * introduce ViewLocator; multiple breaking changes for view strategies ([3f08759a](http://github.com/aurelia/templating/commit/3f08759a11cb1a945536461c78931e51037f0b3d))
+  * update to new scope with override context ([dbec9d3c](http://github.com/aurelia/templating/commit/dbec9d3c80f96fd873639b627d8929c227f9d9d2))
+  * decouple create vs. bind operations entirely ([86902240](http://github.com/aurelia/templating/commit/86902240b942c1be52869435f012d0ddb6f10895))
+  * work on templating engine facade ([dce2aa2d](http://github.com/aurelia/templating/commit/dce2aa2dd3eae9344c919ae1cb6779a2eaaa3b70))
+* **binding-behaviors:** add binding behavior resource ([92f4d79b](http://github.com/aurelia/templating/commit/92f4d79bf461a75f9ef7c7655eab150f57b558f6))
+* **children:** change sync to children decorator and add child ([a561546d](http://github.com/aurelia/templating/commit/a561546d9c88bbf0ab42f16d4f5cdcd3a5ebf9f8))
+* **view:** ensure that refs, child and children are available in the bind callback ([09a9a335](http://github.com/aurelia/templating/commit/09a9a335af91ddeb7f220f6d014290c0da425b8e))
+
+
 ## 0.16.0 (2015-10-13)
 
 

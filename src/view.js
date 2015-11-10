@@ -33,7 +33,7 @@ export class View {
   * @param bindings The bindings inside this view.
   * @param children The children of this view.
   */
-  constructor(viewFactory: ViewFactory, fragment: DocumentFragment, controllers: Controller[], bindings: Binding[], children: ViewNode[], contentSelectors: _ContentSelector[]) {
+  constructor(viewFactory: ViewFactory, fragment: DocumentFragment, controllers: Controller[], bindings: Binding[], children: ViewNode[], contentSelectors: Array<Object>) {
     this.viewFactory = viewFactory;
     this.fragment = fragment;
     this.controllers = controllers;

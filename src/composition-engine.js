@@ -32,7 +32,7 @@ interface CompositionContext {
   /**
   * The view url or view strategy to override the default view location convention.
   */
-  view?: string | ViewStategy;
+  view?: string | ViewStrategy;
   /**
   * The slot to push the dynamically composed component into.
   */
