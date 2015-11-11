@@ -1744,7 +1744,7 @@
                   "type": {
                     "type": "reference",
                     "name": "Container",
-                    "id": 2230,
+                    "id": 844,
                     "moduleName": "\"aurelia-dependency-injection\""
                   }
                 },
@@ -3123,7 +3123,7 @@
                   "type": {
                     "type": "reference",
                     "name": "Container",
-                    "id": 2230,
+                    "id": 844,
                     "moduleName": "\"aurelia-dependency-injection\""
                   }
                 },
@@ -3180,7 +3180,7 @@
                   "type": {
                     "type": "reference",
                     "name": "Container",
-                    "id": 2230,
+                    "id": 844,
                     "moduleName": "\"aurelia-dependency-injection\""
                   }
                 },
@@ -3499,7 +3499,7 @@
                   "type": {
                     "type": "reference",
                     "name": "Container",
-                    "id": 2230,
+                    "id": 844,
                     "moduleName": "\"aurelia-dependency-injection\""
                   }
                 },
@@ -3552,7 +3552,7 @@
                     "type": "reference",
                     "isArray": true,
                     "name": "Binding",
-                    "id": 1859,
+                    "id": 2139,
                     "moduleName": "\"aurelia-binding\""
                   }
                 }
@@ -3597,7 +3597,7 @@
                   "type": {
                     "type": "reference",
                     "name": "Container",
-                    "id": 2230,
+                    "id": 844,
                     "moduleName": "\"aurelia-dependency-injection\""
                   }
                 },
@@ -3654,7 +3654,7 @@
                   "type": {
                     "type": "reference",
                     "name": "Container",
-                    "id": 2230,
+                    "id": 844,
                     "moduleName": "\"aurelia-dependency-injection\""
                   }
                 },
@@ -4515,7 +4515,7 @@
                   "type": {
                     "type": "reference",
                     "name": "Container",
-                    "id": 2230,
+                    "id": 844,
                     "moduleName": "\"aurelia-dependency-injection\""
                   }
                 },
@@ -5027,7 +5027,7 @@
                   "type": {
                     "type": "reference",
                     "name": "Container",
-                    "id": 2230,
+                    "id": 844,
                     "moduleName": "\"aurelia-dependency-injection\""
                   }
                 }
@@ -5071,7 +5071,7 @@
                   "type": {
                     "type": "reference",
                     "name": "Container",
-                    "id": 2230,
+                    "id": 844,
                     "moduleName": "\"aurelia-dependency-injection\""
                   }
                 },
@@ -5425,7 +5425,7 @@
                   "type": {
                     "type": "reference",
                     "name": "Container",
-                    "id": 2230,
+                    "id": 844,
                     "moduleName": "\"aurelia-dependency-injection\""
                   }
                 }
@@ -5469,7 +5469,7 @@
                   "type": {
                     "type": "reference",
                     "name": "Container",
-                    "id": 2230,
+                    "id": 844,
                     "moduleName": "\"aurelia-dependency-injection\""
                   }
                 },
@@ -6136,7 +6136,7 @@
                   "type": {
                     "type": "reference",
                     "name": "TemplateRegistryEntry",
-                    "id": 2336,
+                    "id": 950,
                     "moduleName": "\"aurelia-loader\""
                   }
                 }
@@ -6296,7 +6296,7 @@
                   "type": {
                     "type": "reference",
                     "name": "Container",
-                    "id": 2230,
+                    "id": 844,
                     "moduleName": "\"aurelia-dependency-injection\""
                   }
                 },
@@ -6761,7 +6761,7 @@
                     "type": "reference",
                     "isArray": true,
                     "name": "Binding",
-                    "id": 1859,
+                    "id": 2139,
                     "moduleName": "\"aurelia-binding\""
                   }
                 },
@@ -7517,7 +7517,7 @@
                   "type": {
                     "type": "reference",
                     "name": "Loader",
-                    "id": 2351,
+                    "id": 965,
                     "moduleName": "\"aurelia-loader\""
                   }
                 },
@@ -7533,7 +7533,7 @@
                   "type": {
                     "type": "reference",
                     "name": "Container",
-                    "id": 2230,
+                    "id": 844,
                     "moduleName": "\"aurelia-dependency-injection\""
                   }
                 },
@@ -7859,7 +7859,7 @@
                   "type": {
                     "type": "reference",
                     "name": "TemplateRegistryEntry",
-                    "id": 2336,
+                    "id": 950,
                     "moduleName": "\"aurelia-loader\""
                   }
                 },
@@ -7953,7 +7953,7 @@
                       {
                         "type": "reference",
                         "name": "TemplateRegistryEntry",
-                        "id": 2336
+                        "id": 950
                       }
                     ]
                   }
@@ -8167,7 +8167,7 @@
                   "type": {
                     "type": "reference",
                     "name": "Container",
-                    "id": 2230,
+                    "id": 844,
                     "moduleName": "\"aurelia-dependency-injection\""
                   }
                 },
@@ -9696,7 +9696,7 @@
           "type": {
             "type": "reference",
             "name": "Container",
-            "id": 2230
+            "id": 844
           }
         },
         {
@@ -9713,7 +9713,7 @@
           "type": {
             "type": "reference",
             "name": "Container",
-            "id": 2230
+            "id": 844
           }
         },
         {
@@ -9900,7 +9900,7 @@
           "type": {
             "type": "reference",
             "name": "Container",
-            "id": 2230
+            "id": 844
           }
         },
         {
@@ -10189,7 +10189,7 @@
                   "type": {
                     "type": "reference",
                     "name": "Container",
-                    "id": 2230
+                    "id": 844
                   }
                 },
                 {

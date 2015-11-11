@@ -1,3 +1,11 @@
+### 0.17.1 (2015-11-10)
+
+
+#### Bug Fixes
+
+* **view-locator:** bad reference to viewStrategy ([cb72feda](http://github.com/aurelia/templating/commit/cb72fedab260cfded37a35bf15bcc18a33d0d1a4))
+
+
 ## 0.17.0 (2015-11-10)
 
 

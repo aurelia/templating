@@ -469,7 +469,7 @@ define(['exports', 'core-js', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pa
           value = new RelativeViewStrategy(value);
         }
 
-        viewStategy.assert(value);
+        viewStrategy.assert(value);
 
         if (_origin) {
           value.makeRelativeTo(_origin.moduleId);

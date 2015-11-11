@@ -490,7 +490,7 @@ var ViewLocator = (function () {
         value = new RelativeViewStrategy(value);
       }
 
-      viewStategy.assert(value);
+      viewStrategy.assert(value);
 
       if (_origin) {
         value.makeRelativeTo(_origin.moduleId);
