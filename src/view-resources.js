@@ -71,8 +71,8 @@ export class ViewResources {
     this.hasParent = this.parent !== null;
     this.viewUrl = viewUrl || '';
     this.lookupFunctions = {
-      valueConverters: this._getValueConverter.bind(this),
-      bindingBehaviors: this._getBindingBehavior.bind(this)
+      valueConverters: this.getValueConverter.bind(this),
+      bindingBehaviors: this.getBindingBehavior.bind(this)
     };
     this.attributes = {};
     this.elements = {};
@@ -207,11 +207,20 @@ export class ViewResources {
     }
   }
 
-  _getBindingLanguage(bindingLanguageFallback: BindingLanguage): BindingLanguage {
+  /**
+  * Gets the binding language associated with these resources, or return the provided fallback implementation.
+  * @param bindingLanguageFallback The fallback binding language implementation to use if no binding language is configured locally.
+  * @return The binding language.
+  */
+  getBindingLanguage(bindingLanguageFallback: BindingLanguage): BindingLanguage {
     return this.bindingLanguage || (this.bindingLanguage = bindingLanguageFallback);
   }
 
-  _patchInParent(newParent: ViewResources): void {
+  /**
+  * Patches an immediate parent into the view resource resolution hierarchy.
+  * @param newParent The new parent resources to patch in.
+  */
+  patchInParent(newParent: ViewResources): void {
     let originalParent = this.parent;
 
     this.parent = newParent || null;
@@ -241,12 +250,22 @@ export class ViewResources {
     register(this.elements, tagName, behavior, 'an Element');
   }
 
-  _getElement(tagName: string): HtmlBehaviorResource {
-    return this.elements[tagName] || (this.hasParent ? this.parent._getElement(tagName) : null);
+  /**
+  * Gets an HTML element behavior.
+  * @param tagName The tag name to search for.
+  * @return The HtmlBehaviorResource for the tag name or null.
+  */
+  getElement(tagName: string): HtmlBehaviorResource {
+    return this.elements[tagName] || (this.hasParent ? this.parent.getElement(tagName) : null);
   }
 
-  _mapAttribute(attribute: string): string {
-    return this.attributeMap[attribute] || (this.hasParent ? this.parent._mapAttribute(attribute) : null);
+  /**
+  * Gets the known attribute name based on the local attribute name.
+  * @param attribute The local attribute name to lookup.
+  * @return The known name.
+  */
+  mapAttribute(attribute: string): string {
+    return this.attributeMap[attribute] || (this.hasParent ? this.parent.mapAttribute(attribute) : null);
   }
 
   /**
@@ -260,8 +279,13 @@ export class ViewResources {
     register(this.attributes, attribute, behavior, 'an Attribute');
   }
 
-  _getAttribute(attribute: string): HtmlBehaviorResource {
-    return this.attributes[attribute] || (this.hasParent ? this.parent._getAttribute(attribute) : null);
+  /**
+  * Gets an HTML attribute behavior.
+  * @param attribute The name of the attribute to lookup.
+  * @return The HtmlBehaviorResource for the attribute or null.
+  */
+  getAttribute(attribute: string): HtmlBehaviorResource {
+    return this.attributes[attribute] || (this.hasParent ? this.parent.getAttribute(attribute) : null);
   }
 
   /**
@@ -273,8 +297,13 @@ export class ViewResources {
     register(this.valueConverters, name, valueConverter, 'a ValueConverter');
   }
 
-  _getValueConverter(name: string): Object {
-    return this.valueConverters[name] || (this.hasParent ? this.parent._getValueConverter(name) : null);
+  /**
+  * Gets a value converter.
+  * @param name The name of the value converter.
+  * @return The value converter instance.
+  */
+  getValueConverter(name: string): Object {
+    return this.valueConverters[name] || (this.hasParent ? this.parent.getValueConverter(name) : null);
   }
 
   /**
@@ -286,7 +315,12 @@ export class ViewResources {
     register(this.bindingBehaviors, name, bindingBehavior, 'a BindingBehavior');
   }
 
-  _getBindingBehavior(name: string): Object {
-    return this.bindingBehaviors[name] || (this.hasParent ? this.parent._getBindingBehavior(name) : null);
+  /**
+  * Gets a binding behavior.
+  * @param name The name of the binding behavior.
+  * @return The binding behavior instance.
+  */
+  getBindingBehavior(name: string): Object {
+    return this.bindingBehaviors[name] || (this.hasParent ? this.parent.getBindingBehavior(name) : null);
   }
 }

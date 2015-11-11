@@ -18,7 +18,7 @@ function configureProperties(instruction, resources) {
   let key;
   let value;
 
-  let knownAttribute = resources._mapAttribute(attrName);
+  let knownAttribute = resources.mapAttribute(attrName);
   if (knownAttribute && attrName in attributes && knownAttribute !== attrName) {
     attributes[knownAttribute] = attributes[attrName];
     delete attributes[attrName];
@@ -121,7 +121,7 @@ export class ViewCompiler {
       return this._compileElement(node, resources, instructions, parentNode, parentInjectorId, targetLightDOM);
     case 3: //text node
       //use wholeText to retrieve the textContent of all adjacent text nodes.
-      let expression = resources._getBindingLanguage(this.bindingLanguage).parseText(resources, node.wholeText);
+      let expression = resources.getBindingLanguage(this.bindingLanguage).parseText(resources, node.wholeText);
       if (expression) {
         let marker = DOM.createElement('au-marker');
         let auTargetID = makeIntoInstructionTarget(marker);
@@ -154,7 +154,7 @@ export class ViewCompiler {
 
   _compileSurrogate(node, resources) {
     let attributes = node.attributes;
-    let bindingLanguage = resources._getBindingLanguage(this.bindingLanguage);
+    let bindingLanguage = resources.getBindingLanguage(this.bindingLanguage);
     let knownAttribute;
     let property;
     let instruction;
@@ -178,10 +178,10 @@ export class ViewCompiler {
       attrValue = attr.value;
 
       info = bindingLanguage.inspectAttribute(resources, attrName, attrValue);
-      type = resources._getAttribute(info.attrName);
+      type = resources.getAttribute(info.attrName);
 
       if (type) { //do we have an attached behavior?
-        knownAttribute = resources._mapAttribute(info.attrName); //map the local name to real name
+        knownAttribute = resources.mapAttribute(info.attrName); //map the local name to real name
         if (knownAttribute) {
           property = type.attributes[knownAttribute];
 
@@ -199,7 +199,7 @@ export class ViewCompiler {
 
       if (instruction) { //HAS BINDINGS
         if (instruction.alteredAttr) {
-          type = resources._getAttribute(instruction.attrName);
+          type = resources.getAttribute(instruction.attrName);
         }
 
         if (instruction.discrete) { //ref binding or listener binding
@@ -221,7 +221,7 @@ export class ViewCompiler {
       } else { //NO BINDINGS
         if (type) { //templator or attached behavior found
           instruction = BehaviorInstruction.attribute(attrName, type);
-          instruction.attributes[resources._mapAttribute(attrName)] = attrValue;
+          instruction.attributes[resources.mapAttribute(attrName)] = attrValue;
 
           if (type.liftsContent) { //template controller
             throw new Error('You cannot place a template controller on a surrogate element.');
@@ -262,7 +262,7 @@ export class ViewCompiler {
     let expression;
     let behaviorInstructions = [];
     let providers = [];
-    let bindingLanguage = resources._getBindingLanguage(this.bindingLanguage);
+    let bindingLanguage = resources.getBindingLanguage(this.bindingLanguage);
     let liftingInstruction;
     let viewFactory;
     let type;
@@ -290,7 +290,7 @@ export class ViewCompiler {
       viewFactory = this.compile(node, resources);
       viewFactory.part = node.getAttribute('part');
     } else {
-      type = resources._getElement(tagName);
+      type = resources.getElement(tagName);
       if (type) {
         elementInstruction = BehaviorInstruction.element(node, type);
         behaviorInstructions.push(elementInstruction);
@@ -302,11 +302,11 @@ export class ViewCompiler {
       attrName = attr.name;
       attrValue = attr.value;
       info = bindingLanguage.inspectAttribute(resources, attrName, attrValue);
-      type = resources._getAttribute(info.attrName);
+      type = resources.getAttribute(info.attrName);
       elementProperty = null;
 
       if (type) { //do we have an attached behavior?
-        knownAttribute = resources._mapAttribute(info.attrName); //map the local name to real name
+        knownAttribute = resources.mapAttribute(info.attrName); //map the local name to real name
         if (knownAttribute) {
           property = type.attributes[knownAttribute];
 
@@ -333,7 +333,7 @@ export class ViewCompiler {
 
       if (instruction) { //HAS BINDINGS
         if (instruction.alteredAttr) {
-          type = resources._getAttribute(instruction.attrName);
+          type = resources.getAttribute(instruction.attrName);
         }
 
         if (instruction.discrete) { //ref binding or listener binding
@@ -359,7 +359,7 @@ export class ViewCompiler {
       } else { //NO BINDINGS
         if (type) { //templator or attached behavior found
           instruction = BehaviorInstruction.attribute(attrName, type);
-          instruction.attributes[resources._mapAttribute(attrName)] = attrValue;
+          instruction.attributes[resources.mapAttribute(attrName)] = attrValue;
 
           if (type.liftsContent) { //template controller
             instruction.originalAttrName = attrName;
