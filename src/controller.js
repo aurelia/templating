@@ -5,10 +5,26 @@ import {createOverrideContext} from 'aurelia-binding';
 */
 export class Controller {
   /**
+  * The HtmlBehaviorResource that provides the base behavior for this controller.
+  */
+  behavior: HtmlBehaviorResource;
+
+  /**
+  * The developer's view model instance which provides the custom behavior for this controller.
+  */
+  viewModel: Object;
+
+  /**
+  * The view associated with the component being controlled by this controller.
+  * Note: Not all components will have a view, so the value may be null.
+  */
+  view: View;
+
+  /**
   * Creates an instance of Controller.
-  * @param behavior The HtmlBehaviorResource that provides the behavior for this controller.
+  * @param behavior The HtmlBehaviorResource that provides the base behavior for this controller.
   * @param instruction The instructions pertaining to the controller's behavior.
-  * @param viewModel The user's view model instance which provides their custom behavior.
+  * @param viewModel The developer's view model instance which provides the custom behavior for this controller.
   */
   constructor(behavior: HtmlBehaviorResource, instruction: BehaviorInstruction, viewModel: Object) {
     this.behavior = behavior;
