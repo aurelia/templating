@@ -537,6 +537,19 @@ declare module 'aurelia-templating' {
     registerViewEngineHooks(hooks: ViewEngineHooks): void;
     
     /**
+      * Gets the binding language associated with these resources, or return the provided fallback implementation.
+      * @param bindingLanguageFallback The fallback binding language implementation to use if no binding language is configured locally.
+      * @return The binding language.
+      */
+    getBindingLanguage(bindingLanguageFallback: BindingLanguage): BindingLanguage;
+    
+    /**
+      * Patches an immediate parent into the view resource resolution hierarchy.
+      * @param newParent The new parent resources to patch in.
+      */
+    patchInParent(newParent: ViewResources): void;
+    
+    /**
       * Maps a path relative to the associated view's origin.
       * @param path The relative path.
       * @return The calcualted path.
@@ -551,12 +564,33 @@ declare module 'aurelia-templating' {
     registerElement(tagName: string, behavior: HtmlBehaviorResource): void;
     
     /**
+      * Gets an HTML element behavior.
+      * @param tagName The tag name to search for.
+      * @return The HtmlBehaviorResource for the tag name or null.
+      */
+    getElement(tagName: string): HtmlBehaviorResource;
+    
+    /**
+      * Gets the known attribute name based on the local attribute name.
+      * @param attribute The local attribute name to lookup.
+      * @return The known name.
+      */
+    mapAttribute(attribute: string): string;
+    
+    /**
       * Registers an HTML attribute.
       * @param attribute The name of the attribute.
       * @param behavior The behavior of the attribute.
       * @param knownAttribute The well-known name of the attribute (in lieu of the local name).
       */
     registerAttribute(attribute: string, behavior: HtmlBehaviorResource, knownAttribute: string): void;
+    
+    /**
+      * Gets an HTML attribute behavior.
+      * @param attribute The name of the attribute to lookup.
+      * @return The HtmlBehaviorResource for the attribute or null.
+      */
+    getAttribute(attribute: string): HtmlBehaviorResource;
     
     /**
       * Registers a value converter.
@@ -566,11 +600,25 @@ declare module 'aurelia-templating' {
     registerValueConverter(name: string, valueConverter: Object): void;
     
     /**
+      * Gets a value converter.
+      * @param name The name of the value converter.
+      * @return The value converter instance.
+      */
+    getValueConverter(name: string): Object;
+    
+    /**
       * Registers a binding behavior.
       * @param name The name of the binding behavior.
       * @param bindingBehavior The binding behavior instance.
       */
     registerBindingBehavior(name: string, bindingBehavior: Object): void;
+    
+    /**
+      * Gets a binding behavior.
+      * @param name The name of the binding behavior.
+      * @return The binding behavior instance.
+      */
+    getBindingBehavior(name: string): Object;
   }
   export class View {
     
@@ -1000,10 +1048,26 @@ declare module 'aurelia-templating' {
   export class Controller {
     
     /**
+      * The HtmlBehaviorResource that provides the base behavior for this controller.
+      */
+    behavior: HtmlBehaviorResource;
+    
+    /**
+      * The developer's view model instance which provides the custom behavior for this controller.
+      */
+    viewModel: Object;
+    
+    /**
+      * The view associated with the component being controlled by this controller.
+      * Note: Not all components will have a view, so the value may be null.
+      */
+    view: View;
+    
+    /**
       * Creates an instance of Controller.
-      * @param behavior The HtmlBehaviorResource that provides the behavior for this controller.
+      * @param behavior The HtmlBehaviorResource that provides the base behavior for this controller.
       * @param instruction The instructions pertaining to the controller's behavior.
-      * @param viewModel The user's view model instance which provides their custom behavior.
+      * @param viewModel The developer's view model instance which provides the custom behavior for this controller.
       */
     constructor(behavior: HtmlBehaviorResource, instruction: BehaviorInstruction, viewModel: Object);
     
@@ -1196,12 +1260,12 @@ declare module 'aurelia-templating' {
   /**
   * Creates a behavior property that references an array of immediate content child elememnts that matches the provided selector.
   */
-  export function children(selectorOrConfig: string | Object): Function;
+  export function children(selectorOrConfig: string | Object): any;
   
   /**
   * Creates a behavior property that references an immediate content child elememnt that matches the provided selector.
   */
-  export function child(selectorOrConfig: string | Object): Function;
+  export function child(selectorOrConfig: string | Object): any;
   class ChildObserver {
     constructor(config: any);
     create(target: any, viewModel: any): any;
@@ -1280,52 +1344,52 @@ declare module 'aurelia-templating' {
   * Decorator: Specifies a resource instance that describes the decorated class.
   * @param instance The resource instance.
   */
-  export function resource(instance: Object): Function;
+  export function resource(instance: Object): any;
   
   /**
   * Decorator: Specifies a custom HtmlBehaviorResource instance or an object that overrides various implementation details of the default HtmlBehaviorResource.
   * @param override The customized HtmlBehaviorResource or an object to override the default with.
   */
-  export function behavior(override: HtmlBehaviorResource | Object): Function;
+  export function behavior(override: HtmlBehaviorResource | Object): any;
   
   /**
   * Decorator: Indicates that the decorated class is a custom element.
   * @param name The name of the custom element.
   */
-  export function customElement(name: string): Function;
+  export function customElement(name: string): any;
   
   /**
   * Decorator: Indicates that the decorated class is a custom attribute.
   * @param name The name of the custom attribute.
   * @param defaultBindingMode The default binding mode to use when the attribute is bound wtih .bind.
   */
-  export function customAttribute(name: string, defaultBindingMode?: number): Function;
+  export function customAttribute(name: string, defaultBindingMode?: number): any;
   
   /**
   * Decorator: Applied to custom attributes. Indicates that whatever element the
   * attribute is placed on should be converted into a template and that this
   * attribute controls the instantiation of the template.
   */
-  export function templateController(target?: any): Function;
+  export function templateController(target?: any): any;
   
   /**
   * Decorator: Specifies that a property is bindable through HTML.
   * @param nameOrConfigOrTarget The name of the property, or a configuration object.
   */
-  export function bindable(nameOrConfigOrTarget?: string | Object, key?: any, descriptor?: any): Function;
+  export function bindable(nameOrConfigOrTarget?: string | Object, key?: any, descriptor?: any): any;
   
   // placed on a class
   /**
   * Decorator: Specifies that the decorated custom attribute has options that
   * are dynamic, based on their presence in HTML and not statically known.
   */
-  export function dynamicOptions(target?: any): Function;
+  export function dynamicOptions(target?: any): any;
   
   /**
   * Decorator: Indicates that the custom element should render its view in Shadow
   * DOM. This decorator may change slighly when Aurelia updates to Shadow DOM v1.
   */
-  export function useShadowDOM(target?: any): Function;
+  export function useShadowDOM(target?: any): any;
   
   /**
   * Decorator: Enables custom processing of the content that is places inside the
@@ -1335,25 +1399,25 @@ declare module 'aurelia-templating' {
   * can provide custom processing of the content. This function should then return
   * a boolean indicating whether the compiler should also process the content.
   */
-  export function processContent(processor: boolean | Function): Function;
+  export function processContent(processor: boolean | Function): any;
   
   /**
   * Decorator: Indicates that the custom element should be rendered without its
   * element container.
   */
-  export function containerless(target?: any): Function;
+  export function containerless(target?: any): any;
   
   /**
   * Decorator: Associates a custom view strategy with the component.
   * @param strategy The view strategy instance.
   */
-  export function useViewStrategy(strategy: Object): Function;
+  export function useViewStrategy(strategy: Object): any;
   
   /**
   * Decorator: Provides a relative path to a view for the component.
   * @param path The path to the view.
   */
-  export function useView(path: string): Function;
+  export function useView(path: string): any;
   
   /**
   * Decorator: Provides a view template, directly inline, for the component. Be
@@ -1362,18 +1426,18 @@ declare module 'aurelia-templating' {
   * @param dependencies A list of dependencies that the template has.
   * @param dependencyBaseUrl A base url from which the dependencies will be loaded.
   */
-  export function inlineView(markup: string, dependencies?: Array<string | Function | Object>, dependencyBaseUrl?: string): Function;
+  export function inlineView(markup: string, dependencies?: Array<string | Function | Object>, dependencyBaseUrl?: string): any;
   
   /**
   * Decorator: Indicates that the component has no view.
   */
-  export function noView(target?: any): Function;
+  export function noView(target?: any): any;
   
   /**
   * Decorator: Indicates that the decorated class provides element configuration
   * to the EventManager for one or more Web Components.
   */
-  export function elementConfig(target?: any): Function;
+  export function elementConfig(target?: any): any;
   export class TemplatingEngine {
     
     /**

@@ -597,8 +597,8 @@ var ViewResources = (function () {
     this.hasParent = this.parent !== null;
     this.viewUrl = viewUrl || '';
     this.lookupFunctions = {
-      valueConverters: this._getValueConverter.bind(this),
-      bindingBehaviors: this._getBindingBehavior.bind(this)
+      valueConverters: this.getValueConverter.bind(this),
+      bindingBehaviors: this.getBindingBehavior.bind(this)
     };
     this.attributes = {};
     this.elements = {};
@@ -726,11 +726,11 @@ var ViewResources = (function () {
     }
   };
 
-  ViewResources.prototype._getBindingLanguage = function _getBindingLanguage(bindingLanguageFallback) {
+  ViewResources.prototype.getBindingLanguage = function getBindingLanguage(bindingLanguageFallback) {
     return this.bindingLanguage || (this.bindingLanguage = bindingLanguageFallback);
   };
 
-  ViewResources.prototype._patchInParent = function _patchInParent(newParent) {
+  ViewResources.prototype.patchInParent = function patchInParent(newParent) {
     var originalParent = this.parent;
 
     this.parent = newParent || null;
@@ -750,12 +750,12 @@ var ViewResources = (function () {
     register(this.elements, tagName, behavior, 'an Element');
   };
 
-  ViewResources.prototype._getElement = function _getElement(tagName) {
-    return this.elements[tagName] || (this.hasParent ? this.parent._getElement(tagName) : null);
+  ViewResources.prototype.getElement = function getElement(tagName) {
+    return this.elements[tagName] || (this.hasParent ? this.parent.getElement(tagName) : null);
   };
 
-  ViewResources.prototype._mapAttribute = function _mapAttribute(attribute) {
-    return this.attributeMap[attribute] || (this.hasParent ? this.parent._mapAttribute(attribute) : null);
+  ViewResources.prototype.mapAttribute = function mapAttribute(attribute) {
+    return this.attributeMap[attribute] || (this.hasParent ? this.parent.mapAttribute(attribute) : null);
   };
 
   ViewResources.prototype.registerAttribute = function registerAttribute(attribute, behavior, knownAttribute) {
@@ -763,24 +763,24 @@ var ViewResources = (function () {
     register(this.attributes, attribute, behavior, 'an Attribute');
   };
 
-  ViewResources.prototype._getAttribute = function _getAttribute(attribute) {
-    return this.attributes[attribute] || (this.hasParent ? this.parent._getAttribute(attribute) : null);
+  ViewResources.prototype.getAttribute = function getAttribute(attribute) {
+    return this.attributes[attribute] || (this.hasParent ? this.parent.getAttribute(attribute) : null);
   };
 
   ViewResources.prototype.registerValueConverter = function registerValueConverter(name, valueConverter) {
     register(this.valueConverters, name, valueConverter, 'a ValueConverter');
   };
 
-  ViewResources.prototype._getValueConverter = function _getValueConverter(name) {
-    return this.valueConverters[name] || (this.hasParent ? this.parent._getValueConverter(name) : null);
+  ViewResources.prototype.getValueConverter = function getValueConverter(name) {
+    return this.valueConverters[name] || (this.hasParent ? this.parent.getValueConverter(name) : null);
   };
 
   ViewResources.prototype.registerBindingBehavior = function registerBindingBehavior(name, bindingBehavior) {
     register(this.bindingBehaviors, name, bindingBehavior, 'a BindingBehavior');
   };
 
-  ViewResources.prototype._getBindingBehavior = function _getBindingBehavior(name) {
-    return this.bindingBehaviors[name] || (this.hasParent ? this.parent._getBindingBehavior(name) : null);
+  ViewResources.prototype.getBindingBehavior = function getBindingBehavior(name) {
+    return this.bindingBehaviors[name] || (this.hasParent ? this.parent.getBindingBehavior(name) : null);
   };
 
   return ViewResources;
@@ -1855,7 +1855,7 @@ function configureProperties(instruction, resources) {
   var key = undefined;
   var value = undefined;
 
-  var knownAttribute = resources._mapAttribute(attrName);
+  var knownAttribute = resources.mapAttribute(attrName);
   if (knownAttribute && attrName in attributes && knownAttribute !== attrName) {
     attributes[knownAttribute] = attributes[attrName];
     delete attributes[attrName];
@@ -1943,7 +1943,7 @@ var ViewCompiler = (function () {
       case 1:
         return this._compileElement(node, resources, instructions, parentNode, parentInjectorId, targetLightDOM);
       case 3:
-        var expression = resources._getBindingLanguage(this.bindingLanguage).parseText(resources, node.wholeText);
+        var expression = resources.getBindingLanguage(this.bindingLanguage).parseText(resources, node.wholeText);
         if (expression) {
           var marker = _aureliaPal.DOM.createElement('au-marker');
           var auTargetID = makeIntoInstructionTarget(marker);
@@ -1975,7 +1975,7 @@ var ViewCompiler = (function () {
 
   ViewCompiler.prototype._compileSurrogate = function _compileSurrogate(node, resources) {
     var attributes = node.attributes;
-    var bindingLanguage = resources._getBindingLanguage(this.bindingLanguage);
+    var bindingLanguage = resources.getBindingLanguage(this.bindingLanguage);
     var knownAttribute = undefined;
     var property = undefined;
     var instruction = undefined;
@@ -1999,10 +1999,10 @@ var ViewCompiler = (function () {
       attrValue = attr.value;
 
       info = bindingLanguage.inspectAttribute(resources, attrName, attrValue);
-      type = resources._getAttribute(info.attrName);
+      type = resources.getAttribute(info.attrName);
 
       if (type) {
-        knownAttribute = resources._mapAttribute(info.attrName);
+        knownAttribute = resources.mapAttribute(info.attrName);
         if (knownAttribute) {
           property = type.attributes[knownAttribute];
 
@@ -2020,7 +2020,7 @@ var ViewCompiler = (function () {
 
       if (instruction) {
         if (instruction.alteredAttr) {
-          type = resources._getAttribute(instruction.attrName);
+          type = resources.getAttribute(instruction.attrName);
         }
 
         if (instruction.discrete) {
@@ -2042,7 +2042,7 @@ var ViewCompiler = (function () {
       } else {
         if (type) {
           instruction = BehaviorInstruction.attribute(attrName, type);
-          instruction.attributes[resources._mapAttribute(attrName)] = attrValue;
+          instruction.attributes[resources.mapAttribute(attrName)] = attrValue;
 
           if (type.liftsContent) {
             throw new Error('You cannot place a template controller on a surrogate element.');
@@ -2083,7 +2083,7 @@ var ViewCompiler = (function () {
     var expression = undefined;
     var behaviorInstructions = [];
     var providers = [];
-    var bindingLanguage = resources._getBindingLanguage(this.bindingLanguage);
+    var bindingLanguage = resources.getBindingLanguage(this.bindingLanguage);
     var liftingInstruction = undefined;
     var viewFactory = undefined;
     var type = undefined;
@@ -2111,7 +2111,7 @@ var ViewCompiler = (function () {
       viewFactory = this.compile(node, resources);
       viewFactory.part = node.getAttribute('part');
     } else {
-      type = resources._getElement(tagName);
+      type = resources.getElement(tagName);
       if (type) {
         elementInstruction = BehaviorInstruction.element(node, type);
         behaviorInstructions.push(elementInstruction);
@@ -2123,11 +2123,11 @@ var ViewCompiler = (function () {
       attrName = attr.name;
       attrValue = attr.value;
       info = bindingLanguage.inspectAttribute(resources, attrName, attrValue);
-      type = resources._getAttribute(info.attrName);
+      type = resources.getAttribute(info.attrName);
       elementProperty = null;
 
       if (type) {
-        knownAttribute = resources._mapAttribute(info.attrName);
+        knownAttribute = resources.mapAttribute(info.attrName);
         if (knownAttribute) {
           property = type.attributes[knownAttribute];
 
@@ -2154,7 +2154,7 @@ var ViewCompiler = (function () {
 
       if (instruction) {
         if (instruction.alteredAttr) {
-          type = resources._getAttribute(instruction.attrName);
+          type = resources.getAttribute(instruction.attrName);
         }
 
         if (instruction.discrete) {
@@ -2180,7 +2180,7 @@ var ViewCompiler = (function () {
       } else {
         if (type) {
           instruction = BehaviorInstruction.attribute(attrName, type);
-          instruction.attributes[resources._mapAttribute(attrName)] = attrValue;
+          instruction.attributes[resources.mapAttribute(attrName)] = attrValue;
 
           if (type.liftsContent) {
             instruction.originalAttrName = attrName;

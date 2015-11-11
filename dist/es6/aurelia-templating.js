@@ -801,8 +801,8 @@ export class ViewResources {
     this.hasParent = this.parent !== null;
     this.viewUrl = viewUrl || '';
     this.lookupFunctions = {
-      valueConverters: this._getValueConverter.bind(this),
-      bindingBehaviors: this._getBindingBehavior.bind(this)
+      valueConverters: this.getValueConverter.bind(this),
+      bindingBehaviors: this.getBindingBehavior.bind(this)
     };
     this.attributes = {};
     this.elements = {};
@@ -937,11 +937,20 @@ export class ViewResources {
     }
   }
 
-  _getBindingLanguage(bindingLanguageFallback: BindingLanguage): BindingLanguage {
+  /**
+  * Gets the binding language associated with these resources, or return the provided fallback implementation.
+  * @param bindingLanguageFallback The fallback binding language implementation to use if no binding language is configured locally.
+  * @return The binding language.
+  */
+  getBindingLanguage(bindingLanguageFallback: BindingLanguage): BindingLanguage {
     return this.bindingLanguage || (this.bindingLanguage = bindingLanguageFallback);
   }
 
-  _patchInParent(newParent: ViewResources): void {
+  /**
+  * Patches an immediate parent into the view resource resolution hierarchy.
+  * @param newParent The new parent resources to patch in.
+  */
+  patchInParent(newParent: ViewResources): void {
     let originalParent = this.parent;
 
     this.parent = newParent || null;
@@ -971,12 +980,22 @@ export class ViewResources {
     register(this.elements, tagName, behavior, 'an Element');
   }
 
-  _getElement(tagName: string): HtmlBehaviorResource {
-    return this.elements[tagName] || (this.hasParent ? this.parent._getElement(tagName) : null);
+  /**
+  * Gets an HTML element behavior.
+  * @param tagName The tag name to search for.
+  * @return The HtmlBehaviorResource for the tag name or null.
+  */
+  getElement(tagName: string): HtmlBehaviorResource {
+    return this.elements[tagName] || (this.hasParent ? this.parent.getElement(tagName) : null);
   }
 
-  _mapAttribute(attribute: string): string {
-    return this.attributeMap[attribute] || (this.hasParent ? this.parent._mapAttribute(attribute) : null);
+  /**
+  * Gets the known attribute name based on the local attribute name.
+  * @param attribute The local attribute name to lookup.
+  * @return The known name.
+  */
+  mapAttribute(attribute: string): string {
+    return this.attributeMap[attribute] || (this.hasParent ? this.parent.mapAttribute(attribute) : null);
   }
 
   /**
@@ -990,8 +1009,13 @@ export class ViewResources {
     register(this.attributes, attribute, behavior, 'an Attribute');
   }
 
-  _getAttribute(attribute: string): HtmlBehaviorResource {
-    return this.attributes[attribute] || (this.hasParent ? this.parent._getAttribute(attribute) : null);
+  /**
+  * Gets an HTML attribute behavior.
+  * @param attribute The name of the attribute to lookup.
+  * @return The HtmlBehaviorResource for the attribute or null.
+  */
+  getAttribute(attribute: string): HtmlBehaviorResource {
+    return this.attributes[attribute] || (this.hasParent ? this.parent.getAttribute(attribute) : null);
   }
 
   /**
@@ -1003,8 +1027,13 @@ export class ViewResources {
     register(this.valueConverters, name, valueConverter, 'a ValueConverter');
   }
 
-  _getValueConverter(name: string): Object {
-    return this.valueConverters[name] || (this.hasParent ? this.parent._getValueConverter(name) : null);
+  /**
+  * Gets a value converter.
+  * @param name The name of the value converter.
+  * @return The value converter instance.
+  */
+  getValueConverter(name: string): Object {
+    return this.valueConverters[name] || (this.hasParent ? this.parent.getValueConverter(name) : null);
   }
 
   /**
@@ -1016,8 +1045,13 @@ export class ViewResources {
     register(this.bindingBehaviors, name, bindingBehavior, 'a BindingBehavior');
   }
 
-  _getBindingBehavior(name: string): Object {
-    return this.bindingBehaviors[name] || (this.hasParent ? this.parent._getBindingBehavior(name) : null);
+  /**
+  * Gets a binding behavior.
+  * @param name The name of the binding behavior.
+  * @return The binding behavior instance.
+  */
+  getBindingBehavior(name: string): Object {
+    return this.bindingBehaviors[name] || (this.hasParent ? this.parent.getBindingBehavior(name) : null);
   }
 }
 
@@ -2242,7 +2276,7 @@ function configureProperties(instruction, resources) {
   let key;
   let value;
 
-  let knownAttribute = resources._mapAttribute(attrName);
+  let knownAttribute = resources.mapAttribute(attrName);
   if (knownAttribute && attrName in attributes && knownAttribute !== attrName) {
     attributes[knownAttribute] = attributes[attrName];
     delete attributes[attrName];
@@ -2345,7 +2379,7 @@ export class ViewCompiler {
       return this._compileElement(node, resources, instructions, parentNode, parentInjectorId, targetLightDOM);
     case 3: //text node
       //use wholeText to retrieve the textContent of all adjacent text nodes.
-      let expression = resources._getBindingLanguage(this.bindingLanguage).parseText(resources, node.wholeText);
+      let expression = resources.getBindingLanguage(this.bindingLanguage).parseText(resources, node.wholeText);
       if (expression) {
         let marker = DOM.createElement('au-marker');
         let auTargetID = makeIntoInstructionTarget(marker);
@@ -2378,7 +2412,7 @@ export class ViewCompiler {
 
   _compileSurrogate(node, resources) {
     let attributes = node.attributes;
-    let bindingLanguage = resources._getBindingLanguage(this.bindingLanguage);
+    let bindingLanguage = resources.getBindingLanguage(this.bindingLanguage);
     let knownAttribute;
     let property;
     let instruction;
@@ -2402,10 +2436,10 @@ export class ViewCompiler {
       attrValue = attr.value;
 
       info = bindingLanguage.inspectAttribute(resources, attrName, attrValue);
-      type = resources._getAttribute(info.attrName);
+      type = resources.getAttribute(info.attrName);
 
       if (type) { //do we have an attached behavior?
-        knownAttribute = resources._mapAttribute(info.attrName); //map the local name to real name
+        knownAttribute = resources.mapAttribute(info.attrName); //map the local name to real name
         if (knownAttribute) {
           property = type.attributes[knownAttribute];
 
@@ -2423,7 +2457,7 @@ export class ViewCompiler {
 
       if (instruction) { //HAS BINDINGS
         if (instruction.alteredAttr) {
-          type = resources._getAttribute(instruction.attrName);
+          type = resources.getAttribute(instruction.attrName);
         }
 
         if (instruction.discrete) { //ref binding or listener binding
@@ -2445,7 +2479,7 @@ export class ViewCompiler {
       } else { //NO BINDINGS
         if (type) { //templator or attached behavior found
           instruction = BehaviorInstruction.attribute(attrName, type);
-          instruction.attributes[resources._mapAttribute(attrName)] = attrValue;
+          instruction.attributes[resources.mapAttribute(attrName)] = attrValue;
 
           if (type.liftsContent) { //template controller
             throw new Error('You cannot place a template controller on a surrogate element.');
@@ -2486,7 +2520,7 @@ export class ViewCompiler {
     let expression;
     let behaviorInstructions = [];
     let providers = [];
-    let bindingLanguage = resources._getBindingLanguage(this.bindingLanguage);
+    let bindingLanguage = resources.getBindingLanguage(this.bindingLanguage);
     let liftingInstruction;
     let viewFactory;
     let type;
@@ -2514,7 +2548,7 @@ export class ViewCompiler {
       viewFactory = this.compile(node, resources);
       viewFactory.part = node.getAttribute('part');
     } else {
-      type = resources._getElement(tagName);
+      type = resources.getElement(tagName);
       if (type) {
         elementInstruction = BehaviorInstruction.element(node, type);
         behaviorInstructions.push(elementInstruction);
@@ -2526,11 +2560,11 @@ export class ViewCompiler {
       attrName = attr.name;
       attrValue = attr.value;
       info = bindingLanguage.inspectAttribute(resources, attrName, attrValue);
-      type = resources._getAttribute(info.attrName);
+      type = resources.getAttribute(info.attrName);
       elementProperty = null;
 
       if (type) { //do we have an attached behavior?
-        knownAttribute = resources._mapAttribute(info.attrName); //map the local name to real name
+        knownAttribute = resources.mapAttribute(info.attrName); //map the local name to real name
         if (knownAttribute) {
           property = type.attributes[knownAttribute];
 
@@ -2557,7 +2591,7 @@ export class ViewCompiler {
 
       if (instruction) { //HAS BINDINGS
         if (instruction.alteredAttr) {
-          type = resources._getAttribute(instruction.attrName);
+          type = resources.getAttribute(instruction.attrName);
         }
 
         if (instruction.discrete) { //ref binding or listener binding
@@ -2583,7 +2617,7 @@ export class ViewCompiler {
       } else { //NO BINDINGS
         if (type) { //templator or attached behavior found
           instruction = BehaviorInstruction.attribute(attrName, type);
-          instruction.attributes[resources._mapAttribute(attrName)] = attrValue;
+          instruction.attributes[resources.mapAttribute(attrName)] = attrValue;
 
           if (type.liftsContent) { //template controller
             instruction.originalAttrName = attrName;
@@ -3160,10 +3194,26 @@ export class ViewEngine {
 */
 export class Controller {
   /**
+  * The HtmlBehaviorResource that provides the base behavior for this controller.
+  */
+  behavior: HtmlBehaviorResource;
+
+  /**
+  * The developer's view model instance which provides the custom behavior for this controller.
+  */
+  viewModel: Object;
+
+  /**
+  * The view associated with the component being controlled by this controller.
+  * Note: Not all components will have a view, so the value may be null.
+  */
+  view: View;
+
+  /**
   * Creates an instance of Controller.
-  * @param behavior The HtmlBehaviorResource that provides the behavior for this controller.
+  * @param behavior The HtmlBehaviorResource that provides the base behavior for this controller.
   * @param instruction The instructions pertaining to the controller's behavior.
-  * @param viewModel The user's view model instance which provides their custom behavior.
+  * @param viewModel The developer's view model instance which provides the custom behavior for this controller.
   */
   constructor(behavior: HtmlBehaviorResource, instruction: BehaviorInstruction, viewModel: Object) {
     this.behavior = behavior;
@@ -4076,14 +4126,14 @@ function createChildObserverDecorator(selectorOrConfig, all) {
 /**
 * Creates a behavior property that references an array of immediate content child elememnts that matches the provided selector.
 */
-export function children(selectorOrConfig: string | Object): Function {
+export function children(selectorOrConfig: string | Object): any {
   return createChildObserverDecorator(selectorOrConfig, true);
 }
 
 /**
 * Creates a behavior property that references an immediate content child elememnt that matches the provided selector.
 */
-export function child(selectorOrConfig: string | Object): Function {
+export function child(selectorOrConfig: string | Object): any {
   return createChildObserverDecorator(selectorOrConfig, false);
 }
 
@@ -4504,7 +4554,7 @@ function validateBehaviorName(name, type) {
 * Decorator: Specifies a resource instance that describes the decorated class.
 * @param instance The resource instance.
 */
-export function resource(instance: Object): Function {
+export function resource(instance: Object): any {
   return function(target) {
     metadata.define(metadata.resource, instance, target);
   };
@@ -4514,7 +4564,7 @@ export function resource(instance: Object): Function {
 * Decorator: Specifies a custom HtmlBehaviorResource instance or an object that overrides various implementation details of the default HtmlBehaviorResource.
 * @param override The customized HtmlBehaviorResource or an object to override the default with.
 */
-export function behavior(override: HtmlBehaviorResource | Object): Function {
+export function behavior(override: HtmlBehaviorResource | Object): any {
   return function(target) {
     if (override instanceof HtmlBehaviorResource) {
       metadata.define(metadata.resource, override, target);
@@ -4529,7 +4579,7 @@ export function behavior(override: HtmlBehaviorResource | Object): Function {
 * Decorator: Indicates that the decorated class is a custom element.
 * @param name The name of the custom element.
 */
-export function customElement(name: string): Function {
+export function customElement(name: string): any {
   validateBehaviorName(name, 'custom element');
   return function(target) {
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, target);
@@ -4542,7 +4592,7 @@ export function customElement(name: string): Function {
 * @param name The name of the custom attribute.
 * @param defaultBindingMode The default binding mode to use when the attribute is bound wtih .bind.
 */
-export function customAttribute(name: string, defaultBindingMode?: number): Function {
+export function customAttribute(name: string, defaultBindingMode?: number): any {
   validateBehaviorName(name, 'custom attribute');
   return function(target) {
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, target);
@@ -4556,7 +4606,7 @@ export function customAttribute(name: string, defaultBindingMode?: number): Func
 * attribute is placed on should be converted into a template and that this
 * attribute controls the instantiation of the template.
 */
-export function templateController(target?): Function {
+export function templateController(target?): any {
   let deco = function(t) {
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
     r.liftsContent = true;
@@ -4569,7 +4619,7 @@ export function templateController(target?): Function {
 * Decorator: Specifies that a property is bindable through HTML.
 * @param nameOrConfigOrTarget The name of the property, or a configuration object.
 */
-export function bindable(nameOrConfigOrTarget?: string | Object, key?, descriptor?): Function {
+export function bindable(nameOrConfigOrTarget?: string | Object, key?, descriptor?): any {
   let deco = function(target, key2, descriptor2) {
     let actualTarget = key2 ? target.constructor : target; //is it on a property or a class?
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, actualTarget);
@@ -4601,7 +4651,7 @@ export function bindable(nameOrConfigOrTarget?: string | Object, key?, descripto
 * Decorator: Specifies that the decorated custom attribute has options that
 * are dynamic, based on their presence in HTML and not statically known.
 */
-export function dynamicOptions(target?): Function {
+export function dynamicOptions(target?): any {
   let deco = function(t) {
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
     r.hasDynamicOptions = true;
@@ -4614,7 +4664,7 @@ export function dynamicOptions(target?): Function {
 * Decorator: Indicates that the custom element should render its view in Shadow
 * DOM. This decorator may change slighly when Aurelia updates to Shadow DOM v1.
 */
-export function useShadowDOM(target?): Function {
+export function useShadowDOM(target?): any {
   let deco = function(t) {
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
     r.targetShadowDOM = true;
@@ -4635,7 +4685,7 @@ function doNotProcessContent() {
 * can provide custom processing of the content. This function should then return
 * a boolean indicating whether the compiler should also process the content.
 */
-export function processContent(processor: boolean | Function): Function {
+export function processContent(processor: boolean | Function): any {
   return function(t) {
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
     r.processContent = processor || doNotProcessContent;
@@ -4646,7 +4696,7 @@ export function processContent(processor: boolean | Function): Function {
 * Decorator: Indicates that the custom element should be rendered without its
 * element container.
 */
-export function containerless(target?): Function {
+export function containerless(target?): any {
   let deco = function(t) {
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
     r.containerless = true;
@@ -4659,7 +4709,7 @@ export function containerless(target?): Function {
 * Decorator: Associates a custom view strategy with the component.
 * @param strategy The view strategy instance.
 */
-export function useViewStrategy(strategy: Object): Function {
+export function useViewStrategy(strategy: Object): any {
   return function(target) {
     metadata.define(ViewLocator.viewStrategyMetadataKey, strategy, target);
   };
@@ -4669,7 +4719,7 @@ export function useViewStrategy(strategy: Object): Function {
 * Decorator: Provides a relative path to a view for the component.
 * @param path The path to the view.
 */
-export function useView(path: string): Function {
+export function useView(path: string): any {
   return useViewStrategy(new RelativeViewStrategy(path));
 }
 
@@ -4680,14 +4730,14 @@ export function useView(path: string): Function {
 * @param dependencies A list of dependencies that the template has.
 * @param dependencyBaseUrl A base url from which the dependencies will be loaded.
 */
-export function inlineView(markup:string, dependencies?:Array<string|Function|Object>, dependencyBaseUrl?:string): Function {
+export function inlineView(markup:string, dependencies?:Array<string|Function|Object>, dependencyBaseUrl?:string): any {
   return useViewStrategy(new InlineViewStrategy(markup, dependencies, dependencyBaseUrl));
 }
 
 /**
 * Decorator: Indicates that the component has no view.
 */
-export function noView(target?): Function {
+export function noView(target?): any {
   let deco = function(t) {
     metadata.define(ViewLocator.viewStrategyMetadataKey, new NoViewStrategy(), t);
   };
@@ -4699,7 +4749,7 @@ export function noView(target?): Function {
 * Decorator: Indicates that the decorated class provides element configuration
 * to the EventManager for one or more Web Components.
 */
-export function elementConfig(target?): Function {
+export function elementConfig(target?): any {
   let deco = function(t) {
     metadata.define(metadata.resource, new ElementConfigResource(), t);
   };

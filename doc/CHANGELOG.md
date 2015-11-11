@@ -1,3 +1,14 @@
+### 0.17.2 (2015-11-11)
+
+
+#### Bug Fixes
+
+* **child-observation:** make decorators more TS friendly ([7cf89017](http://github.com/aurelia/templating/commit/7cf89017d895c6b025e1e4141bc1903dd2f26fe8))
+* **controller:** expose some key properties for TS ([20be68fa](http://github.com/aurelia/templating/commit/20be68fa2f818ebcf46df9b356f425c6e9727c2a))
+* **decorators:** make TS happier ([d02ac893](http://github.com/aurelia/templating/commit/d02ac893c3e45dcf08d4098ca86f13115ee45c5a))
+* **view-resources:** make more api public ([97dc31cd](http://github.com/aurelia/templating/commit/97dc31cd46201e9cc4a7e47b359b2ae96ea1fa02))
+
+
 ### 0.17.1 (2015-11-10)
 
 
