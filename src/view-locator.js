@@ -29,7 +29,7 @@ export class ViewLocator {
         value = new RelativeViewStrategy(value);
       }
 
-      viewStategy.assert(value);
+      viewStrategy.assert(value);
 
       if (origin) {
         value.makeRelativeTo(origin.moduleId);
