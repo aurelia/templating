@@ -15,7 +15,7 @@ function validateBehaviorName(name, type) {
 * Decorator: Specifies a resource instance that describes the decorated class.
 * @param instance The resource instance.
 */
-export function resource(instance: Object): Function {
+export function resource(instance: Object): any {
   return function(target) {
     metadata.define(metadata.resource, instance, target);
   };
@@ -25,7 +25,7 @@ export function resource(instance: Object): Function {
 * Decorator: Specifies a custom HtmlBehaviorResource instance or an object that overrides various implementation details of the default HtmlBehaviorResource.
 * @param override The customized HtmlBehaviorResource or an object to override the default with.
 */
-export function behavior(override: HtmlBehaviorResource | Object): Function {
+export function behavior(override: HtmlBehaviorResource | Object): any {
   return function(target) {
     if (override instanceof HtmlBehaviorResource) {
       metadata.define(metadata.resource, override, target);
@@ -40,7 +40,7 @@ export function behavior(override: HtmlBehaviorResource | Object): Function {
 * Decorator: Indicates that the decorated class is a custom element.
 * @param name The name of the custom element.
 */
-export function customElement(name: string): Function {
+export function customElement(name: string): any {
   validateBehaviorName(name, 'custom element');
   return function(target) {
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, target);
@@ -53,7 +53,7 @@ export function customElement(name: string): Function {
 * @param name The name of the custom attribute.
 * @param defaultBindingMode The default binding mode to use when the attribute is bound wtih .bind.
 */
-export function customAttribute(name: string, defaultBindingMode?: number): Function {
+export function customAttribute(name: string, defaultBindingMode?: number): any {
   validateBehaviorName(name, 'custom attribute');
   return function(target) {
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, target);
@@ -67,7 +67,7 @@ export function customAttribute(name: string, defaultBindingMode?: number): Func
 * attribute is placed on should be converted into a template and that this
 * attribute controls the instantiation of the template.
 */
-export function templateController(target?): Function {
+export function templateController(target?): any {
   let deco = function(t) {
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
     r.liftsContent = true;
@@ -80,7 +80,7 @@ export function templateController(target?): Function {
 * Decorator: Specifies that a property is bindable through HTML.
 * @param nameOrConfigOrTarget The name of the property, or a configuration object.
 */
-export function bindable(nameOrConfigOrTarget?: string | Object, key?, descriptor?): Function {
+export function bindable(nameOrConfigOrTarget?: string | Object, key?, descriptor?): any {
   let deco = function(target, key2, descriptor2) {
     let actualTarget = key2 ? target.constructor : target; //is it on a property or a class?
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, actualTarget);
@@ -112,7 +112,7 @@ export function bindable(nameOrConfigOrTarget?: string | Object, key?, descripto
 * Decorator: Specifies that the decorated custom attribute has options that
 * are dynamic, based on their presence in HTML and not statically known.
 */
-export function dynamicOptions(target?): Function {
+export function dynamicOptions(target?): any {
   let deco = function(t) {
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
     r.hasDynamicOptions = true;
@@ -125,7 +125,7 @@ export function dynamicOptions(target?): Function {
 * Decorator: Indicates that the custom element should render its view in Shadow
 * DOM. This decorator may change slighly when Aurelia updates to Shadow DOM v1.
 */
-export function useShadowDOM(target?): Function {
+export function useShadowDOM(target?): any {
   let deco = function(t) {
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
     r.targetShadowDOM = true;
@@ -146,7 +146,7 @@ function doNotProcessContent() {
 * can provide custom processing of the content. This function should then return
 * a boolean indicating whether the compiler should also process the content.
 */
-export function processContent(processor: boolean | Function): Function {
+export function processContent(processor: boolean | Function): any {
   return function(t) {
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
     r.processContent = processor || doNotProcessContent;
@@ -157,7 +157,7 @@ export function processContent(processor: boolean | Function): Function {
 * Decorator: Indicates that the custom element should be rendered without its
 * element container.
 */
-export function containerless(target?): Function {
+export function containerless(target?): any {
   let deco = function(t) {
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
     r.containerless = true;
@@ -170,7 +170,7 @@ export function containerless(target?): Function {
 * Decorator: Associates a custom view strategy with the component.
 * @param strategy The view strategy instance.
 */
-export function useViewStrategy(strategy: Object): Function {
+export function useViewStrategy(strategy: Object): any {
   return function(target) {
     metadata.define(ViewLocator.viewStrategyMetadataKey, strategy, target);
   };
@@ -180,7 +180,7 @@ export function useViewStrategy(strategy: Object): Function {
 * Decorator: Provides a relative path to a view for the component.
 * @param path The path to the view.
 */
-export function useView(path: string): Function {
+export function useView(path: string): any {
   return useViewStrategy(new RelativeViewStrategy(path));
 }
 
@@ -191,14 +191,14 @@ export function useView(path: string): Function {
 * @param dependencies A list of dependencies that the template has.
 * @param dependencyBaseUrl A base url from which the dependencies will be loaded.
 */
-export function inlineView(markup:string, dependencies?:Array<string|Function|Object>, dependencyBaseUrl?:string): Function {
+export function inlineView(markup:string, dependencies?:Array<string|Function|Object>, dependencyBaseUrl?:string): any {
   return useViewStrategy(new InlineViewStrategy(markup, dependencies, dependencyBaseUrl));
 }
 
 /**
 * Decorator: Indicates that the component has no view.
 */
-export function noView(target?): Function {
+export function noView(target?): any {
   let deco = function(t) {
     metadata.define(ViewLocator.viewStrategyMetadataKey, new NoViewStrategy(), t);
   };
@@ -210,7 +210,7 @@ export function noView(target?): Function {
 * Decorator: Indicates that the decorated class provides element configuration
 * to the EventManager for one or more Web Components.
 */
-export function elementConfig(target?): Function {
+export function elementConfig(target?): any {
   let deco = function(t) {
     metadata.define(metadata.resource, new ElementConfigResource(), t);
   };
