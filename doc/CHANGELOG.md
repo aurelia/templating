@@ -1,3 +1,11 @@
+### 0.17.4 (2015-11-12)
+
+
+#### Bug Fixes
+
+* **child-observation:** undefined selector and change handler ([b3db0fdd](http://github.com/aurelia/templating/commit/b3db0fddd0c2bd591919df1c830b1e293e3f8f22), closes [#207](http://github.com/aurelia/templating/issues/207))
+
+
 ### 0.17.3 (2015-11-11)
 
 
