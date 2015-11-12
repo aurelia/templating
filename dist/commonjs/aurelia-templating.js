@@ -3554,7 +3554,7 @@ function onChildChange(mutations, observer) {
     }
   }
 
-  groupedMutations.forEach(function (key, value) {
+  groupedMutations.forEach(function (value, key) {
     if (key.changeHandler !== null) {
       key.viewModel[key.changeHandler](value);
     }
@@ -3645,7 +3645,9 @@ var ChildObserverBinder = (function () {
   };
 
   ChildObserverBinder.prototype.onAdd = function onAdd(element) {
-    if (element.matches(this.selector)) {
+    var selector = this.selector;
+
+    if (element.matches(selector)) {
       var value = element.au && element.au.controller ? element.au.controller.viewModel : element;
 
       if (this.all) {
