@@ -98,7 +98,7 @@ function onChildChange(mutations, observer) {
     }
   }
 
-  groupedMutations.forEach((key, value) => {
+  groupedMutations.forEach((value, key) => {
     if (key.changeHandler !== null) {
       key.viewModel[key.changeHandler](value);
     }
@@ -187,7 +187,9 @@ class ChildObserverBinder {
   }
 
   onAdd(element) {
-    if (element.matches(this.selector)) {
+    let selector = this.selector;
+
+    if (element.matches(selector)) {
       let value = element.au && element.au.controller ? element.au.controller.viewModel : element;
 
       if (this.all) {
