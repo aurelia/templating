@@ -4490,14 +4490,14 @@ export class CompositionEngine {
         if (removeResponse instanceof Promise) {
           return removeResponse.then(() => {
             let result = viewFactory.create(context.childContainer);
-            result.bind(context.bindingContext);
+            result.bind(context.bindingContext, context.overrideContext);
             context.viewSlot.add(result);
             return result;
           });
         }
 
         let result = viewFactory.create(context.childContainer);
-        result.bind(context.bindingContext);
+        result.bind(context.bindingContext, context.overrideContext);
         context.viewSlot.add(result);
         return result;
       });

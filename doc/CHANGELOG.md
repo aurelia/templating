@@ -1,3 +1,11 @@
+### 0.17.3 (2015-11-11)
+
+
+#### Bug Fixes
+
+* **CompositionEngine:** flow overrideContext ([ac02cb7d](http://github.com/aurelia/templating/commit/ac02cb7d5fa1de57bdfe5b0eb480543673a22afb))
+
+
 ### 0.17.2 (2015-11-11)
 
 

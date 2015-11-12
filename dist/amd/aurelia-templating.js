@@ -3774,14 +3774,14 @@ define(['exports', 'core-js', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pa
           if (removeResponse instanceof Promise) {
             return removeResponse.then(function () {
               var result = viewFactory.create(context.childContainer);
-              result.bind(context.bindingContext);
+              result.bind(context.bindingContext, context.overrideContext);
               context.viewSlot.add(result);
               return result;
             });
           }
 
           var result = viewFactory.create(context.childContainer);
-          result.bind(context.bindingContext);
+          result.bind(context.bindingContext, context.overrideContext);
           context.viewSlot.add(result);
           return result;
         });
