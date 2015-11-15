@@ -3241,11 +3241,11 @@ export class Controller {
 
   /**
   * Invoked when the view which contains this controller is created.
-  * @param view The view inside which this controller resides.
+  * @param owningView The view inside which this controller resides.
   */
-  created(view): void {
+  created(owningView): void {
     if (this.behavior.handlesCreated) {
-      this.viewModel.created(view);
+      this.viewModel.created(owningView, this.view);
     }
   }
 

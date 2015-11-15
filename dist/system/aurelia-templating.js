@@ -2994,9 +2994,9 @@ System.register(['core-js', 'aurelia-logging', 'aurelia-metadata', 'aurelia-path
           }
         }
 
-        Controller.prototype.created = function created(view) {
+        Controller.prototype.created = function created(owningView) {
           if (this.behavior.handlesCreated) {
-            this.viewModel.created(view);
+            this.viewModel.created(owningView, this.view);
           }
         };
 

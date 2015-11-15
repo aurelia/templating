@@ -2708,9 +2708,9 @@ var Controller = (function () {
     }
   }
 
-  Controller.prototype.created = function created(view) {
+  Controller.prototype.created = function created(owningView) {
     if (this.behavior.handlesCreated) {
-      this.viewModel.created(view);
+      this.viewModel.created(owningView, this.view);
     }
   };
 

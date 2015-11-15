@@ -1,3 +1,11 @@
+### 0.17.5 (2015-11-15)
+
+
+#### Features
+
+* **controller:** pass not only the owningView to the view-model, but the component's view as well ([5ee79b74](http://github.com/aurelia/templating/commit/5ee79b74a3c7c30ebd95ad34a596f7fed5a0d807))
+
+
 ### 0.17.4 (2015-11-12)
 
 

@@ -1073,9 +1073,9 @@ declare module 'aurelia-templating' {
     
     /**
       * Invoked when the view which contains this controller is created.
-      * @param view The view inside which this controller resides.
+      * @param owningView The view inside which this controller resides.
       */
-    created(view: any): void;
+    created(owningView: any): void;
     
     /**
       * Used to automate the proper binding of this controller and its view. Used by the composition engine for dynamic component creation.
