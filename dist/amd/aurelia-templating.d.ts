@@ -29,6 +29,14 @@ declare module 'aurelia-templating' {
   * Implemented by classes that describe how a view factory should be loaded.
   */
   export interface ViewStrategy {
+    
+    /**
+      * Loads a view factory.
+      * @param viewEngine The view engine to use during the load process.
+      * @param compileInstruction Additional instructions to use during compilation of the view.
+      * @param loadContext The loading context used for loading all resources and dependencies.
+      * @return A promise for the view factory that is produced by this strategy.
+      */
     loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewFactory>;
   }
   
@@ -36,19 +44,62 @@ declare module 'aurelia-templating' {
   * View engine hooks that enable a view resource to provide custom processing during the compilation or creation of a view.
   */
   export interface ViewEngineHooks {
-    beforeCompile(content: DocumentFragment, resources: ViewResources, instruction: ViewCompileInstruction): void;
-    afterCompile(viewFactory: ViewFactory): void;
-    beforeCreate(viewFactory: ViewFactory, container: Container, content: DocumentFragment, instruction: ViewCreateInstruction): void;
-    afterCreate(view: View): void;
+    
+    /**
+      * Invoked before a template is compiled.
+      * @param content The DocumentFragment to compile.
+      * @param resources The resources to compile the view against.
+      * @param instruction The compilation instruction associated with the compilation process.
+      */
+    beforeCompile?: (content: DocumentFragment, resources: ViewResources, instruction: ViewCompileInstruction) => void;
+    
+    /**
+      * Invoked after a template is compiled.
+      * @param viewFactory The view factory that was produced from the compilation process.
+      */
+    afterCompile?: (viewFactory: ViewFactory) => void;
+    
+    /**
+      * Invoked before a view is created.
+      * @param viewFactory The view factory that will be used to create the view.
+      * @param container The DI container used during view creation.
+      * @param content The cloned document fragment representing the view.
+      * @param instruction The view creation instruction associated with this creation process.
+      */
+    beforeCreate?: (viewFactory: ViewFactory, container: Container, content: DocumentFragment, instruction: ViewCreateInstruction) => void;
+    
+    /**
+      * Invoked after a view is created.
+      * @param view The view that was created by the factory.
+      */
+    afterCreate?: (view: View) => void;
   }
   
   /**
   * Represents a node in the view hierarchy.
   */
   export interface ViewNode {
+    
+    /**
+      * Binds the node and it's children.
+      * @param bindingContext The binding context to bind to.
+      * @param overrideContext A secondary binding context that can override the standard context.
+      */
     bind(bindingContext: Object, overrideContext?: Object): void;
+    
+    /**
+      * Triggers the attach for the node and its children.
+      */
     attached(): void;
+    
+    /**
+      * Triggers the detach for the node and its children.
+      */
     detached(): void;
+    
+    /**
+      * Unbinds the node and its children.
+      */
     unbind(): void;
   }
   
@@ -356,6 +407,10 @@ declare module 'aurelia-templating' {
   * Decorator: Indicates that the decorated class/object is a view strategy.
   */
   export const viewStrategy: Function;
+  
+  /**
+  * A view strategy that loads a view relative to its associated view-model.
+  */
   export class RelativeViewStrategy {
     
     /**
@@ -379,6 +434,10 @@ declare module 'aurelia-templating' {
       */
     makeRelativeTo(file: string): void;
   }
+  
+  /**
+  * A view strategy based on naming conventions.
+  */
   export class ConventionalViewStrategy {
     
     /**
@@ -397,6 +456,11 @@ declare module 'aurelia-templating' {
       */
     loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewFactory>;
   }
+  
+  /**
+  * A view strategy that indicates that the component has no view that the templating engine needs to manage.
+  * Typically used when the component author wishes to take over fine-grained rendering control.
+  */
   export class NoViewStrategy {
     
     /**
@@ -408,6 +472,10 @@ declare module 'aurelia-templating' {
       */
     loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewFactory>;
   }
+  
+  /**
+  * A view strategy created directly from the template registry entry.
+  */
   export class TemplateRegistryViewStrategy {
     
     /**
@@ -426,6 +494,10 @@ declare module 'aurelia-templating' {
       */
     loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewFactory>;
   }
+  
+  /**
+  * A view strategy that allows the component authore to inline the html for the view.
+  */
   export class InlineViewStrategy {
     
     /**
@@ -865,6 +937,10 @@ declare module 'aurelia-templating' {
       */
     create(container: Container, createInstruction?: ViewCreateInstruction, element?: Element): View;
   }
+  
+  /**
+  * Compiles html templates, dom fragments and strings into ViewFactory instances, capable of instantiating Views.
+  */
   export class ViewCompiler {
     
     /**
@@ -986,6 +1062,10 @@ declare module 'aurelia-templating' {
     getCachedView(): View;
     returnViewToCache(view: View): void;
   }
+  
+  /**
+  * Controls the view resource loading pipeline.
+  */
   export class ViewEngine {
     
     /**
@@ -1105,6 +1185,10 @@ declare module 'aurelia-templating' {
       */
     detached(): void;
   }
+  
+  /**
+  * An implementation of Aurelia's Observer interface that is used to back bindable properties defined on a behavior.
+  */
   export class BehaviorPropertyObserver {
     
     /**
@@ -1277,6 +1361,10 @@ declare module 'aurelia-templating' {
     onAdd(element: any): any;
     unbind(): any;
   }
+  
+  /**
+  * Used to dynamically compose components.
+  */
   export class CompositionEngine {
     
     /**
@@ -1438,6 +1526,10 @@ declare module 'aurelia-templating' {
   * to the EventManager for one or more Web Components.
   */
   export function elementConfig(target?: any): any;
+  
+  /**
+  * A facade of the templating engine capabilties which provides a more user friendly API for common use cases.
+  */
   export class TemplatingEngine {
     
     /**
