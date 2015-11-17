@@ -4,7 +4,7 @@ import {HtmlBehaviorResource} from './html-behavior';
 
 function createChildObserverDecorator(selectorOrConfig, all) {
   return function(target, key, descriptor) {
-    let actualTarget = descriptor ? target.constructor : target; //is it on a property or a class?
+    let actualTarget = typeof key === 'string' ? target.constructor : target; //is it on a property or a class?
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, actualTarget);
 
     if (typeof selectorOrConfig === 'string') {
