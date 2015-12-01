@@ -4,6 +4,7 @@ import {HtmlBehaviorResource} from './html-behavior';
 import {BehaviorInstruction, ViewCompileInstruction} from './instructions';
 import {DOM} from 'aurelia-pal';
 import {Container, inject} from 'aurelia-dependency-injection';
+import {metadata} from 'aurelia-metadata';
 
 /**
 * Instructs the composition engine how to dynamically compose a component.
@@ -96,13 +97,13 @@ export class CompositionEngine {
     let childContainer;
     let viewModel;
     let viewModelResource;
-    let metadata;
+    let m;
 
     return this.ensureViewModel(context).then(tryActivateViewModel).then(() => {
       childContainer = context.childContainer;
       viewModel = context.viewModel;
       viewModelResource = context.viewModelResource;
-      metadata = viewModelResource.metadata;
+      m = viewModelResource.metadata;
 
       let viewStrategy = this.viewLocator.getViewStrategy(context.view || viewModel);
 
@@ -110,8 +111,8 @@ export class CompositionEngine {
         viewStrategy.makeRelativeTo(context.viewResources.viewUrl);
       }
 
-      return metadata.load(childContainer, viewModelResource.value, null, viewStrategy, true);
-    }).then(viewFactory => metadata.create(childContainer, BehaviorInstruction.dynamic(context.host, viewModel, viewFactory)));
+      return m.load(childContainer, viewModelResource.value, null, viewStrategy, true);
+    }).then(viewFactory => m.create(childContainer, BehaviorInstruction.dynamic(context.host, viewModel, viewFactory)));
   }
 
   /**
@@ -140,10 +141,10 @@ export class CompositionEngine {
       });
     }
 
-    let metadata = new HtmlBehaviorResource();
-    metadata.elementName = 'dynamic-element';
-    metadata.initialize(context.container || childContainer, context.viewModel.constructor);
-    context.viewModelResource = { metadata: metadata, value: context.viewModel.constructor };
+    let m = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, context.viewModel.constructor);
+    m.elementName = m.elementName || 'dynamic-element';
+    m.initialize(context.container || childContainer, context.viewModel.constructor);
+    context.viewModelResource = { metadata: m, value: context.viewModel.constructor };
     childContainer.viewModel = context.viewModel;
     return Promise.resolve(context);
   }

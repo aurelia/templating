@@ -2,11 +2,16 @@ import 'core-js';
 import {_hyphenate} from './util';
 import {BehaviorPropertyObserver} from './behavior-property-observer';
 import {bindingMode} from 'aurelia-binding';
+import {Container} from 'aurelia-dependency-injection';
 
 function getObserver(behavior, instance, name) {
   let lookup = instance.__observers__;
 
   if (lookup === undefined) {
+    if(!behavior.isInitialized) {
+      behavior.initialize(Container.instance || new Container(), instance.constructor);
+    }
+
     lookup = behavior.observerLocator.getOrCreateObserversLookup(instance);
     behavior._ensurePropertiesDefined(instance, lookup);
   }

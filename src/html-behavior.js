@@ -45,6 +45,7 @@ export class HtmlBehaviorResource {
     this.containerless = false;
     this.properties = [];
     this.attributes = {};
+    this.isInitialized = false;
   }
 
   /**
@@ -95,6 +96,11 @@ export class HtmlBehaviorResource {
     let ii;
     let current;
 
+    if (this.isInitialized) {
+      return;
+    }
+
+    this.isInitialized = true;
     target.__providerId__ = nextProviderId();
 
     this.observerLocator = container.get(ObserverLocator);
