@@ -364,6 +364,10 @@ System.register(['core-js', 'aurelia-logging', 'aurelia-metadata', 'aurelia-path
     var lookup = instance.__observers__;
 
     if (lookup === undefined) {
+      if (!behavior.isInitialized) {
+        behavior.initialize(Container.instance || new Container(), instance.constructor);
+      }
+
       lookup = behavior.observerLocator.getOrCreateObserversLookup(instance);
       behavior._ensurePropertiesDefined(instance, lookup);
     }
@@ -381,7 +385,7 @@ System.register(['core-js', 'aurelia-logging', 'aurelia-metadata', 'aurelia-path
 
   function createChildObserverDecorator(selectorOrConfig, all) {
     return function (target, key, descriptor) {
-      var actualTarget = descriptor ? target.constructor : target;
+      var actualTarget = typeof key === 'string' ? target.constructor : target;
       var r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, actualTarget);
 
       if (typeof selectorOrConfig === 'string') {
@@ -2310,7 +2314,7 @@ System.register(['core-js', 'aurelia-logging', 'aurelia-metadata', 'aurelia-path
               }
             }
 
-            instruction = bindingLanguage.createAttributeInstruction(resources, node, info);
+            instruction = bindingLanguage.createAttributeInstruction(resources, node, info, undefined, type);
 
             if (instruction) {
               if (instruction.alteredAttr) {
@@ -2443,7 +2447,7 @@ System.register(['core-js', 'aurelia-logging', 'aurelia-metadata', 'aurelia-path
             if (elementProperty) {
               instruction = bindingLanguage.createAttributeInstruction(resources, node, info, elementInstruction);
             } else {
-              instruction = bindingLanguage.createAttributeInstruction(resources, node, info);
+              instruction = bindingLanguage.createAttributeInstruction(resources, node, info, undefined, type);
             }
 
             if (instruction) {
@@ -3401,6 +3405,7 @@ System.register(['core-js', 'aurelia-logging', 'aurelia-metadata', 'aurelia-path
           this.containerless = false;
           this.properties = [];
           this.attributes = {};
+          this.isInitialized = false;
         }
 
         HtmlBehaviorResource.convention = function convention(name, existing) {
@@ -3436,6 +3441,11 @@ System.register(['core-js', 'aurelia-logging', 'aurelia-metadata', 'aurelia-path
           var ii = undefined;
           var current = undefined;
 
+          if (this.isInitialized) {
+            return;
+          }
+
+          this.isInitialized = true;
           target.__providerId__ = nextProviderId();
 
           this.observerLocator = container.get(ObserverLocator);
@@ -3910,13 +3920,13 @@ System.register(['core-js', 'aurelia-logging', 'aurelia-metadata', 'aurelia-path
           var childContainer = undefined;
           var viewModel = undefined;
           var viewModelResource = undefined;
-          var metadata = undefined;
+          var m = undefined;
 
           return this.ensureViewModel(context).then(tryActivateViewModel).then(function () {
             childContainer = context.childContainer;
             viewModel = context.viewModel;
             viewModelResource = context.viewModelResource;
-            metadata = viewModelResource.metadata;
+            m = viewModelResource.metadata;
 
             var viewStrategy = _this9.viewLocator.getViewStrategy(context.view || viewModel);
 
@@ -3924,9 +3934,9 @@ System.register(['core-js', 'aurelia-logging', 'aurelia-metadata', 'aurelia-path
               viewStrategy.makeRelativeTo(context.viewResources.viewUrl);
             }
 
-            return metadata.load(childContainer, viewModelResource.value, null, viewStrategy, true);
+            return m.load(childContainer, viewModelResource.value, null, viewStrategy, true);
           }).then(function (viewFactory) {
-            return metadata.create(childContainer, BehaviorInstruction.dynamic(context.host, viewModel, viewFactory));
+            return m.create(childContainer, BehaviorInstruction.dynamic(context.host, viewModel, viewFactory));
           });
         };
 
@@ -3949,10 +3959,10 @@ System.register(['core-js', 'aurelia-logging', 'aurelia-metadata', 'aurelia-path
             });
           }
 
-          var metadata = new HtmlBehaviorResource();
-          metadata.elementName = 'dynamic-element';
-          metadata.initialize(context.container || childContainer, context.viewModel.constructor);
-          context.viewModelResource = { metadata: metadata, value: context.viewModel.constructor };
+          var m = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, context.viewModel.constructor);
+          m.elementName = m.elementName || 'dynamic-element';
+          m.initialize(context.container || childContainer, context.viewModel.constructor);
+          context.viewModelResource = { metadata: m, value: context.viewModel.constructor };
           childContainer.viewModel = context.viewModel;
           return Promise.resolve(context);
         };

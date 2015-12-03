@@ -2453,7 +2453,7 @@ export class ViewCompiler {
         }
       }
 
-      instruction = bindingLanguage.createAttributeInstruction(resources, node, info);
+      instruction = bindingLanguage.createAttributeInstruction(resources, node, info, undefined, type);
 
       if (instruction) { //HAS BINDINGS
         if (instruction.alteredAttr) {
@@ -2586,7 +2586,7 @@ export class ViewCompiler {
       if (elementProperty) {
         instruction = bindingLanguage.createAttributeInstruction(resources, node, info, elementInstruction);
       } else {
-        instruction = bindingLanguage.createAttributeInstruction(resources, node, info);
+        instruction = bindingLanguage.createAttributeInstruction(resources, node, info, undefined, type);
       }
 
       if (instruction) { //HAS BINDINGS
@@ -3469,6 +3469,10 @@ function getObserver(behavior, instance, name) {
   let lookup = instance.__observers__;
 
   if (lookup === undefined) {
+    if (!behavior.isInitialized) {
+      behavior.initialize(Container.instance || new Container(), instance.constructor);
+    }
+
     lookup = behavior.observerLocator.getOrCreateObserversLookup(instance);
     behavior._ensurePropertiesDefined(instance, lookup);
   }
@@ -3726,6 +3730,7 @@ export class HtmlBehaviorResource {
     this.containerless = false;
     this.properties = [];
     this.attributes = {};
+    this.isInitialized = false;
   }
 
   /**
@@ -3776,6 +3781,11 @@ export class HtmlBehaviorResource {
     let ii;
     let current;
 
+    if (this.isInitialized) {
+      return;
+    }
+
+    this.isInitialized = true;
     target.__providerId__ = nextProviderId();
 
     this.observerLocator = container.get(ObserverLocator);
@@ -4104,7 +4114,7 @@ export class HtmlBehaviorResource {
 
 function createChildObserverDecorator(selectorOrConfig, all) {
   return function(target, key, descriptor) {
-    let actualTarget = descriptor ? target.constructor : target; //is it on a property or a class?
+    let actualTarget = typeof key === 'string' ? target.constructor : target; //is it on a property or a class?
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, actualTarget);
 
     if (typeof selectorOrConfig === 'string') {
@@ -4418,13 +4428,13 @@ export class CompositionEngine {
     let childContainer;
     let viewModel;
     let viewModelResource;
-    let metadata;
+    let m;
 
     return this.ensureViewModel(context).then(tryActivateViewModel).then(() => {
       childContainer = context.childContainer;
       viewModel = context.viewModel;
       viewModelResource = context.viewModelResource;
-      metadata = viewModelResource.metadata;
+      m = viewModelResource.metadata;
 
       let viewStrategy = this.viewLocator.getViewStrategy(context.view || viewModel);
 
@@ -4432,8 +4442,8 @@ export class CompositionEngine {
         viewStrategy.makeRelativeTo(context.viewResources.viewUrl);
       }
 
-      return metadata.load(childContainer, viewModelResource.value, null, viewStrategy, true);
-    }).then(viewFactory => metadata.create(childContainer, BehaviorInstruction.dynamic(context.host, viewModel, viewFactory)));
+      return m.load(childContainer, viewModelResource.value, null, viewStrategy, true);
+    }).then(viewFactory => m.create(childContainer, BehaviorInstruction.dynamic(context.host, viewModel, viewFactory)));
   }
 
   /**
@@ -4462,10 +4472,10 @@ export class CompositionEngine {
       });
     }
 
-    let metadata = new HtmlBehaviorResource();
-    metadata.elementName = 'dynamic-element';
-    metadata.initialize(context.container || childContainer, context.viewModel.constructor);
-    context.viewModelResource = { metadata: metadata, value: context.viewModel.constructor };
+    let m = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, context.viewModel.constructor);
+    m.elementName = m.elementName || 'dynamic-element';
+    m.initialize(context.container || childContainer, context.viewModel.constructor);
+    context.viewModelResource = { metadata: m, value: context.viewModel.constructor };
     childContainer.viewModel = context.viewModel;
     return Promise.resolve(context);
   }

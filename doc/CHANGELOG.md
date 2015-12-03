@@ -1,3 +1,12 @@
+## 1.0.0-beta.1.0.1 (2015-12-03)
+
+
+#### Bug Fixes
+
+* **composition:** bindable bug on composed instances ([fea62558](http://github.com/aurelia/templating/commit/fea62558a63adf3da9f3df7d6944b8efd84e7016))
+* **view-compiler:** pass options info to binding lang ([435d1a15](http://github.com/aurelia/templating/commit/435d1a155942f2cf49a9fcfd4e11ea78d57b31ca), closes [#73](http://github.com/aurelia/templating/issues/73))
+
+
 ### 1.0.0-beta.1 (2015-11-16)
 
 
