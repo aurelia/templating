@@ -195,7 +195,7 @@ export class ViewCompiler {
         }
       }
 
-      instruction = bindingLanguage.createAttributeInstruction(resources, node, info);
+      instruction = bindingLanguage.createAttributeInstruction(resources, node, info, undefined, type);
 
       if (instruction) { //HAS BINDINGS
         if (instruction.alteredAttr) {
@@ -328,7 +328,7 @@ export class ViewCompiler {
       if (elementProperty) {
         instruction = bindingLanguage.createAttributeInstruction(resources, node, info, elementInstruction);
       } else {
-        instruction = bindingLanguage.createAttributeInstruction(resources, node, info);
+        instruction = bindingLanguage.createAttributeInstruction(resources, node, info, undefined, type);
       }
 
       if (instruction) { //HAS BINDINGS
