@@ -8,7 +8,7 @@ function getObserver(behavior, instance, name) {
   let lookup = instance.__observers__;
 
   if (lookup === undefined) {
-    if(!behavior.isInitialized) {
+    if (!behavior.isInitialized) {
       behavior.initialize(Container.instance || new Container(), instance.constructor);
     }
 
