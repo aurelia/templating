@@ -40,6 +40,7 @@ export class ViewSlot {
     this.isAttached = false;
     this.contentSelectors = null;
     anchor.viewSlot = this;
+    anchor.isContentProjectionSource = false;
   }
 
   /**

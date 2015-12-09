@@ -40,6 +40,7 @@ function elementContainerGet(key) {
   if (key === ViewSlot) {
     if (this.viewSlot === undefined) {
       this.viewSlot = new ViewSlot(this.element, this.instruction.anchorIsContainer);
+      this.element.isContentProjectionSource = this.instruction.lifting;
       this.children.push(this.viewSlot);
     }
 

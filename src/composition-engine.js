@@ -31,7 +31,7 @@ interface CompositionContext {
   */
   viewModel?: any;
   /**
-  * Data to be passed to the "activate" hook on the view model. 
+  * Data to be passed to the "activate" hook on the view model.
   */
   model?: any;
   /**

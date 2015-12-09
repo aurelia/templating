@@ -204,6 +204,7 @@ export class TargetInstruction {
     instruction.behaviorInstructions = [liftingInstruction];
     instruction.viewFactory = liftingInstruction.viewFactory;
     instruction.providers = [liftingInstruction.type.target];
+    instruction.lifting = true;
     return instruction;
   }
 
@@ -266,6 +267,7 @@ export class TargetInstruction {
 
     this.anchorIsContainer = false;
     this.elementInstruction = null;
+    this.lifting = false;
 
     this.values = null;
   }

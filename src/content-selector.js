@@ -25,7 +25,7 @@ export class _ContentSelector {
     while (currentChild) {
       nextSibling = currentChild.nextSibling;
 
-      if (currentChild.viewSlot) {
+      if (currentChild.isContentProjectionSource) {
         let viewSlotSelectors = contentSelectors.map(x => x.copyForViewSlot());
         currentChild.viewSlot._installContentSelectors(viewSlotSelectors);
       } else {
