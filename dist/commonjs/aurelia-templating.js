@@ -262,6 +262,7 @@ var TargetInstruction = (function () {
     instruction.behaviorInstructions = [liftingInstruction];
     instruction.viewFactory = liftingInstruction.viewFactory;
     instruction.providers = [liftingInstruction.type.target];
+    instruction.lifting = true;
     return instruction;
   };
 
@@ -311,6 +312,7 @@ var TargetInstruction = (function () {
 
     this.anchorIsContainer = false;
     this.elementInstruction = null;
+    this.lifting = false;
 
     this.values = null;
   }
@@ -1020,7 +1022,7 @@ var _ContentSelector = (function () {
     while (currentChild) {
       nextSibling = currentChild.nextSibling;
 
-      if (currentChild.viewSlot) {
+      if (currentChild.isContentProjectionSource) {
         var viewSlotSelectors = contentSelectors.map(function (x) {
           return x.copyForViewSlot();
         });
@@ -1141,6 +1143,7 @@ var ViewSlot = (function () {
     this.isAttached = false;
     this.contentSelectors = null;
     anchor.viewSlot = this;
+    anchor.isContentProjectionSource = false;
   }
 
   ViewSlot.prototype.transformChildNodesIntoView = function transformChildNodesIntoView() {
@@ -1507,6 +1510,7 @@ function elementContainerGet(key) {
   if (key === ViewSlot) {
     if (this.viewSlot === undefined) {
       this.viewSlot = new ViewSlot(this.element, this.instruction.anchorIsContainer);
+      this.element.isContentProjectionSource = this.instruction.lifting;
       this.children.push(this.viewSlot);
     }
 

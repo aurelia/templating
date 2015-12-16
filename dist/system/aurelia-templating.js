@@ -117,6 +117,7 @@ System.register(['core-js', 'aurelia-logging', 'aurelia-metadata', 'aurelia-path
     if (key === ViewSlot) {
       if (this.viewSlot === undefined) {
         this.viewSlot = new ViewSlot(this.element, this.instruction.anchorIsContainer);
+        this.element.isContentProjectionSource = this.instruction.lifting;
         this.children.push(this.viewSlot);
       }
 
@@ -859,6 +860,7 @@ System.register(['core-js', 'aurelia-logging', 'aurelia-metadata', 'aurelia-path
           instruction.behaviorInstructions = [liftingInstruction];
           instruction.viewFactory = liftingInstruction.viewFactory;
           instruction.providers = [liftingInstruction.type.target];
+          instruction.lifting = true;
           return instruction;
         };
 
@@ -908,6 +910,7 @@ System.register(['core-js', 'aurelia-logging', 'aurelia-metadata', 'aurelia-path
 
           this.anchorIsContainer = false;
           this.elementInstruction = null;
+          this.lifting = false;
 
           this.values = null;
         }
@@ -1590,7 +1593,7 @@ System.register(['core-js', 'aurelia-logging', 'aurelia-metadata', 'aurelia-path
           while (currentChild) {
             nextSibling = currentChild.nextSibling;
 
-            if (currentChild.viewSlot) {
+            if (currentChild.isContentProjectionSource) {
               var viewSlotSelectors = contentSelectors.map(function (x) {
                 return x.copyForViewSlot();
               });
@@ -1697,6 +1700,7 @@ System.register(['core-js', 'aurelia-logging', 'aurelia-metadata', 'aurelia-path
           this.isAttached = false;
           this.contentSelectors = null;
           anchor.viewSlot = this;
+          anchor.isContentProjectionSource = false;
         }
 
         ViewSlot.prototype.transformChildNodesIntoView = function transformChildNodesIntoView() {

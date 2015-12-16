@@ -1,3 +1,11 @@
+### 1.0.0-beta.1.0.2 (2015-12-16)
+
+
+#### Bug Fixes
+
+* **content-selector:** incorrection projection in nested scenarios ([2e248676](http://github.com/aurelia/templating/commit/2e248676635b6f7c698894e06056f1bd0e11603e), closes [#231](http://github.com/aurelia/templating/issues/231))
+
+
 ## 1.0.0-beta.1.0.1 (2015-12-03)
 
 

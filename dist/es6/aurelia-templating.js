@@ -336,6 +336,7 @@ export class TargetInstruction {
     instruction.behaviorInstructions = [liftingInstruction];
     instruction.viewFactory = liftingInstruction.viewFactory;
     instruction.providers = [liftingInstruction.type.target];
+    instruction.lifting = true;
     return instruction;
   }
 
@@ -398,6 +399,7 @@ export class TargetInstruction {
 
     this.anchorIsContainer = false;
     this.elementInstruction = null;
+    this.lifting = false;
 
     this.values = null;
   }
@@ -1348,7 +1350,7 @@ export class _ContentSelector {
     while (currentChild) {
       nextSibling = currentChild.nextSibling;
 
-      if (currentChild.viewSlot) {
+      if (currentChild.isContentProjectionSource) {
         let viewSlotSelectors = contentSelectors.map(x => x.copyForViewSlot());
         currentChild.viewSlot._installContentSelectors(viewSlotSelectors);
       } else {
@@ -1469,6 +1471,7 @@ export class ViewSlot {
     this.isAttached = false;
     this.contentSelectors = null;
     anchor.viewSlot = this;
+    anchor.isContentProjectionSource = false;
   }
 
   /**
@@ -1871,6 +1874,7 @@ function elementContainerGet(key) {
   if (key === ViewSlot) {
     if (this.viewSlot === undefined) {
       this.viewSlot = new ViewSlot(this.element, this.instruction.anchorIsContainer);
+      this.element.isContentProjectionSource = this.instruction.lifting;
       this.children.push(this.viewSlot);
     }
 
@@ -4350,9 +4354,21 @@ interface CompositionContext {
   */
   childContainer?: Container;
   /**
-  * The view model for the component.
+  * The context in which the view model is executed in.
   */
-  viewModel?: string | Object;
+  bindingContext: any;
+  /**
+  * A secondary binding context that can override the standard context.
+  */
+  overrideContext?: any;
+  /**
+  * The view model url or instance for the component.
+  */
+  viewModel?: any;
+  /**
+  * Data to be passed to the "activate" hook on the view model.
+  */
+  model?: any;
   /**
   * The HtmlBehaviorResource for the component.
   */
