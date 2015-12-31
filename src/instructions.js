@@ -197,13 +197,13 @@ export class TargetInstruction {
   * @param liftingInstruction The behavior instruction of the lifting behavior.
   * @return The created instruction.
   */
-  static lifting(parentInjectorId: number, liftingInstruction: BehaviorInstruction): TargetInstruction {
+  static lifting(parentInjectorId: number, liftingInstruction: BehaviorInstruction, providers: Object): TargetInstruction {
     let instruction = new TargetInstruction();
     instruction.parentInjectorId = parentInjectorId;
     instruction.expressions = TargetInstruction.noExpressions;
     instruction.behaviorInstructions = [liftingInstruction];
     instruction.viewFactory = liftingInstruction.viewFactory;
-    instruction.providers = [liftingInstruction.type.target];
+    instruction.providers = providers;
     instruction.lifting = true;
     return instruction;
   }
@@ -218,7 +218,7 @@ export class TargetInstruction {
   * @param elementInstruction The element behavior for this element.
   * @return The created instruction.
   */
-  static normal(injectorId: number, parentInjectorId: number, providers: Array<Function>, behaviorInstructions: Array<BehaviorInstruction>, expressions: Array<Object>, elementInstruction: BehaviorInstruction): TargetInstruction {
+  static normal(injectorId: number, parentInjectorId: number, providers: Object, behaviorInstructions: Array<BehaviorInstruction>, expressions: Array<Object>, elementInstruction: BehaviorInstruction): TargetInstruction {
     let instruction = new TargetInstruction();
     instruction.injectorId = injectorId;
     instruction.parentInjectorId = parentInjectorId;
@@ -238,7 +238,7 @@ export class TargetInstruction {
   * @param values A key/value lookup of attributes to transplant.
   * @return The created instruction.
   */
-  static surrogate(providers: Array<Function>, behaviorInstructions: Array<BehaviorInstruction>, expressions: Array<Object>, values: Object): TargetInstruction {
+  static surrogate(providers: Object, behaviorInstructions: Array<BehaviorInstruction>, expressions: Array<Object>, values: Object): TargetInstruction {
     let instruction = new TargetInstruction();
     instruction.expressions = expressions;
     instruction.behaviorInstructions = behaviorInstructions;

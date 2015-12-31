@@ -6,80 +6,102 @@ import {ViewResources} from './view-resources';
 import {BehaviorInstruction, TargetInstruction} from './instructions';
 import {DOM} from 'aurelia-pal';
 
-@resolver
-class ProviderResolver {
-  get(container, key) {
-    let id = key.__providerId__;
-    return id in container ? container[id] : (container[id] = container.invoke(key));
+class BehaviorContainer {
+  constructor(parent, element, instruction, children, viewResources, partReplacements) {
+    this.parent = parent;
+    this.root = parent.root;
+    this._handlers = parent._handlers;
+    this._configuration = parent._configuration;
+    this.element = element;
+    this.instruction = instruction;
+    this.providers = instruction.providers;
+    this.children = children;
+    this.viewResources = viewResources;
+    this.partReplacements = partReplacements || null;
+    this.boundViewFactory = null;
+    this.viewSlot = null;
+    this.standardContainer = null;
   }
-}
 
-let providerResolverInstance = new ProviderResolver();
-
-function elementContainerGet(key) {
-  if (key === DOM.Element) {
-    return this.element;
+  _initializeStandardContainer() {
+    let c = this.standardContainer = new Container(this._configuration);
+    c.root = this.root;
+    c.parent = this.parent;
   }
 
-  if (key === BoundViewFactory) {
-    if (this.boundViewFactory) {
+  get(key) {
+    if (key === null || key === undefined) {
+      throw new Error();
+    }
+
+    if (key === Container) {
+      return this;
+    }
+
+    if (key === DOM.Element) {
+      return this.element;
+    }
+
+    if (key === BoundViewFactory) {
+      if (this.boundViewFactory !== null) {
+        return this.boundViewFactory;
+      }
+
+      let factory = this.instruction.viewFactory;
+      let partReplacements = this.partReplacements;
+
+      if (partReplacements != null) {
+        factory = partReplacements[factory.part] || factory;
+      }
+
+      this.boundViewFactory = new BoundViewFactory(this, factory, partReplacements);
       return this.boundViewFactory;
     }
 
-    let factory = this.instruction.viewFactory;
-    let partReplacements = this.partReplacements;
+    if (key === ViewSlot) {
+      if (this.viewSlot === null) {
+        this.viewSlot = new ViewSlot(this.element, this.instruction.anchorIsContainer);
+        this.element.isContentProjectionSource = this.instruction.lifting;
+        this.children.push(this.viewSlot);
+      }
 
-    if (partReplacements) {
-      factory = partReplacements[factory.part] || factory;
+      return this.viewSlot;
     }
 
-    this.boundViewFactory = new BoundViewFactory(this, factory, partReplacements);
-    return this.boundViewFactory;
-  }
-
-  if (key === ViewSlot) {
-    if (this.viewSlot === undefined) {
-      this.viewSlot = new ViewSlot(this.element, this.instruction.anchorIsContainer);
-      this.element.isContentProjectionSource = this.instruction.lifting;
-      this.children.push(this.viewSlot);
+    if (key === ViewResources) {
+      return this.viewResources;
     }
 
-    return this.viewSlot;
+    if (key === TargetInstruction) {
+      return this.instruction;
+    }
+
+    if('__providerId__' in key) {
+      let providerKey = key.__providerId__;
+
+      if(providerKey in this.providers) {
+        return this[providerKey] || (this[providerKey] = this._handlers.get(key).invoke(this));
+      }
+    }
+
+    return this.standardContainer !== null ? this.standardContainer._get(key) : this.parent._get(key);
   }
 
-  if (key === ViewResources) {
-    return this.viewResources;
+  _get(key) {
+    if('__providerId__' in key) {
+      let providerKey = key.__providerId__;
+
+      if(providerKey in this.providers) {
+        return this[providerKey] || (this[providerKey] = this._handlers.get(key).invoke(this));
+      }
+    }
+
+    return this.standardContainer !== null ? this.standardContainer._get(key) : this.parent._get(key);
   }
 
-  if (key === TargetInstruction) {
-    return this.instruction;
+  createChild() {
+    return new BehaviorContainer(this, this.element, this.instruction, this.children, this.viewResources, this.partReplacements);
   }
-
-  return this.superGet(key);
-}
-
-function createElementContainer(parent, element, instruction, children, partReplacements, resources) {
-  let container = parent.createChild();
-  let providers;
-  let i;
-
-  container.element = element;
-  container.instruction = instruction;
-  container.children = children;
-  container.viewResources = resources;
-  container.partReplacements = partReplacements;
-
-  providers = instruction.providers;
-  i = providers.length;
-
-  while (i--) {
-    container._resolvers.set(providers[i], providerResolverInstance);
-  }
-
-  container.superGet = container.get;
-  container.get = elementContainerGet;
-
-  return container;
 }
 
 function makeElementIntoAnchor(element, elementInstruction) {
@@ -124,14 +146,7 @@ function applyInstructions(containers, element, instruction, controllers, bindin
     }
 
     containers[instruction.injectorId] = elementContainer =
-      createElementContainer(
-        containers[instruction.parentInjectorId],
-        element,
-        instruction,
-        children,
-        partReplacements,
-        resources
-        );
+      new BehaviorContainer(containers[instruction.parentInjectorId], element, instruction, children, resources, partReplacements);
 
     for (i = 0, ii = behaviorInstructions.length; i < ii; ++i) {
       current = behaviorInstructions[i];
@@ -184,7 +199,6 @@ function styleObjectToString(obj) {
 function applySurrogateInstruction(container, element, instruction, controllers, bindings, children) {
   let behaviorInstructions = instruction.behaviorInstructions;
   let expressions = instruction.expressions;
-  let providers = instruction.providers;
   let values = instruction.values;
   let i;
   let ii;
@@ -192,10 +206,7 @@ function applySurrogateInstruction(container, element, instruction, controllers,
   let instance;
   let currentAttributeValue;
 
-  i = providers.length;
-  while (i--) {
-    container._resolvers.set(providers[i], providerResolverInstance);
-  }
+  Object.assign(container.providers, instruction.providers);
 
   //apply surrogate attributes
   for (let key in values) {

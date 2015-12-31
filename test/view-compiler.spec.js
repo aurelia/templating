@@ -1,5 +1,6 @@
 import {ViewCompiler} from '../src/view-compiler';
 import {ViewResources} from '../src/view-resources';
+import {Container} from 'aurelia-dependency-injection';
 
 class MockBindingLanguage {
   inspectAttribute(resources, attrName, attrValue){
@@ -16,8 +17,8 @@ describe('compileNode', () => {
   var viewCompiler, language, resources;
   beforeAll(() => {
     language = new MockBindingLanguage();
-    viewCompiler = new ViewCompiler(language);
     resources = new ViewResources(new ViewResources(), 'app.html');
+    viewCompiler = new ViewCompiler(language, resources, new Container());
   });
 
   it('concatenates adjacent text nodes', () => {

@@ -2,7 +2,7 @@ import {ViewResources} from './view-resources';
 import {ViewFactory} from './view-factory';
 import {BindingLanguage} from './binding-language';
 import {ViewCompileInstruction, BehaviorInstruction, TargetInstruction} from './instructions';
-import {inject} from 'aurelia-dependency-injection';
+import {inject, Container} from 'aurelia-dependency-injection';
 import {DOM, FEATURE} from 'aurelia-pal';
 
 let nextInjectorId = 0;
@@ -54,19 +54,35 @@ function makeIntoInstructionTarget(element) {
   return auTargetID;
 }
 
+function ensureProviderHandlers(container, providers) {
+  let handlers = container._handlers;
+
+  for(let key in providers) {
+    let value = providers[key];
+    let handler = handlers.get(value);
+
+    if (handler === undefined) {
+      handler = container._createInvocationHandler(value);
+      handlers.set(value, handler);
+    }
+  }
+}
+
 /**
 * Compiles html templates, dom fragments and strings into ViewFactory instances, capable of instantiating Views.
 */
-@inject(BindingLanguage, ViewResources)
+@inject(BindingLanguage, ViewResources, Container)
 export class ViewCompiler {
   /**
   * Creates an instance of ViewCompiler.
   * @param bindingLanguage The default data binding language and syntax used during view compilation.
   * @param resources The global resources used during compilation when none are provided for compilation.
+  * @param container The root container for the application.
   */
-  constructor(bindingLanguage: BindingLanguage, resources: ViewResources) {
+  constructor(bindingLanguage: BindingLanguage, resources: ViewResources, container: Container) {
     this.bindingLanguage = bindingLanguage;
     this.resources = resources;
+    this.container = container;
   }
 
   /**
@@ -170,7 +186,7 @@ export class ViewCompiler {
     let behaviorInstructions = [];
     let values = {};
     let hasValues = false;
-    let providers = [];
+    let providers = {};
 
     for (i = 0, ii = attributes.length; i < ii; ++i) {
       attr = attributes[i];
@@ -239,7 +255,7 @@ export class ViewCompiler {
       for (i = 0, ii = behaviorInstructions.length; i < ii; ++i) {
         instruction = behaviorInstructions[i];
         instruction.type.compile(this, resources, node, instruction);
-        providers.push(instruction.type.target);
+        providers[instruction.type.target.__providerId__] = instruction.type.target;
       }
 
       for (i = 0, ii = expressions.length; i < ii; ++i) {
@@ -249,6 +265,7 @@ export class ViewCompiler {
         }
       }
 
+      ensureProviderHandlers(this.container, providers);
       return TargetInstruction.surrogate(providers, behaviorInstructions, expressions, values);
     }
 
@@ -261,7 +278,7 @@ export class ViewCompiler {
     let expressions = [];
     let expression;
     let behaviorInstructions = [];
-    let providers = [];
+    let providers = {};
     let bindingLanguage = resources.getBindingLanguage(this.bindingLanguage);
     let liftingInstruction;
     let viewFactory;
@@ -380,7 +397,9 @@ export class ViewCompiler {
       liftingInstruction.viewFactory = viewFactory;
       node = liftingInstruction.type.compile(this, resources, node, liftingInstruction, parentNode);
       auTargetID = makeIntoInstructionTarget(node);
-      instructions[auTargetID] = TargetInstruction.lifting(parentInjectorId, liftingInstruction);
+      providers[liftingInstruction.type.target.__providerId__] = liftingInstruction.type.target;
+      ensureProviderHandlers(this.container, providers);
+      instructions[auTargetID] = TargetInstruction.lifting(parentInjectorId, liftingInstruction, providers);
     } else {
       if (expressions.length || behaviorInstructions.length) {
         injectorId = behaviorInstructions.length ? getNextInjectorId() : false;
@@ -388,7 +407,7 @@ export class ViewCompiler {
         for (i = 0, ii = behaviorInstructions.length; i < ii; ++i) {
           instruction = behaviorInstructions[i];
           instruction.type.compile(this, resources, node, instruction, parentNode);
-          providers.push(instruction.type.target);
+          providers[instruction.type.target.__providerId__] = instruction.type.target;
         }
 
         for (i = 0, ii = expressions.length; i < ii; ++i) {
@@ -399,6 +418,7 @@ export class ViewCompiler {
         }
 
         auTargetID = makeIntoInstructionTarget(node);
+        ensureProviderHandlers(this.container, providers);
         instructions[auTargetID] = TargetInstruction.normal(
           injectorId,
           parentInjectorId,
