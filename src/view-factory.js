@@ -6,102 +6,98 @@ import {ViewResources} from './view-resources';
 import {BehaviorInstruction, TargetInstruction} from './instructions';
 import {DOM} from 'aurelia-pal';
 
-class BehaviorContainer {
-  constructor(parent, element, instruction, children, viewResources, partReplacements) {
-    this.parent = parent;
-    this.root = parent.root;
-    this._handlers = parent._handlers;
-    this._configuration = parent._configuration;
-    this.element = element;
-    this.instruction = instruction;
-    this.providers = instruction.providers;
-    this.children = children;
-    this.viewResources = viewResources;
-    this.partReplacements = partReplacements || null;
-    this.boundViewFactory = null;
-    this.viewSlot = null;
-    this.standardContainer = null;
-  }
+function createBehaviorContainer(parent, element, instruction, children, viewResources, partReplacements) {
+  let providers = instruction.providers;
+  let handlers = parent._handlers;
 
-  _initializeStandardContainer() {
-    let c = this.standardContainer = new Container(this._configuration);
-    c.root = this.root;
-    c.parent = this.parent;
-  }
+  return {
+    parent: parent,
+    root: parent.root,
+    _configuration: parent._configuration,
+    _handlers: parent._handlers,
+    boundViewFactory: null,
+    viewSlot: null,
+    standardContainer: null,
+    get(key) {
+      if (key === null || key === undefined) {
+        throw new Error('key/value cannot be null or undefined. Are you trying to inject/register something that doesn\'t exist with DI?');
+      }
 
-  get(key) {
-    if (key === null || key === undefined) {
-      throw new Error();
-    }
+      if('__providerId__' in key) {
+        let providerKey = key.__providerId__;
 
-    if (key === Container) {
-      return this;
-    }
+        if(providerKey in providers) {
+          return this[providerKey] || (this[providerKey] = handlers.get(key).invoke(this));
+        }
+      }
 
-    if (key === DOM.Element) {
-      return this.element;
-    }
+      if (key === Container) {
+        return this;
+      }
 
-    if (key === BoundViewFactory) {
-      if (this.boundViewFactory !== null) {
+      if (key === DOM.Element) {
+        return element;
+      }
+
+      if (key === BoundViewFactory) {
+        if (this.boundViewFactory !== null) {
+          return this.boundViewFactory;
+        }
+
+        let factory = instruction.viewFactory;
+
+        if (partReplacements) {
+          factory = partReplacements[factory.part] || factory;
+        }
+
+        this.boundViewFactory = new BoundViewFactory(this, factory, partReplacements);
         return this.boundViewFactory;
       }
 
-      let factory = this.instruction.viewFactory;
-      let partReplacements = this.partReplacements;
+      if (key === ViewSlot) {
+        if (this.viewSlot === null) {
+          this.viewSlot = new ViewSlot(element, instruction.anchorIsContainer);
+          element.isContentProjectionSource = instruction.lifting;
+          children.push(this.viewSlot);
+        }
 
-      if (partReplacements != null) {
-        factory = partReplacements[factory.part] || factory;
+        return this.viewSlot;
       }
 
-      this.boundViewFactory = new BoundViewFactory(this, factory, partReplacements);
-      return this.boundViewFactory;
-    }
-
-    if (key === ViewSlot) {
-      if (this.viewSlot === null) {
-        this.viewSlot = new ViewSlot(this.element, this.instruction.anchorIsContainer);
-        this.element.isContentProjectionSource = this.instruction.lifting;
-        this.children.push(this.viewSlot);
+      if (key === ViewResources) {
+        return viewResources;
       }
 
-      return this.viewSlot;
-    }
-
-    if (key === ViewResources) {
-      return this.viewResources;
-    }
-
-    if (key === TargetInstruction) {
-      return this.instruction;
-    }
-
-    if('__providerId__' in key) {
-      let providerKey = key.__providerId__;
-
-      if(providerKey in this.providers) {
-        return this[providerKey] || (this[providerKey] = this._handlers.get(key).invoke(this));
+      if (key === TargetInstruction) {
+        return instruction;
       }
-    }
 
-    return this.standardContainer !== null ? this.standardContainer._get(key) : this.parent._get(key);
-  }
+      return this.standardContainer !== null ? this.standardContainer._get(key) : parent._get(key);
+    },
+    _get(key) {
+      if('__providerId__' in key) {
+        let providerKey = key.__providerId__;
 
-  _get(key) {
-    if('__providerId__' in key) {
-      let providerKey = key.__providerId__;
-
-      if(providerKey in this.providers) {
-        return this[providerKey] || (this[providerKey] = this._handlers.get(key).invoke(this));
+        if(providerKey in providers) {
+          return this[providerKey] || (this[providerKey] = handlers.get(key).invoke(this));
+        }
       }
+
+      return this.standardContainer !== null ? this.standardContainer._get(key) : parent._get(key);
+    },
+    createChild() {
+      return createBehaviorContainer(this, element, instruction, children, viewResources, partReplacements);
+    },
+    ensureStandardContainer() {
+      if(this.standardContainer === null) {
+        this.standardContainer = new Container(this._configuration);
+        this.standardContainer.root = this.root;
+        this.standardContainer.parent = this.parent;
+      }
+
+      return this.standardContainer;
     }
-
-    return this.standardContainer !== null ? this.standardContainer._get(key) : this.parent._get(key);
-  }
-
-  createChild() {
-    return new BehaviorContainer(this, this.element, this.instruction, this.children, this.viewResources, this.partReplacements);
-  }
+  };
 }
 
 function makeElementIntoAnchor(element, elementInstruction) {
@@ -146,7 +142,7 @@ function applyInstructions(containers, element, instruction, controllers, bindin
     }
 
     containers[instruction.injectorId] = elementContainer =
-      new BehaviorContainer(containers[instruction.parentInjectorId], element, instruction, children, resources, partReplacements);
+      createBehaviorContainer(containers[instruction.parentInjectorId], element, instruction, children, resources, partReplacements);
 
     for (i = 0, ii = behaviorInstructions.length; i < ii; ++i) {
       current = behaviorInstructions[i];
