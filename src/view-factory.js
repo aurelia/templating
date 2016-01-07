@@ -18,6 +18,7 @@ function createBehaviorContainer(parent, element, instruction, children, viewRes
     boundViewFactory: null,
     viewSlot: null,
     standardContainer: null,
+    providers: providers,
     get(key) {
       if (key === null || key === undefined) {
         throw new Error('key/value cannot be null or undefined. Are you trying to inject/register something that doesn\'t exist with DI?');
@@ -201,8 +202,12 @@ function applySurrogateInstruction(container, element, instruction, controllers,
   let current;
   let instance;
   let currentAttributeValue;
+  let sourceProviders = instruction.providers;
+  let destProviders = container.providers;
 
-  Object.assign(container.providers, instruction.providers);
+  for(let key in sourceProviders) {
+    destProviders[key] = sourceProviders[key];
+  }
 
   //apply surrogate attributes
   for (let key in values) {
