@@ -24,11 +24,13 @@ function createBehaviorContainer(parent, element, instruction, children, viewRes
         throw new Error('key/value cannot be null or undefined. Are you trying to inject/register something that doesn\'t exist with DI?');
       }
 
-      if('__providerId__' in key) {
-        let providerKey = key.__providerId__;
+      let providerKey = key.__providerId__;
 
-        if(providerKey in providers) {
-          return this[providerKey] || (this[providerKey] = handlers.get(key).invoke(this));
+      if (providerKey !== undefined) {
+        let handler = providers[providerKey];
+
+        if (handler !== undefined) {
+          return this[providerKey] || (this[providerKey] = handler.invoke(this));
         }
       }
 
@@ -76,11 +78,13 @@ function createBehaviorContainer(parent, element, instruction, children, viewRes
       return this.standardContainer !== null ? this.standardContainer._get(key) : parent._get(key);
     },
     _get(key) {
-      if('__providerId__' in key) {
-        let providerKey = key.__providerId__;
+      let providerKey = key.__providerId__;
 
-        if(providerKey in providers) {
-          return this[providerKey] || (this[providerKey] = handlers.get(key).invoke(this));
+      if (providerKey !== undefined) {
+        let handler = providers[providerKey];
+
+        if (handler !== undefined) {
+          return this[providerKey] || (this[providerKey] = handler.invoke(this));
         }
       }
 
@@ -90,7 +94,7 @@ function createBehaviorContainer(parent, element, instruction, children, viewRes
       return createBehaviorContainer(this, element, instruction, children, viewResources, partReplacements);
     },
     ensureStandardContainer() {
-      if(this.standardContainer === null) {
+      if (this.standardContainer === null) {
         this.standardContainer = new Container(this._configuration);
         this.standardContainer.root = this.root;
         this.standardContainer.parent = this.parent;

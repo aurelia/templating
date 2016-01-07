@@ -65,6 +65,8 @@ function ensureProviderHandlers(container, providers) {
       handler = container._createInvocationHandler(value);
       handlers.set(value, handler);
     }
+
+    providers[key] = handler;
   }
 }
 
