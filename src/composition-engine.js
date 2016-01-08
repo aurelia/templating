@@ -43,6 +43,10 @@ interface CompositionContext {
   */
   viewResources: ViewResources;
   /**
+  * The view inside which this composition is happening.
+  */
+  owningView?: View;
+  /**
   * The view url or view strategy to override the default view location convention.
   */
   view?: string | ViewStrategy;
@@ -86,7 +90,7 @@ export class CompositionEngine {
           context.currentController.unbind();
         }
 
-        controller.automate();
+        controller.automate(context.overrideContext, context.owningView);
         context.viewSlot.add(controller.view);
 
         return controller;
