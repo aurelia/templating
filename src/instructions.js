@@ -134,6 +134,7 @@ export class BehaviorInstruction {
     instruction.host = host;
     instruction.viewModel = viewModel;
     instruction.viewFactory = viewFactory;
+    instruction.inheritBindingContext = true;
     return instruction;
   }
 
@@ -154,6 +155,7 @@ export class BehaviorInstruction {
     this.attributes = null;
     this.type = null;
     this.attrName = null;
+    this.inheritBindingContext = false;
   }
 }
 
