@@ -3247,7 +3247,7 @@ export class Controller {
   * Invoked when the view which contains this controller is created.
   * @param owningView The view inside which this controller resides.
   */
-  created(owningView): void {
+  created(owningView: View): void {
     if (this.behavior.handlesCreated) {
       this.viewModel.created(owningView, this.view);
     }
@@ -3257,11 +3257,17 @@ export class Controller {
   * Used to automate the proper binding of this controller and its view. Used by the composition engine for dynamic component creation.
   * This should be considered a semi-private API and is subject to change without notice, even across minor or patch releases.
   * @param overrideContext An override context for binding.
+  * @param owningView The view inside which this controller resides.
   */
-  automate(overrideContext?: Object): void {
+  automate(overrideContext?: Object, owningView?: View): void {
     this.view.bindingContext = this.viewModel;
     this.view.overrideContext = overrideContext || createOverrideContext(this.viewModel);
     this.view._isUserControlled = true;
+
+    if(this.behavior.handlesCreated) {
+      this.viewModel.created(owningView || null, this.view);
+    }
+
     this.bind(this.view);
   }
 
@@ -4378,6 +4384,10 @@ interface CompositionContext {
   */
   viewResources: ViewResources;
   /**
+  * The view inside which this composition is happening.
+  */
+  owningView?: View;
+  /**
   * The view url or view strategy to override the default view location convention.
   */
   view?: string | ViewStrategy;
@@ -4421,7 +4431,7 @@ export class CompositionEngine {
           context.currentController.unbind();
         }
 
-        controller.automate();
+        controller.automate(context.overrideContext, context.owningView);
         context.viewSlot.add(controller.view);
 
         return controller;

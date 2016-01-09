@@ -2718,10 +2718,15 @@ var Controller = (function () {
     }
   };
 
-  Controller.prototype.automate = function automate(overrideContext) {
+  Controller.prototype.automate = function automate(overrideContext, owningView) {
     this.view.bindingContext = this.viewModel;
     this.view.overrideContext = overrideContext || _aureliaBinding.createOverrideContext(this.viewModel);
     this.view._isUserControlled = true;
+
+    if (this.behavior.handlesCreated) {
+      this.viewModel.created(owningView || null, this.view);
+    }
+
     this.bind(this.view);
   };
 
@@ -3727,7 +3732,7 @@ var CompositionEngine = (function () {
           context.currentController.unbind();
         }
 
-        controller.automate();
+        controller.automate(context.overrideContext, context.owningView);
         context.viewSlot.add(controller.view);
 
         return controller;

@@ -149,6 +149,11 @@ declare module 'aurelia-templating' {
     viewResources: ViewResources;
     
     /**
+      * The view inside which this composition is happening.
+      */
+    owningView?: View;
+    
+    /**
       * The view url or view strategy to override the default view location convention.
       */
     view?: string | ViewStrategy;
@@ -1170,14 +1175,15 @@ declare module 'aurelia-templating' {
       * Invoked when the view which contains this controller is created.
       * @param owningView The view inside which this controller resides.
       */
-    created(owningView: any): void;
+    created(owningView: View): void;
     
     /**
       * Used to automate the proper binding of this controller and its view. Used by the composition engine for dynamic component creation.
       * This should be considered a semi-private API and is subject to change without notice, even across minor or patch releases.
       * @param overrideContext An override context for binding.
+      * @param owningView The view inside which this controller resides.
       */
-    automate(overrideContext?: Object): void;
+    automate(overrideContext?: Object, owningView?: View): void;
     
     /**
       * Binds the controller to the scope.

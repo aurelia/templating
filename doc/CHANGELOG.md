@@ -1,3 +1,11 @@
+### 1.0.0-beta.1.0.3 (2016-01-08)
+
+
+#### Bug Fixes
+
+* **composition:** properly handle the created callback during dynamic composition ([9b61a681](http://github.com/aurelia/templating/commit/9b61a681fe6dd7c240a0db13dd13885d430c79a1))
+
+
 ### 1.0.0-beta.1.0.2 (2015-12-16)
 
 
