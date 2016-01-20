@@ -146,7 +146,8 @@ export class Controller {
       // Note that factoryCreateInstruction is a property defined on BoundViewFactory. The code below assumes the
       // behavior stores a the BoundViewFactory on its viewModel under the name of viewFactory. This is implemented
       // by the replaceable custom attribute.
-      if (this.viewModel.viewFactory && this.viewModel.viewFactory.factoryCreateInstruction.partReplacements) {
+      if (scope.overrideContext.__parentOverrideContext !== undefined
+        && this.viewModel.viewFactory && this.viewModel.viewFactory.factoryCreateInstruction.partReplacements) {
         // clone the overrideContext and connect the ambient context.
         overrideContext = Object.assign({}, scope.overrideContext);
         overrideContext.parentOverrideContext = scope.overrideContext.__parentOverrideContext;
