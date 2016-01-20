@@ -237,7 +237,7 @@ export class HtmlBehaviorResource {
         node = template;
       }
     } else if (this.elementName !== null) { //custom element
-      let partReplacements = instruction.partReplacements = {};
+      let partReplacements = {};
 
       if (this.processContent(compiler, resources, node, instruction) && node.hasChildNodes()) {
         if (this.usesShadowDOM) {
@@ -251,6 +251,7 @@ export class HtmlBehaviorResource {
             if (currentChild.tagName === 'TEMPLATE' && (toReplace = currentChild.getAttribute('replace-part'))) {
               partReplacements[toReplace] = compiler.compile(currentChild, resources);
               DOM.removeNode(currentChild, parentNode);
+              instruction.partReplacements = partReplacements;
             }
 
             currentChild = nextSibling;
@@ -269,6 +270,7 @@ export class HtmlBehaviorResource {
             if (currentChild.tagName === 'TEMPLATE' && (toReplace = currentChild.getAttribute('replace-part'))) {
               partReplacements[toReplace] = compiler.compile(currentChild, resources);
               DOM.removeNode(currentChild, parentNode);
+              instruction.partReplacements = partReplacements;
             } else {
               fragment.appendChild(currentChild);
             }
