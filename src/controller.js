@@ -128,7 +128,7 @@ export class Controller {
       // valid for this viewModel?
       if (this.viewModel === scope.overrideContext.bindingContext) {
         overrideContext = scope.overrideContext;
-      // should we inherit the parent scope? (eg compose / routed)
+      // should we inherit the parent scope? (eg compose / router)
       } else if (this.instruction.inheritBindingContext) {
         overrideContext = createOverrideContext(this.viewModel, scope.overrideContext);
       // create the overrideContext and capture the parent without making it
@@ -143,6 +143,9 @@ export class Controller {
       // the factoryCreateInstruction's partReplacements will either be null or an object
       // containing the replacements. If there are partReplacements we need to preserve the parent
       // context to allow replacement parts to bind to both the custom element scope and the ambient scope.
+      // Note that factoryCreateInstruction is a property defined on BoundViewFactory. The code below assumes the
+      // behavior stores a the BoundViewFactory on its viewModel under the name of viewFactory. This is implemented
+      // by the replaceable custom attribute.
       if (this.viewModel.viewFactory && this.viewModel.viewFactory.factoryCreateInstruction.partReplacements) {
         // clone the overrideContext and connect the ambient context.
         overrideContext = Object.assign({}, scope.overrideContext);

@@ -252,7 +252,7 @@ export class BoundViewFactory {
   constructor(parentContainer: Container, viewFactory: ViewFactory, partReplacements?: Object) {
     this.parentContainer = parentContainer;
     this.viewFactory = viewFactory;
-    this.factoryCreateInstruction = { partReplacements: partReplacements };
+    this.factoryCreateInstruction = { partReplacements: partReplacements }; //This is referenced internally in the controller's bind method.
   }
 
   /**
