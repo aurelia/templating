@@ -24,14 +24,14 @@ function createChildObserverDecorator(selectorOrConfig, all) {
 }
 
 /**
-* Creates a behavior property that references an array of immediate content child elememnts that matches the provided selector.
+* Creates a behavior property that references an array of immediate content child elements that matches the provided selector.
 */
 export function children(selectorOrConfig: string | Object): any {
   return createChildObserverDecorator(selectorOrConfig, true);
 }
 
 /**
-* Creates a behavior property that references an immediate content child elememnt that matches the provided selector.
+* Creates a behavior property that references an immediate content child element that matches the provided selector.
 */
 export function child(selectorOrConfig: string | Object): any {
   return createChildObserverDecorator(selectorOrConfig, false);
