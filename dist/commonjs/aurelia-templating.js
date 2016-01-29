@@ -208,6 +208,7 @@ var BehaviorInstruction = (function () {
     instruction.host = host;
     instruction.viewModel = viewModel;
     instruction.viewFactory = viewFactory;
+    instruction.inheritBindingContext = true;
     return instruction;
   };
 
@@ -233,6 +234,7 @@ var BehaviorInstruction = (function () {
     this.attributes = null;
     this.type = null;
     this.attrName = null;
+    this.inheritBindingContext = false;
   }
 
   return BehaviorInstruction;
@@ -2695,7 +2697,7 @@ var Controller = (function () {
     this.isAttached = false;
     this.view = null;
     this.isBound = false;
-    this.bindingContext = null;
+    this.scope = null;
 
     var observerLookup = behavior.observerLocator.getOrCreateObserversLookup(viewModel);
     var handlesBind = behavior.handlesBind;
@@ -2738,10 +2740,9 @@ var Controller = (function () {
     var x = undefined;
     var observer = undefined;
     var selfSubscriber = undefined;
-    var context = scope.bindingContext;
 
     if (this.isBound) {
-      if (this.bindingContext === context) {
+      if (this.scope === scope) {
         return;
       }
 
@@ -2749,7 +2750,7 @@ var Controller = (function () {
     }
 
     this.isBound = true;
-    this.bindingContext = context;
+    this.scope = scope;
 
     for (i = 0, ii = boundProperties.length; i < ii; ++i) {
       x = boundProperties[i];
@@ -2768,14 +2769,29 @@ var Controller = (function () {
       observer.selfSubscriber = selfSubscriber;
     }
 
+    var overrideContext = undefined;
     if (this.view !== null) {
       if (skipSelfSubscriber) {
         this.view.viewModelScope = scope;
       }
 
-      this.view.bind(this.viewModel, _aureliaBinding.createOverrideContext(this.viewModel, scope.overrideContext));
+      if (this.viewModel === scope.overrideContext.bindingContext) {
+        overrideContext = scope.overrideContext;
+      } else if (this.instruction.inheritBindingContext) {
+          overrideContext = _aureliaBinding.createOverrideContext(this.viewModel, scope.overrideContext);
+        } else {
+            overrideContext = _aureliaBinding.createOverrideContext(this.viewModel);
+            overrideContext.__parentOverrideContext = scope.overrideContext;
+          }
+      this.view.bind(this.viewModel, overrideContext);
     } else if (skipSelfSubscriber) {
-      this.viewModel.bind(context, scope.overrideContext);
+      overrideContext = scope.overrideContext;
+
+      if (scope.overrideContext.__parentOverrideContext !== undefined && this.viewModel.viewFactory && this.viewModel.viewFactory.factoryCreateInstruction.partReplacements) {
+        overrideContext = Object.assign({}, scope.overrideContext);
+        overrideContext.parentOverrideContext = scope.overrideContext.__parentOverrideContext;
+      }
+      this.viewModel.bind(scope.bindingContext, overrideContext);
     }
   };
 
@@ -3300,7 +3316,7 @@ var HtmlBehaviorResource = (function () {
         node = template;
       }
     } else if (this.elementName !== null) {
-      var _partReplacements2 = instruction.partReplacements = {};
+      var _partReplacements2 = {};
 
       if (this.processContent(compiler, resources, node, instruction) && node.hasChildNodes()) {
         if (this.usesShadowDOM) {
@@ -3314,6 +3330,7 @@ var HtmlBehaviorResource = (function () {
             if (currentChild.tagName === 'TEMPLATE' && (toReplace = currentChild.getAttribute('replace-part'))) {
               _partReplacements2[toReplace] = compiler.compile(currentChild, resources);
               _aureliaPal.DOM.removeNode(currentChild, parentNode);
+              instruction.partReplacements = _partReplacements2;
             }
 
             currentChild = nextSibling;
@@ -3332,6 +3349,7 @@ var HtmlBehaviorResource = (function () {
             if (currentChild.tagName === 'TEMPLATE' && (toReplace = currentChild.getAttribute('replace-part'))) {
               _partReplacements2[toReplace] = compiler.compile(currentChild, resources);
               _aureliaPal.DOM.removeNode(currentChild, parentNode);
+              instruction.partReplacements = _partReplacements2;
             } else {
               fragment.appendChild(currentChild);
             }

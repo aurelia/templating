@@ -880,6 +880,7 @@ declare module 'aurelia-templating' {
       */
     constructor(parentContainer: Container, viewFactory: ViewFactory, partReplacements?: Object);
     
+    // This is referenced internally in the controller's bind method.
     /**
       * Creates a view or returns one from the internal cache, if available.
       * @return The created view.
@@ -1363,12 +1364,12 @@ declare module 'aurelia-templating' {
   }
   
   /**
-  * Creates a behavior property that references an array of immediate content child elememnts that matches the provided selector.
+  * Creates a behavior property that references an array of immediate content child elements that matches the provided selector.
   */
   export function children(selectorOrConfig: string | Object): any;
   
   /**
-  * Creates a behavior property that references an immediate content child elememnt that matches the provided selector.
+  * Creates a behavior property that references an immediate content child element that matches the provided selector.
   */
   export function child(selectorOrConfig: string | Object): any;
   class ChildObserver {

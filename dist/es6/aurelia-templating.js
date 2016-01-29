@@ -266,6 +266,7 @@ export class BehaviorInstruction {
     instruction.host = host;
     instruction.viewModel = viewModel;
     instruction.viewFactory = viewFactory;
+    instruction.inheritBindingContext = true;
     return instruction;
   }
 
@@ -286,6 +287,7 @@ export class BehaviorInstruction {
     this.attributes = null;
     this.type = null;
     this.attrName = null;
+    this.inheritBindingContext = false;
   }
 }
 
@@ -2086,7 +2088,7 @@ export class BoundViewFactory {
   constructor(parentContainer: Container, viewFactory: ViewFactory, partReplacements?: Object) {
     this.parentContainer = parentContainer;
     this.viewFactory = viewFactory;
-    this.factoryCreateInstruction = { partReplacements: partReplacements };
+    this.factoryCreateInstruction = { partReplacements: partReplacements }; //This is referenced internally in the controller's bind method.
   }
 
   /**
@@ -3226,7 +3228,7 @@ export class Controller {
     this.isAttached = false;
     this.view = null;
     this.isBound = false;
-    this.bindingContext = null;
+    this.scope = null;
 
     let observerLookup = behavior.observerLocator.getOrCreateObserversLookup(viewModel);
     let handlesBind = behavior.handlesBind;
@@ -3264,7 +3266,7 @@ export class Controller {
     this.view.overrideContext = overrideContext || createOverrideContext(this.viewModel);
     this.view._isUserControlled = true;
 
-    if(this.behavior.handlesCreated) {
+    if (this.behavior.handlesCreated) {
       this.viewModel.created(owningView || null, this.view);
     }
 
@@ -3283,10 +3285,9 @@ export class Controller {
     let x;
     let observer;
     let selfSubscriber;
-    let context = scope.bindingContext;
 
     if (this.isBound) {
-      if (this.bindingContext === context) {
+      if (this.scope === scope) {
         return;
       }
 
@@ -3294,7 +3295,7 @@ export class Controller {
     }
 
     this.isBound = true;
-    this.bindingContext = context;
+    this.scope = scope;
 
     for (i = 0, ii = boundProperties.length; i < ii; ++i) {
       x = boundProperties[i];
@@ -3313,14 +3314,40 @@ export class Controller {
       observer.selfSubscriber = selfSubscriber;
     }
 
+    let overrideContext;
     if (this.view !== null) {
       if (skipSelfSubscriber) {
         this.view.viewModelScope = scope;
       }
-
-      this.view.bind(this.viewModel, createOverrideContext(this.viewModel, scope.overrideContext));
+      // do we need to create an overrideContext or is the scope's overrideContext
+      // valid for this viewModel?
+      if (this.viewModel === scope.overrideContext.bindingContext) {
+        overrideContext = scope.overrideContext;
+      // should we inherit the parent scope? (eg compose / router)
+      } else if (this.instruction.inheritBindingContext) {
+        overrideContext = createOverrideContext(this.viewModel, scope.overrideContext);
+      // create the overrideContext and capture the parent without making it
+      // available to AccessScope. We may need it later for template-part replacements.
+      } else {
+        overrideContext = createOverrideContext(this.viewModel);
+        overrideContext.__parentOverrideContext = scope.overrideContext;
+      }
+      this.view.bind(this.viewModel, overrideContext);
     } else if (skipSelfSubscriber) {
-      this.viewModel.bind(context, scope.overrideContext);
+      overrideContext = scope.overrideContext;
+      // the factoryCreateInstruction's partReplacements will either be null or an object
+      // containing the replacements. If there are partReplacements we need to preserve the parent
+      // context to allow replacement parts to bind to both the custom element scope and the ambient scope.
+      // Note that factoryCreateInstruction is a property defined on BoundViewFactory. The code below assumes the
+      // behavior stores a the BoundViewFactory on its viewModel under the name of viewFactory. This is implemented
+      // by the replaceable custom attribute.
+      if (scope.overrideContext.__parentOverrideContext !== undefined
+        && this.viewModel.viewFactory && this.viewModel.viewFactory.factoryCreateInstruction.partReplacements) {
+        // clone the overrideContext and connect the ambient context.
+        overrideContext = Object.assign({}, scope.overrideContext);
+        overrideContext.parentOverrideContext = scope.overrideContext.__parentOverrideContext;
+      }
+      this.viewModel.bind(scope.bindingContext, overrideContext);
     }
   }
 
@@ -3932,7 +3959,7 @@ export class HtmlBehaviorResource {
         node = template;
       }
     } else if (this.elementName !== null) { //custom element
-      let partReplacements = instruction.partReplacements = {};
+      let partReplacements = {};
 
       if (this.processContent(compiler, resources, node, instruction) && node.hasChildNodes()) {
         if (this.usesShadowDOM) {
@@ -3946,6 +3973,7 @@ export class HtmlBehaviorResource {
             if (currentChild.tagName === 'TEMPLATE' && (toReplace = currentChild.getAttribute('replace-part'))) {
               partReplacements[toReplace] = compiler.compile(currentChild, resources);
               DOM.removeNode(currentChild, parentNode);
+              instruction.partReplacements = partReplacements;
             }
 
             currentChild = nextSibling;
@@ -3964,6 +3992,7 @@ export class HtmlBehaviorResource {
             if (currentChild.tagName === 'TEMPLATE' && (toReplace = currentChild.getAttribute('replace-part'))) {
               partReplacements[toReplace] = compiler.compile(currentChild, resources);
               DOM.removeNode(currentChild, parentNode);
+              instruction.partReplacements = partReplacements;
             } else {
               fragment.appendChild(currentChild);
             }
@@ -4144,14 +4173,14 @@ function createChildObserverDecorator(selectorOrConfig, all) {
 }
 
 /**
-* Creates a behavior property that references an array of immediate content child elememnts that matches the provided selector.
+* Creates a behavior property that references an array of immediate content child elements that matches the provided selector.
 */
 export function children(selectorOrConfig: string | Object): any {
   return createChildObserverDecorator(selectorOrConfig, true);
 }
 
 /**
-* Creates a behavior property that references an immediate content child elememnt that matches the provided selector.
+* Creates a behavior property that references an immediate content child element that matches the provided selector.
 */
 export function child(selectorOrConfig: string | Object): any {
   return createChildObserverDecorator(selectorOrConfig, false);

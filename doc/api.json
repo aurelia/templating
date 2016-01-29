@@ -902,7 +902,7 @@
                   "type": {
                     "type": "reference",
                     "name": "TaskQueue",
-                    "id": 1596,
+                    "id": 1603,
                     "moduleName": "\"aurelia-task-queue\""
                   }
                 },
@@ -1747,7 +1747,7 @@
                   "type": {
                     "type": "reference",
                     "name": "Container",
-                    "id": 1153,
+                    "id": 1159,
                     "moduleName": "\"aurelia-dependency-injection\""
                   }
                 },
@@ -3053,7 +3053,7 @@
                   "type": {
                     "type": "reference",
                     "name": "Origin",
-                    "id": 1410,
+                    "id": 1416,
                     "moduleName": "\"aurelia-metadata\""
                   }
                 }
@@ -3213,7 +3213,7 @@
                   "type": {
                     "type": "reference",
                     "name": "Container",
-                    "id": 1153,
+                    "id": 1159,
                     "moduleName": "\"aurelia-dependency-injection\""
                   }
                 },
@@ -3270,7 +3270,7 @@
                   "type": {
                     "type": "reference",
                     "name": "Container",
-                    "id": 1153,
+                    "id": 1159,
                     "moduleName": "\"aurelia-dependency-injection\""
                   }
                 },
@@ -3589,7 +3589,7 @@
                   "type": {
                     "type": "reference",
                     "name": "Container",
-                    "id": 1153,
+                    "id": 1159,
                     "moduleName": "\"aurelia-dependency-injection\""
                   }
                 },
@@ -3687,7 +3687,7 @@
                   "type": {
                     "type": "reference",
                     "name": "Container",
-                    "id": 1153,
+                    "id": 1159,
                     "moduleName": "\"aurelia-dependency-injection\""
                   }
                 },
@@ -3744,7 +3744,7 @@
                   "type": {
                     "type": "reference",
                     "name": "Container",
-                    "id": 1153,
+                    "id": 1159,
                     "moduleName": "\"aurelia-dependency-injection\""
                   }
                 },
@@ -4611,7 +4611,7 @@
                   "type": {
                     "type": "reference",
                     "name": "Container",
-                    "id": 1153,
+                    "id": 1159,
                     "moduleName": "\"aurelia-dependency-injection\""
                   }
                 },
@@ -5126,7 +5126,7 @@
                   "type": {
                     "type": "reference",
                     "name": "Container",
-                    "id": 1153,
+                    "id": 1159,
                     "moduleName": "\"aurelia-dependency-injection\""
                   }
                 }
@@ -5170,7 +5170,7 @@
                   "type": {
                     "type": "reference",
                     "name": "Container",
-                    "id": 1153,
+                    "id": 1159,
                     "moduleName": "\"aurelia-dependency-injection\""
                   }
                 },
@@ -5524,7 +5524,7 @@
                   "type": {
                     "type": "reference",
                     "name": "Container",
-                    "id": 1153,
+                    "id": 1159,
                     "moduleName": "\"aurelia-dependency-injection\""
                   }
                 }
@@ -5568,7 +5568,7 @@
                   "type": {
                     "type": "reference",
                     "name": "Container",
-                    "id": 1153,
+                    "id": 1159,
                     "moduleName": "\"aurelia-dependency-injection\""
                   }
                 },
@@ -6238,7 +6238,7 @@
                   "type": {
                     "type": "reference",
                     "name": "TemplateRegistryEntry",
-                    "id": 1259,
+                    "id": 1265,
                     "moduleName": "\"aurelia-loader\""
                   }
                 }
@@ -6401,7 +6401,7 @@
                   "type": {
                     "type": "reference",
                     "name": "Container",
-                    "id": 1153,
+                    "id": 1159,
                     "moduleName": "\"aurelia-dependency-injection\""
                   }
                 },
@@ -7628,7 +7628,7 @@
                   "type": {
                     "type": "reference",
                     "name": "Loader",
-                    "id": 1274,
+                    "id": 1280,
                     "moduleName": "\"aurelia-loader\""
                   }
                 },
@@ -7644,7 +7644,7 @@
                   "type": {
                     "type": "reference",
                     "name": "Container",
-                    "id": 1153,
+                    "id": 1159,
                     "moduleName": "\"aurelia-dependency-injection\""
                   }
                 },
@@ -7970,7 +7970,7 @@
                   "type": {
                     "type": "reference",
                     "name": "TemplateRegistryEntry",
-                    "id": 1259,
+                    "id": 1265,
                     "moduleName": "\"aurelia-loader\""
                   }
                 },
@@ -8064,7 +8064,7 @@
                       {
                         "type": "reference",
                         "name": "TemplateRegistryEntry",
-                        "id": 1259
+                        "id": 1265
                       }
                     ]
                   }
@@ -8278,7 +8278,7 @@
                   "type": {
                     "type": "reference",
                     "name": "Container",
-                    "id": 1153,
+                    "id": 1159,
                     "moduleName": "\"aurelia-dependency-injection\""
                   }
                 },
@@ -8550,7 +8550,7 @@
                   "type": {
                     "type": "reference",
                     "name": "Origin",
-                    "id": 1410,
+                    "id": 1416,
                     "moduleName": "\"aurelia-metadata\""
                   }
                 }
@@ -8594,7 +8594,7 @@
                   "type": {
                     "type": "reference",
                     "name": "Origin",
-                    "id": 1410,
+                    "id": 1416,
                     "moduleName": "\"aurelia-metadata\""
                   }
                 }
@@ -10133,7 +10133,7 @@
           "type": {
             "type": "reference",
             "name": "Container",
-            "id": 1153
+            "id": 1159
           }
         },
         {
@@ -10150,7 +10150,7 @@
           "type": {
             "type": "reference",
             "name": "Container",
-            "id": 1153
+            "id": 1159
           }
         },
         {
@@ -10384,7 +10384,7 @@
           "type": {
             "type": "reference",
             "name": "Container",
-            "id": 1153
+            "id": 1159
           }
         },
         {
@@ -10780,7 +10780,7 @@
                       "type": {
                         "type": "reference",
                         "name": "Container",
-                        "id": 1153
+                        "id": 1159
                       }
                     },
                     {
@@ -11270,7 +11270,7 @@
           "kindString": "Call signature",
           "flags": {},
           "comment": {
-            "shortText": "Creates a behavior property that references an immediate content child elememnt that matches the provided selector."
+            "shortText": "Creates a behavior property that references an immediate content child element that matches the provided selector."
           },
           "parameters": [
             {
@@ -11317,7 +11317,7 @@
           "kindString": "Call signature",
           "flags": {},
           "comment": {
-            "shortText": "Creates a behavior property that references an array of immediate content child elememnts that matches the provided selector."
+            "shortText": "Creates a behavior property that references an array of immediate content child elements that matches the provided selector."
           },
           "parameters": [
             {

@@ -1,3 +1,17 @@
+### 1.0.0-beta.1.1.0 (2016-01-29)
+
+
+#### Bug Fixes
+
+* **Controller:** handle scope inheritance in template part with repeat Related to #244 ([9a488c44](http://github.com/aurelia/templating/commit/9a488c44e86872c91b2f86953519c8ef7308a262))
+* **controller:** stop element from inheriting scope ([a3ced53d](http://github.com/aurelia/templating/commit/a3ced53d67749244a6ea61d5193b04330e392bfc))
+
+
+#### Features
+
+* **all:** update jspm meta; core-js; aurelia-deps ([bdff3232](http://github.com/aurelia/templating/commit/bdff323282ebd7228063cb08a961a3258215fcea))
+
+
 ### 1.0.0-beta.1.0.3 (2016-01-08)
 
 
