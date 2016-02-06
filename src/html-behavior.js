@@ -20,9 +20,8 @@ function nextProviderId() {
   return ++lastProviderId;
 }
 
-function doProcessContent() {
-  return true;
-}
+function doProcessContent() { return true; }
+function doProcessAttributes() {}
 
 /**
 * Identifies a class as a resource that implements custom element or custom
@@ -38,6 +37,7 @@ export class HtmlBehaviorResource {
     this.attributeDefaultBindingMode = undefined;
     this.liftsContent = false;
     this.targetShadowDOM = false;
+    this.processAttributes = doProcessAttributes;
     this.processContent = doProcessContent;
     this.usesShadowDOM = false;
     this.childBindings = null;

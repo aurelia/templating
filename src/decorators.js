@@ -134,9 +134,18 @@ export function useShadowDOM(target?): any {
   return target ? deco(target) : deco;
 }
 
-function doNotProcessContent() {
-  return false;
+/**
+* Decorator: Enables custom processing of the attributes on an element before the framework inspects them.
+* @param processor Pass a function which can provide custom processing of the content.
+*/
+export function processAttributes(processor: Function): any {
+  return function(t) {
+    let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
+    r.processAttributes = processor;
+  };
 }
+
+function doNotProcessContent() { return false; }
 
 /**
 * Decorator: Enables custom processing of the content that is places inside the
