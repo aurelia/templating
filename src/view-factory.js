@@ -5,6 +5,7 @@ import {_ContentSelector} from './content-selector';
 import {ViewResources} from './view-resources';
 import {BehaviorInstruction, TargetInstruction} from './instructions';
 import {DOM} from 'aurelia-pal';
+import {ElementEvents} from './element-events';
 
 @resolver
 class ProviderResolver {
@@ -45,6 +46,10 @@ function elementContainerGet(key) {
     }
 
     return this.viewSlot;
+  }
+
+  if (key === ElementEvents) {
+    return this.elementEvents || (this.elementEvents = new ElementEvents(this.element));
   }
 
   if (key === ViewResources) {

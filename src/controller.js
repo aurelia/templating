@@ -1,4 +1,5 @@
 import {createOverrideContext} from 'aurelia-binding';
+import {ElementEvents} from './element-events';
 
 /**
 * Controls a view model (and optionally its view), according to a particular behavior and by following a set of instructions.
@@ -26,7 +27,7 @@ export class Controller {
   * @param instruction The instructions pertaining to the controller's behavior.
   * @param viewModel The developer's view model instance which provides the custom behavior for this controller.
   */
-  constructor(behavior: HtmlBehaviorResource, instruction: BehaviorInstruction, viewModel: Object) {
+  constructor(behavior: HtmlBehaviorResource, instruction: BehaviorInstruction, viewModel: Object, elementEvents?: ElementEvents) {
     this.behavior = behavior;
     this.instruction = instruction;
     this.viewModel = viewModel;
@@ -34,6 +35,7 @@ export class Controller {
     this.view = null;
     this.isBound = false;
     this.scope = null;
+    this.elementEvents = elementEvents || null;
 
     let observerLookup = behavior.observerLocator.getOrCreateObserversLookup(viewModel);
     let handlesBind = behavior.handlesBind;
@@ -174,6 +176,10 @@ export class Controller {
 
       if (this.behavior.handlesUnbind) {
         this.viewModel.unbind();
+      }
+
+      if (this.elementEvents !== null) {
+        this.elementEvents.disposeAll();
       }
 
       for (i = 0, ii = boundProperties.length; i < ii; ++i) {
