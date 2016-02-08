@@ -1,3 +1,13 @@
+### 1.0.0-beta.1.1.1 (2016-02-08)
+
+
+#### Features
+
+* **html-behavior:** add processAttributes for custom elements ([f6c7d71f](http://github.com/aurelia/templating/commit/f6c7d71fcdf42248fb5c7ef78424b20b687d0fda))
+* **view-compiler:** implement as-element ([3ec30ee5](http://github.com/aurelia/templating/commit/3ec30ee59eeef789cc0ad0c4022ad52fc59b2039), closes [#305](http://github.com/aurelia/templating/issues/305))
+* **view-factory:** enable injection and auto-unbind of ElementEvents ([842014fd](http://github.com/aurelia/templating/commit/842014fd6ede2ec88906158d8afff8b4ab84487c))
+
+
 ### 1.0.0-beta.1.1.0 (2016-01-29)
 
 

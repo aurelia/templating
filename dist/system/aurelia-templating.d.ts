@@ -1,13 +1,19 @@
 declare module 'aurelia-templating' {
   import 'core-js';
   import * as LogManager from 'aurelia-logging';
+  import { DOM, PLATFORM, FEATURE }  from 'aurelia-pal';
   import { Origin, protocol, metadata }  from 'aurelia-metadata';
   import { relativeToFile }  from 'aurelia-path';
   import { TemplateRegistryEntry, Loader }  from 'aurelia-loader';
-  import { DOM, PLATFORM, FEATURE }  from 'aurelia-pal';
   import { Binding, createOverrideContext, ValueConverterResource, BindingBehaviorResource, subscriberCollection, bindingMode, ObserverLocator, EventManager, createScopeForTest }  from 'aurelia-binding';
   import { Container, resolver, inject }  from 'aurelia-dependency-injection';
   import { TaskQueue }  from 'aurelia-task-queue';
+  export interface EventHandler {
+    eventName: string;
+    bubbles: boolean;
+    dispose: Function;
+    handler: Function;
+  }
   
   /**
   * Specifies how a view should be created.
@@ -264,6 +270,52 @@ declare module 'aurelia-templating' {
        * @param effectName identifier of the effect
        */
     unregisterEffect(effectName: string): void;
+  }
+  
+  /**
+   * Dispatches subscribets to and publishes events in the DOM.
+   * @param element
+   */
+  export class ElementEvents {
+    constructor(element: Element);
+    
+    /**
+       * Dispatches an Event on the context element.
+       * @param eventName
+       * @param detail
+       * @param bubbles
+       * @param cancelable
+       */
+    publish(eventName: string, detail?: Object, bubbles?: boolean, cancelable?: boolean): any;
+    
+    /**
+       * Adds and Event Listener on the context element.
+       * @param eventName
+       * @param handler
+       * @param bubbles
+       * @return Returns the eventHandler containing a dispose method
+       */
+    subscribe(eventName: string, handler: Function, bubbles?: boolean): EventHandler;
+    
+    /**
+       * Adds an Event Listener on the context element, that will be disposed on the first trigger.
+       * @param eventName
+       * @param handler
+       * @param bubbles
+       * @return Returns the eventHandler containing a dispose method
+       */
+    subscribeOnce(eventName: String, handler: Function, bubbles?: Boolean): EventHandler;
+    
+    /**
+       * Removes all events that are listening to the specified eventName.
+       * @param eventName
+       */
+    dispose(eventName: string): void;
+    
+    /**
+       * Removes all event handlers.
+       */
+    disposeAll(): any;
   }
   
   /**
@@ -1170,7 +1222,7 @@ declare module 'aurelia-templating' {
       * @param instruction The instructions pertaining to the controller's behavior.
       * @param viewModel The developer's view model instance which provides the custom behavior for this controller.
       */
-    constructor(behavior: HtmlBehaviorResource, instruction: BehaviorInstruction, viewModel: Object);
+    constructor(behavior: HtmlBehaviorResource, instruction: BehaviorInstruction, viewModel: Object, elementEvents?: ElementEvents);
     
     /**
       * Invoked when the view which contains this controller is created.
@@ -1500,6 +1552,12 @@ declare module 'aurelia-templating' {
   * DOM. This decorator may change slighly when Aurelia updates to Shadow DOM v1.
   */
   export function useShadowDOM(target?: any): any;
+  
+  /**
+  * Decorator: Enables custom processing of the attributes on an element before the framework inspects them.
+  * @param processor Pass a function which can provide custom processing of the content.
+  */
+  export function processAttributes(processor: Function): any;
   
   /**
   * Decorator: Enables custom processing of the content that is places inside the

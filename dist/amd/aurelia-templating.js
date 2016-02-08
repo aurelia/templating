@@ -1,4 +1,4 @@
-define(['exports', 'core-js', 'aurelia-logging', 'aurelia-metadata', 'aurelia-path', 'aurelia-loader', 'aurelia-pal', 'aurelia-binding', 'aurelia-dependency-injection', 'aurelia-task-queue'], function (exports, _coreJs, _aureliaLogging, _aureliaMetadata, _aureliaPath, _aureliaLoader, _aureliaPal, _aureliaBinding, _aureliaDependencyInjection, _aureliaTaskQueue) {
+define(['exports', 'core-js', 'aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-path', 'aurelia-loader', 'aurelia-binding', 'aurelia-dependency-injection', 'aurelia-task-queue'], function (exports, _coreJs, _aureliaLogging, _aureliaPal, _aureliaMetadata, _aureliaPath, _aureliaLoader, _aureliaBinding, _aureliaDependencyInjection, _aureliaTaskQueue) {
   'use strict';
 
   exports.__esModule = true;
@@ -16,6 +16,7 @@ define(['exports', 'core-js', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pa
   exports.bindable = bindable;
   exports.dynamicOptions = dynamicOptions;
   exports.useShadowDOM = useShadowDOM;
+  exports.processAttributes = processAttributes;
   exports.processContent = processContent;
   exports.containerless = containerless;
   exports.useViewStrategy = useViewStrategy;
@@ -107,6 +108,106 @@ define(['exports', 'core-js', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pa
   function _hyphenate(name) {
     return (name.charAt(0).toLowerCase() + name.slice(1)).replace(capitalMatcher, addHyphenAndLower);
   }
+
+  var ElementEvents = (function () {
+    function ElementEvents(element) {
+      _classCallCheck(this, ElementEvents);
+
+      this.element = element;
+      this.subscriptions = {};
+    }
+
+    ElementEvents.prototype._enqueueHandler = function _enqueueHandler(handler) {
+      this.subscriptions[handler.eventName] = this.subscriptions[handler.eventName] || [];
+      this.subscriptions[handler.eventName].push(handler);
+    };
+
+    ElementEvents.prototype._dequeueHandler = function _dequeueHandler(handler) {
+      var index = undefined;
+      var subscriptions = this.subscriptions[handler.eventName];
+      if (subscriptions) {
+        index = subscriptions.indexOf(handler);
+        if (index > -1) {
+          subscriptions.splice(index, 1);
+        }
+      }
+      return handler;
+    };
+
+    ElementEvents.prototype.publish = function publish(eventName) {
+      var detail = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+      var bubbles = arguments.length <= 2 || arguments[2] === undefined ? true : arguments[2];
+      var cancelable = arguments.length <= 3 || arguments[3] === undefined ? true : arguments[3];
+
+      var event = _aureliaPal.DOM.createCustomEvent(eventName, { cancelable: cancelable, bubbles: bubbles, detail: detail });
+      this.element.dispatchEvent(event);
+    };
+
+    ElementEvents.prototype.subscribe = function subscribe(eventName, handler) {
+      var _this = this;
+
+      var bubbles = arguments.length <= 2 || arguments[2] === undefined ? true : arguments[2];
+
+      if (handler && typeof handler === 'function') {
+        handler.eventName = eventName;
+        handler.handler = handler;
+        handler.bubbles = bubbles;
+        handler.dispose = function () {
+          _this.element.removeEventListener(eventName, handler, bubbles);
+          _this._dequeueHandler(handler);
+        };
+        this.element.addEventListener(eventName, handler, bubbles);
+        this._enqueueHandler(handler);
+        return handler;
+      }
+    };
+
+    ElementEvents.prototype.subscribeOnce = function subscribeOnce(eventName, handler) {
+      var _this2 = this;
+
+      var bubbles = arguments.length <= 2 || arguments[2] === undefined ? true : arguments[2];
+
+      if (handler && typeof handler === 'function') {
+        var _ret = (function () {
+          var _handler = function _handler(event) {
+            handler(event);
+            _handler.dispose();
+          };
+          return {
+            v: _this2.subscribe(eventName, _handler, bubbles)
+          };
+        })();
+
+        if (typeof _ret === 'object') return _ret.v;
+      }
+    };
+
+    ElementEvents.prototype.dispose = function dispose(eventName) {
+      if (eventName && typeof eventName === 'string') {
+        var subscriptions = this.subscriptions[eventName];
+        if (subscriptions) {
+          while (subscriptions.length) {
+            var subscription = subscriptions.pop();
+            if (subscription) {
+              subscription.dispose();
+            }
+          }
+        }
+      } else {
+        this.disposeAll();
+      }
+    };
+
+    ElementEvents.prototype.disposeAll = function disposeAll() {
+      for (var key in this.subscriptions) {
+        this.dispose(key);
+      }
+    };
+
+    return ElementEvents;
+  })();
+
+  exports.ElementEvents = ElementEvents;
 
   var ResourceLoadContext = (function () {
     function ResourceLoadContext() {
@@ -1227,16 +1328,16 @@ define(['exports', 'core-js', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pa
     };
 
     ViewSlot.prototype.removeAt = function removeAt(index, returnToCache, skipAnimation) {
-      var _this = this;
+      var _this3 = this;
 
       var view = this.children[index];
 
       var removeAction = function removeAction() {
-        index = _this.children.indexOf(view);
+        index = _this3.children.indexOf(view);
         view.removeNodes();
-        _this.children.splice(index, 1);
+        _this3.children.splice(index, 1);
 
-        if (_this.isAttached) {
+        if (_this3.isAttached) {
           view.detached();
         }
 
@@ -1260,7 +1361,7 @@ define(['exports', 'core-js', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pa
     };
 
     ViewSlot.prototype.removeAll = function removeAll(returnToCache, skipAnimation) {
-      var _this2 = this;
+      var _this4 = this;
 
       var children = this.children;
       var ii = children.length;
@@ -1275,7 +1376,7 @@ define(['exports', 'core-js', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pa
 
         var animatableElement = getAnimatableElement(child);
         if (animatableElement !== null) {
-          rmPromises.push(_this2.animator.leave(animatableElement).then(function () {
+          rmPromises.push(_this4.animator.leave(animatableElement).then(function () {
             return child.removeNodes();
           }));
         } else {
@@ -1284,7 +1385,7 @@ define(['exports', 'core-js', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pa
       });
 
       var removeAction = function removeAction() {
-        if (_this2.isAttached) {
+        if (_this4.isAttached) {
           for (i = 0; i < ii; ++i) {
             children[i].detached();
           }
@@ -1296,7 +1397,7 @@ define(['exports', 'core-js', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pa
           }
         }
 
-        _this2.children = [];
+        _this4.children = [];
       };
 
       if (rmPromises.length > 0) {
@@ -1496,6 +1597,10 @@ define(['exports', 'core-js', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pa
       }
 
       return this.viewSlot;
+    }
+
+    if (key === ElementEvents) {
+      return this.elementEvents || (this.elementEvents = new ElementEvents(this.element));
     }
 
     if (key === ViewResources) {
@@ -2096,9 +2201,10 @@ define(['exports', 'core-js', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pa
         viewFactory = this.compile(node, resources);
         viewFactory.part = node.getAttribute('part');
       } else {
-        type = resources.getElement(tagName);
+        type = resources.getElement(node.getAttribute('as-element') || tagName);
         if (type) {
           elementInstruction = BehaviorInstruction.element(node, type);
+          type.processAttributes(this, resources, attributes, elementInstruction);
           behaviorInstructions.push(elementInstruction);
         }
       }
@@ -2472,12 +2578,12 @@ define(['exports', 'core-js', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pa
 
   var ProxyViewFactory = (function () {
     function ProxyViewFactory(promise) {
-      var _this3 = this;
+      var _this5 = this;
 
       _classCallCheck(this, ProxyViewFactory);
 
       promise.then(function (x) {
-        return _this3.viewFactory = x;
+        return _this5.viewFactory = x;
       });
     }
 
@@ -2526,7 +2632,7 @@ define(['exports', 'core-js', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pa
     };
 
     ViewEngine.prototype.loadViewFactory = function loadViewFactory(urlOrRegistryEntry, compileInstruction, loadContext) {
-      var _this4 = this;
+      var _this6 = this;
 
       loadContext = loadContext || new ResourceLoadContext();
 
@@ -2542,9 +2648,9 @@ define(['exports', 'core-js', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pa
 
         loadContext.addDependency(urlOrRegistryEntry);
 
-        registryEntry.onReady = _this4.loadTemplateResources(registryEntry, compileInstruction, loadContext).then(function (resources) {
+        registryEntry.onReady = _this6.loadTemplateResources(registryEntry, compileInstruction, loadContext).then(function (resources) {
           registryEntry.resources = resources;
-          var viewFactory = _this4.viewCompiler.compile(registryEntry.template, resources, compileInstruction);
+          var viewFactory = _this6.viewCompiler.compile(registryEntry.template, resources, compileInstruction);
           registryEntry.factory = viewFactory;
           return viewFactory;
         });
@@ -2577,30 +2683,30 @@ define(['exports', 'core-js', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pa
     };
 
     ViewEngine.prototype.importViewModelResource = function importViewModelResource(moduleImport, moduleMember) {
-      var _this5 = this;
+      var _this7 = this;
 
       return this.loader.loadModule(moduleImport).then(function (viewModelModule) {
         var normalizedId = _aureliaMetadata.Origin.get(viewModelModule).moduleId;
-        var resourceModule = _this5.moduleAnalyzer.analyze(normalizedId, viewModelModule, moduleMember);
+        var resourceModule = _this7.moduleAnalyzer.analyze(normalizedId, viewModelModule, moduleMember);
 
         if (!resourceModule.mainResource) {
           throw new Error('No view model found in module "' + moduleImport + '".');
         }
 
-        resourceModule.initialize(_this5.container);
+        resourceModule.initialize(_this7.container);
 
         return resourceModule.mainResource;
       });
     };
 
     ViewEngine.prototype.importViewResources = function importViewResources(moduleIds, names, resources, compileInstruction, loadContext) {
-      var _this6 = this;
+      var _this8 = this;
 
       loadContext = loadContext || new ResourceLoadContext();
       compileInstruction = compileInstruction || ViewCompileInstruction.normal;
 
       moduleIds = moduleIds.map(function (x) {
-        return _this6._applyLoaderPlugin(x);
+        return _this8._applyLoaderPlugin(x);
       });
 
       return this.loader.loadAllModules(moduleIds).then(function (imports) {
@@ -2610,8 +2716,8 @@ define(['exports', 'core-js', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pa
         var normalizedId = undefined;
         var current = undefined;
         var associatedModule = undefined;
-        var container = _this6.container;
-        var moduleAnalyzer = _this6.moduleAnalyzer;
+        var container = _this8.container;
+        var moduleAnalyzer = _this8.moduleAnalyzer;
         var allAnalysis = new Array(imports.length);
 
         for (i = 0, ii = imports.length; i < ii; ++i) {
@@ -2667,7 +2773,7 @@ define(['exports', 'core-js', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pa
   exports.ViewEngine = ViewEngine;
 
   var Controller = (function () {
-    function Controller(behavior, instruction, viewModel) {
+    function Controller(behavior, instruction, viewModel, elementEvents) {
       _classCallCheck(this, Controller);
 
       this.behavior = behavior;
@@ -2677,6 +2783,7 @@ define(['exports', 'core-js', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pa
       this.view = null;
       this.isBound = false;
       this.scope = null;
+      this.elementEvents = elementEvents || null;
 
       var observerLookup = behavior.observerLocator.getOrCreateObserversLookup(viewModel);
       var handlesBind = behavior.handlesBind;
@@ -2789,6 +2896,10 @@ define(['exports', 'core-js', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pa
 
         if (this.behavior.handlesUnbind) {
           this.viewModel.unbind();
+        }
+
+        if (this.elementEvents !== null) {
+          this.elementEvents.disposeAll();
         }
 
         for (i = 0, ii = boundProperties.length; i < ii; ++i) {
@@ -3125,6 +3236,7 @@ define(['exports', 'core-js', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pa
   function doProcessContent() {
     return true;
   }
+  function doProcessAttributes() {}
 
   var HtmlBehaviorResource = (function () {
     function HtmlBehaviorResource() {
@@ -3135,6 +3247,7 @@ define(['exports', 'core-js', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pa
       this.attributeDefaultBindingMode = undefined;
       this.liftsContent = false;
       this.targetShadowDOM = false;
+      this.processAttributes = doProcessAttributes;
       this.processContent = doProcessContent;
       this.usesShadowDOM = false;
       this.childBindings = null;
@@ -3245,7 +3358,7 @@ define(['exports', 'core-js', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pa
     };
 
     HtmlBehaviorResource.prototype.load = function load(container, target, loadContext, viewStrategy, transientView) {
-      var _this7 = this;
+      var _this9 = this;
 
       var options = undefined;
 
@@ -3258,8 +3371,8 @@ define(['exports', 'core-js', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pa
         }
 
         return viewStrategy.loadViewFactory(container.get(ViewEngine), options, loadContext).then(function (viewFactory) {
-          if (!transientView || !_this7.viewFactory) {
-            _this7.viewFactory = viewFactory;
+          if (!transientView || !_this9.viewFactory) {
+            _this9.viewFactory = viewFactory;
           }
 
           return viewFactory;
@@ -3373,7 +3486,7 @@ define(['exports', 'core-js', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pa
       }
 
       var viewModel = instruction.viewModel || container.get(this.target);
-      var controller = new Controller(this, instruction, viewModel);
+      var controller = new Controller(this, instruction, viewModel, container.elementEvents);
       var childBindings = this.childBindings;
       var viewFactory = undefined;
 
@@ -3720,11 +3833,11 @@ define(['exports', 'core-js', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pa
     }
 
     CompositionEngine.prototype._createControllerAndSwap = function _createControllerAndSwap(context) {
-      var _this8 = this;
+      var _this10 = this;
 
       var removeResponse = context.viewSlot.removeAll(true);
       var afterRemove = function afterRemove() {
-        return _this8.createController(context).then(function (controller) {
+        return _this10.createController(context).then(function (controller) {
           if (context.currentController) {
             context.currentController.unbind();
           }
@@ -3744,7 +3857,7 @@ define(['exports', 'core-js', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pa
     };
 
     CompositionEngine.prototype.createController = function createController(context) {
-      var _this9 = this;
+      var _this11 = this;
 
       var childContainer = undefined;
       var viewModel = undefined;
@@ -3757,7 +3870,7 @@ define(['exports', 'core-js', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pa
         viewModelResource = context.viewModelResource;
         m = viewModelResource.metadata;
 
-        var viewStrategy = _this9.viewLocator.getViewStrategy(context.view || viewModel);
+        var viewStrategy = _this11.viewLocator.getViewStrategy(context.view || viewModel);
 
         if (context.viewResources) {
           viewStrategy.makeRelativeTo(context.viewResources.viewUrl);
@@ -3950,6 +4063,13 @@ define(['exports', 'core-js', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pa
     };
 
     return target ? deco(target) : deco;
+  }
+
+  function processAttributes(processor) {
+    return function (t) {
+      var r = _aureliaMetadata.metadata.getOrCreateOwn(_aureliaMetadata.metadata.resource, HtmlBehaviorResource, t);
+      r.processAttributes = processor;
+    };
   }
 
   function doNotProcessContent() {

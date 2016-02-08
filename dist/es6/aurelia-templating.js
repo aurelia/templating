@@ -1,9 +1,9 @@
 import 'core-js';
 import * as LogManager from 'aurelia-logging';
+import {DOM,PLATFORM,FEATURE} from 'aurelia-pal';
 import {Origin,protocol,metadata} from 'aurelia-metadata';
 import {relativeToFile} from 'aurelia-path';
 import {TemplateRegistryEntry,Loader} from 'aurelia-loader';
-import {DOM,PLATFORM,FEATURE} from 'aurelia-pal';
 import {Binding,createOverrideContext,ValueConverterResource,BindingBehaviorResource,subscriberCollection,bindingMode,ObserverLocator,EventManager,createScopeForTest} from 'aurelia-binding';
 import {Container,resolver,inject} from 'aurelia-dependency-injection';
 import {TaskQueue} from 'aurelia-task-queue';
@@ -128,6 +128,121 @@ function addHyphenAndLower(char) {
 
 export function _hyphenate(name) {
   return (name.charAt(0).toLowerCase() + name.slice(1)).replace(capitalMatcher, addHyphenAndLower);
+}
+
+interface EventHandler {
+  eventName: string;
+  bubbles: boolean;
+  dispose: Function;
+  handler: Function;
+}
+
+/**
+ * Dispatches subscribets to and publishes events in the DOM.
+ * @param element
+ */
+export class ElementEvents {
+  constructor(element: Element) {
+    this.element = element;
+    this.subscriptions = {};
+  }
+
+  _enqueueHandler(handler: EventHandler): void {
+    this.subscriptions[handler.eventName] = this.subscriptions[handler.eventName] || [];
+    this.subscriptions[handler.eventName].push(handler);
+  }
+
+  _dequeueHandler(handler: EventHandler): EventHandler {
+    let index;
+    let subscriptions = this.subscriptions[handler.eventName];
+    if (subscriptions) {
+      index = subscriptions.indexOf(handler);
+      if (index > -1) {
+        subscriptions.splice(index, 1);
+      }
+    }
+    return handler;
+  }
+
+  /**
+   * Dispatches an Event on the context element.
+   * @param eventName
+   * @param detail
+   * @param bubbles
+   * @param cancelable
+   */
+  publish(eventName: string, detail?: Object = {}, bubbles?: boolean = true, cancelable?: boolean = true) {
+    let event = DOM.createCustomEvent(eventName, {cancelable, bubbles, detail});
+    this.element.dispatchEvent(event);
+  }
+
+  /**
+   * Adds and Event Listener on the context element.
+   * @param eventName
+   * @param handler
+   * @param bubbles
+   * @return Returns the eventHandler containing a dispose method
+   */
+  subscribe(eventName: string, handler: Function, bubbles?: boolean = true): EventHandler {
+    if (handler && typeof handler === 'function') {
+      handler.eventName = eventName;
+      handler.handler = handler;
+      handler.bubbles = bubbles;
+      handler.dispose = () => {
+        this.element.removeEventListener(eventName, handler, bubbles);
+        this._dequeueHandler(handler);
+      };
+      this.element.addEventListener(eventName, handler, bubbles);
+      this._enqueueHandler(handler);
+      return handler;
+    }
+  }
+
+  /**
+   * Adds an Event Listener on the context element, that will be disposed on the first trigger.
+   * @param eventName
+   * @param handler
+   * @param bubbles
+   * @return Returns the eventHandler containing a dispose method
+   */
+  subscribeOnce(eventName: String, handler: Function, bubbles?: Boolean = true): EventHandler {
+    if (handler && typeof handler === 'function') {
+      let _handler = (event) => {
+        handler(event);
+        _handler.dispose();
+      };
+      return this.subscribe(eventName, _handler, bubbles);
+    }
+  }
+
+  /**
+   * Removes all events that are listening to the specified eventName.
+   * @param eventName
+   */
+  dispose(eventName: string): void {
+    if (eventName && typeof eventName === 'string') {
+      let subscriptions = this.subscriptions[eventName];
+      if (subscriptions) {
+        while (subscriptions.length) {
+          let subscription = subscriptions.pop();
+          if (subscription) {
+            subscription.dispose();
+          }
+        }
+      }
+    } else {
+      this.disposeAll();
+    }
+  }
+
+  /**
+   * Removes all event handlers.
+   */
+  disposeAll() {
+    for (let key in this.subscriptions) {
+      this.dispose(key);
+    }
+  }
 }
 
 /**
@@ -1883,6 +1998,10 @@ function elementContainerGet(key) {
     return this.viewSlot;
   }
 
+  if (key === ElementEvents) {
+    return this.elementEvents || (this.elementEvents = new ElementEvents(this.element));
+  }
+
   if (key === ViewResources) {
     return this.viewResources;
   }
@@ -2554,9 +2673,10 @@ export class ViewCompiler {
       viewFactory = this.compile(node, resources);
       viewFactory.part = node.getAttribute('part');
     } else {
-      type = resources.getElement(tagName);
+      type = resources.getElement(node.getAttribute('as-element') || tagName);
       if (type) {
         elementInstruction = BehaviorInstruction.element(node, type);
+        type.processAttributes(this, resources, attributes, elementInstruction);
         behaviorInstructions.push(elementInstruction);
       }
     }
@@ -3221,7 +3341,7 @@ export class Controller {
   * @param instruction The instructions pertaining to the controller's behavior.
   * @param viewModel The developer's view model instance which provides the custom behavior for this controller.
   */
-  constructor(behavior: HtmlBehaviorResource, instruction: BehaviorInstruction, viewModel: Object) {
+  constructor(behavior: HtmlBehaviorResource, instruction: BehaviorInstruction, viewModel: Object, elementEvents?: ElementEvents) {
     this.behavior = behavior;
     this.instruction = instruction;
     this.viewModel = viewModel;
@@ -3229,6 +3349,7 @@ export class Controller {
     this.view = null;
     this.isBound = false;
     this.scope = null;
+    this.elementEvents = elementEvents || null;
 
     let observerLookup = behavior.observerLocator.getOrCreateObserversLookup(viewModel);
     let handlesBind = behavior.handlesBind;
@@ -3369,6 +3490,10 @@ export class Controller {
 
       if (this.behavior.handlesUnbind) {
         this.viewModel.unbind();
+      }
+
+      if (this.elementEvents !== null) {
+        this.elementEvents.disposeAll();
       }
 
       for (i = 0, ii = boundProperties.length; i < ii; ++i) {
@@ -3742,9 +3867,8 @@ function nextProviderId() {
   return ++lastProviderId;
 }
 
-function doProcessContent() {
-  return true;
-}
+function doProcessContent() { return true; }
+function doProcessAttributes() {}
 
 /**
 * Identifies a class as a resource that implements custom element or custom
@@ -3760,6 +3884,7 @@ export class HtmlBehaviorResource {
     this.attributeDefaultBindingMode = undefined;
     this.liftsContent = false;
     this.targetShadowDOM = false;
+    this.processAttributes = doProcessAttributes;
     this.processContent = doProcessContent;
     this.usesShadowDOM = false;
     this.childBindings = null;
@@ -4045,7 +4170,7 @@ export class HtmlBehaviorResource {
     }
 
     let viewModel = instruction.viewModel || container.get(this.target);
-    let controller = new Controller(this, instruction, viewModel);
+    let controller = new Controller(this, instruction, viewModel, container.elementEvents);
     let childBindings = this.childBindings;
     let viewFactory;
 
@@ -4740,9 +4865,18 @@ export function useShadowDOM(target?): any {
   return target ? deco(target) : deco;
 }
 
-function doNotProcessContent() {
-  return false;
+/**
+* Decorator: Enables custom processing of the attributes on an element before the framework inspects them.
+* @param processor Pass a function which can provide custom processing of the content.
+*/
+export function processAttributes(processor: Function): any {
+  return function(t) {
+    let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
+    r.processAttributes = processor;
+  };
 }
+
+function doNotProcessContent() { return false; }
 
 /**
 * Decorator: Enables custom processing of the content that is places inside the
