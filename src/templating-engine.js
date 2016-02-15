@@ -41,7 +41,7 @@ export class TemplatingEngine {
   * Creates an instance of TemplatingEngine.
   * @param container The root DI container.
   * @param moduleAnalyzer The module analyzer for discovering view resources.
-  * @param viewCompiler The view compiler...for compiling views ;)
+  * @param viewCompiler The view compiler for compiling views.
   * @param compositionEngine The composition engine used during dynamic component composition.
   */
   constructor(container: Container, moduleAnalyzer: ModuleAnalyzer, viewCompiler: ViewCompiler, compositionEngine: CompositionEngine) {
