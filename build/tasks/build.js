@@ -17,6 +17,7 @@ gulp.task('build-index', function(){
   var files = [
     'animation-event.js',
     'animator.js',
+    'composition-transaction.js',
     'util.js',
     'element-events.js',
     'instructions.js',
