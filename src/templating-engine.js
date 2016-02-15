@@ -75,7 +75,7 @@ export class TemplatingEngine {
    * Enhances existing DOM with behaviors and bindings.
    * @param instruction The element to enhance or a set of instructions for the enhancement process.
    * @return A View representing the enhanced UI. Consumers of this API
-   * are responsible for enforcing the View lifecyle.
+   * are responsible for enforcing the View lifecycle.
    */
   enhance(instruction: Element | EnhanceInstruction): View {
     if (instruction instanceof DOM.Element) {
