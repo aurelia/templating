@@ -123,7 +123,7 @@ export function dynamicOptions(target?): any {
 
 /**
 * Decorator: Indicates that the custom element should render its view in Shadow
-* DOM. This decorator may change slighly when Aurelia updates to Shadow DOM v1.
+* DOM. This decorator may change slightly when Aurelia updates to Shadow DOM v1.
 */
 export function useShadowDOM(target?): any {
   let deco = function(t) {
