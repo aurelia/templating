@@ -6,6 +6,7 @@ import {ViewResources} from './view-resources';
 import {BehaviorInstruction, TargetInstruction} from './instructions';
 import {DOM} from 'aurelia-pal';
 import {ElementEvents} from './element-events';
+import {CompositionTransaction} from './composition-transaction';
 
 @resolver
 class ProviderResolver {
@@ -50,6 +51,10 @@ function elementContainerGet(key) {
 
   if (key === ElementEvents) {
     return this.elementEvents || (this.elementEvents = new ElementEvents(this.element));
+  }
+  
+  if (key === CompositionTransaction) {
+    return this.compositionTransaction || (this.compositionTransaction = this.parent.get(key));
   }
 
   if (key === ViewResources) {

@@ -1,3 +1,5 @@
+import {TaskQueue} from 'aurelia-task-queue';
+import {inject} from 'aurelia-dependency-injection';
 
 interface CompositionTransactionOwnershipToken {
   compositionInProcess: boolean;
@@ -11,11 +13,13 @@ interface CompositionTransactionNotifier {
 /**
 * Enables an initiator of a view composition to track any internal async rendering processes for completion.
 */
+@inject(TaskQueue)
 export class CompositionTransaction {
   /**
   * Creates an instance of CompositionTransaction.
   */
-  constructor() {
+  constructor(taskQueue: TaskQueue) {
+    this._taskQueue = taskQueue;
     this._ownershipToken = null;
     this._compositionCount = 0;
   }
@@ -61,15 +65,17 @@ export class CompositionTransaction {
   }
   
   _tryCompleteTransaction() {
-    if (this._compositionCount <= 0) {
-      this._compositionCount = 0;
-      
-      if (this._ownershipToken !== null) {
-        let capture = this._ownershipToken;
-        this._ownershipToken = null;
-        capture._resolve();
+    //this._taskQueue.queueMicroTask(() => {
+      if (this._compositionCount <= 0) {
+        this._compositionCount = 0;
+        
+        if (this._ownershipToken !== null) {
+          let capture = this._ownershipToken;
+          this._ownershipToken = null;
+          capture._resolve();
+        }
       }
-    }
+    //});
   }
   
   _createOwnershipToken(): CompositionTransactionOwnershipToken {
@@ -78,7 +84,8 @@ export class CompositionTransaction {
       token._resolve = resolve;
     });
     
-    token.waitForCompositionComplete = function() {
+    token.waitForCompositionComplete = () => {
+      this._tryCompleteTransaction();
       return promise;
     };
     

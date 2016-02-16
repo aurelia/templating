@@ -2,6 +2,7 @@ import {ViewLocator} from './view-locator';
 import {ViewEngine} from './view-engine';
 import {HtmlBehaviorResource} from './html-behavior';
 import {BehaviorInstruction, ViewCompileInstruction} from './instructions';
+import {CompositionTransaction} from './composition-transaction';
 import {DOM} from 'aurelia-pal';
 import {Container, inject} from 'aurelia-dependency-injection';
 import {metadata} from 'aurelia-metadata';
@@ -83,25 +84,31 @@ export class CompositionEngine {
   }
 
   _createControllerAndSwap(context) {
-    let removeResponse = context.viewSlot.removeAll(true);
-    let afterRemove = () => {
-      return this.createController(context).then(controller => {
+    function swap(controller) {
+      return Promise.resolve(context.viewSlot.removeAll(true)).then(() => {
         if (context.currentController) {
           context.currentController.unbind();
         }
 
-        controller.automate(context.overrideContext, context.owningView);
         context.viewSlot.add(controller.view);
+        
+        if (context.compositionTransactionNotifier) {
+          context.compositionTransactionNotifier.done();
+        }
 
         return controller;
       });
-    };
-
-    if (removeResponse instanceof Promise) {
-      return removeResponse.then(afterRemove);
     }
-
-    return afterRemove();
+    
+    return this.createController(context).then(controller => {
+      controller.automate(context.overrideContext, context.owningView);
+      
+      if (context.compositionTransactionOwnershipToken) {
+        return context.compositionTransactionOwnershipToken.waitForCompositionComplete().then(() => swap(controller));
+      } else {
+        return swap(controller);
+      }
+    });
   }
 
   /**
@@ -173,6 +180,15 @@ export class CompositionEngine {
   compose(context: CompositionContext): Promise<View | Controller> {
     context.childContainer = context.childContainer || context.container.createChild();
     context.view = this.viewLocator.getViewStrategy(context.view);
+    
+    let transaction = context.childContainer.get(CompositionTransaction);
+    let compositionTransactionOwnershipToken = transaction.tryCapture();
+    
+    if (compositionTransactionOwnershipToken) {
+      context.compositionTransactionOwnershipToken = compositionTransactionOwnershipToken;
+    } else {
+      context.compositionTransactionNotifier = transaction.enlist();
+    }
 
     if (context.viewModel) {
       return this._createControllerAndSwap(context);
@@ -182,21 +198,26 @@ export class CompositionEngine {
       }
 
       return context.view.loadViewFactory(this.viewEngine, new ViewCompileInstruction()).then(viewFactory => {
-        let removeResponse = context.viewSlot.removeAll(true);
-
-        if (removeResponse instanceof Promise) {
-          return removeResponse.then(() => {
-            let result = viewFactory.create(context.childContainer);
-            result.bind(context.bindingContext, context.overrideContext);
-            context.viewSlot.add(result);
-            return result;
-          });
-        }
-
         let result = viewFactory.create(context.childContainer);
         result.bind(context.bindingContext, context.overrideContext);
-        context.viewSlot.add(result);
-        return result;
+        
+        let work = () => {
+          return Promise.resolve(context.viewSlot.removeAll(true)).then(() => {
+            context.viewSlot.add(result);
+            
+            if (context.compositionTransactionNotifier) {
+              context.compositionTransactionNotifier.done();
+            }
+            
+            return result;
+          });
+        };
+        
+        if (context.compositionTransactionOwnershipToken) {
+          return context.compositionTransactionOwnershipToken.waitForCompositionComplete().then(work);
+        } else {
+          return work();
+        }
       });
     } else if (context.viewSlot) {
       context.viewSlot.removeAll();
