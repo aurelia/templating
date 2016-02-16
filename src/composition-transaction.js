@@ -1,8 +1,4 @@
-import {TaskQueue} from 'aurelia-task-queue';
-import {inject} from 'aurelia-dependency-injection';
-
 interface CompositionTransactionOwnershipToken {
-  compositionInProcess: boolean;
   waitForCompositionComplete(): Promise<void>;
 }
 
@@ -13,26 +9,17 @@ interface CompositionTransactionNotifier {
 /**
 * Enables an initiator of a view composition to track any internal async rendering processes for completion.
 */
-@inject(TaskQueue)
 export class CompositionTransaction {
   /**
   * Creates an instance of CompositionTransaction.
   */
-  constructor(taskQueue: TaskQueue) {
-    this._taskQueue = taskQueue;
+  constructor() {
     this._ownershipToken = null;
     this._compositionCount = 0;
   }
   
   /**
-  * Indicates whether or not the current composition transation has an owner.
-  */
-  get hasOwner(): boolean {
-    return this._ownershipToken !== null;
-  }
-  
-  /**
-  * Attempt to take ownership of the composition transation.
+  * Attempt to take ownership of the composition transaction.
   * @return An ownership token if successful, otherwise null.
   */
   tryCapture(): CompositionTransactionOwnershipToken {
@@ -52,10 +39,6 @@ export class CompositionTransaction {
     
     that._compositionCount++;
     
-    if (this._ownershipToken !== null) {
-      this._ownershipToken.compositionInProcess = true;
-    }
-    
     return {
       done() {
         that._compositionCount--;
@@ -65,21 +48,19 @@ export class CompositionTransaction {
   }
   
   _tryCompleteTransaction() {
-    //this._taskQueue.queueMicroTask(() => {
-      if (this._compositionCount <= 0) {
-        this._compositionCount = 0;
-        
-        if (this._ownershipToken !== null) {
-          let capture = this._ownershipToken;
-          this._ownershipToken = null;
-          capture._resolve();
-        }
+    if (this._compositionCount <= 0) {
+      this._compositionCount = 0;
+      
+      if (this._ownershipToken !== null) {
+        let capture = this._ownershipToken;
+        this._ownershipToken = null;
+        capture._resolve();
       }
-    //});
+    }
   }
   
   _createOwnershipToken(): CompositionTransactionOwnershipToken {
-    let token = {compositionInProcess: this._compositionCount > 0};
+    let token = {};
     let promise = new Promise((resolve, reject) => {
       token._resolve = resolve;
     });
