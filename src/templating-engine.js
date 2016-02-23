@@ -65,7 +65,7 @@ export class TemplatingEngine {
    * Dynamically composes components and views.
    * @param context The composition context to use.
    * @return A promise for the resulting Controller or View. Consumers of this API
-   * are responsible for enforcing the Controller/View lifecyle.
+   * are responsible for enforcing the Controller/View lifecycle.
    */
   compose(context: CompositionContext): Promise<View | Controller> {
     return this._compositionEngine.compose(context);
