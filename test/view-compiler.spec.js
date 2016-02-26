@@ -1,3 +1,4 @@
+import './setup';
 import {ViewCompiler} from '../src/view-compiler';
 import {ViewResources} from '../src/view-resources';
 

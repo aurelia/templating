@@ -1,3 +1,4 @@
+import './setup';
 import {BindingEngine} from 'aurelia-binding';
 import {Container} from 'aurelia-dependency-injection';
 import {TemplatingEngine} from '../src/templating-engine';

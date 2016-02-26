@@ -1,10 +1,8 @@
-﻿import {Container} from 'aurelia-dependency-injection';
+﻿import './setup';
+import {Container} from 'aurelia-dependency-injection';
 import {ObserverLocator, bindingMode} from 'aurelia-binding';
 import {TaskQueue} from 'aurelia-task-queue';
 import {HtmlBehaviorResource} from '../src/html-behavior';
-import {initialize} from 'aurelia-pal-browser';
-
-initialize();
 
 describe('html-behavior', () => {
   var defaultBindingMode = bindingMode.oneWay;

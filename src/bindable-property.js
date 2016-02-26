@@ -1,4 +1,3 @@
-import 'core-js';
 import {_hyphenate} from './util';
 import {BehaviorPropertyObserver} from './behavior-property-observer';
 import {bindingMode} from 'aurelia-binding';

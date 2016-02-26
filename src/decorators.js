@@ -1,4 +1,3 @@
-import 'core-js';
 import {metadata} from 'aurelia-metadata';
 import {BindableProperty} from './bindable-property';
 import {ElementConfigResource} from './element-config';

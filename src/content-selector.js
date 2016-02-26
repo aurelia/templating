@@ -1,5 +1,3 @@
-import 'core-js';
-
 let placeholder = [];
 
 function findInsertionPoint(groups, index) {

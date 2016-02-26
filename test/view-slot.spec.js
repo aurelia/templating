@@ -1,14 +1,12 @@
-﻿import {Container} from 'aurelia-dependency-injection';
+﻿import './setup';
+import {Container} from 'aurelia-dependency-injection';
 import {ViewSlot} from '../src/view-slot';
 import {TemplatingEngine} from '../src/templating-engine';
-import {initialize} from 'aurelia-pal-browser';
 import {View} from '../src/view';
 import {ViewResources} from '../src/view-resources';
 import {ViewFactory} from '../src/view-factory';
 import {_ContentSelector} from '../src/content-selector';
 import {DOM} from 'aurelia-pal';
-
-initialize();
 
 describe('view-slot', () => {
   let container;
