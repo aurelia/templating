@@ -91,7 +91,7 @@ export class CompositionEngine {
         }
 
         context.viewSlot.add(controller.view);
-        
+
         if (context.compositionTransactionNotifier) {
           context.compositionTransactionNotifier.done();
         }
@@ -99,15 +99,15 @@ export class CompositionEngine {
         return controller;
       });
     }
-    
+
     return this.createController(context).then(controller => {
       controller.automate(context.overrideContext, context.owningView);
-      
+
       if (context.compositionTransactionOwnershipToken) {
         return context.compositionTransactionOwnershipToken.waitForCompositionComplete().then(() => swap(controller));
-      } else {
-        return swap(controller);
       }
+
+      return swap(controller);
     });
   }
 
@@ -180,10 +180,10 @@ export class CompositionEngine {
   compose(context: CompositionContext): Promise<View | Controller> {
     context.childContainer = context.childContainer || context.container.createChild();
     context.view = this.viewLocator.getViewStrategy(context.view);
-    
+
     let transaction = context.childContainer.get(CompositionTransaction);
     let compositionTransactionOwnershipToken = transaction.tryCapture();
-    
+
     if (compositionTransactionOwnershipToken) {
       context.compositionTransactionOwnershipToken = compositionTransactionOwnershipToken;
     } else {
@@ -200,24 +200,24 @@ export class CompositionEngine {
       return context.view.loadViewFactory(this.viewEngine, new ViewCompileInstruction()).then(viewFactory => {
         let result = viewFactory.create(context.childContainer);
         result.bind(context.bindingContext, context.overrideContext);
-        
+
         let work = () => {
           return Promise.resolve(context.viewSlot.removeAll(true)).then(() => {
             context.viewSlot.add(result);
-            
+
             if (context.compositionTransactionNotifier) {
               context.compositionTransactionNotifier.done();
             }
-            
+
             return result;
           });
         };
-        
+
         if (context.compositionTransactionOwnershipToken) {
           return context.compositionTransactionOwnershipToken.waitForCompositionComplete().then(work);
-        } else {
-          return work();
         }
+
+        return work();
       });
     } else if (context.viewSlot) {
       context.viewSlot.removeAll();

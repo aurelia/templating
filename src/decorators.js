@@ -1,13 +1,18 @@
+import * as LogManager from 'aurelia-logging';
 import {metadata} from 'aurelia-metadata';
 import {BindableProperty} from './bindable-property';
 import {ElementConfigResource} from './element-config';
 import {ViewLocator, RelativeViewStrategy, NoViewStrategy, InlineViewStrategy} from './view-strategy';
 import {HtmlBehaviorResource} from './html-behavior';
+import {_hyphenate} from './util';
 
 function validateBehaviorName(name, type) {
   if (/[A-Z]/.test(name)) {
-    throw new Error(`'${name}' is not a valid ${type} name.  Upper-case letters are not allowed because the DOM is not case-sensitive.`);
+    let newName = _hyphenate(name);
+    LogManager.getLogger('templating').warn(`'${name}' is not a valid ${type} name and has been converted to '${newName}'. Upper-case letters are not allowed because the DOM is not case-sensitive.`);
+    return newName;
   }
+  return name;
 }
 
 /**
@@ -40,10 +45,9 @@ export function behavior(override: HtmlBehaviorResource | Object): any {
 * @param name The name of the custom element.
 */
 export function customElement(name: string): any {
-  validateBehaviorName(name, 'custom element');
   return function(target) {
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, target);
-    r.elementName = name;
+    r.elementName = validateBehaviorName(name, 'custom element');
   };
 }
 
@@ -53,10 +57,9 @@ export function customElement(name: string): any {
 * @param defaultBindingMode The default binding mode to use when the attribute is bound wtih .bind.
 */
 export function customAttribute(name: string, defaultBindingMode?: number): any {
-  validateBehaviorName(name, 'custom attribute');
   return function(target) {
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, target);
-    r.attributeName = name;
+    r.attributeName = validateBehaviorName(name, 'custom attribute');
     r.attributeDefaultBindingMode = defaultBindingMode;
   };
 }

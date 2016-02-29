@@ -17,7 +17,7 @@ export class CompositionTransaction {
     this._ownershipToken = null;
     this._compositionCount = 0;
   }
-  
+
   /**
   * Attempt to take ownership of the composition transaction.
   * @return An ownership token if successful, otherwise null.
@@ -25,20 +25,20 @@ export class CompositionTransaction {
   tryCapture(): CompositionTransactionOwnershipToken {
     if (this._ownershipToken !== null) {
       return null;
-    }  
-    
-    return this._ownershipToken = this._createOwnershipToken();
+    }
+
+    return (this._ownershipToken = this._createOwnershipToken());
   }
-  
+
   /**
   * Enlist an async render operation into the transaction.
   * @return A completion notifier.
   */
   enlist(): CompositionTransactionNotifier {
     let that = this;
-    
+
     that._compositionCount++;
-    
+
     return {
       done() {
         that._compositionCount--;
@@ -46,11 +46,11 @@ export class CompositionTransaction {
       }
     };
   }
-  
+
   _tryCompleteTransaction() {
     if (this._compositionCount <= 0) {
       this._compositionCount = 0;
-      
+
       if (this._ownershipToken !== null) {
         let capture = this._ownershipToken;
         this._ownershipToken = null;
@@ -58,18 +58,18 @@ export class CompositionTransaction {
       }
     }
   }
-  
+
   _createOwnershipToken(): CompositionTransactionOwnershipToken {
     let token = {};
     let promise = new Promise((resolve, reject) => {
       token._resolve = resolve;
     });
-    
+
     token.waitForCompositionComplete = () => {
       this._tryCompleteTransaction();
       return promise;
     };
-    
+
     return token;
   }
 }

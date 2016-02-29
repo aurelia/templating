@@ -52,7 +52,7 @@ function elementContainerGet(key) {
   if (key === ElementEvents) {
     return this.elementEvents || (this.elementEvents = new ElementEvents(this.element));
   }
-  
+
   if (key === CompositionTransaction) {
     return this.compositionTransaction || (this.compositionTransaction = this.parent.get(key));
   }
