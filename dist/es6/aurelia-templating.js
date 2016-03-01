@@ -1,4 +1,3 @@
-import 'core-js';
 import * as LogManager from 'aurelia-logging';
 import {DOM,PLATFORM,FEATURE} from 'aurelia-pal';
 import {Origin,protocol,metadata} from 'aurelia-metadata';
@@ -118,6 +117,82 @@ export class Animator {
    * @param effectName identifier of the effect
    */
   unregisterEffect(effectName: string): void {}
+}
+
+interface CompositionTransactionOwnershipToken {
+  waitForCompositionComplete(): Promise<void>;
+}
+
+interface CompositionTransactionNotifier {
+  done(): void;
+}
+
+/**
+* Enables an initiator of a view composition to track any internal async rendering processes for completion.
+*/
+export class CompositionTransaction {
+  /**
+  * Creates an instance of CompositionTransaction.
+  */
+  constructor() {
+    this._ownershipToken = null;
+    this._compositionCount = 0;
+  }
+
+  /**
+  * Attempt to take ownership of the composition transaction.
+  * @return An ownership token if successful, otherwise null.
+  */
+  tryCapture(): CompositionTransactionOwnershipToken {
+    if (this._ownershipToken !== null) {
+      return null;
+    }
+
+    return (this._ownershipToken = this._createOwnershipToken());
+  }
+
+  /**
+  * Enlist an async render operation into the transaction.
+  * @return A completion notifier.
+  */
+  enlist(): CompositionTransactionNotifier {
+    let that = this;
+
+    that._compositionCount++;
+
+    return {
+      done() {
+        that._compositionCount--;
+        that._tryCompleteTransaction();
+      }
+    };
+  }
+
+  _tryCompleteTransaction() {
+    if (this._compositionCount <= 0) {
+      this._compositionCount = 0;
+
+      if (this._ownershipToken !== null) {
+        let capture = this._ownershipToken;
+        this._ownershipToken = null;
+        capture._resolve();
+      }
+    }
+  }
+
+  _createOwnershipToken(): CompositionTransactionOwnershipToken {
+    let token = {};
+    let promise = new Promise((resolve, reject) => {
+      token._resolve = resolve;
+    });
+
+    token.waitForCompositionComplete = () => {
+      this._tryCompleteTransaction();
+      return promise;
+    };
+
+    return token;
+  }
 }
 
 const capitalMatcher = /([A-Z])/g;
@@ -2000,6 +2075,10 @@ function elementContainerGet(key) {
 
   if (key === ElementEvents) {
     return this.elementEvents || (this.elementEvents = new ElementEvents(this.element));
+  }
+
+  if (key === CompositionTransaction) {
+    return this.compositionTransaction || (this.compositionTransaction = this.parent.get(key));
   }
 
   if (key === ViewResources) {
@@ -4578,25 +4657,31 @@ export class CompositionEngine {
   }
 
   _createControllerAndSwap(context) {
-    let removeResponse = context.viewSlot.removeAll(true);
-    let afterRemove = () => {
-      return this.createController(context).then(controller => {
+    function swap(controller) {
+      return Promise.resolve(context.viewSlot.removeAll(true)).then(() => {
         if (context.currentController) {
           context.currentController.unbind();
         }
 
-        controller.automate(context.overrideContext, context.owningView);
         context.viewSlot.add(controller.view);
+
+        if (context.compositionTransactionNotifier) {
+          context.compositionTransactionNotifier.done();
+        }
 
         return controller;
       });
-    };
-
-    if (removeResponse instanceof Promise) {
-      return removeResponse.then(afterRemove);
     }
 
-    return afterRemove();
+    return this.createController(context).then(controller => {
+      controller.automate(context.overrideContext, context.owningView);
+
+      if (context.compositionTransactionOwnershipToken) {
+        return context.compositionTransactionOwnershipToken.waitForCompositionComplete().then(() => swap(controller));
+      }
+
+      return swap(controller);
+    });
   }
 
   /**
@@ -4669,6 +4754,15 @@ export class CompositionEngine {
     context.childContainer = context.childContainer || context.container.createChild();
     context.view = this.viewLocator.getViewStrategy(context.view);
 
+    let transaction = context.childContainer.get(CompositionTransaction);
+    let compositionTransactionOwnershipToken = transaction.tryCapture();
+
+    if (compositionTransactionOwnershipToken) {
+      context.compositionTransactionOwnershipToken = compositionTransactionOwnershipToken;
+    } else {
+      context.compositionTransactionNotifier = transaction.enlist();
+    }
+
     if (context.viewModel) {
       return this._createControllerAndSwap(context);
     } else if (context.view) {
@@ -4677,21 +4771,26 @@ export class CompositionEngine {
       }
 
       return context.view.loadViewFactory(this.viewEngine, new ViewCompileInstruction()).then(viewFactory => {
-        let removeResponse = context.viewSlot.removeAll(true);
-
-        if (removeResponse instanceof Promise) {
-          return removeResponse.then(() => {
-            let result = viewFactory.create(context.childContainer);
-            result.bind(context.bindingContext, context.overrideContext);
-            context.viewSlot.add(result);
-            return result;
-          });
-        }
-
         let result = viewFactory.create(context.childContainer);
         result.bind(context.bindingContext, context.overrideContext);
-        context.viewSlot.add(result);
-        return result;
+
+        let work = () => {
+          return Promise.resolve(context.viewSlot.removeAll(true)).then(() => {
+            context.viewSlot.add(result);
+
+            if (context.compositionTransactionNotifier) {
+              context.compositionTransactionNotifier.done();
+            }
+
+            return result;
+          });
+        };
+
+        if (context.compositionTransactionOwnershipToken) {
+          return context.compositionTransactionOwnershipToken.waitForCompositionComplete().then(work);
+        }
+
+        return work();
       });
     } else if (context.viewSlot) {
       context.viewSlot.removeAll();
@@ -4738,8 +4837,11 @@ export class ElementConfigResource {
 
 function validateBehaviorName(name, type) {
   if (/[A-Z]/.test(name)) {
-    throw new Error(`'${name}' is not a valid ${type} name.  Upper-case letters are not allowed because the DOM is not case-sensitive.`);
+    let newName = _hyphenate(name);
+    LogManager.getLogger('templating').warn(`'${name}' is not a valid ${type} name and has been converted to '${newName}'. Upper-case letters are not allowed because the DOM is not case-sensitive.`);
+    return newName;
   }
+  return name;
 }
 
 /**
@@ -4772,10 +4874,9 @@ export function behavior(override: HtmlBehaviorResource | Object): any {
 * @param name The name of the custom element.
 */
 export function customElement(name: string): any {
-  validateBehaviorName(name, 'custom element');
   return function(target) {
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, target);
-    r.elementName = name;
+    r.elementName = validateBehaviorName(name, 'custom element');
   };
 }
 
@@ -4785,10 +4886,9 @@ export function customElement(name: string): any {
 * @param defaultBindingMode The default binding mode to use when the attribute is bound wtih .bind.
 */
 export function customAttribute(name: string, defaultBindingMode?: number): any {
-  validateBehaviorName(name, 'custom attribute');
   return function(target) {
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, target);
-    r.attributeName = name;
+    r.attributeName = validateBehaviorName(name, 'custom attribute');
     r.attributeDefaultBindingMode = defaultBindingMode;
   };
 }
@@ -4854,7 +4954,7 @@ export function dynamicOptions(target?): any {
 
 /**
 * Decorator: Indicates that the custom element should render its view in Shadow
-* DOM. This decorator may change slighly when Aurelia updates to Shadow DOM v1.
+* DOM. This decorator may change slightly when Aurelia updates to Shadow DOM v1.
 */
 export function useShadowDOM(target?): any {
   let deco = function(t) {
@@ -4989,7 +5089,7 @@ export class TemplatingEngine {
   * Creates an instance of TemplatingEngine.
   * @param container The root DI container.
   * @param moduleAnalyzer The module analyzer for discovering view resources.
-  * @param viewCompiler The view compiler...for compiling views ;)
+  * @param viewCompiler The view compiler for compiling views.
   * @param compositionEngine The composition engine used during dynamic component composition.
   */
   constructor(container: Container, moduleAnalyzer: ModuleAnalyzer, viewCompiler: ViewCompiler, compositionEngine: CompositionEngine) {
@@ -5013,7 +5113,7 @@ export class TemplatingEngine {
    * Dynamically composes components and views.
    * @param context The composition context to use.
    * @return A promise for the resulting Controller or View. Consumers of this API
-   * are responsible for enforcing the Controller/View lifecyle.
+   * are responsible for enforcing the Controller/View lifecycle.
    */
   compose(context: CompositionContext): Promise<View | Controller> {
     return this._compositionEngine.compose(context);
@@ -5023,7 +5123,7 @@ export class TemplatingEngine {
    * Enhances existing DOM with behaviors and bindings.
    * @param instruction The element to enhance or a set of instructions for the enhancement process.
    * @return A View representing the enhanced UI. Consumers of this API
-   * are responsible for enforcing the View lifecyle.
+   * are responsible for enforcing the View lifecycle.
    */
   enhance(instruction: Element | EnhanceInstruction): View {
     if (instruction instanceof DOM.Element) {

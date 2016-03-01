@@ -1,5 +1,4 @@
 declare module 'aurelia-templating' {
-  import 'core-js';
   import * as LogManager from 'aurelia-logging';
   import { DOM, PLATFORM, FEATURE }  from 'aurelia-pal';
   import { Origin, protocol, metadata }  from 'aurelia-metadata';
@@ -8,6 +7,12 @@ declare module 'aurelia-templating' {
   import { Binding, createOverrideContext, ValueConverterResource, BindingBehaviorResource, subscriberCollection, bindingMode, ObserverLocator, EventManager, createScopeForTest }  from 'aurelia-binding';
   import { Container, resolver, inject }  from 'aurelia-dependency-injection';
   import { TaskQueue }  from 'aurelia-task-queue';
+  export interface CompositionTransactionOwnershipToken {
+    waitForCompositionComplete(): Promise<void>;
+  }
+  export interface CompositionTransactionNotifier {
+    done(): void;
+  }
   export interface EventHandler {
     eventName: string;
     bubbles: boolean;
@@ -270,6 +275,29 @@ declare module 'aurelia-templating' {
        * @param effectName identifier of the effect
        */
     unregisterEffect(effectName: string): void;
+  }
+  
+  /**
+  * Enables an initiator of a view composition to track any internal async rendering processes for completion.
+  */
+  export class CompositionTransaction {
+    
+    /**
+      * Creates an instance of CompositionTransaction.
+      */
+    constructor();
+    
+    /**
+      * Attempt to take ownership of the composition transaction.
+      * @return An ownership token if successful, otherwise null.
+      */
+    tryCapture(): CompositionTransactionOwnershipToken;
+    
+    /**
+      * Enlist an async render operation into the transaction.
+      * @return A completion notifier.
+      */
+    enlist(): CompositionTransactionNotifier;
   }
   
   /**
@@ -1549,7 +1577,7 @@ declare module 'aurelia-templating' {
   
   /**
   * Decorator: Indicates that the custom element should render its view in Shadow
-  * DOM. This decorator may change slighly when Aurelia updates to Shadow DOM v1.
+  * DOM. This decorator may change slightly when Aurelia updates to Shadow DOM v1.
   */
   export function useShadowDOM(target?: any): any;
   
@@ -1616,7 +1644,7 @@ declare module 'aurelia-templating' {
       * Creates an instance of TemplatingEngine.
       * @param container The root DI container.
       * @param moduleAnalyzer The module analyzer for discovering view resources.
-      * @param viewCompiler The view compiler...for compiling views ;)
+      * @param viewCompiler The view compiler for compiling views.
       * @param compositionEngine The composition engine used during dynamic component composition.
       */
     constructor(container: Container, moduleAnalyzer: ModuleAnalyzer, viewCompiler: ViewCompiler, compositionEngine: CompositionEngine);
@@ -1631,7 +1659,7 @@ declare module 'aurelia-templating' {
        * Dynamically composes components and views.
        * @param context The composition context to use.
        * @return A promise for the resulting Controller or View. Consumers of this API
-       * are responsible for enforcing the Controller/View lifecyle.
+       * are responsible for enforcing the Controller/View lifecycle.
        */
     compose(context: CompositionContext): Promise<View | Controller>;
     
@@ -1639,7 +1667,7 @@ declare module 'aurelia-templating' {
        * Enhances existing DOM with behaviors and bindings.
        * @param instruction The element to enhance or a set of instructions for the enhancement process.
        * @return A View representing the enhanced UI. Consumers of this API
-       * are responsible for enforcing the View lifecyle.
+       * are responsible for enforcing the View lifecycle.
        */
     enhance(instruction: Element | EnhanceInstruction): View;
     

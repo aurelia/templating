@@ -1,3 +1,21 @@
+### 1.0.0-beta.1.1.2 (2016-03-01)
+
+
+#### Bug Fixes
+
+* **all:** remove core-js ([0e264f85](http://github.com/aurelia/templating/commit/0e264f853f28fdbf4f497e9b14c93d1a120d41f9))
+* **bower:** remove core-js ([942c4b66](http://github.com/aurelia/templating/commit/942c4b66f4c3d62aed0977ebfd4eca18cf64ddb9))
+* **composition-transaction:** simplify ([82f52aaa](http://github.com/aurelia/templating/commit/82f52aaad7ea91d2688d9a257525abf0b4df393b))
+* **decorators:** hyphenate behavior names with warning ([473ca6af](http://github.com/aurelia/templating/commit/473ca6afd2fd5d830acadd873710d62f8799ca34), closes [#279](http://github.com/aurelia/templating/issues/279))
+
+
+#### Features
+
+* **composition:**
+  * enable composition transaction use ([b8e51df0](http://github.com/aurelia/templating/commit/b8e51df0c2d94254172eca53b66031a37664bc91))
+  * introduce composition transaction ([2f2e156f](http://github.com/aurelia/templating/commit/2f2e156fbe1983f9d600345a5afd3a5054e5ba21))
+
+
 ### 1.0.0-beta.1.1.1 (2016-02-08)
 
 
