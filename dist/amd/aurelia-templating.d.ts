@@ -1079,7 +1079,7 @@ declare module 'aurelia-templating' {
     initialize(container: Container): void;
     
     /**
-      * Registrers the resources in the module with the view resources.
+      * Registers the resources in the module with the view resources.
       * @param registry The registry of view resources to regiser within.
       * @param name The name to use in registering the default resource.
       */

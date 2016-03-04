@@ -2932,7 +2932,7 @@ export class ResourceModule {
   }
 
   /**
-  * Registrers the resources in the module with the view resources.
+  * Registers the resources in the module with the view resources.
   * @param registry The registry of view resources to regiser within.
   * @param name The name to use in registering the default resource.
   */
@@ -4829,7 +4829,7 @@ export class ElementConfigResource {
   * @param target The class to which this resource metadata is attached.
   */
   load(container: Container, target: Function): void {
-    let config = new Target();
+    let config = new target();
     let eventManager = container.get(EventManager);
     eventManager.registerElementConfig(config);
   }

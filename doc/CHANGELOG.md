@@ -1,3 +1,11 @@
+### 1.0.0-beta.1.1.3 (2016-03-04)
+
+
+#### Bug Fixes
+
+* **element-config:** fix parameter name typo ([000f0de3](http://github.com/aurelia/templating/commit/000f0de38e6abb70244f94a2c189db485ce7bf1b))
+
+
 ### 1.0.0-beta.1.1.2 (2016-03-01)
 
 

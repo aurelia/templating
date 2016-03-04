@@ -4253,7 +4253,7 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
         ElementConfigResource.prototype.register = function register(registry, name) {};
 
         ElementConfigResource.prototype.load = function load(container, target) {
-          var config = new Target();
+          var config = new target();
           var eventManager = container.get(EventManager);
           eventManager.registerElementConfig(config);
         };

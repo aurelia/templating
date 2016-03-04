@@ -4065,7 +4065,7 @@ var ElementConfigResource = (function () {
   ElementConfigResource.prototype.register = function register(registry, name) {};
 
   ElementConfigResource.prototype.load = function load(container, target) {
-    var config = new Target();
+    var config = new target();
     var eventManager = container.get(_aureliaBinding.EventManager);
     eventManager.registerElementConfig(config);
   };
