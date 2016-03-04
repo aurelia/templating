@@ -1,7 +1,7 @@
 ﻿import './setup';
 import {metadata} from 'aurelia-metadata';
 import {bindingMode} from 'aurelia-binding';
-import {customAttribute} from '../src/decorators';
+import {customAttribute, customElement} from '../src/decorators';
 
 describe('decorators', () => {
     it('should leave resource attributeDefaultBindingMode as undefined when unspecified', () => {
@@ -27,9 +27,15 @@ describe('decorators', () => {
     });
 
     it('should validate behavior names', () => {
-      expect(() => customAttribute('fooBar')).toThrow();
-      expect(() => customElement('fooBar')).toThrow();
-      expect(() => customAttribute('foo')).not.toThrow();
-      expect(() => customAttribute('foo-bar')).not.toThrow();
+      expect(getBehaviorMetadata(customAttribute('fooBar')).attributeName).toBe('foo-bar');
+      expect(getBehaviorMetadata(customElement('fooBar')).elementName).toBe('foo-bar');
+      expect(getBehaviorMetadata(customAttribute('foo')).attributeName).toBe('foo');
+      expect(getBehaviorMetadata(customAttribute('foo-bar')).attributeName).toBe('foo-bar');
     });
 });
+
+function getBehaviorMetadata(decorator) {
+  let target = {};
+  decorator(target);
+  return metadata.get(metadata.resource, target);
+}
