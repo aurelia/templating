@@ -1,3 +1,11 @@
+### 1.0.0-beta.1.1.4 (2016-03-04)
+
+
+#### Bug Fixes
+
+* **composition-engine:** complete composition work on null ([02b8f3d9](http://github.com/aurelia/templating/commit/02b8f3d9bb9446290cfc15d0d0148cfa07bb29c5))
+
+
 ### 1.0.0-beta.1.1.3 (2016-03-04)
 
 

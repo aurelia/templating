@@ -4232,6 +4232,11 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
             });
           } else if (context.viewSlot) {
             context.viewSlot.removeAll();
+
+            if (context.compositionTransactionNotifier) {
+              context.compositionTransactionNotifier.done();
+            }
+
             return Promise.resolve(null);
           }
         };

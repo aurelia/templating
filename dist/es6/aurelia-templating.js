@@ -4794,6 +4794,11 @@ export class CompositionEngine {
       });
     } else if (context.viewSlot) {
       context.viewSlot.removeAll();
+
+      if (context.compositionTransactionNotifier) {
+        context.compositionTransactionNotifier.done();
+      }
+
       return Promise.resolve(null);
     }
   }
