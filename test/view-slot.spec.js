@@ -60,6 +60,11 @@ describe('view-slot', () => {
         viewSlot.bind(context);
         expect(view.bindingContext).toEqual(context)
       });
+
+      it('applies override context', () => {
+        viewSlot.bind(context, { $index: 0 });
+        expect(viewSlot.overrideContext).toEqual({ $index: 0 });
+      });
     });
 
     describe('.unbind', () => {
@@ -76,6 +81,14 @@ describe('view-slot', () => {
         expect(view.bindingContext).toEqual(context);
         viewSlot.unbind();
         expect(view.bindingContext).toEqual(null);
+      });
+
+      it('removes override context', () => {
+        viewSlot.bind(context, { $index: 0 });
+        expect(viewSlot.overrideContext).toEqual({ $index: 0 });
+        viewSlot.unbind();
+        expect(view.bindingContext).toEqual(null);
+        expect(view.overrideContext).toEqual(null);
       });
     });
   });
