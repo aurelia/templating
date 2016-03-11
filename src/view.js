@@ -35,6 +35,7 @@ export class View {
   */
   constructor(viewFactory: ViewFactory, fragment: DocumentFragment, controllers: Controller[], bindings: Binding[], children: ViewNode[], contentSelectors: Array<Object>) {
     this.viewFactory = viewFactory;
+    this.resources = viewFactory.resources;
     this.fragment = fragment;
     this.controllers = controllers;
     this.bindings = bindings;
@@ -101,6 +102,8 @@ export class View {
     this.bindingContext = bindingContext;
     this.overrideContext = overrideContext || createOverrideContext(bindingContext);
 
+    this.resources._invokeHook('beforeBind', this);
+
     bindings = this.bindings;
     for (i = 0, ii = bindings.length; i < ii; ++i) {
       bindings[i].bind(this);
@@ -146,6 +149,8 @@ export class View {
 
     if (this.isBound) {
       this.isBound = false;
+      this.resources._invokeHook('beforeUnbind', this);
+
       this.bindingContext = null;
       this.overrideContext = null;
 
