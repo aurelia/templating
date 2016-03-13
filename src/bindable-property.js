@@ -139,7 +139,7 @@ export class BindableProperty {
     } else if ('propertyChanged' in viewModel) {
       selfSubscriber = (newValue, oldValue) => viewModel.propertyChanged(name, newValue, oldValue);
     } else if (changeHandlerName !== null) {
-      throw new Error(`Change handler ${changeHandlerName} was specified but not delcared on the class.`);
+      throw new Error(`Change handler ${changeHandlerName} was specified but not declared on the class.`);
     }
 
     if (defaultValue !== undefined) {
