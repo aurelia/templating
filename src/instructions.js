@@ -33,7 +33,7 @@ export class ViewCompileInstruction {
   /**
   * The normal configuration for view compilation.
   */
-  static normal = new ViewCompileInstruction();
+  static normal: ViewCompileInstruction;
 
   /**
   * Creates an instance of ViewCompileInstruction.
@@ -46,6 +46,8 @@ export class ViewCompileInstruction {
     this.associatedModuleId = null;
   }
 }
+
+ViewCompileInstruction.normal = new ViewCompileInstruction();
 
 /**
 * Specifies how a view should be created.
@@ -68,7 +70,7 @@ export class BehaviorInstruction {
   /**
   * A default behavior used in scenarios where explicit configuration isn't available.
   */
-  static normal = new BehaviorInstruction();
+  static normal: BehaviorInstruction;
 
   /**
   * Creates an instruction for element enhancement.
@@ -158,6 +160,8 @@ export class BehaviorInstruction {
     this.inheritBindingContext = false;
   }
 }
+
+BehaviorInstruction.normal = new BehaviorInstruction();
 
 /**
 * Provides all the instructions for how a target element should be enhanced inside of a view.
