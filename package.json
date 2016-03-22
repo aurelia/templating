@@ -107,7 +107,12 @@
   },
   "aurelia": {
     "documentation": {
-      "articles": []
+      "articles": [
+        {
+          "title": "Templating: Custom Attributes",
+          "href": "doc/article/en-US/templating-custom-attributes.md"
+        }
+      ]
     }
   }
 }

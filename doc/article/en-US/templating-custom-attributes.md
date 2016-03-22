@@ -19,7 +19,7 @@ Custom attributess are a category of view resource, just like value converters, 
 
 Custom attributes may work by simply being added to a DOM element, or they may require that a value be set for the attribute. The value may be a simple value, or a complex set of options. These options may or may not be known when a custom attribute is developed. Aurelia provides simple APIs to create custom attributes of all of these types, while the Aurelia templating engine provides strong databinding capabilities for custom attributes.
 
-Many custom elements will work directly on the DOM element they are attached to. It is not necessary to search the DOM for the element a custom attribute is attached to. This is accomplished simply by requesting the element be injected in to attribute by Aurelia's Dependency Injection provider. Simply request for an object of type `Element` to be injected in to your attribute. Aurelia will ensure you are provided with the DOM element the attribute has been attached to.
+Many custom elements will work directly on the DOM element they are attached to. It is not necessary to search the DOM for the element a custom attribute is attached to. This is accomplished simply by requesting the element be injected into the attribute by Aurelia's Dependency Injection system. Simply request for an object of type `Element` to be injected in to your attribute. Aurelia will ensure you are provided with the DOM element the attribute has been attached to.
 
 ## [Simple Custom Attribute](aurelia-doc://section/2/version/1.0.0)
 
@@ -142,9 +142,7 @@ Note that in the above code sample, the color of the square will not be updated,
       }
 
       valueChanged(newValue, oldValue){
-        if( newValue !== oldValue) {
-          this.element.style.backgroundColor = newValue;
-        }
+        this.element.style.backgroundColor = newValue;
       }
     }
   </source-code>
@@ -161,9 +159,7 @@ Note that in the above code sample, the color of the square will not be updated,
       }
 
       valueChanged(newValue: string, oldValue: string){
-        if( newValue !== oldValue) {
-          this.element.style.backgroundColor = newValue;
-        }
+        this.element.style.backgroundColor = newValue;
       }
     }
   </source-code>
@@ -203,15 +199,11 @@ Options binding provides a custom attribute the ability to have multiple bindabl
       }
 
       sideLengthChanged(newValue, oldValue){
-        if( newValue !== oldValue) {
-          this.element.style.width = this.element.style.height = `${newValue}px`;
-        }
+        this.element.style.width = this.element.style.height = `${newValue}px`;
       }
 
       colorChanged(newValue, oldValue){
-        if( newValue !== oldValue) {
-          this.element.style.backgroundColor = newValue;
-        }
+        this.element.style.backgroundColor = newValue;
       }
     }
   </source-code>
@@ -228,15 +220,11 @@ Options binding provides a custom attribute the ability to have multiple bindabl
       }
 
       sideLengthChanged(newValue:string, oldValue:string){
-        if( newValue !== oldValue) {
-          this.element.style.width = this.element.style.height = `${newValue}px`;
-        }
+        this.element.style.width = this.element.style.height = `${newValue}px`;
       }
 
-      colorChanged(newValue, oldValue){
-        if( newValue !== oldValue) {
-          this.element.style.backgroundColor = newValue;
-        }
+      colorChanged(newValue:string, oldValue:string){
+        this.element.style.backgroundColor = newValue;
       }
     }
   </source-code>
@@ -247,7 +235,7 @@ Options binding provides a custom attribute the ability to have multiple bindabl
     <template>
       <require from="./square"></require>
 
-      <div square="color.bind: squareColor; side-length.bind: 100"></div>
+      <div square="color.bind: squareColor; side-length.bind: squareSize"></div>
     </template>
   </source-code>
 </code-listing>
@@ -255,7 +243,6 @@ Options binding provides a custom attribute the ability to have multiple bindabl
 ## [Dynamic Options Binding](aurelia-doc://section/6/version/1.0.0)
 
 Utilizing dynamic options, a custom attribute may deal with bindable properties where the name of the property is not known when creating the attribute. Simply decorate the attribute's view-model with the `dynamicOptions` decorator and implement the `propertyChanged(name, newValue, oldValue)` callback function. Aurelia will provide the name of the option that has changed along with new and old values for the option. Binding to a dynamic options attribute works exactly the same as binding to an options attribute in the DOM.
-
 
 <code-listing heading="square.${context.language.fileExtension}">
   <source-code lang="ES 2015/2016">
@@ -270,11 +257,14 @@ Utilizing dynamic options, a custom attribute may deal with bindable properties 
 
       propertyChanged(name, newValue, oldValue){
         switch(name){
-          case 'color':
+          case 'fill':
             this.element.style.backgroundColor = newValue;
             break;
           case 'size':
             this.element.style.width = this.element.style.height = newValue;
+            break;
+          default:
+            this.element.style[name] = value;
             break;
         }
       }
@@ -292,11 +282,14 @@ Utilizing dynamic options, a custom attribute may deal with bindable properties 
 
       propertyChanged(name: string, newValue: string, oldValue: string){
         switch(name){
-          case 'color':
+          case 'fill':
             this.element.style.backgroundColor = newValue;
             break;
           case 'size':
             this.element.style.width = this.element.style.height = `${newValue}px`;
+            break;
+          default:
+            this.element.style[name] = value;
             break;
         }
       }
@@ -309,7 +302,7 @@ Utilizing dynamic options, a custom attribute may deal with bindable properties 
     <template>
       <require from="./square"></require>
 
-      <div square="color.bind: squareColor; size.bind: 100"></div>
+      <div square="fill.bind: squareColor; size: 100"></div>
     </template>
   </source-code>
 </code-listing>
