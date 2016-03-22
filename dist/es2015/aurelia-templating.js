@@ -1,15 +1,14 @@
-import * as LogManager from 'aurelia-logging';
-import {DOM,PLATFORM,FEATURE} from 'aurelia-pal';
-import {Origin,protocol,metadata} from 'aurelia-metadata';
-import {relativeToFile} from 'aurelia-path';
-import {TemplateRegistryEntry,Loader} from 'aurelia-loader';
-import {Binding,createOverrideContext,ValueConverterResource,BindingBehaviorResource,subscriberCollection,bindingMode,ObserverLocator,EventManager,createScopeForTest} from 'aurelia-binding';
-import {Container,resolver,inject} from 'aurelia-dependency-injection';
-import {TaskQueue} from 'aurelia-task-queue';
+var _class3, _temp, _dec, _class4, _dec2, _class5, _dec3, _class6, _dec4, _class7, _dec5, _class8, _class9, _temp2, _class11, _dec6, _class13, _dec7, _class14, _dec8, _class16, _dec9, _class17, _dec10, _class18;
 
-/**
-* List the events that an Animator should raise.
-*/
+import * as LogManager from 'aurelia-logging';
+import { DOM, PLATFORM, FEATURE } from 'aurelia-pal';
+import { Origin, protocol, metadata } from 'aurelia-metadata';
+import { relativeToFile } from 'aurelia-path';
+import { TemplateRegistryEntry, Loader } from 'aurelia-loader';
+import { Binding, createOverrideContext, ValueConverterResource, BindingBehaviorResource, subscriberCollection, bindingMode, ObserverLocator, EventManager, createScopeForTest } from 'aurelia-binding';
+import { Container, resolver, inject } from 'aurelia-dependency-injection';
+import { TaskQueue } from 'aurelia-task-queue';
+
 export const animationEvent = {
   enterBegin: 'animation:enter:begin',
   enterActive: 'animation:enter:active',
@@ -42,120 +41,51 @@ export const animationEvent = {
   sequenceDone: 'animation:sequence:done'
 };
 
-/**
- * An abstract class representing a mechanism for animating the DOM during various DOM state transitions.
- */
-export class Animator {
-  /**
-   * Execute an 'enter' animation on an element
-   * @param element Element to animate
-   * @returns Resolved when the animation is done
-   */
-  enter(element: HTMLElement): Promise<boolean> {
+export let Animator = class Animator {
+  enter(element) {
     return Promise.resolve(false);
   }
 
-  /**
-   * Execute a 'leave' animation on an element
-   * @param element Element to animate
-   * @returns Resolved when the animation is done
-   */
-  leave(element: HTMLElement): Promise<boolean> {
+  leave(element) {
     return Promise.resolve(false);
   }
 
-  /**
-   * Add a class to an element to trigger an animation.
-   * @param element Element to animate
-   * @param className Properties to animate or name of the effect to use
-   * @returns Resolved when the animation is done
-   */
-  removeClass(element: HTMLElement, className: string): Promise<boolean> {
+  removeClass(element, className) {
     element.classList.remove(className);
     return Promise.resolve(false);
   }
 
-  /**
-   * Add a class to an element to trigger an animation.
-   * @param element Element to animate
-   * @param className Properties to animate or name of the effect to use
-   * @returns Resolved when the animation is done
-   */
-  addClass(element: HTMLElement, className: string): Promise<boolean> {
+  addClass(element, className) {
     element.classList.add(className);
     return Promise.resolve(false);
   }
 
-  /**
-   * Execute a single animation.
-   * @param element Element to animate
-   * @param className Properties to animate or name of the effect to use. For css animators this represents the className to be added and removed right after the animation is done.
-   * @param options options for the animation (duration, easing, ...)
-   * @returns Resolved when the animation is done
-   */
-  animate(element: HTMLElement | Array<HTMLElement>, className: string): Promise<boolean> {
+  animate(element, className) {
     return Promise.resolve(false);
   }
 
-  /**
-   * Run a sequence of animations one after the other.
-   * for example: animator.runSequence("fadeIn","callout")
-   * @param sequence An array of effectNames or classNames
-   * @returns Resolved when all animations are done
-   */
-  runSequence(animations:Array<any>): Promise<boolean> {}
+  runSequence(animations) {}
 
-  /**
-   * Register an effect (for JS based animators)
-   * @param effectName identifier of the effect
-   * @param properties Object with properties for the effect
-   */
-  registerEffect(effectName: string, properties: Object): void {}
+  registerEffect(effectName, properties) {}
 
-  /**
-   * Unregister an effect (for JS based animators)
-   * @param effectName identifier of the effect
-   */
-  unregisterEffect(effectName: string): void {}
-}
+  unregisterEffect(effectName) {}
+};
 
-interface CompositionTransactionOwnershipToken {
-  waitForCompositionComplete(): Promise<void>;
-}
-
-interface CompositionTransactionNotifier {
-  done(): void;
-}
-
-/**
-* Enables an initiator of a view composition to track any internal async rendering processes for completion.
-*/
-export class CompositionTransaction {
-  /**
-  * Creates an instance of CompositionTransaction.
-  */
+export let CompositionTransaction = class CompositionTransaction {
   constructor() {
     this._ownershipToken = null;
     this._compositionCount = 0;
   }
 
-  /**
-  * Attempt to take ownership of the composition transaction.
-  * @return An ownership token if successful, otherwise null.
-  */
-  tryCapture(): CompositionTransactionOwnershipToken {
+  tryCapture() {
     if (this._ownershipToken !== null) {
       return null;
     }
 
-    return (this._ownershipToken = this._createOwnershipToken());
+    return this._ownershipToken = this._createOwnershipToken();
   }
 
-  /**
-  * Enlist an async render operation into the transaction.
-  * @return A completion notifier.
-  */
-  enlist(): CompositionTransactionNotifier {
+  enlist() {
     let that = this;
 
     that._compositionCount++;
@@ -180,7 +110,7 @@ export class CompositionTransaction {
     }
   }
 
-  _createOwnershipToken(): CompositionTransactionOwnershipToken {
+  _createOwnershipToken() {
     let token = {};
     let promise = new Promise((resolve, reject) => {
       token._resolve = resolve;
@@ -193,7 +123,7 @@ export class CompositionTransaction {
 
     return token;
   }
-}
+};
 
 const capitalMatcher = /([A-Z])/g;
 
@@ -205,29 +135,18 @@ export function _hyphenate(name) {
   return (name.charAt(0).toLowerCase() + name.slice(1)).replace(capitalMatcher, addHyphenAndLower);
 }
 
-interface EventHandler {
-  eventName: string;
-  bubbles: boolean;
-  dispose: Function;
-  handler: Function;
-}
-
-/**
- * Dispatches subscribets to and publishes events in the DOM.
- * @param element
- */
-export class ElementEvents {
-  constructor(element: Element) {
+export let ElementEvents = class ElementEvents {
+  constructor(element) {
     this.element = element;
     this.subscriptions = {};
   }
 
-  _enqueueHandler(handler: EventHandler): void {
+  _enqueueHandler(handler) {
     this.subscriptions[handler.eventName] = this.subscriptions[handler.eventName] || [];
     this.subscriptions[handler.eventName].push(handler);
   }
 
-  _dequeueHandler(handler: EventHandler): EventHandler {
+  _dequeueHandler(handler) {
     let index;
     let subscriptions = this.subscriptions[handler.eventName];
     if (subscriptions) {
@@ -239,26 +158,12 @@ export class ElementEvents {
     return handler;
   }
 
-  /**
-   * Dispatches an Event on the context element.
-   * @param eventName
-   * @param detail
-   * @param bubbles
-   * @param cancelable
-   */
-  publish(eventName: string, detail?: Object = {}, bubbles?: boolean = true, cancelable?: boolean = true) {
-    let event = DOM.createCustomEvent(eventName, {cancelable, bubbles, detail});
+  publish(eventName, detail = {}, bubbles = true, cancelable = true) {
+    let event = DOM.createCustomEvent(eventName, { cancelable, bubbles, detail });
     this.element.dispatchEvent(event);
   }
 
-  /**
-   * Adds and Event Listener on the context element.
-   * @param eventName
-   * @param handler
-   * @param bubbles
-   * @return Returns the eventHandler containing a dispose method
-   */
-  subscribe(eventName: string, handler: Function, bubbles?: boolean = true): EventHandler {
+  subscribe(eventName, handler, bubbles = true) {
     if (handler && typeof handler === 'function') {
       handler.eventName = eventName;
       handler.handler = handler;
@@ -273,16 +178,9 @@ export class ElementEvents {
     }
   }
 
-  /**
-   * Adds an Event Listener on the context element, that will be disposed on the first trigger.
-   * @param eventName
-   * @param handler
-   * @param bubbles
-   * @return Returns the eventHandler containing a dispose method
-   */
-  subscribeOnce(eventName: String, handler: Function, bubbles?: Boolean = true): EventHandler {
+  subscribeOnce(eventName, handler, bubbles = true) {
     if (handler && typeof handler === 'function') {
-      let _handler = (event) => {
+      let _handler = event => {
         handler(event);
         _handler.dispose();
       };
@@ -290,11 +188,7 @@ export class ElementEvents {
     }
   }
 
-  /**
-   * Removes all events that are listening to the specified eventName.
-   * @param eventName
-   */
-  dispose(eventName: string): void {
+  dispose(eventName) {
     if (eventName && typeof eventName === 'string') {
       let subscriptions = this.subscriptions[eventName];
       if (subscriptions) {
@@ -310,118 +204,52 @@ export class ElementEvents {
     }
   }
 
-  /**
-   * Removes all event handlers.
-   */
   disposeAll() {
     for (let key in this.subscriptions) {
       this.dispose(key);
     }
   }
-}
+};
 
-/**
-* A context that flows through the view resource load process.
-*/
-export class ResourceLoadContext {
-  /**
-  * Creates an instance of ResourceLoadContext.
-  */
+export let ResourceLoadContext = class ResourceLoadContext {
   constructor() {
     this.dependencies = {};
   }
 
-  /**
-  * Tracks a dependency that is being loaded.
-  * @param url The url of the dependency.
-  */
-  addDependency(url: string): void {
+  addDependency(url) {
     this.dependencies[url] = true;
   }
 
-  /**
-  * Checks if the current context includes a load of the specified url.
-  * @return True if the url is being loaded in the context; false otherwise.
-  */
-  hasDependency(url: string): boolean {
+  hasDependency(url) {
     return url in this.dependencies;
   }
-}
+};
 
-/**
-* Specifies how a view should be compiled.
-*/
-export class ViewCompileInstruction {
-  /**
-  * The normal configuration for view compilation.
-  */
-  static normal = new ViewCompileInstruction();
-
-  /**
-  * Creates an instance of ViewCompileInstruction.
-  * @param targetShadowDOM Should the compilation target the Shadow DOM.
-  * @param compileSurrogate Should the compilation also include surrogate bindings and behaviors.
-  */
-  constructor(targetShadowDOM?: boolean = false, compileSurrogate?: boolean = false) {
+export let ViewCompileInstruction = class ViewCompileInstruction {
+  constructor(targetShadowDOM = false, compileSurrogate = false) {
     this.targetShadowDOM = targetShadowDOM;
     this.compileSurrogate = compileSurrogate;
     this.associatedModuleId = null;
   }
-}
+};
 
-/**
-* Specifies how a view should be created.
-*/
-interface ViewCreateInstruction {
-  /**
-  * Indicates that the view is being created by enhancing existing DOM.
-  */
-  enhance?: boolean;
-  /**
-  * Specifies a key/value lookup of part replacements for the view being created.
-  */
-  partReplacements?: Object;
-}
+ViewCompileInstruction.normal = new ViewCompileInstruction();
 
-/**
-* Indicates how a custom attribute or element should be instantiated in a view.
-*/
-export class BehaviorInstruction {
-  /**
-  * A default behavior used in scenarios where explicit configuration isn't available.
-  */
-  static normal = new BehaviorInstruction();
-
-  /**
-  * Creates an instruction for element enhancement.
-  * @return The created instruction.
-  */
-  static enhance(): BehaviorInstruction {
+export let BehaviorInstruction = class BehaviorInstruction {
+  static enhance() {
     let instruction = new BehaviorInstruction();
     instruction.enhance = true;
     return instruction;
   }
 
-  /**
-  * Creates an instruction for unit testing.
-  * @param type The HtmlBehaviorResource to create.
-  * @param attributes A key/value lookup of attributes for the behaior.
-  * @return The created instruction.
-  */
-  static unitTest(type: HtmlBehaviorResource, attributes: Object): BehaviorInstruction {
+  static unitTest(type, attributes) {
     let instruction = new BehaviorInstruction();
     instruction.type = type;
     instruction.attributes = attributes || {};
     return instruction;
   }
 
-  /**
-  * Creates a custom element instruction.
-  * @param node The node that represents the custom element.
-  * @param type The HtmlBehaviorResource to create.
-  * @return The created instruction.
-  */
-  static element(node: Node, type: HtmlBehaviorResource): BehaviorInstruction {
+  static element(node, type) {
     let instruction = new BehaviorInstruction();
     instruction.type = type;
     instruction.attributes = {};
@@ -430,13 +258,7 @@ export class BehaviorInstruction {
     return instruction;
   }
 
-  /**
-  * Creates a custom attribute instruction.
-  * @param attrName The name of the attribute.
-  * @param type The HtmlBehaviorResource to create.
-  * @return The created instruction.
-  */
-  static attribute(attrName: string, type?: HtmlBehaviorResource): BehaviorInstruction {
+  static attribute(attrName, type) {
     let instruction = new BehaviorInstruction();
     instruction.attrName = attrName;
     instruction.type = type || null;
@@ -444,14 +266,7 @@ export class BehaviorInstruction {
     return instruction;
   }
 
-  /**
-  * Creates a dynamic component instruction.
-  * @param host The element that will parent the dynamic component.
-  * @param viewModel The dynamic component's view model instance.
-  * @param viewFactory A view factory used in generating the component's view.
-  * @return The created instruction.
-  */
-  static dynamic(host: Element, viewModel: Object, viewFactory: ViewFactory): BehaviorInstruction {
+  static dynamic(host, viewModel, viewFactory) {
     let instruction = new BehaviorInstruction();
     instruction.host = host;
     instruction.viewModel = viewModel;
@@ -460,9 +275,6 @@ export class BehaviorInstruction {
     return instruction;
   }
 
-  /**
-  * Creates an instance of BehaviorInstruction.
-  */
   constructor() {
     this.initiatedByBehavior = false;
     this.enhance = false;
@@ -479,24 +291,12 @@ export class BehaviorInstruction {
     this.attrName = null;
     this.inheritBindingContext = false;
   }
-}
+};
 
-/**
-* Provides all the instructions for how a target element should be enhanced inside of a view.
-*/
-export class TargetInstruction {
-  /**
-  * An empty array used to represent a target with no binding expressions.
-  */
-  static noExpressions = Object.freeze([]);
+BehaviorInstruction.normal = new BehaviorInstruction();
 
-  /**
-  * Creates an instruction that represents a content selector.
-  * @param node The node that represents the selector.
-  * @param parentInjectorId The id of the parent dependency injection container.
-  * @return The created instruction.
-  */
-  static contentSelector(node: Node, parentInjectorId: number): TargetInstruction {
+export let TargetInstruction = (_temp = _class3 = class TargetInstruction {
+  static contentSelector(node, parentInjectorId) {
     let instruction = new TargetInstruction();
     instruction.parentInjectorId = parentInjectorId;
     instruction.contentSelector = true;
@@ -504,24 +304,13 @@ export class TargetInstruction {
     return instruction;
   }
 
-  /**
-  * Creates an instruction that represents a binding expression in the content of an element.
-  * @param expression The binding expression.
-  * @return The created instruction.
-  */
-  static contentExpression(expression): TargetInstruction {
+  static contentExpression(expression) {
     let instruction = new TargetInstruction();
     instruction.contentExpression = expression;
     return instruction;
   }
 
-  /**
-  * Creates an instruction that represents content that was lifted out of the DOM and into a ViewFactory.
-  * @param parentInjectorId The id of the parent dependency injection container.
-  * @param liftingInstruction The behavior instruction of the lifting behavior.
-  * @return The created instruction.
-  */
-  static lifting(parentInjectorId: number, liftingInstruction: BehaviorInstruction): TargetInstruction {
+  static lifting(parentInjectorId, liftingInstruction) {
     let instruction = new TargetInstruction();
     instruction.parentInjectorId = parentInjectorId;
     instruction.expressions = TargetInstruction.noExpressions;
@@ -532,17 +321,7 @@ export class TargetInstruction {
     return instruction;
   }
 
-  /**
-  * Creates an instruction that represents an element with behaviors and bindings.
-  * @param injectorId The id of the dependency injection container.
-  * @param parentInjectorId The id of the parent dependency injection container.
-  * @param providers The types which will provide behavior for this element.
-  * @param behaviorInstructions The instructions for creating behaviors on this element.
-  * @param expressions Bindings, listeners, triggers, etc.
-  * @param elementInstruction The element behavior for this element.
-  * @return The created instruction.
-  */
-  static normal(injectorId: number, parentInjectorId: number, providers: Array<Function>, behaviorInstructions: Array<BehaviorInstruction>, expressions: Array<Object>, elementInstruction: BehaviorInstruction): TargetInstruction {
+  static normal(injectorId, parentInjectorId, providers, behaviorInstructions, expressions, elementInstruction) {
     let instruction = new TargetInstruction();
     instruction.injectorId = injectorId;
     instruction.parentInjectorId = parentInjectorId;
@@ -554,15 +333,7 @@ export class TargetInstruction {
     return instruction;
   }
 
-  /**
-  * Creates an instruction that represents the surrogate behaviors and bindings for an element.
-  * @param providers The types which will provide behavior for this element.
-  * @param behaviorInstructions The instructions for creating behaviors on this element.
-  * @param expressions Bindings, listeners, triggers, etc.
-  * @param values A key/value lookup of attributes to transplant.
-  * @return The created instruction.
-  */
-  static surrogate(providers: Array<Function>, behaviorInstructions: Array<BehaviorInstruction>, expressions: Array<Object>, values: Object): TargetInstruction {
+  static surrogate(providers, behaviorInstructions, expressions, values) {
     let instruction = new TargetInstruction();
     instruction.expressions = expressions;
     instruction.behaviorInstructions = behaviorInstructions;
@@ -571,9 +342,6 @@ export class TargetInstruction {
     return instruction;
   }
 
-  /**
-  * Creates an instance of TargetInstruction.
-  */
   constructor() {
     this.injectorId = null;
     this.parentInjectorId = null;
@@ -595,26 +363,9 @@ export class TargetInstruction {
 
     this.values = null;
   }
-}
+}, _class3.noExpressions = Object.freeze([]), _temp);
 
-/**
-* Implemented by classes that describe how a view factory should be loaded.
-*/
-interface ViewStrategy {
-  /**
-  * Loads a view factory.
-  * @param viewEngine The view engine to use during the load process.
-  * @param compileInstruction Additional instructions to use during compilation of the view.
-  * @param loadContext The loading context used for loading all resources and dependencies.
-  * @return A promise for the view factory that is produced by this strategy.
-  */
-  loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewFactory>;
-}
-
-/**
-* Decorator: Indicates that the decorated class/object is a view strategy.
-*/
-export const viewStrategy: Function = protocol.create('aurelia:view-strategy', {
+export const viewStrategy = protocol.create('aurelia:view-strategy', {
   validate(target) {
     if (!(typeof target.loadViewFactory === 'function')) {
       return 'View strategies must implement: loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewFactory>';
@@ -629,28 +380,13 @@ export const viewStrategy: Function = protocol.create('aurelia:view-strategy', {
   }
 });
 
-/**
-* A view strategy that loads a view relative to its associated view-model.
-*/
-@viewStrategy()
-export class RelativeViewStrategy {
-  /**
-  * Creates an instance of RelativeViewStrategy.
-  * @param path The relative path to the view.
-  */
-  constructor(path: string) {
+export let RelativeViewStrategy = (_dec = viewStrategy(), _dec(_class4 = class RelativeViewStrategy {
+  constructor(path) {
     this.path = path;
     this.absolutePath = null;
   }
 
-  /**
-  * Loads a view factory.
-  * @param viewEngine The view engine to use during the load process.
-  * @param compileInstruction Additional instructions to use during compilation of the view.
-  * @param loadContext The loading context used for loading all resources and dependencies.
-  * @return A promise for the view factory that is produced by this strategy.
-  */
-  loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewFactory> {
+  loadViewFactory(viewEngine, compileInstruction, loadContext) {
     if (this.absolutePath === null && this.moduleId) {
       this.absolutePath = relativeToFile(this.path, this.moduleId);
     }
@@ -659,86 +395,38 @@ export class RelativeViewStrategy {
     return viewEngine.loadViewFactory(this.absolutePath || this.path, compileInstruction, loadContext);
   }
 
-  /**
-  * Makes the view loaded by this strategy relative to the provided file path.
-  * @param file The path to load the view relative to.
-  */
-  makeRelativeTo(file: string): void {
+  makeRelativeTo(file) {
     if (this.absolutePath === null) {
       this.absolutePath = relativeToFile(this.path, file);
     }
   }
-}
+}) || _class4);
 
-/**
-* A view strategy based on naming conventions.
-*/
-@viewStrategy()
-export class ConventionalViewStrategy {
-  /**
-  * Creates an instance of ConventionalViewStrategy.
-  * @param viewLocator The view locator service for conventionally locating the view.
-  * @param origin The origin of the view model to conventionally load the view for.
-  */
-  constructor(viewLocator: ViewLocator, origin: Origin) {
+export let ConventionalViewStrategy = (_dec2 = viewStrategy(), _dec2(_class5 = class ConventionalViewStrategy {
+  constructor(viewLocator, origin) {
     this.moduleId = origin.moduleId;
     this.viewUrl = viewLocator.convertOriginToViewUrl(origin);
   }
 
-  /**
-  * Loads a view factory.
-  * @param viewEngine The view engine to use during the load process.
-  * @param compileInstruction Additional instructions to use during compilation of the view.
-  * @param loadContext The loading context used for loading all resources and dependencies.
-  * @return A promise for the view factory that is produced by this strategy.
-  */
-  loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewFactory> {
+  loadViewFactory(viewEngine, compileInstruction, loadContext) {
     compileInstruction.associatedModuleId = this.moduleId;
     return viewEngine.loadViewFactory(this.viewUrl, compileInstruction, loadContext);
   }
-}
+}) || _class5);
 
-/**
-* A view strategy that indicates that the component has no view that the templating engine needs to manage.
-* Typically used when the component author wishes to take over fine-grained rendering control.
-*/
-@viewStrategy()
-export class NoViewStrategy {
-  /**
-  * Loads a view factory.
-  * @param viewEngine The view engine to use during the load process.
-  * @param compileInstruction Additional instructions to use during compilation of the view.
-  * @param loadContext The loading context used for loading all resources and dependencies.
-  * @return A promise for the view factory that is produced by this strategy.
-  */
-  loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewFactory> {
+export let NoViewStrategy = (_dec3 = viewStrategy(), _dec3(_class6 = class NoViewStrategy {
+  loadViewFactory(viewEngine, compileInstruction, loadContext) {
     return Promise.resolve(null);
   }
-}
+}) || _class6);
 
-/**
-* A view strategy created directly from the template registry entry.
-*/
-@viewStrategy()
-export class TemplateRegistryViewStrategy {
-  /**
-  * Creates an instance of TemplateRegistryViewStrategy.
-  * @param moduleId The associated moduleId of the view to be loaded.
-  * @param entry The template registry entry used in loading the view factory.
-  */
-  constructor(moduleId: string, entry: TemplateRegistryEntry) {
+export let TemplateRegistryViewStrategy = (_dec4 = viewStrategy(), _dec4(_class7 = class TemplateRegistryViewStrategy {
+  constructor(moduleId, entry) {
     this.moduleId = moduleId;
     this.entry = entry;
   }
 
-  /**
-  * Loads a view factory.
-  * @param viewEngine The view engine to use during the load process.
-  * @param compileInstruction Additional instructions to use during compilation of the view.
-  * @param loadContext The loading context used for loading all resources and dependencies.
-  * @return A promise for the view factory that is produced by this strategy.
-  */
-  loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewFactory> {
+  loadViewFactory(viewEngine, compileInstruction, loadContext) {
     let entry = this.entry;
 
     if (entry.factoryIsReady) {
@@ -748,33 +436,16 @@ export class TemplateRegistryViewStrategy {
     compileInstruction.associatedModuleId = this.moduleId;
     return viewEngine.loadViewFactory(entry, compileInstruction, loadContext);
   }
-}
+}) || _class7);
 
-/**
-* A view strategy that allows the component authore to inline the html for the view.
-*/
-@viewStrategy()
-export class InlineViewStrategy {
-  /**
-  * Creates an instance of InlineViewStrategy.
-  * @param markup The markup for the view. Be sure to include the wrapping template tag.
-  * @param dependencies A list of view resource dependencies of this view.
-  * @param dependencyBaseUrl The base url for the view dependencies.
-  */
-  constructor(markup: string, dependencies?: Array<string|Function|Object>, dependencyBaseUrl?: string) {
+export let InlineViewStrategy = (_dec5 = viewStrategy(), _dec5(_class8 = class InlineViewStrategy {
+  constructor(markup, dependencies, dependencyBaseUrl) {
     this.markup = markup;
     this.dependencies = dependencies || null;
     this.dependencyBaseUrl = dependencyBaseUrl || '';
   }
 
-  /**
-  * Loads a view factory.
-  * @param viewEngine The view engine to use during the load process.
-  * @param compileInstruction Additional instructions to use during compilation of the view.
-  * @param loadContext The loading context used for loading all resources and dependencies.
-  * @return A promise for the view factory that is produced by this strategy.
-  */
-  loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewFactory> {
+  loadViewFactory(viewEngine, compileInstruction, loadContext) {
     let entry = this.entry;
     let dependencies = this.dependencies;
 
@@ -800,23 +471,10 @@ export class InlineViewStrategy {
     compileInstruction.associatedModuleId = this.moduleId;
     return viewEngine.loadViewFactory(entry, compileInstruction, loadContext);
   }
-}
+}) || _class8);
 
-/**
-* Locates a view for an object.
-*/
-export class ViewLocator {
-  /**
-  * The metadata key for storing/finding view strategies associated with an class/object.
-  */
-  static viewStrategyMetadataKey = 'aurelia:view-strategy';
-
-  /**
-  * Gets the view strategy for the value.
-  * @param value The value to locate the view strategy for.
-  * @return The located ViewStrategy instance.
-  */
-  getViewStrategy(value: any): ViewStrategy {
+export let ViewLocator = (_temp2 = _class9 = class ViewLocator {
+  getViewStrategy(value) {
     if (!value) {
       return null;
     }
@@ -867,66 +525,30 @@ export class ViewLocator {
     return strategy;
   }
 
-  /**
-  * Creates a fallback View Strategy. Used when unable to locate a configured strategy.
-  * The default implementation returns and instance of ConventionalViewStrategy.
-  * @param origin The origin of the view model to return the strategy for.
-  * @return The fallback ViewStrategy.
-  */
-  createFallbackViewStrategy(origin: Origin): ViewStrategy {
+  createFallbackViewStrategy(origin) {
     return new ConventionalViewStrategy(this, origin);
   }
 
-  /**
-  * Conventionally converts a view model origin to a view url.
-  * Used by the ConventionalViewStrategy.
-  * @param origin The origin of the view model to convert.
-  * @return The view url.
-  */
-  convertOriginToViewUrl(origin: Origin): string {
+  convertOriginToViewUrl(origin) {
     let moduleId = origin.moduleId;
-    let id = (moduleId.endsWith('.js') || moduleId.endsWith('.ts')) ? moduleId.substring(0, moduleId.length - 3) : moduleId;
+    let id = moduleId.endsWith('.js') || moduleId.endsWith('.ts') ? moduleId.substring(0, moduleId.length - 3) : moduleId;
     return id + '.html';
   }
-}
+}, _class9.viewStrategyMetadataKey = 'aurelia:view-strategy', _temp2);
 
-/**
-* An abstract base class for implementations of a binding language.
-*/
-export class BindingLanguage {
-  /**
-  * Inspects an attribute for bindings.
-  * @param resources The ViewResources for the view being compiled.
-  * @param attrName The attribute name to inspect.
-  * @param attrValue The attribute value to inspce.
-  * @return An info object with the results of the inspection.
-  */
-  inspectAttribute(resources: ViewResources, attrName: string, attrValue: string): Object {
+export let BindingLanguage = class BindingLanguage {
+  inspectAttribute(resources, attrName, attrValue) {
     throw new Error('A BindingLanguage must implement inspectAttribute(...)');
   }
 
-  /**
-  * Creates an attribute behavior instruction.
-  * @param resources The ViewResources for the view being compiled.
-  * @param element The element that the attribute is defined on.
-  * @param info The info object previously returned from inspectAttribute.
-  * @param existingInstruction A previously created instruction for this attribute.
-  * @return The instruction instance.
-  */
-  createAttributeInstruction(resources: ViewResources, element: Element, info: Object, existingInstruction?: Object): BehaviorInstruction {
+  createAttributeInstruction(resources, element, info, existingInstruction) {
     throw new Error('A BindingLanguage must implement createAttributeInstruction(...)');
   }
 
-  /**
-  * Parses the text for bindings.
-  * @param resources The ViewResources for the view being compiled.
-  * @param value The value of the text to parse.
-  * @return A binding expression.
-  */
-  parseText(resources: ViewResources, value: string): Object {
+  parseText(resources, value) {
     throw new Error('A BindingLanguage must implement parseText(...)');
   }
-}
+};
 
 function register(lookup, name, resource, type) {
   if (!name) {
@@ -936,7 +558,7 @@ function register(lookup, name, resource, type) {
   let existing = lookup[name];
   if (existing) {
     if (existing !== resource) {
-      throw new Error(`Attempted to register ${type} when one with the same name already exists. Name: ${name}.`);
+      throw new Error(`Attempted to register ${ type } when one with the same name already exists. Name: ${ name }.`);
     }
 
     return;
@@ -945,52 +567,10 @@ function register(lookup, name, resource, type) {
   lookup[name] = resource;
 }
 
-/**
-* View engine hooks that enable a view resource to provide custom processing during the compilation or creation of a view.
-*/
-interface ViewEngineHooks {
-  /**
-  * Invoked before a template is compiled.
-  * @param content The DocumentFragment to compile.
-  * @param resources The resources to compile the view against.
-  * @param instruction The compilation instruction associated with the compilation process.
-  */
-  beforeCompile?: (content: DocumentFragment, resources: ViewResources, instruction: ViewCompileInstruction) => void;
-  /**
-  * Invoked after a template is compiled.
-  * @param viewFactory The view factory that was produced from the compilation process.
-  */
-  afterCompile?: (viewFactory: ViewFactory) => void;
-  /**
-  * Invoked before a view is created.
-  * @param viewFactory The view factory that will be used to create the view.
-  * @param container The DI container used during view creation.
-  * @param content The cloned document fragment representing the view.
-  * @param instruction The view creation instruction associated with this creation process.
-  */
-  beforeCreate?: (viewFactory: ViewFactory, container: Container, content: DocumentFragment, instruction: ViewCreateInstruction) => void;
-  /**
-  * Invoked after a view is created.
-  * @param view The view that was created by the factory.
-  */
-  afterCreate?: (view: View) => void;
-}
+export let ViewResources = class ViewResources {
+  constructor(parent, viewUrl) {
+    this.bindingLanguage = null;
 
-/**
-* Represents a collection of resources used during the compilation of a view.
-*/
-export class ViewResources {
-  /**
-  * A custom binding language used in the view.
-  */
-  bindingLanguage = null;
-
-  /**
-  * Creates an instance of ViewResources.
-  * @param parent The parent resources. This resources can override them, but if a resource is not found, it will be looked up in the parent.
-  * @param viewUrl The url of the view to which these resources apply.
-  */
-  constructor(parent?: ViewResources, viewUrl?: string) {
     this.parent = parent || null;
     this.hasParent = this.parent !== null;
     this.viewUrl = viewUrl || '';
@@ -1003,148 +583,65 @@ export class ViewResources {
     this.valueConverters = {};
     this.bindingBehaviors = {};
     this.attributeMap = {};
-    this.hook1 = null;
-    this.hook2 = null;
-    this.hook3 = null;
-    this.additionalHooks = null;
+    this.beforeCompile = this.afterCompile = this.beforeCreate = this.afterCreate = this.beforeBind = this.beforeUnbind = false;
   }
 
-  _onBeforeCompile(content: DocumentFragment, resources: ViewResources, instruction: ViewCompileInstruction): void {
+  _tryAddHook(obj, name) {
+    if (typeof obj[name] === 'function') {
+      let func = obj[name].bind(obj);
+      let counter = 1;
+      let callbackName;
+
+      while (this[callbackName = name + counter.toString()] !== undefined) {
+        counter++;
+      }
+
+      this[name] = true;
+      this[callbackName] = func;
+    }
+  }
+
+  _invokeHook(name, one, two, three, four) {
     if (this.hasParent) {
-      this.parent._onBeforeCompile(content, resources, instruction);
+      this.parent._invokeHook(name, one, two, three, four);
     }
 
-    if (this.hook1 !== null) {
-      this.hook1.beforeCompile(content, resources, instruction);
+    if (this[name]) {
+      this[name + '1'](one, two, three, four);
 
-      if (this.hook2 !== null) {
-        this.hook2.beforeCompile(content, resources, instruction);
+      let callbackName = name + '2';
+      if (this[callbackName]) {
+        this[callbackName](one, two, three, four);
 
-        if (this.hook3 !== null) {
-          this.hook3.beforeCompile(content, resources, instruction);
+        callbackName = name + '3';
+        if (this[callbackName]) {
+          this[callbackName](one, two, three, four);
 
-          if (this.additionalHooks !== null) {
-            let hooks = this.additionalHooks;
-            for (let i = 0, length = hooks.length; i < length; ++i) {
-              hooks[i].beforeCompile(content, resources, instruction);
-            }
+          let counter = 4;
+
+          while (this[callbackName = name + counter.toString()] !== undefined) {
+            this[callbackName](one, two, three, four);
+            counter++;
           }
         }
       }
     }
   }
 
-  _onAfterCompile(viewFactory: ViewFactory): void {
-    if (this.hasParent) {
-      this.parent._onAfterCompile(viewFactory);
-    }
-
-    if (this.hook1 !== null) {
-      this.hook1.afterCompile(viewFactory);
-
-      if (this.hook2 !== null) {
-        this.hook2.afterCompile(viewFactory);
-
-        if (this.hook3 !== null) {
-          this.hook3.afterCompile(viewFactory);
-
-          if (this.additionalHooks !== null) {
-            let hooks = this.additionalHooks;
-            for (let i = 0, length = hooks.length; i < length; ++i) {
-              hooks[i].afterCompile(viewFactory);
-            }
-          }
-        }
-      }
-    }
+  registerViewEngineHooks(hooks) {
+    this._tryAddHook(hooks, 'beforeCompile');
+    this._tryAddHook(hooks, 'afterCompile');
+    this._tryAddHook(hooks, 'beforeCreate');
+    this._tryAddHook(hooks, 'afterCreate');
+    this._tryAddHook(hooks, 'beforeBind');
+    this._tryAddHook(hooks, 'beforeUnbind');
   }
 
-  _onBeforeCreate(viewFactory: ViewFactory, container: Container, content: DocumentFragment, instruction: ViewCreateInstruction, bindingContext?:Object): void {
-    if (this.hasParent) {
-      this.parent._onBeforeCreate(viewFactory, container, content, instruction, bindingContext);
-    }
-
-    if (this.hook1 !== null) {
-      this.hook1.beforeCreate(viewFactory, container, content, instruction, bindingContext);
-
-      if (this.hook2 !== null) {
-        this.hook2.beforeCreate(viewFactory, container, content, instruction, bindingContext);
-
-        if (this.hook3 !== null) {
-          this.hook3.beforeCreate(viewFactory, container, content, instruction, bindingContext);
-
-          if (this.additionalHooks !== null) {
-            let hooks = this.additionalHooks;
-            for (let i = 0, length = hooks.length; i < length; ++i) {
-              hooks[i].beforeCreate(viewFactory, container, content, instruction, bindingContext);
-            }
-          }
-        }
-      }
-    }
-  }
-
-  _onAfterCreate(view: View): void {
-    if (this.hasParent) {
-      this.parent._onAfterCreate(view);
-    }
-
-    if (this.hook1 !== null) {
-      this.hook1.afterCreate(view);
-
-      if (this.hook2 !== null) {
-        this.hook2.afterCreate(view);
-
-        if (this.hook3 !== null) {
-          this.hook3.afterCreate(view);
-
-          if (this.additionalHooks !== null) {
-            let hooks = this.additionalHooks;
-            for (let i = 0, length = hooks.length; i < length; ++i) {
-              hooks[i].afterCreate(view);
-            }
-          }
-        }
-      }
-    }
-  }
-
-  /**
-  * Registers view engine hooks for the view.
-  * @param hooks The hooks to register.
-  */
-  registerViewEngineHooks(hooks:ViewEngineHooks): void {
-    if (hooks.beforeCompile === undefined) hooks.beforeCompile = PLATFORM.noop;
-    if (hooks.afterCompile === undefined) hooks.afterCompile = PLATFORM.noop;
-    if (hooks.beforeCreate === undefined) hooks.beforeCreate = PLATFORM.noop;
-    if (hooks.afterCreate === undefined) hooks.afterCreate = PLATFORM.noop;
-
-    if (this.hook1 === null) this.hook1 = hooks;
-    else if (this.hook2 === null) this.hook2 = hooks;
-    else if (this.hook3 === null) this.hook3 = hooks;
-    else {
-      if (this.additionalHooks === null) {
-        this.additionalHooks = [];
-      }
-
-      this.additionalHooks.push(hooks);
-    }
-  }
-
-  /**
-  * Gets the binding language associated with these resources, or return the provided fallback implementation.
-  * @param bindingLanguageFallback The fallback binding language implementation to use if no binding language is configured locally.
-  * @return The binding language.
-  */
-  getBindingLanguage(bindingLanguageFallback: BindingLanguage): BindingLanguage {
+  getBindingLanguage(bindingLanguageFallback) {
     return this.bindingLanguage || (this.bindingLanguage = bindingLanguageFallback);
   }
 
-  /**
-  * Patches an immediate parent into the view resource resolution hierarchy.
-  * @param newParent The new parent resources to patch in.
-  */
-  patchInParent(newParent: ViewResources): void {
+  patchInParent(newParent) {
     let originalParent = this.parent;
 
     this.parent = newParent || null;
@@ -1156,134 +653,52 @@ export class ViewResources {
     }
   }
 
-  /**
-  * Maps a path relative to the associated view's origin.
-  * @param path The relative path.
-  * @return The calcualted path.
-  */
-  relativeToView(path: string): string {
+  relativeToView(path) {
     return relativeToFile(path, this.viewUrl);
   }
 
-  /**
-  * Registers an HTML element.
-  * @param tagName The name of the custom element.
-  * @param behavior The behavior of the element.
-  */
-  registerElement(tagName: string, behavior: HtmlBehaviorResource): void {
+  registerElement(tagName, behavior) {
     register(this.elements, tagName, behavior, 'an Element');
   }
 
-  /**
-  * Gets an HTML element behavior.
-  * @param tagName The tag name to search for.
-  * @return The HtmlBehaviorResource for the tag name or null.
-  */
-  getElement(tagName: string): HtmlBehaviorResource {
+  getElement(tagName) {
     return this.elements[tagName] || (this.hasParent ? this.parent.getElement(tagName) : null);
   }
 
-  /**
-  * Gets the known attribute name based on the local attribute name.
-  * @param attribute The local attribute name to lookup.
-  * @return The known name.
-  */
-  mapAttribute(attribute: string): string {
+  mapAttribute(attribute) {
     return this.attributeMap[attribute] || (this.hasParent ? this.parent.mapAttribute(attribute) : null);
   }
 
-  /**
-  * Registers an HTML attribute.
-  * @param attribute The name of the attribute.
-  * @param behavior The behavior of the attribute.
-  * @param knownAttribute The well-known name of the attribute (in lieu of the local name).
-  */
-  registerAttribute(attribute: string, behavior: HtmlBehaviorResource, knownAttribute: string): void {
+  registerAttribute(attribute, behavior, knownAttribute) {
     this.attributeMap[attribute] = knownAttribute;
     register(this.attributes, attribute, behavior, 'an Attribute');
   }
 
-  /**
-  * Gets an HTML attribute behavior.
-  * @param attribute The name of the attribute to lookup.
-  * @return The HtmlBehaviorResource for the attribute or null.
-  */
-  getAttribute(attribute: string): HtmlBehaviorResource {
+  getAttribute(attribute) {
     return this.attributes[attribute] || (this.hasParent ? this.parent.getAttribute(attribute) : null);
   }
 
-  /**
-  * Registers a value converter.
-  * @param name The name of the value converter.
-  * @param valueConverter The value converter instance.
-  */
-  registerValueConverter(name: string, valueConverter: Object): void {
+  registerValueConverter(name, valueConverter) {
     register(this.valueConverters, name, valueConverter, 'a ValueConverter');
   }
 
-  /**
-  * Gets a value converter.
-  * @param name The name of the value converter.
-  * @return The value converter instance.
-  */
-  getValueConverter(name: string): Object {
+  getValueConverter(name) {
     return this.valueConverters[name] || (this.hasParent ? this.parent.getValueConverter(name) : null);
   }
 
-  /**
-  * Registers a binding behavior.
-  * @param name The name of the binding behavior.
-  * @param bindingBehavior The binding behavior instance.
-  */
-  registerBindingBehavior(name: string, bindingBehavior: Object): void {
+  registerBindingBehavior(name, bindingBehavior) {
     register(this.bindingBehaviors, name, bindingBehavior, 'a BindingBehavior');
   }
 
-  /**
-  * Gets a binding behavior.
-  * @param name The name of the binding behavior.
-  * @return The binding behavior instance.
-  */
-  getBindingBehavior(name: string): Object {
+  getBindingBehavior(name) {
     return this.bindingBehaviors[name] || (this.hasParent ? this.parent.getBindingBehavior(name) : null);
   }
-}
+};
 
-/**
-* Represents a node in the view hierarchy.
-*/
-interface ViewNode {
-  /**
-  * Binds the node and it's children.
-  * @param bindingContext The binding context to bind to.
-  * @param overrideContext A secondary binding context that can override the standard context.
-  */
-  bind(bindingContext: Object, overrideContext?: Object): void;
-  /**
-  * Triggers the attach for the node and its children.
-  */
-  attached(): void;
-  /**
-  * Triggers the detach for the node and its children.
-  */
-  detached(): void;
-  /**
-  * Unbinds the node and its children.
-  */
-  unbind(): void;
-}
-
-export class View {
-  /**
-  * Creates a View instance.
-  * @param viewFactory The factory that created this view.
-  * @param fragment The DOM fragement representing the view.
-  * @param controllers The controllers inside this view.
-  * @param bindings The bindings inside this view.
-  * @param children The children of this view.
-  */
-  constructor(viewFactory: ViewFactory, fragment: DocumentFragment, controllers: Controller[], bindings: Binding[], children: ViewNode[], contentSelectors: Array<Object>) {
+export let View = class View {
+  constructor(viewFactory, fragment, controllers, bindings, children, contentSelectors) {
     this.viewFactory = viewFactory;
+    this.resources = viewFactory.resources;
     this.fragment = fragment;
     this.controllers = controllers;
     this.bindings = bindings;
@@ -1302,17 +717,11 @@ export class View {
     this._isUserControlled = false;
   }
 
-  /**
-  * Returns this view to the appropriate view cache.
-  */
-  returnToCache(): void {
+  returnToCache() {
     this.viewFactory.returnViewToCache(this);
   }
 
-  /**
-  * Triggers the created callback for this view and its children.
-  */
-  created(): void {
+  created() {
     let i;
     let ii;
     let controllers = this.controllers;
@@ -1322,12 +731,7 @@ export class View {
     }
   }
 
-  /**
-  * Binds the view and it's children.
-  * @param bindingContext The binding context to bind to.
-  * @param overrideContext A secondary binding context that can override the standard context.
-  */
-  bind(bindingContext: Object, overrideContext?: Object, _systemUpdate?: boolean): void {
+  bind(bindingContext, overrideContext, _systemUpdate) {
     let controllers;
     let bindings;
     let children;
@@ -1350,6 +754,8 @@ export class View {
     this.bindingContext = bindingContext;
     this.overrideContext = overrideContext || createOverrideContext(bindingContext);
 
+    this.resources._invokeHook('beforeBind', this);
+
     bindings = this.bindings;
     for (i = 0, ii = bindings.length; i < ii; ++i) {
       bindings[i].bind(this);
@@ -1371,11 +777,7 @@ export class View {
     }
   }
 
-  /**
-  * Adds a binding instance to this view.
-  * @param binding The binding instance.
-  */
-  addBinding(binding: Object): void {
+  addBinding(binding) {
     this.bindings.push(binding);
 
     if (this.isBound) {
@@ -1383,10 +785,7 @@ export class View {
     }
   }
 
-  /**
-  * Unbinds the view and its children.
-  */
-  unbind(): void {
+  unbind() {
     let controllers;
     let bindings;
     let children;
@@ -1395,6 +794,8 @@ export class View {
 
     if (this.isBound) {
       this.isBound = false;
+      this.resources._invokeHook('beforeUnbind', this);
+
       this.bindingContext = null;
       this.overrideContext = null;
 
@@ -1419,27 +820,16 @@ export class View {
     }
   }
 
-  /**
-  * Inserts this view's nodes before the specified DOM node.
-  * @param refNode The node to insert this view's nodes before.
-  */
-  insertNodesBefore(refNode: Node): void {
+  insertNodesBefore(refNode) {
     let parent = refNode.parentNode;
     parent.insertBefore(this.fragment, refNode);
   }
 
-  /**
-  * Appends this view's to the specified DOM node.
-  * @param parent The parent element to append this view's nodes to.
-  */
-  appendNodesTo(parent: Element): void {
+  appendNodesTo(parent) {
     parent.appendChild(this.fragment);
   }
 
-  /**
-  * Removes this view's nodes from the DOM.
-  */
-  removeNodes(): void {
+  removeNodes() {
     let start = this.firstChild;
     let end = this.lastChild;
     let fragment = this.fragment;
@@ -1458,10 +848,7 @@ export class View {
     }
   }
 
-  /**
-  * Triggers the attach for the view and its children.
-  */
-  attached(): void {
+  attached() {
     let controllers;
     let children;
     let i;
@@ -1488,10 +875,7 @@ export class View {
     }
   }
 
-  /**
-  * Triggers the detach for the view and its children.
-  */
-  detached(): void {
+  detached() {
     let controllers;
     let children;
     let i;
@@ -1515,7 +899,7 @@ export class View {
       }
     }
   }
-}
+};
 
 let placeholder = [];
 
@@ -1530,7 +914,7 @@ function findInsertionPoint(groups, index) {
   return insertionPoint;
 }
 
-export class _ContentSelector {
+export let _ContentSelector = class _ContentSelector {
   static applySelectors(view, contentSelectors, callback) {
     let currentChild = view.fragment.firstChild;
     let contentMap = new Map();
@@ -1582,7 +966,7 @@ export class _ContentSelector {
   }
 
   matches(node) {
-    return this.all || (node.nodeType === 1 && node.matches(this.selector));
+    return this.all || node.nodeType === 1 && node.matches(this.selector);
   }
 
   add(group) {
@@ -1624,7 +1008,7 @@ export class _ContentSelector {
 
     this.groups.splice(index, 1);
   }
-}
+};
 
 function getAnimatableElement(view) {
   let firstChild = view.firstChild;
@@ -1632,9 +1016,7 @@ function getAnimatableElement(view) {
   if (firstChild !== null && firstChild !== undefined && firstChild.nodeType === 8) {
     let element = DOM.nextElementSibling(firstChild);
 
-    if (element !== null && element !== undefined &&
-      element.nodeType === 1 &&
-      element.classList.contains('au-animate')) {
+    if (element !== null && element !== undefined && element.nodeType === 1 && element.classList.contains('au-animate')) {
       return element;
     }
   }
@@ -1642,21 +1024,12 @@ function getAnimatableElement(view) {
   return null;
 }
 
-/**
-* Represents a slot or location within the DOM to which views can be added and removed.
-* Manages the view lifecycle for its children.
-*/
-export class ViewSlot {
-  /**
-  * Creates an instance of ViewSlot.
-  * @param anchor The DOM node which will server as the anchor or container for insertion.
-  * @param anchorIsContainer Indicates whether the node is a container.
-  * @param animator The animator that will controll enter/leave transitions for this slot.
-  */
-  constructor(anchor: Node, anchorIsContainer: boolean, animator?: Animator = Animator.instance) {
+export let ViewSlot = class ViewSlot {
+  constructor(anchor, anchorIsContainer, animator = Animator.instance) {
     this.anchor = anchor;
     this.viewAddMethod = anchorIsContainer ? 'appendNodesTo' : 'insertNodesBefore';
     this.bindingContext = null;
+    this.overrideContext = null;
     this.animator = animator;
     this.children = [];
     this.isBound = false;
@@ -1666,11 +1039,7 @@ export class ViewSlot {
     anchor.isContentProjectionSource = false;
   }
 
-  /**
-  * Takes the child nodes of an existing element that has been converted into a ViewSlot
-  * and makes those nodes into a View within the slot.
-  */
-  transformChildNodesIntoView(): void {
+  transformChildNodesIntoView() {
     let parent = this.anchor;
 
     this.children.push({
@@ -1693,12 +1062,7 @@ export class ViewSlot {
     });
   }
 
-  /**
-  * Binds the slot and it's children.
-  * @param bindingContext The binding context to bind to.
-  * @param overrideContext A secondary binding context that can override the standard context.
-  */
-  bind(bindingContext: Object, overrideContext: Object): void {
+  bind(bindingContext, overrideContext) {
     let i;
     let ii;
     let children;
@@ -1713,6 +1077,7 @@ export class ViewSlot {
 
     this.isBound = true;
     this.bindingContext = bindingContext = bindingContext || this.bindingContext;
+    this.overrideContext = overrideContext = overrideContext || this.overrideContext;
 
     children = this.children;
     for (i = 0, ii = children.length; i < ii; ++i) {
@@ -1720,10 +1085,7 @@ export class ViewSlot {
     }
   }
 
-  /**
-  * Unbinds the slot and its children.
-  */
-  unbind(): void {
+  unbind() {
     if (this.isBound) {
       let i;
       let ii;
@@ -1731,6 +1093,7 @@ export class ViewSlot {
 
       this.isBound = false;
       this.bindingContext = null;
+      this.overrideContext = null;
 
       for (i = 0, ii = children.length; i < ii; ++i) {
         children[i].unbind();
@@ -1738,12 +1101,7 @@ export class ViewSlot {
     }
   }
 
-  /**
-  * Adds a view to the slot.
-  * @param view The view to add.
-  * @return May return a promise if the view addition triggered an animation.
-  */
-  add(view: View): void | Promise<any> {
+  add(view) {
     view[this.viewAddMethod](this.anchor);
     this.children.push(view);
 
@@ -1757,17 +1115,11 @@ export class ViewSlot {
     }
   }
 
-  /**
-  * Inserts a view into the slot.
-  * @param index The index to insert the view at.
-  * @param view The view to insert.
-  * @return May return a promise if the view insertion triggered an animation.
-  */
-  insert(index: number, view: View): void | Promise<any> {
+  insert(index, view) {
     let children = this.children;
     let length = children.length;
 
-    if ((index === 0 && length === 0) || index >= length) {
+    if (index === 0 && length === 0 || index >= length) {
       return this.add(view);
     }
 
@@ -1784,25 +1136,11 @@ export class ViewSlot {
     }
   }
 
-  /**
-  * Removes a view from the slot.
-  * @param view The view to remove.
-  * @param returnToCache Should the view be returned to the view cache?
-  * @param skipAnimation Should the removal animation be skipped?
-  * @return May return a promise if the view removal triggered an animation.
-  */
-  remove(view: View, returnToCache?: boolean, skipAnimation?: boolean): void | Promise<View> {
+  remove(view, returnToCache, skipAnimation) {
     return this.removeAt(this.children.indexOf(view), returnToCache, skipAnimation);
   }
 
-  /**
-  * Removes a view an a specified index from the slot.
-  * @param index The index to remove the view at.
-  * @param returnToCache Should the view be returned to the view cache?
-  * @param skipAnimation Should the removal animation be skipped?
-  * @return May return a promise if the view removal triggered an animation.
-  */
-  removeAt(index: number, returnToCache?: boolean, skipAnimation?: boolean): void | Promise<View> {
+  removeAt(index, returnToCache, skipAnimation) {
     let view = this.children[index];
 
     let removeAction = () => {
@@ -1831,13 +1169,7 @@ export class ViewSlot {
     return removeAction();
   }
 
-  /**
-  * Removes all views from the slot.
-  * @param returnToCache Should the view be returned to the view cache?
-  * @param skipAnimation Should the removal animation be skipped?
-  * @return May return a promise if the view removals triggered an animation.
-  */
-  removeAll(returnToCache?: boolean, skipAnimation?: boolean): void | Promise<any> {
+  removeAll(returnToCache, skipAnimation) {
     let children = this.children;
     let ii = children.length;
     let i;
@@ -1880,10 +1212,7 @@ export class ViewSlot {
     removeAction();
   }
 
-  /**
-  * Triggers the attach for the slot and its children.
-  */
-  attached(): void {
+  attached() {
     let i;
     let ii;
     let children;
@@ -1901,20 +1230,13 @@ export class ViewSlot {
       child.attached();
 
       let element = child.firstChild ? DOM.nextElementSibling(child.firstChild) : null;
-      if (child.firstChild &&
-        child.firstChild.nodeType === 8 &&
-         element &&
-         element.nodeType === 1 &&
-         element.classList.contains('au-animate')) {
+      if (child.firstChild && child.firstChild.nodeType === 8 && element && element.nodeType === 1 && element.classList.contains('au-animate')) {
         this.animator.enter(element);
       }
     }
   }
 
-  /**
-  * Triggers the detach for the slot and its children.
-  */
-  detached(): void {
+  detached() {
     let i;
     let ii;
     let children;
@@ -1928,7 +1250,7 @@ export class ViewSlot {
     }
   }
 
-  _installContentSelectors(contentSelectors: _ContentSelector[]): void {
+  _installContentSelectors(contentSelectors) {
     this.contentSelectors = contentSelectors;
     this.add = this._contentSelectorAdd;
     this.insert = this._contentSelectorInsert;
@@ -1938,11 +1260,7 @@ export class ViewSlot {
   }
 
   _contentSelectorAdd(view) {
-    _ContentSelector.applySelectors(
-      view,
-      this.contentSelectors,
-      (contentSelector, group) => contentSelector.add(group)
-      );
+    _ContentSelector.applySelectors(view, this.contentSelectors, (contentSelector, group) => contentSelector.add(group));
 
     this.children.push(view);
 
@@ -1952,14 +1270,10 @@ export class ViewSlot {
   }
 
   _contentSelectorInsert(index, view) {
-    if ((index === 0 && !this.children.length) || index >= this.children.length) {
+    if (index === 0 && !this.children.length || index >= this.children.length) {
       this.add(view);
     } else {
-      _ContentSelector.applySelectors(
-        view,
-        this.contentSelectors,
-        (contentSelector, group) => contentSelector.insert(index, group)
-      );
+      _ContentSelector.applySelectors(view, this.contentSelectors, (contentSelector, group) => contentSelector.insert(index, group));
 
       this.children.splice(index, 0, view);
 
@@ -2030,15 +1344,14 @@ export class ViewSlot {
 
     this.children = [];
   }
-}
+};
 
-@resolver
-class ProviderResolver {
+let ProviderResolver = resolver(_class11 = class ProviderResolver {
   get(container, key) {
     let id = key.__providerId__;
-    return id in container ? container[id] : (container[id] = container.invoke(key));
+    return id in container ? container[id] : container[id] = container.invoke(key);
   }
-}
+}) || _class11;
 
 let providerResolverInstance = new ProviderResolver();
 
@@ -2120,9 +1433,15 @@ function makeElementIntoAnchor(element, elementInstruction) {
   let anchor = DOM.createComment('anchor');
 
   if (elementInstruction) {
-    anchor.hasAttribute = function(name) { return element.hasAttribute(name); };
-    anchor.getAttribute = function(name) { return element.getAttribute(name); };
-    anchor.setAttribute = function(name, value) { element.setAttribute(name, value); };
+    anchor.hasAttribute = function (name) {
+      return element.hasAttribute(name);
+    };
+    anchor.getAttribute = function (name) {
+      return element.getAttribute(name);
+    };
+    anchor.setAttribute = function (name, value) {
+      element.setAttribute(name, value);
+    };
   }
 
   DOM.replaceNode(anchor, element);
@@ -2157,15 +1476,7 @@ function applyInstructions(containers, element, instruction, controllers, bindin
       element = makeElementIntoAnchor(element, instruction.elementInstruction);
     }
 
-    containers[instruction.injectorId] = elementContainer =
-      createElementContainer(
-        containers[instruction.parentInjectorId],
-        element,
-        instruction,
-        children,
-        partReplacements,
-        resources
-        );
+    containers[instruction.injectorId] = elementContainer = createElementContainer(containers[instruction.parentInjectorId], element, instruction, children, partReplacements, resources);
 
     for (i = 0, ii = behaviorInstructions.length; i < ii; ++i) {
       current = behaviorInstructions[i];
@@ -2231,29 +1542,22 @@ function applySurrogateInstruction(container, element, instruction, controllers,
     container._resolvers.set(providers[i], providerResolverInstance);
   }
 
-  //apply surrogate attributes
   for (let key in values) {
     currentAttributeValue = element.getAttribute(key);
 
     if (currentAttributeValue) {
       if (key === 'class') {
-        //merge the surrogate classes
         element.setAttribute('class', currentAttributeValue + ' ' + values[key]);
       } else if (key === 'style') {
-        //merge the surrogate styles
         let styleObject = styleStringToObject(values[key]);
         styleStringToObject(currentAttributeValue, styleObject);
         element.setAttribute('style', styleObjectToString(styleObject));
       }
-
-      //otherwise, do not overwrite the consumer's attribute
     } else {
-      //copy the surrogate attribute
-      element.setAttribute(key, values[key]);
-    }
+        element.setAttribute(key, values[key]);
+      }
   }
 
-  //apply surrogate behaviors
   if (behaviorInstructions.length) {
     for (i = 0, ii = behaviorInstructions.length; i < ii; ++i) {
       current = behaviorInstructions[i];
@@ -2267,87 +1571,45 @@ function applySurrogateInstruction(container, element, instruction, controllers,
     }
   }
 
-  //apply surrogate bindings
   for (i = 0, ii = expressions.length; i < ii; ++i) {
     bindings.push(expressions[i].createBinding(element));
   }
 }
 
-/**
-* A factory capable of creating View instances, bound to a location within another view hierarchy.
-*/
-export class BoundViewFactory {
-  /**
-  * Creates an instance of BoundViewFactory.
-  * @param parentContainer The parent DI container.
-  * @param viewFactory The internal unbound factory.
-  * @param partReplacements Part replacement overrides for the internal factory.
-  */
-  constructor(parentContainer: Container, viewFactory: ViewFactory, partReplacements?: Object) {
+export let BoundViewFactory = class BoundViewFactory {
+  constructor(parentContainer, viewFactory, partReplacements) {
     this.parentContainer = parentContainer;
     this.viewFactory = viewFactory;
-    this.factoryCreateInstruction = { partReplacements: partReplacements }; //This is referenced internally in the controller's bind method.
+    this.factoryCreateInstruction = { partReplacements: partReplacements };
   }
 
-  /**
-  * Creates a view or returns one from the internal cache, if available.
-  * @return The created view.
-  */
-  create(): View {
+  create() {
     let view = this.viewFactory.create(this.parentContainer.createChild(), this.factoryCreateInstruction);
     view._isUserControlled = true;
     return view;
   }
 
-  /**
-  * Indicates whether this factory is currently using caching.
-  */
   get isCaching() {
     return this.viewFactory.isCaching;
   }
 
-  /**
-  * Sets the cache size for this factory.
-  * @param size The number of views to cache or "*" to cache all.
-  * @param doNotOverrideIfAlreadySet Indicates that setting the cache should not override the setting if previously set.
-  */
-  setCacheSize(size: number | string, doNotOverrideIfAlreadySet: boolean): void {
+  setCacheSize(size, doNotOverrideIfAlreadySet) {
     this.viewFactory.setCacheSize(size, doNotOverrideIfAlreadySet);
   }
 
-  /**
-  * Gets a cached view if available...
-  * @return A cached view or null if one isn't available.
-  */
-  getCachedView(): View {
+  getCachedView() {
     return this.viewFactory.getCachedView();
   }
 
-  /**
-  * Returns a view to the cache.
-  * @param view The view to return to the cache if space is available.
-  */
-  returnViewToCache(view: View): void {
+  returnViewToCache(view) {
     this.viewFactory.returnViewToCache(view);
   }
-}
+};
 
-/**
-* A factory capable of creating View instances.
-*/
-export class ViewFactory {
-  /**
-  * Indicates whether this factory is currently using caching.
-  */
-  isCaching = false;
+export let ViewFactory = class ViewFactory {
+  constructor(template, instructions, resources) {
+    this.isCaching = false;
 
-  /**
-  * Creates an instance of ViewFactory.
-  * @param template The document fragment that serves as a template for the view to be created.
-  * @param instructions The instructions to be applied ot the template during the creation of a view.
-  * @param resources The resources used to compile this factory.
-  */
-  constructor(template: DocumentFragment, instructions: Object, resources: ViewResources) {
     this.template = template;
     this.instructions = instructions;
     this.resources = resources;
@@ -2355,12 +1617,7 @@ export class ViewFactory {
     this.cache = null;
   }
 
-  /**
-  * Sets the cache size for this factory.
-  * @param size The number of views to cache or "*" to cache all.
-  * @param doNotOverrideIfAlreadySet Indicates that setting the cache should not override the setting if previously set.
-  */
-  setCacheSize(size: number | string, doNotOverrideIfAlreadySet: boolean): void {
+  setCacheSize(size, doNotOverrideIfAlreadySet) {
     if (size) {
       if (size === '*') {
         size = Number.MAX_VALUE;
@@ -2382,19 +1639,11 @@ export class ViewFactory {
     this.isCaching = this.cacheSize > 0;
   }
 
-  /**
-  * Gets a cached view if available...
-  * @return A cached view or null if one isn't available.
-  */
-  getCachedView(): View {
-    return this.cache !== null ? (this.cache.pop() || null) : null;
+  getCachedView() {
+    return this.cache !== null ? this.cache.pop() || null : null;
   }
 
-  /**
-  * Returns a view to the cache.
-  * @param view The view to return to the cache if space is available.
-  */
-  returnViewToCache(view: View): void {
+  returnViewToCache(view) {
     if (view.isAttached) {
       view.detached();
     }
@@ -2409,14 +1658,7 @@ export class ViewFactory {
     }
   }
 
-  /**
-  * Creates a view or returns one from the internal cache, if available.
-  * @param container The container to create the view from.
-  * @param createInstruction The instruction used to customize view creation.
-  * @param element The custom element that hosts the view.
-  * @return The created view.
-  */
-  create(container: Container, createInstruction?: ViewCreateInstruction, element?: Element): View {
+  create(container, createInstruction, element) {
     createInstruction = createInstruction || BehaviorInstruction.normal;
     element = element || null;
 
@@ -2441,7 +1683,7 @@ export class ViewFactory {
     let instructable;
     let instruction;
 
-    this.resources._onBeforeCreate(this, container, fragment, createInstruction);
+    this.resources._invokeHook('beforeCreate', this, container, fragment, createInstruction);
 
     if (element !== null && this.surrogateInstruction !== null) {
       applySurrogateInstruction(container, element, this.surrogateInstruction, controllers, bindings, children);
@@ -2456,16 +1698,15 @@ export class ViewFactory {
 
     view = new View(this, fragment, controllers, bindings, children, contentSelectors);
 
-    //if iniated by an element behavior, let the behavior trigger this callback once it's done creating the element
     if (!createInstruction.initiatedByBehavior) {
       view.created();
     }
 
-    this.resources._onAfterCreate(view);
+    this.resources._invokeHook('afterCreate', view);
 
     return view;
   }
-}
+};
 
 let nextInjectorId = 0;
 function getNextInjectorId() {
@@ -2510,35 +1751,19 @@ function makeIntoInstructionTarget(element) {
   let value = element.getAttribute('class');
   let auTargetID = getNextAUTargetID();
 
-  element.setAttribute('class', (value ? value += ' au-target' : 'au-target'));
+  element.setAttribute('class', value ? value += ' au-target' : 'au-target');
   element.setAttribute('au-target-id', auTargetID);
 
   return auTargetID;
 }
 
-/**
-* Compiles html templates, dom fragments and strings into ViewFactory instances, capable of instantiating Views.
-*/
-@inject(BindingLanguage, ViewResources)
-export class ViewCompiler {
-  /**
-  * Creates an instance of ViewCompiler.
-  * @param bindingLanguage The default data binding language and syntax used during view compilation.
-  * @param resources The global resources used during compilation when none are provided for compilation.
-  */
-  constructor(bindingLanguage: BindingLanguage, resources: ViewResources) {
+export let ViewCompiler = (_dec6 = inject(BindingLanguage, ViewResources), _dec6(_class13 = class ViewCompiler {
+  constructor(bindingLanguage, resources) {
     this.bindingLanguage = bindingLanguage;
     this.resources = resources;
   }
 
-  /**
-  * Compiles an html template, dom fragment or string into ViewFactory instances, capable of instantiating Views.
-  * @param source The template, fragment or string to compile.
-  * @param resources The view resources used during compilation.
-  * @param compileInstruction A set of instructions that customize how compilation occurs.
-  * @return The compiled ViewFactory.
-  */
-  compile(source: Element|DocumentFragment|string, resources?: ViewResources, compileInstruction?: ViewCompileInstruction): ViewFactory {
+  compile(source, resources, compileInstruction) {
     resources = resources || this.resources;
     compileInstruction = compileInstruction || ViewCompileInstruction.normal;
     source = typeof source === 'string' ? DOM.createTemplateFromMarkup(source) : source;
@@ -2556,7 +1781,7 @@ export class ViewCompiler {
     }
 
     compileInstruction.targetShadowDOM = compileInstruction.targetShadowDOM && FEATURE.shadowDOM;
-    resources._onBeforeCompile(content, resources, compileInstruction);
+    resources._invokeHook('beforeCompile', content, resources, compileInstruction);
 
     let instructions = {};
     this._compileNode(content, resources, instructions, source, 'root', !compileInstruction.targetShadowDOM);
@@ -2572,43 +1797,41 @@ export class ViewCompiler {
       factory.setCacheSize(cacheSize);
     }
 
-    resources._onAfterCompile(factory);
+    resources._invokeHook('afterCompile', factory);
 
     return factory;
   }
 
   _compileNode(node, resources, instructions, parentNode, parentInjectorId, targetLightDOM) {
     switch (node.nodeType) {
-    case 1: //element node
-      return this._compileElement(node, resources, instructions, parentNode, parentInjectorId, targetLightDOM);
-    case 3: //text node
-      //use wholeText to retrieve the textContent of all adjacent text nodes.
-      let expression = resources.getBindingLanguage(this.bindingLanguage).parseText(resources, node.wholeText);
-      if (expression) {
-        let marker = DOM.createElement('au-marker');
-        let auTargetID = makeIntoInstructionTarget(marker);
-        (node.parentNode || parentNode).insertBefore(marker, node);
-        node.textContent = ' ';
-        instructions[auTargetID] = TargetInstruction.contentExpression(expression);
-        //remove adjacent text nodes.
-        while (node.nextSibling && node.nextSibling.nodeType === 3) {
-          (node.parentNode || parentNode).removeChild(node.nextSibling);
+      case 1:
+        return this._compileElement(node, resources, instructions, parentNode, parentInjectorId, targetLightDOM);
+      case 3:
+        let expression = resources.getBindingLanguage(this.bindingLanguage).parseText(resources, node.wholeText);
+        if (expression) {
+          let marker = DOM.createElement('au-marker');
+          let auTargetID = makeIntoInstructionTarget(marker);
+          (node.parentNode || parentNode).insertBefore(marker, node);
+          node.textContent = ' ';
+          instructions[auTargetID] = TargetInstruction.contentExpression(expression);
+
+          while (node.nextSibling && node.nextSibling.nodeType === 3) {
+            (node.parentNode || parentNode).removeChild(node.nextSibling);
+          }
+        } else {
+          while (node.nextSibling && node.nextSibling.nodeType === 3) {
+            node = node.nextSibling;
+          }
         }
-      } else {
-        //skip parsing adjacent text nodes.
-        while (node.nextSibling && node.nextSibling.nodeType === 3) {
-          node = node.nextSibling;
+        return node.nextSibling;
+      case 11:
+        let currentChild = node.firstChild;
+        while (currentChild) {
+          currentChild = this._compileNode(currentChild, resources, instructions, node, parentInjectorId, targetLightDOM);
         }
-      }
-      return node.nextSibling;
-    case 11: //document fragment node
-      let currentChild = node.firstChild;
-      while (currentChild) {
-        currentChild = this._compileNode(currentChild, resources, instructions, node, parentInjectorId, targetLightDOM);
-      }
-      break;
-    default:
-      break;
+        break;
+      default:
+        break;
     }
 
     return node.nextSibling;
@@ -2642,16 +1865,16 @@ export class ViewCompiler {
       info = bindingLanguage.inspectAttribute(resources, attrName, attrValue);
       type = resources.getAttribute(info.attrName);
 
-      if (type) { //do we have an attached behavior?
-        knownAttribute = resources.mapAttribute(info.attrName); //map the local name to real name
+      if (type) {
+        knownAttribute = resources.mapAttribute(info.attrName);
         if (knownAttribute) {
           property = type.attributes[knownAttribute];
 
-          if (property) { //if there's a defined property
-            info.defaultBindingMode = property.defaultBindingMode; //set the default binding mode
+          if (property) {
+            info.defaultBindingMode = property.defaultBindingMode;
 
-            if (!info.command && !info.expression) { // if there is no command or detected expression
-              info.command = property.hasOptions ? 'options' : null; //and it is an optons property, set the options command
+            if (!info.command && !info.expression) {
+              info.command = property.hasOptions ? 'options' : null;
             }
           }
         }
@@ -2659,35 +1882,35 @@ export class ViewCompiler {
 
       instruction = bindingLanguage.createAttributeInstruction(resources, node, info, undefined, type);
 
-      if (instruction) { //HAS BINDINGS
+      if (instruction) {
         if (instruction.alteredAttr) {
           type = resources.getAttribute(instruction.attrName);
         }
 
-        if (instruction.discrete) { //ref binding or listener binding
+        if (instruction.discrete) {
           expressions.push(instruction);
-        } else { //attribute bindings
-          if (type) { //templator or attached behavior found
+        } else {
+          if (type) {
             instruction.type = type;
             configureProperties(instruction, resources);
 
-            if (type.liftsContent) { //template controller
+            if (type.liftsContent) {
               throw new Error('You cannot place a template controller on a surrogate element.');
-            } else { //attached behavior
+            } else {
               behaviorInstructions.push(instruction);
             }
-          } else { //standard attribute binding
+          } else {
             expressions.push(instruction.attributes[instruction.attrName]);
           }
         }
-      } else { //NO BINDINGS
-        if (type) { //templator or attached behavior found
+      } else {
+        if (type) {
           instruction = BehaviorInstruction.attribute(attrName, type);
           instruction.attributes[resources.mapAttribute(attrName)] = attrValue;
 
-          if (type.liftsContent) { //template controller
+          if (type.liftsContent) {
             throw new Error('You cannot place a template controller on a surrogate element.');
-          } else { //attached behavior
+          } else {
             behaviorInstructions.push(instruction);
           }
         } else if (attrName !== 'id' && attrName !== 'part' && attrName !== 'replace-part') {
@@ -2705,7 +1928,7 @@ export class ViewCompiler {
       }
 
       for (i = 0, ii = expressions.length; i < ii; ++i) {
-        expression =  expressions[i];
+        expression = expressions[i];
         if (expression.attrToRemove !== undefined) {
           node.removeAttribute(expression.attrToRemove);
         }
@@ -2768,25 +1991,25 @@ export class ViewCompiler {
       type = resources.getAttribute(info.attrName);
       elementProperty = null;
 
-      if (type) { //do we have an attached behavior?
-        knownAttribute = resources.mapAttribute(info.attrName); //map the local name to real name
+      if (type) {
+        knownAttribute = resources.mapAttribute(info.attrName);
         if (knownAttribute) {
           property = type.attributes[knownAttribute];
 
-          if (property) { //if there's a defined property
-            info.defaultBindingMode = property.defaultBindingMode; //set the default binding mode
+          if (property) {
+            info.defaultBindingMode = property.defaultBindingMode;
 
-            if (!info.command && !info.expression) { // if there is no command or detected expression
-              info.command = property.hasOptions ? 'options' : null; //and it is an optons property, set the options command
+            if (!info.command && !info.expression) {
+              info.command = property.hasOptions ? 'options' : null;
             }
           }
         }
-      } else if (elementInstruction) { //or if this is on a custom element
-        elementProperty = elementInstruction.type.attributes[info.attrName];
-        if (elementProperty) { //and this attribute is a custom property
-          info.defaultBindingMode = elementProperty.defaultBindingMode; //set the default binding mode
+      } else if (elementInstruction) {
+          elementProperty = elementInstruction.type.attributes[info.attrName];
+          if (elementProperty) {
+            info.defaultBindingMode = elementProperty.defaultBindingMode;
+          }
         }
-      }
 
       if (elementProperty) {
         instruction = bindingLanguage.createAttributeInstruction(resources, node, info, elementInstruction);
@@ -2794,48 +2017,46 @@ export class ViewCompiler {
         instruction = bindingLanguage.createAttributeInstruction(resources, node, info, undefined, type);
       }
 
-      if (instruction) { //HAS BINDINGS
+      if (instruction) {
         if (instruction.alteredAttr) {
           type = resources.getAttribute(instruction.attrName);
         }
 
-        if (instruction.discrete) { //ref binding or listener binding
+        if (instruction.discrete) {
           expressions.push(instruction);
-        } else { //attribute bindings
-          if (type) { //templator or attached behavior found
+        } else {
+          if (type) {
             instruction.type = type;
             configureProperties(instruction, resources);
 
-            if (type.liftsContent) { //template controller
+            if (type.liftsContent) {
               instruction.originalAttrName = attrName;
               liftingInstruction = instruction;
               break;
-            } else { //attached behavior
+            } else {
               behaviorInstructions.push(instruction);
             }
-          } else if (elementProperty) { //custom element attribute
+          } else if (elementProperty) {
             elementInstruction.attributes[info.attrName].targetProperty = elementProperty.name;
-          } else { //standard attribute binding
+          } else {
             expressions.push(instruction.attributes[instruction.attrName]);
           }
         }
-      } else { //NO BINDINGS
-        if (type) { //templator or attached behavior found
+      } else {
+        if (type) {
           instruction = BehaviorInstruction.attribute(attrName, type);
           instruction.attributes[resources.mapAttribute(attrName)] = attrValue;
 
-          if (type.liftsContent) { //template controller
+          if (type.liftsContent) {
             instruction.originalAttrName = attrName;
             liftingInstruction = instruction;
             break;
-          } else { //attached behavior
+          } else {
             behaviorInstructions.push(instruction);
           }
-        } else if (elementProperty) { //custom element attribute
+        } else if (elementProperty) {
           elementInstruction.attributes[attrName] = attrValue;
         }
-
-        //else; normal attribute; do nothing
       }
     }
 
@@ -2855,21 +2076,14 @@ export class ViewCompiler {
         }
 
         for (i = 0, ii = expressions.length; i < ii; ++i) {
-          expression =  expressions[i];
+          expression = expressions[i];
           if (expression.attrToRemove !== undefined) {
             node.removeAttribute(expression.attrToRemove);
           }
         }
 
         auTargetID = makeIntoInstructionTarget(node);
-        instructions[auTargetID] = TargetInstruction.normal(
-          injectorId,
-          parentInjectorId,
-          providers,
-          behaviorInstructions,
-          expressions,
-          elementInstruction
-        );
+        instructions[auTargetID] = TargetInstruction.normal(injectorId, parentInjectorId, providers, behaviorInstructions, expressions, elementInstruction);
       }
 
       if (elementInstruction && elementInstruction.skipContentProcessing) {
@@ -2884,17 +2098,10 @@ export class ViewCompiler {
 
     return node.nextSibling;
   }
-}
+}) || _class13);
 
-/**
-* Represents a module with view resources.
-*/
-export class ResourceModule {
-  /**
-  * Creates an instance of ResourceModule.
-  * @param moduleId The id of the module that contains view resources.
-  */
-  constructor(moduleId: string) {
+export let ResourceModule = class ResourceModule {
+  constructor(moduleId) {
     this.id = moduleId;
     this.moduleInstance = null;
     this.mainResource = null;
@@ -2904,11 +2111,7 @@ export class ResourceModule {
     this.onLoaded = null;
   }
 
-  /**
-  * Initializes the resources within the module.
-  * @param container The dependency injection container usable during resource initialization.
-  */
-  initialize(container: Container): void {
+  initialize(container) {
     let current = this.mainResource;
     let resources = this.resources;
     let vs = this.viewStrategy;
@@ -2931,12 +2134,7 @@ export class ResourceModule {
     }
   }
 
-  /**
-  * Registers the resources in the module with the view resources.
-  * @param registry The registry of view resources to regiser within.
-  * @param name The name to use in registering the default resource.
-  */
-  register(registry:ViewResources, name?:string): void {
+  register(registry, name) {
     let main = this.mainResource;
     let resources = this.resources;
 
@@ -2951,13 +2149,7 @@ export class ResourceModule {
     }
   }
 
-  /**
-  * Loads any dependencies of the resources within this module.
-  * @param container The DI container to use during dependency resolution.
-  * @param loadContext The loading context used for loading all resources and dependencies.
-  * @return A promise that resolves when all loading is complete.
-  */
-  load(container: Container, loadContext?: ResourceLoadContext): Promise<void> {
+  load(container, loadContext) {
     if (this.onLoaded !== null) {
       return this.onLoaded;
     }
@@ -2982,19 +2174,10 @@ export class ResourceModule {
     this.onLoaded = Promise.all(loads);
     return this.onLoaded;
   }
-}
+};
 
-/**
-* Represents a single view resource with a ResourceModule.
-*/
-export class ResourceDescription {
-  /**
-  * Creates an instance of ResourceDescription.
-  * @param key The key that the resource was exported as.
-  * @param exportedValue The exported resource.
-  * @param resourceTypeMeta The metadata located on the resource.
-  */
-  constructor(key: string, exportedValue: any, resourceTypeMeta?: Object) {
+export let ResourceDescription = class ResourceDescription {
+  constructor(key, exportedValue, resourceTypeMeta) {
     if (!resourceTypeMeta) {
       resourceTypeMeta = metadata.get(metadata.resource, exportedValue);
 
@@ -3007,13 +2190,10 @@ export class ResourceDescription {
 
     if (resourceTypeMeta instanceof HtmlBehaviorResource) {
       if (resourceTypeMeta.elementName === undefined) {
-        //customeElement()
         resourceTypeMeta.elementName = _hyphenate(key);
       } else if (resourceTypeMeta.attributeName === undefined) {
-        //customAttribute()
         resourceTypeMeta.attributeName = _hyphenate(key);
       } else if (resourceTypeMeta.attributeName === null && resourceTypeMeta.elementName === null) {
-        //no customeElement or customAttribute but behavior added by other metadata
         HtmlBehaviorResource.convention(key, resourceTypeMeta);
       }
     } else if (!resourceTypeMeta.name) {
@@ -3024,62 +2204,29 @@ export class ResourceDescription {
     this.value = exportedValue;
   }
 
-  /**
-  * Initializes the resource.
-  * @param container The dependency injection container usable during resource initialization.
-  */
-  initialize(container: Container): void {
+  initialize(container) {
     this.metadata.initialize(container, this.value);
   }
 
-  /**
-  * Registrers the resource with the view resources.
-  * @param registry The registry of view resources to regiser within.
-  * @param name The name to use in registering the resource.
-  */
-  register(registry: ViewResources, name?: string): void {
+  register(registry, name) {
     this.metadata.register(registry, name);
   }
 
-  /**
-  * Loads any dependencies of the resource.
-  * @param container The DI container to use during dependency resolution.
-  * @param loadContext The loading context used for loading all resources and dependencies.
-  * @return A promise that resolves when all loading is complete.
-  */
-  load(container: Container, loadContext?: ResourceLoadContext): Promise<void> | void {
+  load(container, loadContext) {
     return this.metadata.load(container, this.value, loadContext);
   }
-}
+};
 
-/**
-* Analyzes a module in order to discover the view resources that it exports.
-*/
-export class ModuleAnalyzer {
-  /**
-  * Creates an instance of ModuleAnalyzer.
-  */
+export let ModuleAnalyzer = class ModuleAnalyzer {
   constructor() {
     this.cache = {};
   }
 
-  /**
-  * Retrieves the ResourceModule analysis for a previously analyzed module.
-  * @param moduleId The id of the module to lookup.
-  * @return The ResouceModule if found, undefined otherwise.
-  */
-  getAnalysis(moduleId: string): ResourceModule {
+  getAnalysis(moduleId) {
     return this.cache[moduleId];
   }
 
-  /**
-  * Analyzes a module.
-  * @param moduleId The id of the module to analyze.
-  * @param moduleInstance The module instance to analyze.
-  * @param mainResourceKey The name of the main resource.
-  * @return The ResouceModule representing the analysis.
-  */
-  analyze(moduleId: string, moduleInstance: any, mainResourceKey?: string): ResourceModule {
+  analyze(moduleId, moduleInstance, mainResourceKey) {
     let mainResource;
     let fallbackValue;
     let fallbackKey;
@@ -3100,7 +2247,7 @@ export class ModuleAnalyzer {
     this.cache[moduleId] = resourceModule;
 
     if (typeof moduleInstance === 'function') {
-      moduleInstance = {'default': moduleInstance};
+      moduleInstance = { 'default': moduleInstance };
     }
 
     if (mainResourceKey) {
@@ -3118,12 +2265,10 @@ export class ModuleAnalyzer {
 
       if (resourceTypeMeta) {
         if (resourceTypeMeta.attributeName === null && resourceTypeMeta.elementName === null) {
-          //no customeElement or customAttribute but behavior added by other metadata
           HtmlBehaviorResource.convention(key, resourceTypeMeta);
         }
 
         if (resourceTypeMeta.attributeName === null && resourceTypeMeta.elementName === null) {
-          //no convention and no customeElement or customAttribute but behavior added by other metadata
           resourceTypeMeta.elementName = _hyphenate(key);
         }
 
@@ -3169,7 +2314,7 @@ export class ModuleAnalyzer {
 
     return resourceModule;
   }
-}
+};
 
 let logger = LogManager.getLogger('templating');
 
@@ -3181,12 +2326,12 @@ function ensureRegistryEntry(loader, urlOrRegistryEntry) {
   return loader.loadTemplate(urlOrRegistryEntry);
 }
 
-class ProxyViewFactory {
+let ProxyViewFactory = class ProxyViewFactory {
   constructor(promise) {
     promise.then(x => this.viewFactory = x);
   }
 
-  create(container: Container, bindingContext?: Object, createInstruction?: ViewCreateInstruction, element?: Element): View {
+  create(container, bindingContext, createInstruction, element) {
     return this.viewFactory.create(container, bindingContext, createInstruction, element);
   }
 
@@ -3194,33 +2339,21 @@ class ProxyViewFactory {
     return this.viewFactory.isCaching;
   }
 
-  setCacheSize(size: number | string, doNotOverrideIfAlreadySet: boolean): void {
+  setCacheSize(size, doNotOverrideIfAlreadySet) {
     this.viewFactory.setCacheSize(size, doNotOverrideIfAlreadySet);
   }
 
-  getCachedView(): View {
+  getCachedView() {
     return this.viewFactory.getCachedView();
   }
 
-  returnViewToCache(view: View): void {
+  returnViewToCache(view) {
     this.viewFactory.returnViewToCache(view);
   }
-}
+};
 
-/**
-* Controls the view resource loading pipeline.
-*/
-@inject(Loader, Container, ViewCompiler, ModuleAnalyzer, ViewResources)
-export class ViewEngine {
-  /**
-  * Creates an instance of ViewEngine.
-  * @param loader The module loader.
-  * @param container The root DI container for the app.
-  * @param viewCompiler The view compiler.
-  * @param moduleAnalyzer The module analyzer.
-  * @param appResources The app-level global resources.
-  */
-  constructor(loader: Loader, container: Container, viewCompiler: ViewCompiler, moduleAnalyzer: ModuleAnalyzer, appResources: ViewResources) {
+export let ViewEngine = (_dec7 = inject(Loader, Container, ViewCompiler, ModuleAnalyzer, ViewResources), _dec7(_class14 = class ViewEngine {
+  constructor(loader, container, viewCompiler, moduleAnalyzer, appResources) {
     this.loader = loader;
     this.container = container;
     this.viewCompiler = viewCompiler;
@@ -3229,25 +2362,13 @@ export class ViewEngine {
     this._pluginMap = {};
   }
 
-  /**
-  * Adds a resource plugin to the resource loading pipeline.
-  * @param extension The file extension to match in require elements.
-  * @param implementation The plugin implementation that handles the resource type.
-  */
-  addResourcePlugin(extension: string, implementation: Object): void {
+  addResourcePlugin(extension, implementation) {
     let name = extension.replace('.', '') + '-resource-plugin';
     this._pluginMap[extension] = name;
     this.loader.addPlugin(name, implementation);
   }
 
-  /**
-  * Loads and compiles a ViewFactory from a url or template registry entry.
-  * @param urlOrRegistryEntry A url or template registry entry to generate the view factory for.
-  * @param compileInstruction Instructions detailing how the factory should be compiled.
-  * @param loadContext The load context if this factory load is happening within the context of a larger load operation.
-  * @return A promise for the compiled view factory.
-  */
-  loadViewFactory(urlOrRegistryEntry: string|TemplateRegistryEntry, compileInstruction?: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewFactory> {
+  loadViewFactory(urlOrRegistryEntry, compileInstruction, loadContext) {
     loadContext = loadContext || new ResourceLoadContext();
 
     return ensureRegistryEntry(this.loader, urlOrRegistryEntry).then(registryEntry => {
@@ -3273,14 +2394,7 @@ export class ViewEngine {
     });
   }
 
-  /**
-  * Loads all the resources specified by the registry entry.
-  * @param registryEntry The template registry entry to load the resources for.
-  * @param compileInstruction The compile instruction associated with the load.
-  * @param loadContext The load context if this is happening within the context of a larger load operation.
-  * @return A promise of ViewResources for the registry entry.
-  */
-  loadTemplateResources(registryEntry: TemplateRegistryEntry, compileInstruction?: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewResources> {
+  loadTemplateResources(registryEntry, compileInstruction, loadContext) {
     let resources = new ViewResources(this.appResources, registryEntry.address);
     let dependencies = registryEntry.dependencies;
     let importIds;
@@ -3294,24 +2408,18 @@ export class ViewEngine {
 
     importIds = dependencies.map(x => x.src);
     names = dependencies.map(x => x.name);
-    logger.debug(`importing resources for ${registryEntry.address}`, importIds);
+    logger.debug(`importing resources for ${ registryEntry.address }`, importIds);
 
     return this.importViewResources(importIds, names, resources, compileInstruction, loadContext);
   }
 
-  /**
-  * Loads a view model as a resource.
-  * @param moduleImport The module to import.
-  * @param moduleMember The export from the module to generate the resource for.
-  * @return A promise for the ResourceDescription.
-  */
-  importViewModelResource(moduleImport: string, moduleMember: string): Promise<ResourceDescription> {
+  importViewModelResource(moduleImport, moduleMember) {
     return this.loader.loadModule(moduleImport).then(viewModelModule => {
       let normalizedId = Origin.get(viewModelModule).moduleId;
       let resourceModule = this.moduleAnalyzer.analyze(normalizedId, viewModelModule, moduleMember);
 
       if (!resourceModule.mainResource) {
-        throw new Error(`No view model found in module "${moduleImport}".`);
+        throw new Error(`No view model found in module "${ moduleImport }".`);
       }
 
       resourceModule.initialize(this.container);
@@ -3320,15 +2428,7 @@ export class ViewEngine {
     });
   }
 
-  /**
-  * Imports the specified resources with the specified names into the view resources object.
-  * @param moduleIds The modules to load.
-  * @param names The names associated with resource modules to import.
-  * @param resources The resources lookup to add the loaded resources to.
-  * @param compileInstruction The compilation instruction associated with the resource imports.
-  * @return A promise for the ViewResources.
-  */
-  importViewResources(moduleIds: string[], names: string[], resources: ViewResources, compileInstruction?: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewResources> {
+  importViewResources(moduleIds, names, resources, compileInstruction, loadContext) {
     loadContext = loadContext || new ResourceLoadContext();
     compileInstruction = compileInstruction || ViewCompileInstruction.normal;
 
@@ -3345,9 +2445,6 @@ export class ViewEngine {
       let moduleAnalyzer = this.moduleAnalyzer;
       let allAnalysis = new Array(imports.length);
 
-      //initialize and register all resources first
-      //this enables circular references for global refs
-      //and enables order independence
       for (i = 0, ii = imports.length; i < ii; ++i) {
         current = imports[i];
         normalizedId = Origin.get(current).moduleId;
@@ -3367,8 +2464,6 @@ export class ViewEngine {
         }
       }
 
-      //cause compile/load of any associated views second
-      //as a result all globals have access to all other globals during compilation
       for (i = 0, ii = allAnalysis.length; i < ii; ++i) {
         allAnalysis[i] = allAnalysis[i].load(container, loadContext);
       }
@@ -3392,35 +2487,10 @@ export class ViewEngine {
 
     return id;
   }
-}
+}) || _class14);
 
-/**
-* Controls a view model (and optionally its view), according to a particular behavior and by following a set of instructions.
-*/
-export class Controller {
-  /**
-  * The HtmlBehaviorResource that provides the base behavior for this controller.
-  */
-  behavior: HtmlBehaviorResource;
-
-  /**
-  * The developer's view model instance which provides the custom behavior for this controller.
-  */
-  viewModel: Object;
-
-  /**
-  * The view associated with the component being controlled by this controller.
-  * Note: Not all components will have a view, so the value may be null.
-  */
-  view: View;
-
-  /**
-  * Creates an instance of Controller.
-  * @param behavior The HtmlBehaviorResource that provides the base behavior for this controller.
-  * @param instruction The instructions pertaining to the controller's behavior.
-  * @param viewModel The developer's view model instance which provides the custom behavior for this controller.
-  */
-  constructor(behavior: HtmlBehaviorResource, instruction: BehaviorInstruction, viewModel: Object, elementEvents?: ElementEvents) {
+export let Controller = class Controller {
+  constructor(behavior, instruction, viewModel, elementEvents) {
     this.behavior = behavior;
     this.instruction = instruction;
     this.viewModel = viewModel;
@@ -3445,23 +2515,13 @@ export class Controller {
     }
   }
 
-  /**
-  * Invoked when the view which contains this controller is created.
-  * @param owningView The view inside which this controller resides.
-  */
-  created(owningView: View): void {
+  created(owningView) {
     if (this.behavior.handlesCreated) {
       this.viewModel.created(owningView, this.view);
     }
   }
 
-  /**
-  * Used to automate the proper binding of this controller and its view. Used by the composition engine for dynamic component creation.
-  * This should be considered a semi-private API and is subject to change without notice, even across minor or patch releases.
-  * @param overrideContext An override context for binding.
-  * @param owningView The view inside which this controller resides.
-  */
-  automate(overrideContext?: Object, owningView?: View): void {
+  automate(overrideContext, owningView) {
     this.view.bindingContext = this.viewModel;
     this.view.overrideContext = overrideContext || createOverrideContext(this.viewModel);
     this.view._isUserControlled = true;
@@ -3473,11 +2533,7 @@ export class Controller {
     this.bind(this.view);
   }
 
-  /**
-  * Binds the controller to the scope.
-  * @param scope The binding scope.
-  */
-  bind(scope: Object): void {
+  bind(scope) {
     let skipSelfSubscriber = this.behavior.handlesBind;
     let boundProperties = this.boundProperties;
     let i;
@@ -3519,31 +2575,20 @@ export class Controller {
       if (skipSelfSubscriber) {
         this.view.viewModelScope = scope;
       }
-      // do we need to create an overrideContext or is the scope's overrideContext
-      // valid for this viewModel?
+
       if (this.viewModel === scope.overrideContext.bindingContext) {
         overrideContext = scope.overrideContext;
-      // should we inherit the parent scope? (eg compose / router)
       } else if (this.instruction.inheritBindingContext) {
-        overrideContext = createOverrideContext(this.viewModel, scope.overrideContext);
-      // create the overrideContext and capture the parent without making it
-      // available to AccessScope. We may need it later for template-part replacements.
-      } else {
-        overrideContext = createOverrideContext(this.viewModel);
-        overrideContext.__parentOverrideContext = scope.overrideContext;
-      }
+          overrideContext = createOverrideContext(this.viewModel, scope.overrideContext);
+        } else {
+            overrideContext = createOverrideContext(this.viewModel);
+            overrideContext.__parentOverrideContext = scope.overrideContext;
+          }
       this.view.bind(this.viewModel, overrideContext);
     } else if (skipSelfSubscriber) {
       overrideContext = scope.overrideContext;
-      // the factoryCreateInstruction's partReplacements will either be null or an object
-      // containing the replacements. If there are partReplacements we need to preserve the parent
-      // context to allow replacement parts to bind to both the custom element scope and the ambient scope.
-      // Note that factoryCreateInstruction is a property defined on BoundViewFactory. The code below assumes the
-      // behavior stores a the BoundViewFactory on its viewModel under the name of viewFactory. This is implemented
-      // by the replaceable custom attribute.
-      if (scope.overrideContext.__parentOverrideContext !== undefined
-        && this.viewModel.viewFactory && this.viewModel.viewFactory.factoryCreateInstruction.partReplacements) {
-        // clone the overrideContext and connect the ambient context.
+
+      if (scope.overrideContext.__parentOverrideContext !== undefined && this.viewModel.viewFactory && this.viewModel.viewFactory.factoryCreateInstruction.partReplacements) {
         overrideContext = Object.assign({}, scope.overrideContext);
         overrideContext.parentOverrideContext = scope.overrideContext.__parentOverrideContext;
       }
@@ -3551,10 +2596,7 @@ export class Controller {
     }
   }
 
-  /**
-  * Unbinds the controller.
-  */
-  unbind(): void {
+  unbind() {
     if (this.isBound) {
       let boundProperties = this.boundProperties;
       let i;
@@ -3581,10 +2623,7 @@ export class Controller {
     }
   }
 
-  /**
-  * Attaches the controller.
-  */
-  attached(): void {
+  attached() {
     if (this.isAttached) {
       return;
     }
@@ -3600,10 +2639,7 @@ export class Controller {
     }
   }
 
-  /**
-  * Detaches the controller.
-  */
-  detached(): void {
+  detached() {
     if (this.isAttached) {
       this.isAttached = false;
 
@@ -3616,22 +2652,10 @@ export class Controller {
       }
     }
   }
-}
+};
 
-/**
-* An implementation of Aurelia's Observer interface that is used to back bindable properties defined on a behavior.
-*/
-@subscriberCollection()
-export class BehaviorPropertyObserver {
-  /**
-  * Creates an instance of BehaviorPropertyObserver.
-  * @param taskQueue The task queue used to schedule change notifications.
-  * @param obj The object that the property is defined on.
-  * @param propertyName The name of the property.
-  * @param selfSubscriber The callback function that notifies the object which defines the properties, if present.
-  * @param initialValue The initial value of the property.
-  */
-  constructor(taskQueue: TaskQueue, obj: Object, propertyName: string, selfSubscriber: Function, initialValue: any) {
+export let BehaviorPropertyObserver = (_dec8 = subscriberCollection(), _dec8(_class16 = class BehaviorPropertyObserver {
+  constructor(taskQueue, obj, propertyName, selfSubscriber, initialValue) {
     this.taskQueue = taskQueue;
     this.obj = obj;
     this.propertyName = propertyName;
@@ -3641,18 +2665,11 @@ export class BehaviorPropertyObserver {
     this.currentValue = this.oldValue = initialValue;
   }
 
-  /**
-  * Gets the property's value.
-  */
-  getValue(): any {
+  getValue() {
     return this.currentValue;
   }
 
-  /**
-  * Sets the property's value.
-  * @param newValue The new value to set.
-  */
-  setValue(newValue: any): void {
+  setValue(newValue) {
     let oldValue = this.currentValue;
 
     if (oldValue !== newValue) {
@@ -3666,10 +2683,7 @@ export class BehaviorPropertyObserver {
     }
   }
 
-  /**
-  * Invoked by the TaskQueue to publish changes to subscribers.
-  */
-  call(): void {
+  call() {
     let oldValue = this.oldValue;
     let newValue = this.currentValue;
 
@@ -3687,24 +2701,14 @@ export class BehaviorPropertyObserver {
     this.oldValue = newValue;
   }
 
-  /**
-  * Subscribes to the observerable.
-  * @param context A context object to pass along to the subscriber when it's called.
-  * @param callable A function or object with a "call" method to be invoked for delivery of changes.
-  */
-  subscribe(context: any, callable: Function): void {
+  subscribe(context, callable) {
     this.addSubscriber(context, callable);
   }
 
-  /**
-  * Unsubscribes from the observerable.
-  * @param context The context object originally subscribed with.
-  * @param callable The callable that was originally subscribed with.
-  */
-  unsubscribe(context: any, callable: Function): void {
+  unsubscribe(context, callable) {
     this.removeSubscriber(context, callable);
   }
-}
+}) || _class16);
 
 function getObserver(behavior, instance, name) {
   let lookup = instance.__observers__;
@@ -3721,15 +2725,8 @@ function getObserver(behavior, instance, name) {
   return lookup[name];
 }
 
-/**
-* Represents a bindable property on a behavior.
-*/
-export class BindableProperty {
-  /**
-  * Creates an instance of BindableProperty.
-  * @param nameOrConfig The name of the property or a cofiguration object.
-  */
-  constructor(nameOrConfig: string | Object) {
+export let BindableProperty = class BindableProperty {
+  constructor(nameOrConfig) {
     if (typeof nameOrConfig === 'string') {
       this.name = nameOrConfig;
     } else {
@@ -3743,13 +2740,7 @@ export class BindableProperty {
     this.descriptor = null;
   }
 
-  /**
-  * Registers this bindable property with particular Class and Behavior instance.
-  * @param target The class to register this behavior with.
-  * @param behavior The behavior instance to register this property with.
-  * @param descriptor The property descriptor for this property.
-  */
-  registerWith(target: Function, behavior: HtmlBehaviorResource, descriptor?: Object): void {
+  registerWith(target, behavior, descriptor) {
     behavior.properties.push(this);
     behavior.attributes[this.attribute] = this;
     this.owner = behavior;
@@ -3760,7 +2751,7 @@ export class BindableProperty {
     }
   }
 
-  _configureDescriptor(behavior: HtmlBehaviorResource, descriptor: Object): Object {
+  _configureDescriptor(behavior, descriptor) {
     let name = this.name;
 
     descriptor.configurable = true;
@@ -3778,27 +2769,22 @@ export class BindableProperty {
       delete descriptor.writable;
     }
 
-    descriptor.get = function() {
+    descriptor.get = function () {
       return getObserver(behavior, this, name).getValue();
     };
 
-    descriptor.set = function(value) {
+    descriptor.set = function (value) {
       getObserver(behavior, this, name).setValue(value);
     };
 
-    descriptor.get.getObserver = function(obj) {
+    descriptor.get.getObserver = function (obj) {
       return getObserver(behavior, obj, name);
     };
 
     return descriptor;
   }
 
-  /**
-  * Defines this property on the specified class and behavior.
-  * @param target The class to define the property on.
-  * @param behavior The behavior to define the property on.
-  */
-  defineOn(target: Function, behavior: HtmlBehaviorResource): void {
+  defineOn(target, behavior) {
     let name = this.name;
     let handlerName;
 
@@ -3814,12 +2800,7 @@ export class BindableProperty {
     }
   }
 
-  /**
-  * Creates an observer for this property.
-  * @param viewModel The view model instance on which to create the observer.
-  * @return The property observer.
-  */
-  createObserver(viewModel: Object): BehaviorPropertyObserver {
+  createObserver(viewModel) {
     let selfSubscriber = null;
     let defaultValue = this.defaultValue;
     let changeHandlerName = this.changeHandler;
@@ -3842,7 +2823,7 @@ export class BindableProperty {
     } else if ('propertyChanged' in viewModel) {
       selfSubscriber = (newValue, oldValue) => viewModel.propertyChanged(name, newValue, oldValue);
     } else if (changeHandlerName !== null) {
-      throw new Error(`Change handler ${changeHandlerName} was specified but not delcared on the class.`);
+      throw new Error(`Change handler ${ changeHandlerName } was specified but not declared on the class.`);
     }
 
     if (defaultValue !== undefined) {
@@ -3852,7 +2833,7 @@ export class BindableProperty {
     return new BehaviorPropertyObserver(this.owner.taskQueue, viewModel, this.name, selfSubscriber, initialValue);
   }
 
-  _initialize(viewModel, observerLookup, attributes, behaviorHandlesBind, boundProperties): void {
+  _initialize(viewModel, observerLookup, attributes, behaviorHandlesBind, boundProperties) {
     let selfSubscriber;
     let observer;
     let attribute;
@@ -3877,7 +2858,7 @@ export class BindableProperty {
           viewModel[this.name] = attribute;
           observer.call();
         } else if (attribute) {
-          boundProperties.push({observer: observer, binding: attribute.createBinding(viewModel)});
+          boundProperties.push({ observer: observer, binding: attribute.createBinding(viewModel) });
         } else if (defaultValue !== undefined) {
           observer.call();
         }
@@ -3908,12 +2889,7 @@ export class BindableProperty {
       selfSubscriber = (newValue, oldValue) => viewModel.propertyChanged(name, newValue, oldValue);
     }
 
-    observer = observerLookup[name] = new BehaviorPropertyObserver(
-        this.owner.taskQueue,
-        viewModel,
-        name,
-        selfSubscriber
-        );
+    observer = observerLookup[name] = new BehaviorPropertyObserver(this.owner.taskQueue, viewModel, name, selfSubscriber);
 
     Object.defineProperty(viewModel, name, {
       configurable: true,
@@ -3930,14 +2906,14 @@ export class BindableProperty {
       viewModel[name] = attribute;
       observer.call();
     } else if (attribute) {
-      info = {observer: observer, binding: attribute.createBinding(viewModel)};
+      info = { observer: observer, binding: attribute.createBinding(viewModel) };
       boundProperties.push(info);
     }
 
     observer.publishing = true;
     observer.selfSubscriber = selfSubscriber;
   }
-}
+};
 
 const contentSelectorViewCreateInstruction = { enhance: false };
 let lastProviderId = 0;
@@ -3946,17 +2922,12 @@ function nextProviderId() {
   return ++lastProviderId;
 }
 
-function doProcessContent() { return true; }
+function doProcessContent() {
+  return true;
+}
 function doProcessAttributes() {}
 
-/**
-* Identifies a class as a resource that implements custom element or custom
-* attribute functionality.
-*/
-export class HtmlBehaviorResource {
-  /**
-  * Creates an instance of HtmlBehaviorResource.
-  */
+export let HtmlBehaviorResource = class HtmlBehaviorResource {
   constructor() {
     this.elementName = null;
     this.attributeName = null;
@@ -3974,12 +2945,7 @@ export class HtmlBehaviorResource {
     this.isInitialized = false;
   }
 
-  /**
-  * Checks whether the provided name matches any naming conventions for HtmlBehaviorResource.
-  * @param name The name of the potential resource.
-  * @param existing An already existing resource that may need a convention name applied.
-  */
-  static convention(name: string, existing?: HtmlBehaviorResource): HtmlBehaviorResource {
+  static convention(name, existing) {
     let behavior;
 
     if (name.endsWith('CustomAttribute')) {
@@ -3995,11 +2961,7 @@ export class HtmlBehaviorResource {
     return behavior;
   }
 
-  /**
-  * Adds a binding expression to the component created by this resource.
-  * @param behavior The binding expression.
-  */
-  addChildBinding(behavior: Object): void {
+  addChildBinding(behavior) {
     if (this.childBindings === null) {
       this.childBindings = [];
     }
@@ -4007,13 +2969,7 @@ export class HtmlBehaviorResource {
     this.childBindings.push(behavior);
   }
 
-  /**
-  * Provides an opportunity for the resource to initialize iteself.
-  * @param container The dependency injection container from which the resource
-  * can aquire needed services.
-  * @param target The class to which this resource metadata is attached.
-  */
-  initialize(container: Container, target: Function): void {
+  initialize(container, target) {
     let proto = target.prototype;
     let properties = this.properties;
     let attributeName = this.attributeName;
@@ -4034,15 +2990,15 @@ export class HtmlBehaviorResource {
 
     this.target = target;
     this.usesShadowDOM = this.targetShadowDOM && FEATURE.shadowDOM;
-    this.handlesCreated = ('created' in proto);
-    this.handlesBind = ('bind' in proto);
-    this.handlesUnbind = ('unbind' in proto);
-    this.handlesAttached = ('attached' in proto);
-    this.handlesDetached = ('detached' in proto);
+    this.handlesCreated = 'created' in proto;
+    this.handlesBind = 'bind' in proto;
+    this.handlesUnbind = 'unbind' in proto;
+    this.handlesAttached = 'attached' in proto;
+    this.handlesDetached = 'detached' in proto;
     this.htmlName = this.elementName || this.attributeName;
 
     if (attributeName !== null) {
-      if (properties.length === 0) { //default for custom attributes
+      if (properties.length === 0) {
         new BindableProperty({
           name: 'value',
           changeHandler: 'valueChanged' in proto ? 'valueChanged' : null,
@@ -4053,10 +3009,10 @@ export class HtmlBehaviorResource {
 
       current = properties[0];
 
-      if (properties.length === 1 && current.name === 'value') { //default for custom attributes
+      if (properties.length === 1 && current.name === 'value') {
         current.isDynamic = current.hasOptions = this.hasDynamicOptions;
         current.defineOn(target, this);
-      } else { //custom attribute with options
+      } else {
         for (i = 0, ii = properties.length; i < ii; ++i) {
           properties[i].defineOn(target, this);
         }
@@ -4078,14 +3034,7 @@ export class HtmlBehaviorResource {
     }
   }
 
-  /**
-  * Allows the resource to be registered in the view resources for the particular
-  * view into which it was required.
-  * @param registry The view resource registry for the view that required this resource.
-  * @param name The name provided by the end user for this resource, within the
-  * particular view it's being used.
-  */
-  register(registry: ViewResources, name?: string): void {
+  register(registry, name) {
     if (this.attributeName !== null) {
       registry.registerAttribute(name || this.attributeName, this, this.attributeName);
     }
@@ -4095,17 +3044,7 @@ export class HtmlBehaviorResource {
     }
   }
 
-  /**
-  * Enables the resource to asynchronously load additional resources.
-  * @param container The dependency injection container from which the resource
-  * can aquire needed services.
-  * @param target The class to which this resource metadata is attached.
-  * @param loadContext The loading context object provided by the view engine.
-  * @param viewStrategy A view strategy to overload the default strategy defined by the resource.
-  * @param transientView Indicated whether the view strategy is transient or
-  * permanently tied to this component.
-  */
-  load(container: Container, target: Function, loadContext?: ResourceLoadContext, viewStrategy?: ViewStrategy, transientView?: boolean): Promise<HtmlBehaviorResource> {
+  load(container, target, loadContext, viewStrategy, transientView) {
     let options;
 
     if (this.elementName !== null) {
@@ -4128,16 +3067,7 @@ export class HtmlBehaviorResource {
     return Promise.resolve(this);
   }
 
-  /**
-  * Plugs into the compiler and enables custom processing of the node on which this behavior is located.
-  * @param compiler The compiler that is currently compiling the view that this behavior exists within.
-  * @param resources The resources for the view that this behavior exists within.
-  * @param node The node on which this behavior exists.
-  * @param instruction The behavior instruction created for this behavior.
-  * @param parentNode The parent node of the current node.
-  * @return The current node.
-  */
-  compile(compiler: ViewCompiler, resources: ViewResources, node: Node, instruction: BehaviorInstruction, parentNode?: Node): Node {
+  compile(compiler, resources, node, instruction, parentNode) {
     if (this.liftsContent) {
       if (!instruction.viewFactory) {
         let template = DOM.createElement('template');
@@ -4162,7 +3092,7 @@ export class HtmlBehaviorResource {
 
         node = template;
       }
-    } else if (this.elementName !== null) { //custom element
+    } else if (this.elementName !== null) {
       let partReplacements = {};
 
       if (this.processContent(compiler, resources, node, instruction) && node.hasChildNodes()) {
@@ -4215,15 +3145,7 @@ export class HtmlBehaviorResource {
     return node;
   }
 
-  /**
-  * Creates an instance of this behavior.
-  * @param container The DI container to create the instance in.
-  * @param instruction The instruction for this behavior that was constructed during compilation.
-  * @param element The element on which this behavior exists.
-  * @param bindings The bindings that are associated with the view in which this behavior exists.
-  * @return The Controller of this behavior.
-  */
-  create(container: Container, instruction?: BehaviorInstruction, element?: Element, bindings?: Binding[]): Controller {
+  create(container, instruction, element, bindings) {
     let host;
     let au = null;
 
@@ -4254,10 +3176,8 @@ export class HtmlBehaviorResource {
     let viewFactory;
 
     if (this.liftsContent) {
-      //template controller
       au.controller = controller;
     } else if (this.elementName !== null) {
-      //custom element
       viewFactory = instruction.viewFactory || this.viewFactory;
       container.viewModel = viewModel;
 
@@ -4273,11 +3193,7 @@ export class HtmlBehaviorResource {
             if (instruction.contentFactory) {
               let contentView = instruction.contentFactory.create(container, contentSelectorViewCreateInstruction);
 
-              _ContentSelector.applySelectors(
-                contentView,
-                controller.view.contentSelectors,
-                (contentSelector, group) => contentSelector.add(group)
-              );
+              _ContentSelector.applySelectors(contentView, controller.view.contentSelectors, (contentSelector, group) => contentSelector.add(group));
 
               controller.contentView = contentView;
             }
@@ -4300,7 +3216,6 @@ export class HtmlBehaviorResource {
           }
         }
       } else if (controller.view) {
-        //dynamic element with view
         controller.view.controller = controller;
 
         if (childBindings !== null) {
@@ -4309,13 +3224,11 @@ export class HtmlBehaviorResource {
           }
         }
       } else if (childBindings !== null) {
-        //dynamic element without view
         for (let i = 0, ii = childBindings.length; i < ii; ++i) {
           bindings.push(childBindings[i].create(instruction.host, viewModel));
         }
       }
     } else if (childBindings !== null) {
-      //custom attribute
       for (let i = 0, ii = childBindings.length; i < ii; ++i) {
         bindings.push(childBindings[i].create(element, viewModel));
       }
@@ -4332,7 +3245,7 @@ export class HtmlBehaviorResource {
     return controller;
   }
 
-  _ensurePropertiesDefined(instance: Object, lookup: Object) {
+  _ensurePropertiesDefined(instance, lookup) {
     let properties;
     let i;
     let ii;
@@ -4353,11 +3266,11 @@ export class HtmlBehaviorResource {
       }
     }
   }
-}
+};
 
 function createChildObserverDecorator(selectorOrConfig, all) {
-  return function(target, key, descriptor) {
-    let actualTarget = typeof key === 'string' ? target.constructor : target; //is it on a property or a class?
+  return function (target, key, descriptor) {
+    let actualTarget = typeof key === 'string' ? target.constructor : target;
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, actualTarget);
 
     if (typeof selectorOrConfig === 'string') {
@@ -4376,21 +3289,15 @@ function createChildObserverDecorator(selectorOrConfig, all) {
   };
 }
 
-/**
-* Creates a behavior property that references an array of immediate content child elements that matches the provided selector.
-*/
-export function children(selectorOrConfig: string | Object): any {
+export function children(selectorOrConfig) {
   return createChildObserverDecorator(selectorOrConfig, true);
 }
 
-/**
-* Creates a behavior property that references an immediate content child element that matches the provided selector.
-*/
-export function child(selectorOrConfig: string | Object): any {
+export function child(selectorOrConfig) {
   return createChildObserverDecorator(selectorOrConfig, false);
 }
 
-class ChildObserver {
+let ChildObserver = class ChildObserver {
   constructor(config) {
     this.name = config.name;
     this.changeHandler = config.changeHandler || this.name + 'Changed';
@@ -4401,7 +3308,8 @@ class ChildObserver {
   create(target, viewModel) {
     return new ChildObserverBinder(this.selector, target, this.name, viewModel, this.changeHandler, this.all);
   }
-}
+};
+
 
 const noMutations = [];
 
@@ -4458,7 +3366,7 @@ function onChildChange(mutations, observer) {
   });
 }
 
-class ChildObserverBinder {
+let ChildObserverBinder = class ChildObserverBinder {
   constructor(selector, target, property, viewModel, changeHandler, all) {
     this.selector = selector;
     this.target = target;
@@ -4477,7 +3385,7 @@ class ChildObserverBinder {
 
     if (!observer) {
       observer = target.__childObserver__ = DOM.createMutationObserver(onChildChange);
-      observer.observe(target, {childList: true});
+      observer.observe(target, { childList: true });
       observer.binders = [];
     }
 
@@ -4578,61 +3486,8 @@ class ChildObserverBinder {
       this.target.__childObserver__ = null;
     }
   }
-}
+};
 
-/**
-* Instructs the composition engine how to dynamically compose a component.
-*/
-interface CompositionContext {
-  /**
-  * The parent Container for the component creation.
-  */
-  container: Container;
-  /**
-  * The child Container for the component creation. One will be created from the parent if not provided.
-  */
-  childContainer?: Container;
-  /**
-  * The context in which the view model is executed in.
-  */
-  bindingContext: any;
-  /**
-  * A secondary binding context that can override the standard context.
-  */
-  overrideContext?: any;
-  /**
-  * The view model url or instance for the component.
-  */
-  viewModel?: any;
-  /**
-  * Data to be passed to the "activate" hook on the view model.
-  */
-  model?: any;
-  /**
-  * The HtmlBehaviorResource for the component.
-  */
-  viewModelResource?: HtmlBehaviorResource;
-  /**
-  * The view resources for the view in which the component should be created.
-  */
-  viewResources: ViewResources;
-  /**
-  * The view inside which this composition is happening.
-  */
-  owningView?: View;
-  /**
-  * The view url or view strategy to override the default view location convention.
-  */
-  view?: string | ViewStrategy;
-  /**
-  * The slot to push the dynamically composed component into.
-  */
-  viewSlot: ViewSlot;
-  /**
-  * Should the composition system skip calling the "activate" hook on the view model.
-  */
-  skipActivation?: boolean;
-}
 
 function tryActivateViewModel(context) {
   if (context.skipActivation || typeof context.viewModel.activate !== 'function') {
@@ -4642,16 +3497,8 @@ function tryActivateViewModel(context) {
   return context.viewModel.activate(context.model) || Promise.resolve();
 }
 
-/**
-* Used to dynamically compose components.
-*/
-@inject(ViewEngine, ViewLocator)
-export class CompositionEngine {
-  /**
-  * Creates an instance of the CompositionEngine.
-  * @param viewEngine The ViewEngine used during composition.
-  */
-  constructor(viewEngine: ViewEngine, viewLocator: ViewLocator) {
+export let CompositionEngine = (_dec9 = inject(ViewEngine, ViewLocator), _dec9(_class17 = class CompositionEngine {
+  constructor(viewEngine, viewLocator) {
     this.viewEngine = viewEngine;
     this.viewLocator = viewLocator;
   }
@@ -4684,12 +3531,7 @@ export class CompositionEngine {
     });
   }
 
-  /**
-  * Creates a controller instance for the component described in the context.
-  * @param context The CompositionContext that describes the component.
-  * @return A Promise for the Controller.
-  */
-  createController(context: CompositionContext): Promise<Controller> {
+  createController(context) {
     let childContainer;
     let viewModel;
     let viewModelResource;
@@ -4711,18 +3553,11 @@ export class CompositionEngine {
     }).then(viewFactory => m.create(childContainer, BehaviorInstruction.dynamic(context.host, viewModel, viewFactory)));
   }
 
-  /**
-  * Ensures that the view model and its resource are loaded for this context.
-  * @param context The CompositionContext to load the view model and its resource for.
-  * @return A Promise for the context.
-  */
-  ensureViewModel(context: CompositionContext): Promise<CompositionContext> {
-    let childContainer = context.childContainer = (context.childContainer || context.container.createChild());
+  ensureViewModel(context) {
+    let childContainer = context.childContainer = context.childContainer || context.container.createChild();
 
     if (typeof context.viewModel === 'string') {
-      context.viewModel = context.viewResources
-          ? context.viewResources.relativeToView(context.viewModel)
-          : context.viewModel;
+      context.viewModel = context.viewResources ? context.viewResources.relativeToView(context.viewModel) : context.viewModel;
 
       return this.viewEngine.importViewModelResource(context.viewModel).then(viewModelResource => {
         childContainer.autoRegister(viewModelResource.value);
@@ -4745,12 +3580,7 @@ export class CompositionEngine {
     return Promise.resolve(context);
   }
 
-  /**
-  * Dynamically composes a component.
-  * @param context The CompositionContext providing information on how the composition should occur.
-  * @return A Promise for the View or the Controller that results from the dynamic composition.
-  */
-  compose(context: CompositionContext): Promise<View | Controller> {
+  compose(context) {
     context.childContainer = context.childContainer || context.container.createChild();
     context.view = this.viewLocator.getViewStrategy(context.view);
 
@@ -4802,69 +3632,37 @@ export class CompositionEngine {
       return Promise.resolve(null);
     }
   }
-}
+}) || _class17);
 
-/**
-* Identifies a class as a resource that configures the EventManager with information
-* about how events relate to properties for the purpose of two-way data-binding
-* to Web Components.
-*/
-export class ElementConfigResource {
-  /**
-  * Provides an opportunity for the resource to initialize iteself.
-  * @param container The dependency injection container from which the resource
-  * can aquire needed services.
-  * @param target The class to which this resource metadata is attached.
-  */
-  initialize(container: Container, target: Function): void {}
+export let ElementConfigResource = class ElementConfigResource {
+  initialize(container, target) {}
 
-  /**
-  * Allows the resource to be registered in the view resources for the particular
-  * view into which it was required.
-  * @param registry The view resource registry for the view that required this resource.
-  * @param name The name provided by the end user for this resource, within the
-  * particular view it's being used.
-  */
-  register(registry: ViewResources, name?: string): void {}
+  register(registry, name) {}
 
-  /**
-  * Enables the resource to asynchronously load additional resources.
-  * @param container The dependency injection container from which the resource
-  * can aquire needed services.
-  * @param target The class to which this resource metadata is attached.
-  */
-  load(container: Container, target: Function): void {
+  load(container, target) {
     let config = new target();
     let eventManager = container.get(EventManager);
     eventManager.registerElementConfig(config);
   }
-}
+};
 
 function validateBehaviorName(name, type) {
   if (/[A-Z]/.test(name)) {
     let newName = _hyphenate(name);
-    LogManager.getLogger('templating').warn(`'${name}' is not a valid ${type} name and has been converted to '${newName}'. Upper-case letters are not allowed because the DOM is not case-sensitive.`);
+    LogManager.getLogger('templating').warn(`'${ name }' is not a valid ${ type } name and has been converted to '${ newName }'. Upper-case letters are not allowed because the DOM is not case-sensitive.`);
     return newName;
   }
   return name;
 }
 
-/**
-* Decorator: Specifies a resource instance that describes the decorated class.
-* @param instance The resource instance.
-*/
-export function resource(instance: Object): any {
-  return function(target) {
+export function resource(instance) {
+  return function (target) {
     metadata.define(metadata.resource, instance, target);
   };
 }
 
-/**
-* Decorator: Specifies a custom HtmlBehaviorResource instance or an object that overrides various implementation details of the default HtmlBehaviorResource.
-* @param override The customized HtmlBehaviorResource or an object to override the default with.
-*/
-export function behavior(override: HtmlBehaviorResource | Object): any {
-  return function(target) {
+export function behavior(override) {
+  return function (target) {
     if (override instanceof HtmlBehaviorResource) {
       metadata.define(metadata.resource, override, target);
     } else {
@@ -4874,37 +3672,23 @@ export function behavior(override: HtmlBehaviorResource | Object): any {
   };
 }
 
-/**
-* Decorator: Indicates that the decorated class is a custom element.
-* @param name The name of the custom element.
-*/
-export function customElement(name: string): any {
-  return function(target) {
+export function customElement(name) {
+  return function (target) {
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, target);
     r.elementName = validateBehaviorName(name, 'custom element');
   };
 }
 
-/**
-* Decorator: Indicates that the decorated class is a custom attribute.
-* @param name The name of the custom attribute.
-* @param defaultBindingMode The default binding mode to use when the attribute is bound wtih .bind.
-*/
-export function customAttribute(name: string, defaultBindingMode?: number): any {
-  return function(target) {
+export function customAttribute(name, defaultBindingMode) {
+  return function (target) {
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, target);
     r.attributeName = validateBehaviorName(name, 'custom attribute');
     r.attributeDefaultBindingMode = defaultBindingMode;
   };
 }
 
-/**
-* Decorator: Applied to custom attributes. Indicates that whatever element the
-* attribute is placed on should be converted into a template and that this
-* attribute controls the instantiation of the template.
-*/
-export function templateController(target?): any {
-  let deco = function(t) {
+export function templateController(target) {
+  let deco = function (t) {
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
     r.liftsContent = true;
   };
@@ -4912,17 +3696,13 @@ export function templateController(target?): any {
   return target ? deco(target) : deco;
 }
 
-/**
-* Decorator: Specifies that a property is bindable through HTML.
-* @param nameOrConfigOrTarget The name of the property, or a configuration object.
-*/
-export function bindable(nameOrConfigOrTarget?: string | Object, key?, descriptor?): any {
-  let deco = function(target, key2, descriptor2) {
-    let actualTarget = key2 ? target.constructor : target; //is it on a property or a class?
+export function bindable(nameOrConfigOrTarget, key, descriptor) {
+  let deco = function (target, key2, descriptor2) {
+    let actualTarget = key2 ? target.constructor : target;
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, actualTarget);
     let prop;
 
-    if (key2) { //is it on a property or a class?
+    if (key2) {
       nameOrConfigOrTarget = nameOrConfigOrTarget || {};
       nameOrConfigOrTarget.name = key2;
     }
@@ -4931,25 +3711,21 @@ export function bindable(nameOrConfigOrTarget?: string | Object, key?, descripto
     return prop.registerWith(actualTarget, r, descriptor2);
   };
 
-  if (!nameOrConfigOrTarget) { //placed on property initializer with parens
+  if (!nameOrConfigOrTarget) {
     return deco;
   }
 
-  if (key) { //placed on a property initializer without parens
+  if (key) {
     let target = nameOrConfigOrTarget;
     nameOrConfigOrTarget = null;
     return deco(target, key, descriptor);
   }
 
-  return deco; //placed on a class
+  return deco;
 }
 
-/**
-* Decorator: Specifies that the decorated custom attribute has options that
-* are dynamic, based on their presence in HTML and not statically known.
-*/
-export function dynamicOptions(target?): any {
-  let deco = function(t) {
+export function dynamicOptions(target) {
+  let deco = function (t) {
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
     r.hasDynamicOptions = true;
   };
@@ -4957,12 +3733,8 @@ export function dynamicOptions(target?): any {
   return target ? deco(target) : deco;
 }
 
-/**
-* Decorator: Indicates that the custom element should render its view in Shadow
-* DOM. This decorator may change slightly when Aurelia updates to Shadow DOM v1.
-*/
-export function useShadowDOM(target?): any {
-  let deco = function(t) {
+export function useShadowDOM(target) {
+  let deco = function (t) {
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
     r.targetShadowDOM = true;
   };
@@ -4970,40 +3742,26 @@ export function useShadowDOM(target?): any {
   return target ? deco(target) : deco;
 }
 
-/**
-* Decorator: Enables custom processing of the attributes on an element before the framework inspects them.
-* @param processor Pass a function which can provide custom processing of the content.
-*/
-export function processAttributes(processor: Function): any {
-  return function(t) {
+export function processAttributes(processor) {
+  return function (t) {
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
     r.processAttributes = processor;
   };
 }
 
-function doNotProcessContent() { return false; }
+function doNotProcessContent() {
+  return false;
+}
 
-/**
-* Decorator: Enables custom processing of the content that is places inside the
-* custom element by its consumer.
-* @param processor Pass a boolean to direct the template compiler to not process
-* the content placed inside this element. Alternatively, pass a function which
-* can provide custom processing of the content. This function should then return
-* a boolean indicating whether the compiler should also process the content.
-*/
-export function processContent(processor: boolean | Function): any {
-  return function(t) {
+export function processContent(processor) {
+  return function (t) {
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
     r.processContent = processor || doNotProcessContent;
   };
 }
 
-/**
-* Decorator: Indicates that the custom element should be rendered without its
-* element container.
-*/
-export function containerless(target?): any {
-  let deco = function(t) {
+export function containerless(target) {
+  let deco = function (t) {
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
     r.containerless = true;
   };
@@ -5011,93 +3769,38 @@ export function containerless(target?): any {
   return target ? deco(target) : deco;
 }
 
-/**
-* Decorator: Associates a custom view strategy with the component.
-* @param strategy The view strategy instance.
-*/
-export function useViewStrategy(strategy: Object): any {
-  return function(target) {
+export function useViewStrategy(strategy) {
+  return function (target) {
     metadata.define(ViewLocator.viewStrategyMetadataKey, strategy, target);
   };
 }
 
-/**
-* Decorator: Provides a relative path to a view for the component.
-* @param path The path to the view.
-*/
-export function useView(path: string): any {
+export function useView(path) {
   return useViewStrategy(new RelativeViewStrategy(path));
 }
 
-/**
-* Decorator: Provides a view template, directly inline, for the component. Be
-* sure to wrap the markup in a template element.
-* @param markup The markup for the view.
-* @param dependencies A list of dependencies that the template has.
-* @param dependencyBaseUrl A base url from which the dependencies will be loaded.
-*/
-export function inlineView(markup:string, dependencies?:Array<string|Function|Object>, dependencyBaseUrl?:string): any {
+export function inlineView(markup, dependencies, dependencyBaseUrl) {
   return useViewStrategy(new InlineViewStrategy(markup, dependencies, dependencyBaseUrl));
 }
 
-/**
-* Decorator: Indicates that the component has no view.
-*/
-export function noView(target?): any {
-  let deco = function(t) {
+export function noView(target) {
+  let deco = function (t) {
     metadata.define(ViewLocator.viewStrategyMetadataKey, new NoViewStrategy(), t);
   };
 
   return target ? deco(target) : deco;
 }
 
-/**
-* Decorator: Indicates that the decorated class provides element configuration
-* to the EventManager for one or more Web Components.
-*/
-export function elementConfig(target?): any {
-  let deco = function(t) {
+export function elementConfig(target) {
+  let deco = function (t) {
     metadata.define(metadata.resource, new ElementConfigResource(), t);
   };
 
   return target ? deco(target) : deco;
 }
 
-/**
-* Instructs the framework in how to enhance an existing DOM structure.
-*/
-interface EnhanceInstruction {
-  /**
-  * The DI container to use as the root for UI enhancement.
-  */
-  container?: Container;
-  /**
-  * The element to enhance.
-  */
-  element: Element;
-  /**
-  * The resources available for enhancement.
-  */
-  resources?: ViewResources;
-  /**
-  * A binding context for the enhancement.
-  */
-  bindingContext?: Object;
-}
-
-/**
-* A facade of the templating engine capabilties which provides a more user friendly API for common use cases.
-*/
-@inject(Container, ModuleAnalyzer, ViewCompiler, CompositionEngine)
-export class TemplatingEngine {
-  /**
-  * Creates an instance of TemplatingEngine.
-  * @param container The root DI container.
-  * @param moduleAnalyzer The module analyzer for discovering view resources.
-  * @param viewCompiler The view compiler for compiling views.
-  * @param compositionEngine The composition engine used during dynamic component composition.
-  */
-  constructor(container: Container, moduleAnalyzer: ModuleAnalyzer, viewCompiler: ViewCompiler, compositionEngine: CompositionEngine) {
+export let TemplatingEngine = (_dec10 = inject(Container, ModuleAnalyzer, ViewCompiler, CompositionEngine), _dec10(_class18 = class TemplatingEngine {
+  constructor(container, moduleAnalyzer, viewCompiler, compositionEngine) {
     this._container = container;
     this._moduleAnalyzer = moduleAnalyzer;
     this._viewCompiler = viewCompiler;
@@ -5105,32 +3808,16 @@ export class TemplatingEngine {
     container.registerInstance(Animator, Animator.instance = new Animator());
   }
 
-  /**
-   * Configures the default animator.
-   * @param animator The animator instance.
-   */
-  configureAnimator(animator: Animator): void {
+  configureAnimator(animator) {
     this._container.unregister(Animator);
     this._container.registerInstance(Animator, Animator.instance = animator);
   }
 
-  /**
-   * Dynamically composes components and views.
-   * @param context The composition context to use.
-   * @return A promise for the resulting Controller or View. Consumers of this API
-   * are responsible for enforcing the Controller/View lifecycle.
-   */
-  compose(context: CompositionContext): Promise<View | Controller> {
+  compose(context) {
     return this._compositionEngine.compose(context);
   }
 
-  /**
-   * Enhances existing DOM with behaviors and bindings.
-   * @param instruction The element to enhance or a set of instructions for the enhancement process.
-   * @return A View representing the enhanced UI. Consumers of this API
-   * are responsible for enforcing the View lifecycle.
-   */
-  enhance(instruction: Element | EnhanceInstruction): View {
+  enhance(instruction) {
     if (instruction instanceof DOM.Element) {
       instruction = { element: instruction };
     }
@@ -5149,13 +3836,7 @@ export class TemplatingEngine {
     return view;
   }
 
-  /**
-   * Creates a behavior's controller for use in unit testing.
-   * @param viewModelType The constructor of the behavior view model to test.
-   * @param attributesFromHTML A key/value lookup of attributes representing what would be in HTML (values can be literals or binding expressions).
-   * @return The Controller of the behavior.
-   */
-  createControllerForUnitTest(viewModelType: Function, attributesFromHTML?: Object): Controller {
+  createControllerForUnitTest(viewModelType, attributesFromHTML) {
     let exportName = viewModelType.name;
     let resourceModule = this._moduleAnalyzer.analyze('test-module', { [exportName]: viewModelType }, exportName);
     let description = resourceModule.mainResource;
@@ -5168,16 +3849,9 @@ export class TemplatingEngine {
     return new Controller(description.metadata, instruction, viewModel);
   }
 
-  /**
-   * Creates a behavior's view model for use in unit testing.
-   * @param viewModelType The constructor of the behavior view model to test.
-   * @param attributesFromHTML A key/value lookup of attributes representing what would be in HTML (values can be literals or binding expressions).
-   * @param bindingContext
-   * @return The view model instance.
-   */
-  createViewModelForUnitTest(viewModelType: Function, attributesFromHTML?: Object, bindingContext?: any): Object {
+  createViewModelForUnitTest(viewModelType, attributesFromHTML, bindingContext) {
     let controller = this.createControllerForUnitTest(viewModelType, attributesFromHTML);
     controller.bind(createScopeForTest(bindingContext));
     return controller.viewModel;
   }
-}
+}) || _class18);

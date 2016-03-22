@@ -1,3 +1,17 @@
+### 1.0.0-beta.1.2.0 (2016-03-22)
+
+
+#### Bug Fixes
+
+* **bindable-property:** fix typo in comment ([dfde78aa](http://github.com/aurelia/templating/commit/dfde78aa1f261f3664bb0a722e099d5f2f64065f), closes [#291](http://github.com/aurelia/templating/issues/291))
+
+
+#### Features
+
+* **ViewSlot:** save override context during binding for later eval ([657ff3dc](http://github.com/aurelia/templating/commit/657ff3dc94415bc1c2330b389de208880fdcc5f5))
+* **view:** add new view pipeline hooks beforeBind and beforeUnbind ([e39e052b](http://github.com/aurelia/templating/commit/e39e052b93c7aa5f17bf47c3fa02703eb8c8c3f3))
+
+
 ### 1.0.0-beta.1.1.4 (2016-03-04)
 
 

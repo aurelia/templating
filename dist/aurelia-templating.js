@@ -355,7 +355,7 @@ export class ViewCompileInstruction {
   /**
   * The normal configuration for view compilation.
   */
-  static normal = new ViewCompileInstruction();
+  static normal: ViewCompileInstruction;
 
   /**
   * Creates an instance of ViewCompileInstruction.
@@ -368,6 +368,8 @@ export class ViewCompileInstruction {
     this.associatedModuleId = null;
   }
 }
+
+ViewCompileInstruction.normal = new ViewCompileInstruction();
 
 /**
 * Specifies how a view should be created.
@@ -390,7 +392,7 @@ export class BehaviorInstruction {
   /**
   * A default behavior used in scenarios where explicit configuration isn't available.
   */
-  static normal = new BehaviorInstruction();
+  static normal: BehaviorInstruction;
 
   /**
   * Creates an instruction for element enhancement.
@@ -480,6 +482,8 @@ export class BehaviorInstruction {
     this.inheritBindingContext = false;
   }
 }
+
+BehaviorInstruction.normal = new BehaviorInstruction();
 
 /**
 * Provides all the instructions for how a target element should be enhanced inside of a view.
@@ -974,6 +978,18 @@ interface ViewEngineHooks {
   * @param view The view that was created by the factory.
   */
   afterCreate?: (view: View) => void;
+
+  /**
+  * Invoked after the bindingContext and overrideContext are configured on the view but before the view is bound.
+  * @param view The view that was created by the factory.
+  */
+  beforeBind?: (view: View) => void;
+
+  /**
+  * Invoked before the view is unbind. The bindingContext and overrideContext are still available on the view.
+  * @param view The view that was created by the factory.
+  */
+  beforeUnbind?: (view: View) => void;
 }
 
 /**
@@ -1003,106 +1019,45 @@ export class ViewResources {
     this.valueConverters = {};
     this.bindingBehaviors = {};
     this.attributeMap = {};
-    this.hook1 = null;
-    this.hook2 = null;
-    this.hook3 = null;
-    this.additionalHooks = null;
+    this.beforeCompile = this.afterCompile = this.beforeCreate = this.afterCreate = this.beforeBind = this.beforeUnbind = false;
   }
 
-  _onBeforeCompile(content: DocumentFragment, resources: ViewResources, instruction: ViewCompileInstruction): void {
-    if (this.hasParent) {
-      this.parent._onBeforeCompile(content, resources, instruction);
-    }
+  _tryAddHook(obj, name) {
+    if (typeof obj[name] === 'function') {
+      let func = obj[name].bind(obj);
+      let counter = 1;
+      let callbackName;
 
-    if (this.hook1 !== null) {
-      this.hook1.beforeCompile(content, resources, instruction);
-
-      if (this.hook2 !== null) {
-        this.hook2.beforeCompile(content, resources, instruction);
-
-        if (this.hook3 !== null) {
-          this.hook3.beforeCompile(content, resources, instruction);
-
-          if (this.additionalHooks !== null) {
-            let hooks = this.additionalHooks;
-            for (let i = 0, length = hooks.length; i < length; ++i) {
-              hooks[i].beforeCompile(content, resources, instruction);
-            }
-          }
-        }
+      while (this[callbackName = name + counter.toString()] !== undefined) {
+        counter++;
       }
+
+      this[name] = true;
+      this[callbackName] = func;
     }
   }
 
-  _onAfterCompile(viewFactory: ViewFactory): void {
+  _invokeHook(name, one, two, three, four) {
     if (this.hasParent) {
-      this.parent._onAfterCompile(viewFactory);
+      this.parent._invokeHook(name, one, two, three, four);
     }
 
-    if (this.hook1 !== null) {
-      this.hook1.afterCompile(viewFactory);
+    if (this[name]) {
+      this[name + '1'](one, two, three, four);
 
-      if (this.hook2 !== null) {
-        this.hook2.afterCompile(viewFactory);
+      let callbackName = name + '2';
+      if (this[callbackName]) {
+        this[callbackName](one, two, three, four);
 
-        if (this.hook3 !== null) {
-          this.hook3.afterCompile(viewFactory);
+        callbackName = name + '3';
+        if (this[callbackName]) {
+          this[callbackName](one, two, three, four);
 
-          if (this.additionalHooks !== null) {
-            let hooks = this.additionalHooks;
-            for (let i = 0, length = hooks.length; i < length; ++i) {
-              hooks[i].afterCompile(viewFactory);
-            }
-          }
-        }
-      }
-    }
-  }
+          let counter = 4;
 
-  _onBeforeCreate(viewFactory: ViewFactory, container: Container, content: DocumentFragment, instruction: ViewCreateInstruction, bindingContext?:Object): void {
-    if (this.hasParent) {
-      this.parent._onBeforeCreate(viewFactory, container, content, instruction, bindingContext);
-    }
-
-    if (this.hook1 !== null) {
-      this.hook1.beforeCreate(viewFactory, container, content, instruction, bindingContext);
-
-      if (this.hook2 !== null) {
-        this.hook2.beforeCreate(viewFactory, container, content, instruction, bindingContext);
-
-        if (this.hook3 !== null) {
-          this.hook3.beforeCreate(viewFactory, container, content, instruction, bindingContext);
-
-          if (this.additionalHooks !== null) {
-            let hooks = this.additionalHooks;
-            for (let i = 0, length = hooks.length; i < length; ++i) {
-              hooks[i].beforeCreate(viewFactory, container, content, instruction, bindingContext);
-            }
-          }
-        }
-      }
-    }
-  }
-
-  _onAfterCreate(view: View): void {
-    if (this.hasParent) {
-      this.parent._onAfterCreate(view);
-    }
-
-    if (this.hook1 !== null) {
-      this.hook1.afterCreate(view);
-
-      if (this.hook2 !== null) {
-        this.hook2.afterCreate(view);
-
-        if (this.hook3 !== null) {
-          this.hook3.afterCreate(view);
-
-          if (this.additionalHooks !== null) {
-            let hooks = this.additionalHooks;
-            for (let i = 0, length = hooks.length; i < length; ++i) {
-              hooks[i].afterCreate(view);
-            }
+          while (this[callbackName = name + counter.toString()] !== undefined) {
+            this[callbackName](one, two, three, four);
+            counter++;
           }
         }
       }
@@ -1114,21 +1069,12 @@ export class ViewResources {
   * @param hooks The hooks to register.
   */
   registerViewEngineHooks(hooks:ViewEngineHooks): void {
-    if (hooks.beforeCompile === undefined) hooks.beforeCompile = PLATFORM.noop;
-    if (hooks.afterCompile === undefined) hooks.afterCompile = PLATFORM.noop;
-    if (hooks.beforeCreate === undefined) hooks.beforeCreate = PLATFORM.noop;
-    if (hooks.afterCreate === undefined) hooks.afterCreate = PLATFORM.noop;
-
-    if (this.hook1 === null) this.hook1 = hooks;
-    else if (this.hook2 === null) this.hook2 = hooks;
-    else if (this.hook3 === null) this.hook3 = hooks;
-    else {
-      if (this.additionalHooks === null) {
-        this.additionalHooks = [];
-      }
-
-      this.additionalHooks.push(hooks);
-    }
+    this._tryAddHook(hooks, 'beforeCompile');
+    this._tryAddHook(hooks, 'afterCompile');
+    this._tryAddHook(hooks, 'beforeCreate');
+    this._tryAddHook(hooks, 'afterCreate');
+    this._tryAddHook(hooks, 'beforeBind');
+    this._tryAddHook(hooks, 'beforeUnbind');
   }
 
   /**
@@ -1284,6 +1230,7 @@ export class View {
   */
   constructor(viewFactory: ViewFactory, fragment: DocumentFragment, controllers: Controller[], bindings: Binding[], children: ViewNode[], contentSelectors: Array<Object>) {
     this.viewFactory = viewFactory;
+    this.resources = viewFactory.resources;
     this.fragment = fragment;
     this.controllers = controllers;
     this.bindings = bindings;
@@ -1350,6 +1297,8 @@ export class View {
     this.bindingContext = bindingContext;
     this.overrideContext = overrideContext || createOverrideContext(bindingContext);
 
+    this.resources._invokeHook('beforeBind', this);
+
     bindings = this.bindings;
     for (i = 0, ii = bindings.length; i < ii; ++i) {
       bindings[i].bind(this);
@@ -1395,6 +1344,8 @@ export class View {
 
     if (this.isBound) {
       this.isBound = false;
+      this.resources._invokeHook('beforeUnbind', this);
+
       this.bindingContext = null;
       this.overrideContext = null;
 
@@ -1657,6 +1608,7 @@ export class ViewSlot {
     this.anchor = anchor;
     this.viewAddMethod = anchorIsContainer ? 'appendNodesTo' : 'insertNodesBefore';
     this.bindingContext = null;
+    this.overrideContext = null;
     this.animator = animator;
     this.children = [];
     this.isBound = false;
@@ -1713,6 +1665,7 @@ export class ViewSlot {
 
     this.isBound = true;
     this.bindingContext = bindingContext = bindingContext || this.bindingContext;
+    this.overrideContext = overrideContext = overrideContext || this.overrideContext;
 
     children = this.children;
     for (i = 0, ii = children.length; i < ii; ++i) {
@@ -1731,6 +1684,7 @@ export class ViewSlot {
 
       this.isBound = false;
       this.bindingContext = null;
+      this.overrideContext = null;
 
       for (i = 0, ii = children.length; i < ii; ++i) {
         children[i].unbind();
@@ -2441,7 +2395,7 @@ export class ViewFactory {
     let instructable;
     let instruction;
 
-    this.resources._onBeforeCreate(this, container, fragment, createInstruction);
+    this.resources._invokeHook('beforeCreate', this, container, fragment, createInstruction);
 
     if (element !== null && this.surrogateInstruction !== null) {
       applySurrogateInstruction(container, element, this.surrogateInstruction, controllers, bindings, children);
@@ -2461,7 +2415,7 @@ export class ViewFactory {
       view.created();
     }
 
-    this.resources._onAfterCreate(view);
+    this.resources._invokeHook('afterCreate', view);
 
     return view;
   }
@@ -2556,7 +2510,7 @@ export class ViewCompiler {
     }
 
     compileInstruction.targetShadowDOM = compileInstruction.targetShadowDOM && FEATURE.shadowDOM;
-    resources._onBeforeCompile(content, resources, compileInstruction);
+    resources._invokeHook('beforeCompile', content, resources, compileInstruction);
 
     let instructions = {};
     this._compileNode(content, resources, instructions, source, 'root', !compileInstruction.targetShadowDOM);
@@ -2572,7 +2526,7 @@ export class ViewCompiler {
       factory.setCacheSize(cacheSize);
     }
 
-    resources._onAfterCompile(factory);
+    resources._invokeHook('afterCompile', factory);
 
     return factory;
   }
@@ -3842,7 +3796,7 @@ export class BindableProperty {
     } else if ('propertyChanged' in viewModel) {
       selfSubscriber = (newValue, oldValue) => viewModel.propertyChanged(name, newValue, oldValue);
     } else if (changeHandlerName !== null) {
-      throw new Error(`Change handler ${changeHandlerName} was specified but not delcared on the class.`);
+      throw new Error(`Change handler ${changeHandlerName} was specified but not declared on the class.`);
     }
 
     if (defaultValue !== undefined) {
