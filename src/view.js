@@ -151,9 +151,6 @@ export class View {
       this.isBound = false;
       this.resources._invokeHook('beforeUnbind', this);
 
-      this.bindingContext = null;
-      this.overrideContext = null;
-
       if (this.controller !== null) {
         this.controller.unbind();
       }
@@ -172,6 +169,9 @@ export class View {
       for (i = 0, ii = children.length; i < ii; ++i) {
         children[i].unbind();
       }
+
+      this.bindingContext = null;
+      this.overrideContext = null;
     }
   }
 
