@@ -15,7 +15,7 @@
 ---
 ## [Introduction](aurelia-doc://section/1/version/1.0.0)
 
-Custom attributess are a category of view resource, just like value converters, binding behaviors and custom elements.  Custom attributes provide the ability to alter the behavior or add functionality to any DOM element.
+Custom attributes are a category of view resource, just like value converters, binding behaviors and custom elements.  Custom attributes provide the ability to alter the behavior or add functionality to any DOM element.
 
 Custom attributes may work by simply being added to a DOM element, or they may require that a value be set for the attribute. The value may be a simple value, or a complex set of options. These options may or may not be known when a custom attribute is developed. Aurelia provides simple APIs to create custom attributes of all of these types, while the Aurelia templating engine provides strong databinding capabilities for custom attributes.
 
