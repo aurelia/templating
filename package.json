@@ -111,6 +111,10 @@
         {
           "title": "Templating: Custom Attributes",
           "href": "doc/article/en-US/templating-custom-attributes.md"
+        },
+        {
+          "title": "Templating: Custom Elements",
+          "href": "doc/article/en-US/templating-custom-elements.md"
         }
       ]
     }
