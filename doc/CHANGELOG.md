@@ -1,3 +1,13 @@
+### 1.0.0-beta.1.2.1 (2016-03-29)
+
+
+#### Bug Fixes
+
+* **BindableProperty:** enable specifying oneTime default binding mode ([a557aade](http://github.com/aurelia/templating/commit/a557aade002133144fa2e2106066d26af2037d78), closes [#298](http://github.com/aurelia/templating/issues/298))
+* **View:** preserve bindingContext while unbinding ([ae6feed0](http://github.com/aurelia/templating/commit/ae6feed008ee19dfb0ad9204c562a845c11213ef))
+* **view:** incorrect input to dynamic binding ([2069af08](http://github.com/aurelia/templating/commit/2069af0880057858b7758f67faf4f2f9ccdbc96f))
+
+
 ### 1.0.0-beta.1.2.0 (2016-03-22)
 
 

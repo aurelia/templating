@@ -1383,7 +1383,7 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
           this.bindings.push(binding);
 
           if (this.isBound) {
-            binding.bind(this.bindingContext);
+            binding.bind(this);
           }
         };
 
@@ -1397,9 +1397,6 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
           if (this.isBound) {
             this.isBound = false;
             this.resources._invokeHook('beforeUnbind', this);
-
-            this.bindingContext = null;
-            this.overrideContext = null;
 
             if (this.controller !== null) {
               this.controller.unbind();
@@ -1419,6 +1416,9 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
             for (i = 0, ii = children.length; i < ii; ++i) {
               children[i].unbind();
             }
+
+            this.bindingContext = null;
+            this.overrideContext = null;
           }
         };
 
@@ -3144,7 +3144,9 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
           }
 
           this.attribute = this.attribute || _hyphenate(this.name);
-          this.defaultBindingMode = this.defaultBindingMode || bindingMode.oneWay;
+          if (this.defaultBindingMode === null || this.defaultBindingMode === undefined) {
+            this.defaultBindingMode = bindingMode.oneWay;
+          }
           this.changeHandler = this.changeHandler || null;
           this.owner = null;
           this.descriptor = null;

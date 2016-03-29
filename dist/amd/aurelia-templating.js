@@ -931,7 +931,7 @@ define(['exports', 'aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aureli
       this.bindings.push(binding);
 
       if (this.isBound) {
-        binding.bind(this.bindingContext);
+        binding.bind(this);
       }
     };
 
@@ -945,9 +945,6 @@ define(['exports', 'aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aureli
       if (this.isBound) {
         this.isBound = false;
         this.resources._invokeHook('beforeUnbind', this);
-
-        this.bindingContext = null;
-        this.overrideContext = null;
 
         if (this.controller !== null) {
           this.controller.unbind();
@@ -967,6 +964,9 @@ define(['exports', 'aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aureli
         for (i = 0, ii = children.length; i < ii; ++i) {
           children[i].unbind();
         }
+
+        this.bindingContext = null;
+        this.overrideContext = null;
       }
     };
 
@@ -2985,7 +2985,9 @@ define(['exports', 'aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aureli
       }
 
       this.attribute = this.attribute || _hyphenate(this.name);
-      this.defaultBindingMode = this.defaultBindingMode || _aureliaBinding.bindingMode.oneWay;
+      if (this.defaultBindingMode === null || this.defaultBindingMode === undefined) {
+        this.defaultBindingMode = _aureliaBinding.bindingMode.oneWay;
+      }
       this.changeHandler = this.changeHandler || null;
       this.owner = null;
       this.descriptor = null;

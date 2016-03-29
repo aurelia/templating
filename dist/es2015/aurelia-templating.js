@@ -781,7 +781,7 @@ export let View = class View {
     this.bindings.push(binding);
 
     if (this.isBound) {
-      binding.bind(this.bindingContext);
+      binding.bind(this);
     }
   }
 
@@ -795,9 +795,6 @@ export let View = class View {
     if (this.isBound) {
       this.isBound = false;
       this.resources._invokeHook('beforeUnbind', this);
-
-      this.bindingContext = null;
-      this.overrideContext = null;
 
       if (this.controller !== null) {
         this.controller.unbind();
@@ -817,6 +814,9 @@ export let View = class View {
       for (i = 0, ii = children.length; i < ii; ++i) {
         children[i].unbind();
       }
+
+      this.bindingContext = null;
+      this.overrideContext = null;
     }
   }
 
@@ -2734,7 +2734,9 @@ export let BindableProperty = class BindableProperty {
     }
 
     this.attribute = this.attribute || _hyphenate(this.name);
-    this.defaultBindingMode = this.defaultBindingMode || bindingMode.oneWay;
+    if (this.defaultBindingMode === null || this.defaultBindingMode === undefined) {
+      this.defaultBindingMode = bindingMode.oneWay;
+    }
     this.changeHandler = this.changeHandler || null;
     this.owner = null;
     this.descriptor = null;

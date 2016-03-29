@@ -908,7 +908,7 @@ var View = exports.View = function () {
     this.bindings.push(binding);
 
     if (this.isBound) {
-      binding.bind(this.bindingContext);
+      binding.bind(this);
     }
   };
 
@@ -922,9 +922,6 @@ var View = exports.View = function () {
     if (this.isBound) {
       this.isBound = false;
       this.resources._invokeHook('beforeUnbind', this);
-
-      this.bindingContext = null;
-      this.overrideContext = null;
 
       if (this.controller !== null) {
         this.controller.unbind();
@@ -944,6 +941,9 @@ var View = exports.View = function () {
       for (i = 0, ii = children.length; i < ii; ++i) {
         children[i].unbind();
       }
+
+      this.bindingContext = null;
+      this.overrideContext = null;
     }
   };
 
@@ -2962,7 +2962,9 @@ var BindableProperty = exports.BindableProperty = function () {
     }
 
     this.attribute = this.attribute || _hyphenate(this.name);
-    this.defaultBindingMode = this.defaultBindingMode || _aureliaBinding.bindingMode.oneWay;
+    if (this.defaultBindingMode === null || this.defaultBindingMode === undefined) {
+      this.defaultBindingMode = _aureliaBinding.bindingMode.oneWay;
+    }
     this.changeHandler = this.changeHandler || null;
     this.owner = null;
     this.descriptor = null;
