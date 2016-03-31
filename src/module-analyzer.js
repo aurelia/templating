@@ -183,7 +183,7 @@ export class ModuleAnalyzer {
   * Creates an instance of ModuleAnalyzer.
   */
   constructor() {
-    this.cache = {};
+    this.cache = Object.create(null);
   }
 
   /**
