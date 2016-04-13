@@ -1014,11 +1014,11 @@ export class ViewResources {
       valueConverters: this.getValueConverter.bind(this),
       bindingBehaviors: this.getBindingBehavior.bind(this)
     };
-    this.attributes = {};
-    this.elements = {};
-    this.valueConverters = {};
-    this.bindingBehaviors = {};
-    this.attributeMap = {};
+    this.attributes = Object.create(null);
+    this.elements = Object.create(null);
+    this.valueConverters = Object.create(null);
+    this.bindingBehaviors = Object.create(null);
+    this.attributeMap = Object.create(null);
     this.beforeCompile = this.afterCompile = this.beforeCreate = this.afterCreate = this.beforeBind = this.beforeUnbind = false;
   }
 
@@ -3014,7 +3014,7 @@ export class ModuleAnalyzer {
   * Creates an instance of ModuleAnalyzer.
   */
   constructor() {
-    this.cache = {};
+    this.cache = Object.create(null);
   }
 
   /**

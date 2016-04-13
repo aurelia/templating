@@ -1,3 +1,12 @@
+### 1.0.0-beta.1.2.2 (2016-04-13)
+
+
+#### Bug Fixes
+
+* **module-analyzer:** ensure correct cache lookup ([eefd4c69](http://github.com/aurelia/templating/commit/eefd4c69a27d058e607b94e1d1b99582411d021b))
+* **view-resources:** ensure correct cache lookup ([53b51902](http://github.com/aurelia/templating/commit/53b519021e0890f2ec045597ee7ef04f49bf283a))
+
+
 ### 1.0.0-beta.1.2.1 (2016-03-29)
 
 
