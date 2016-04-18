@@ -25,9 +25,8 @@ Many custom elements will work directly on the DOM element they are attached to.
 
 The simplest custom attribute to create is one that changes the behavior of an element merely by being added to the element. The following attribute will make an HTML element be displayed as a 100 pixel square with a red background.
 
-<code-listing heading="red-square.${context.language.fileExtension}">
+<code-listing heading="red-square${context.language.fileExtension}">
   <source-code lang="ES 2015/2016">
-
     export class RedSquareCustomAttribute {
       static inject = [Element];
 
@@ -39,7 +38,6 @@ The simplest custom attribute to create is one that changes the behavior of an e
     }
   </source-code>
   <source-code lang="TypeScript">
-
     import {autoinject} from 'aurelia-framework';
 
     @autoinject
@@ -54,7 +52,6 @@ The simplest custom attribute to create is one that changes the behavior of an e
 
 <code-listing heading="simple-attribute-usage.html">
   <source-code lang="HTML">
-
     <template>
       <require from="./red-square"></require>
       <div red-square></div>
@@ -68,9 +65,8 @@ The attribute name is inferred via an Aurelia convention. This convention is `\$
 
 Overriding the default naming convention is possible by utilizing the `@customAttribute` decorator. Provide this decorator with the exact name for your attribute as below. Note that Aurelia does not convert from "init caps" to "dash-case" when using this decorator. It uses the exact value passed to the decorator.
 
-<code-listing heading="red-square.${context.language.fileExtension}">
+<code-listing heading="red-square${context.language.fileExtension}">
   <source-code lang="ES 2015/ES 2016/TypeScript">
-
     import {customAttribute} from 'aurelia-framework';
 
     @customAttribute('red-square')
@@ -85,9 +81,8 @@ Overriding the default naming convention is possible by utilizing the `@customAt
 
 Aurelia custom attributes support three different types of binding: single value binding, options binding, and dynamic options binding. The simplest of the three binding types is single value binding. Aurelia will automatically set the `value` property on the attribute's view-model. Note that this property is not set until databinding is complete. This means the `value` property will not be set in the custom attribute's constructor or in its `created` lifecycle event. It is available in the `bind` and later lifecycle events.
 
-<code-listing heading="square.${context.language.fileExtension}">
+<code-listing heading="square${context.language.fileExtension}">
   <source-code lang="ES 2015/2016">
-
     export class SquareCustomAttribute {
       static inject = [Element];
 
@@ -102,7 +97,6 @@ Aurelia custom attributes support three different types of binding: single value
     }
   </source-code>
   <source-code lang="TypeScript">
-
     import {autoinject} from 'aurelia-framework';
 
     @autoinject
@@ -120,7 +114,6 @@ Aurelia custom attributes support three different types of binding: single value
 
 <code-listing heading="Simple Attribute with Value Usage">
   <source-code lang="HTML">
-
     <template>
       <require from="./square"></require>
 
@@ -134,9 +127,8 @@ Aurelia custom attributes support three different types of binding: single value
 
 Note that in the above code sample, the color of the square will not be updated, even if the bound value is changed. This is because the attribute is not notified when the `value` property changes. Aurelia can notify a custom attribute when its value has changed, via the `valueChanged(newValue, oldValue)` callback function. The `valueChanged` callback function, if implemented on the view-model, will be called whenever the attribute's value changes. This function has two optional parameters, `newValue` and `oldValue`. These parameters will be set to the new value of the attribute and old value of the attribute, respectively. The `value` property is still set by Aurelia even if the `valueChanged` function is implemented.
 
-<code-listing heading="square.${context.language.fileExtension}">
+<code-listing heading="square${context.language.fileExtension}">
   <source-code lang="ES 2015/2016">
-
     export class SquareCustomAttribute {
       static inject = [Element];
 
@@ -151,7 +143,6 @@ Note that in the above code sample, the color of the square will not be updated,
     }
   </source-code>
   <source-code lang="TypeScript">
-
     import {autoinject} from 'aurelia-framework';
 
     @autoinject
@@ -169,7 +160,6 @@ Note that in the above code sample, the color of the square will not be updated,
 
 <code-listing heading="Simple Attribute with Value Usage">
   <source-code lang="HTML">
-
     <template>
       <require from="./square"></require>
 
@@ -188,9 +178,8 @@ When the user updates the value of the `color` property via the textbox, Aurelia
 
 Options binding provides a custom attribute the ability to have multiple bindable properties. Each bindable property must be specified using the `bindable` decorator. The attribute view-model may implement an optional `\${propertyName}Changed(newValue, oldValue)` callback function for each bindable property. When binding to these options, separate each option with a semicolon and supply a binding command or literal value as in the example below. It is important to note that bindable properties are converted to dash-case when used in the DOM, while the VM property they are bound to are kept with their original casing.
 
-<code-listing heading="square.${context.language.fileExtension}">
+<code-listing heading="square${context.language.fileExtension}">
   <source-code lang="ES 2015/2016">
-
     import {bindable, inject} from 'aurelia-framework';
 
     @inject(Element)
@@ -212,7 +201,6 @@ Options binding provides a custom attribute the ability to have multiple bindabl
     }
   </source-code>
   <source-code lang="TypeScript">
-
     import {bindable, autoinject} from 'aurelia-framework';
 
     @autoinject
@@ -236,7 +224,6 @@ Options binding provides a custom attribute the ability to have multiple bindabl
 
 <code-listing heading="Single Value Binding Usage">
   <source-code lang="HTML">
-
     <template>
       <require from="./square"></require>
 
@@ -249,9 +236,8 @@ Options binding provides a custom attribute the ability to have multiple bindabl
 
 Utilizing dynamic options, a custom attribute may deal with bindable properties where the name of the property is not known when creating the attribute. Simply decorate the attribute's view-model with the `dynamicOptions` decorator and implement the `propertyChanged(name, newValue, oldValue)` callback function. Aurelia will provide the name of the option that has changed along with new and old values for the option. Binding to a dynamic options attribute works exactly the same as binding to an options attribute in the DOM.
 
-<code-listing heading="square.${context.language.fileExtension}">
+<code-listing heading="square${context.language.fileExtension}">
   <source-code lang="ES 2015/2016">
-
     import {dynamicOptions, inject} from 'aurelia-framework';
 
     @dynamicOptions
@@ -277,7 +263,6 @@ Utilizing dynamic options, a custom attribute may deal with bindable properties 
     }
   </source-code>
   <source-code lang="TypeScript">
-
     import {dynamicOptions, autoinject} from 'aurelia-framework';
 
     @dynamicOptions
@@ -305,7 +290,6 @@ Utilizing dynamic options, a custom attribute may deal with bindable properties 
 
 <code-listing heading="Single Value Binding Usage">
   <source-code lang="HTML">
-
     <template>
       <require from="./square"></require>
 
