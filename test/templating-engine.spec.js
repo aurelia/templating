@@ -1,5 +1,6 @@
 ﻿import './setup';
 import {Container} from 'aurelia-dependency-injection';
+import {createOverrideContext} from 'aurelia-binding';
 import {TemplatingEngine} from '../src/templating-engine';
 import {ViewResources} from '../src/view-resources';
 import {DOM} from 'aurelia-pal';
@@ -17,7 +18,8 @@ describe('enhance', () => {
 
   it('passes bindingContext and overrideContext to .bind()', () => {
     let bindingContext = { some: 'var' };
-    let overrideContext = { foo: 'bar' };
+    let overrideContext = createOverrideContext(bindingContext);
+    overrideContext.foo = 'bar';
 
     let view = templatingEngine.enhance({
       element: element,
