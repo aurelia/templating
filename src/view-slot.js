@@ -163,6 +163,25 @@ export class ViewSlot {
       }
     }
   }
+  
+  /**
+   * Moves a view across the slot.
+   * @param sourceIndex The index the view is currently at.
+   * @param targetIndex The index to insert the view at.
+   */
+  move(sourceIndex, targetIndex) {
+    if (sourceIndex === targetIndex) {
+      return;
+    }
+
+    const children = this.children;
+    const view = children[sourceIndex];
+
+    view.removeNodes();
+    view.insertNodesBefore(children[targetIndex].firstChild);
+    children.splice(sourceIndex, 1);
+    children.splice(targetIndex, 0, view);
+  }
 
   /**
   * Removes a view from the slot.
