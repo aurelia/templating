@@ -30,6 +30,10 @@ interface EnhanceInstruction {
   * A binding context for the enhancement.
   */
   bindingContext?: Object;
+  /**
+  * A secondary binding context that can override the standard context.
+  */
+  overrideContext?: any;
 }
 
 /**
@@ -91,7 +95,7 @@ export class TemplatingEngine {
     let container = instruction.container || this._container.createChild();
     let view = factory.create(container, BehaviorInstruction.enhance());
 
-    view.bind(instruction.bindingContext || {});
+    view.bind(instruction.bindingContext || {}, instruction.overrideContext);
 
     return view;
   }
