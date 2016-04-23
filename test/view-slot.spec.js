@@ -152,6 +152,40 @@ describe('view-slot', () => {
       });
     });
 
+    describe('.move', () => {
+      it('moves a view across children when contains 3 already', () => {
+        viewSlot.add(view);
+        viewSlot.add(secondView);
+        viewSlot.add(thirdView);
+        viewSlot.move(2, 1);
+        expect(viewSlot.children.length).toEqual(3);
+        expect(viewSlot.children[1]).toEqual(thirdView);
+        expect(viewSlot.children[2]).toEqual(secondView);
+      });
+      
+      it('moves a view to the beginning of children when contains 3 already', () => {
+        viewSlot.add(view);
+        viewSlot.add(secondView);
+        viewSlot.add(thirdView);
+        viewSlot.move(2, 0);
+        expect(viewSlot.children.length).toEqual(3);
+        expect(viewSlot.children[0]).toEqual(thirdView);
+        expect(viewSlot.children[1]).toEqual(view);
+        expect(viewSlot.children[2]).toEqual(secondView);
+      });
+      
+      it('moves a view to the end of children when contains 3 already', () => {
+        viewSlot.add(view);
+        viewSlot.add(secondView);
+        viewSlot.add(thirdView);
+        viewSlot.move(0, 2);
+        expect(viewSlot.children.length).toEqual(3);
+        expect(viewSlot.children[0]).toEqual(secondView);
+        expect(viewSlot.children[1]).toEqual(thirdView);
+        expect(viewSlot.children[2]).toEqual(view);
+      });
+    });
+
     describe('.remove', () => {
       it('removes a view from children', () => {
         viewSlot.add(view);
