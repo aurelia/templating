@@ -237,6 +237,19 @@ describe('view-slot', () => {
       });
     });
 
+    describe('.removeMany', () => {
+      it('removes many views from children synchronously', () => {
+        viewSlot.add(view);
+        viewSlot.add(secondView);
+        viewSlot.add(thirdView);
+        expect(viewSlot.children.length).toEqual(3);
+        viewSlot.removeMany([view, thirdView]);
+        expect(viewSlot.children.length).toEqual(1);
+        viewSlot.removeMany([secondView]);
+        expect(viewSlot.children.length).toEqual(0);
+      });
+    });
+
     describe('.attached', () => {
       it('sets attached on the slot', () => {
         expect(viewSlot.isAttached).toEqual(false);
