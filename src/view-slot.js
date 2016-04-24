@@ -195,6 +195,61 @@ export class ViewSlot {
   }
 
   /**
+  * Removes many views from the slot.
+  * @param viewsToRemove The array of views to remove.
+  * @param returnToCache Should the views be returned to the view cache?
+  * @param skipAnimation Should the removal animation be skipped?
+  * @return May return a promise if the view removal triggered an animation.
+  */
+  removeMany(viewsToRemove: View[], returnToCache?: boolean, skipAnimation?: boolean): void | Promise<View> {
+    const children = this.children;
+    let ii = viewsToRemove.length;
+    let i;
+    let rmPromises = [];
+
+    viewsToRemove.forEach(child => {
+      if (skipAnimation) {
+        child.removeNodes();
+        return;
+      }
+
+      let animatableElement = getAnimatableElement(child);
+      if (animatableElement !== null) {
+        rmPromises.push(this.animator.leave(animatableElement).then(() => child.removeNodes()));
+      } else {
+        child.removeNodes();
+      }
+    });
+
+    let removeAction = () => {
+      if (this.isAttached) {
+        for (i = 0; i < ii; ++i) {
+          viewsToRemove[i].detached();
+        }
+      }
+
+      if (returnToCache) {
+        for (i = 0; i < ii; ++i) {
+          viewsToRemove[i].returnToCache();
+        }
+      }
+
+      for (i = 0; i < ii; ++i) {
+        const index = children.indexOf(viewsToRemove[i]);
+        if (index >= 0) {
+          children.splice(index, 1);
+        }
+      }
+    };
+
+    if (rmPromises.length > 0) {
+      return Promise.all(rmPromises).then(() => removeAction());
+    }
+
+    removeAction();
+  }
+
+  /**
   * Removes a view an a specified index from the slot.
   * @param index The index to remove the view at.
   * @param returnToCache Should the view be returned to the view cache?
