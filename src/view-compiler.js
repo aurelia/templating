@@ -121,7 +121,7 @@ export class ViewCompiler {
       return this._compileElement(node, resources, instructions, parentNode, parentInjectorId, targetLightDOM);
     case 3: //text node
       //use wholeText to retrieve the textContent of all adjacent text nodes.
-      let expression = resources.getBindingLanguage(this.bindingLanguage).parseText(resources, node.wholeText);
+      let expression = resources.getBindingLanguage(this.bindingLanguage).inspectTextContent(resources, node.wholeText);
       if (expression) {
         let marker = DOM.createElement('au-marker');
         let auTargetID = makeIntoInstructionTarget(marker);
@@ -153,6 +153,7 @@ export class ViewCompiler {
   }
 
   _compileSurrogate(node, resources) {
+    let tagName = node.tagName.toLowerCase();
     let attributes = node.attributes;
     let bindingLanguage = resources.getBindingLanguage(this.bindingLanguage);
     let knownAttribute;
@@ -177,7 +178,7 @@ export class ViewCompiler {
       attrName = attr.name;
       attrValue = attr.value;
 
-      info = bindingLanguage.inspectAttribute(resources, attrName, attrValue);
+      info = bindingLanguage.inspectAttribute(resources, tagName, attrName, attrValue);
       type = resources.getAttribute(info.attrName);
 
       if (type) { //do we have an attached behavior?
@@ -302,7 +303,7 @@ export class ViewCompiler {
       attr = attributes[i];
       attrName = attr.name;
       attrValue = attr.value;
-      info = bindingLanguage.inspectAttribute(resources, attrName, attrValue);
+      info = bindingLanguage.inspectAttribute(resources, tagName, attrName, attrValue);
       type = resources.getAttribute(info.attrName);
       elementProperty = null;
 

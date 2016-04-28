@@ -3,13 +3,13 @@ import {ViewCompiler} from '../src/view-compiler';
 import {ViewResources} from '../src/view-resources';
 
 class MockBindingLanguage {
-  inspectAttribute(resources, attrName, attrValue){
+  inspectAttribute(resources, elementName, attrName, attrValue){
   }
 
   createAttributeInstruction(resources, element, info, existingInstruction){
   }
 
-  parseText(resources, value){
+  inspectTextContent(resources, value){
   }
 }
 
@@ -31,10 +31,10 @@ describe('compileNode', () => {
     parentNode.appendChild(document.createTextNode(' '));
     parentNode.appendChild(document.createTextNode('World'));
     parentNode.appendChild(document.createTextNode('!'));
-    spyOn(language, 'parseText');
+    spyOn(language, 'inspectTextContent');
 
     node = viewCompiler._compileNode(node, resources, instructions, parentNode, parentInjectorId, targetLightDOM);
-    expect(language.parseText).toHaveBeenCalledWith(resources, 'Hello World!');
+    expect(language.inspectTextContent).toHaveBeenCalledWith(resources, 'Hello World!');
     expect(node).toBe(null);
   });
 
@@ -50,10 +50,10 @@ describe('compileNode', () => {
     nextNode.textContent = 'World';
     parentNode.appendChild(nextNode);
     parentNode.appendChild(document.createTextNode('!'));
-    spyOn(language, 'parseText');
+    spyOn(language, 'inspectTextContent');
 
     node = viewCompiler._compileNode(node, resources, instructions, parentNode, parentInjectorId, targetLightDOM);
-    expect(language.parseText).toHaveBeenCalledWith(resources, 'Hello ');
+    expect(language.inspectTextContent).toHaveBeenCalledWith(resources, 'Hello ');
     expect(node).toBe(nextNode);
   });
 
