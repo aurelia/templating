@@ -19,7 +19,7 @@ Custom attributes are a category of view resource, just like value converters, b
 
 Custom attributes may work by simply being added to a DOM element, or they may require that a value be set for the attribute. The value may be a simple value, or a complex set of options. These options may or may not be known when a custom attribute is developed. Aurelia provides simple APIs to create custom attributes of all of these types, while the Aurelia templating engine provides strong databinding capabilities for custom attributes.
 
-Many custom elements will work directly on the DOM element they are attached to. It is not necessary to search the DOM for the element a custom attribute is attached to. This is accomplished simply by requesting the element be injected into the attribute by Aurelia's Dependency Injection system. Simply request for an object of type `Element` to be injected in to your attribute. Aurelia will ensure you are provided with the DOM element the attribute has been attached to.
+Many custom attributes will work directly on the DOM element they are attached to. It is not necessary to search the DOM for the element a custom attribute is attached to. This is accomplished simply by requesting the element be injected into the attribute by Aurelia's Dependency Injection system. Simply request for an object of type `Element` to be injected in to your attribute. Aurelia will ensure you are provided with the DOM element the attribute has been attached to.
 
 ## [Simple Custom Attribute](aurelia-doc://section/2/version/1.0.0)
 
