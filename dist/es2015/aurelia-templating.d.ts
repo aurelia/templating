@@ -245,6 +245,11 @@ declare module 'aurelia-templating' {
       * A binding context for the enhancement.
       */
     bindingContext?: Object;
+    
+    /**
+      * A secondary binding context that can override the standard context.
+      */
+    overrideContext?: any;
   }
   
   /**
@@ -853,13 +858,14 @@ declare module 'aurelia-templating' {
     
     /**
       * Creates a View instance.
+      * @param container The container from which the view was created.
       * @param viewFactory The factory that created this view.
       * @param fragment The DOM fragement representing the view.
       * @param controllers The controllers inside this view.
       * @param bindings The bindings inside this view.
       * @param children The children of this view.
       */
-    constructor(viewFactory: ViewFactory, fragment: DocumentFragment, controllers: Controller[], bindings: Binding[], children: ViewNode[], contentSelectors: Array<Object>);
+    constructor(container: Container, viewFactory: ViewFactory, fragment: DocumentFragment, controllers: Controller[], bindings: Binding[], children: ViewNode[], contentSelectors: Array<Object>);
     
     /**
       * Returns this view to the appropriate view cache.
@@ -965,6 +971,13 @@ declare module 'aurelia-templating' {
     insert(index: number, view: View): void | Promise<any>;
     
     /**
+       * Moves a view across the slot.
+       * @param sourceIndex The index the view is currently at.
+       * @param targetIndex The index to insert the view at.
+       */
+    move(sourceIndex: any, targetIndex: any): any;
+    
+    /**
       * Removes a view from the slot.
       * @param view The view to remove.
       * @param returnToCache Should the view be returned to the view cache?
@@ -972,6 +985,15 @@ declare module 'aurelia-templating' {
       * @return May return a promise if the view removal triggered an animation.
       */
     remove(view: View, returnToCache?: boolean, skipAnimation?: boolean): void | Promise<View>;
+    
+    /**
+      * Removes many views from the slot.
+      * @param viewsToRemove The array of views to remove.
+      * @param returnToCache Should the views be returned to the view cache?
+      * @param skipAnimation Should the removal animation be skipped?
+      * @return May return a promise if the view removal triggered an animation.
+      */
+    removeMany(viewsToRemove: View[], returnToCache?: boolean, skipAnimation?: boolean): void | Promise<View>;
     
     /**
       * Removes a view an a specified index from the slot.

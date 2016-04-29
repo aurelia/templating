@@ -844,9 +844,10 @@ define(['exports', 'aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aureli
   }();
 
   var View = exports.View = function () {
-    function View(viewFactory, fragment, controllers, bindings, children, contentSelectors) {
+    function View(container, viewFactory, fragment, controllers, bindings, children, contentSelectors) {
       _classCallCheck(this, View);
 
+      this.container = container;
       this.viewFactory = viewFactory;
       this.resources = viewFactory.resources;
       this.fragment = fragment;
@@ -1298,21 +1299,89 @@ define(['exports', 'aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aureli
       }
     };
 
+    ViewSlot.prototype.move = function move(sourceIndex, targetIndex) {
+      if (sourceIndex === targetIndex) {
+        return;
+      }
+
+      var children = this.children;
+      var view = children[sourceIndex];
+
+      view.removeNodes();
+      view.insertNodesBefore(children[targetIndex].firstChild);
+      children.splice(sourceIndex, 1);
+      children.splice(targetIndex, 0, view);
+    };
+
     ViewSlot.prototype.remove = function remove(view, returnToCache, skipAnimation) {
       return this.removeAt(this.children.indexOf(view), returnToCache, skipAnimation);
     };
 
-    ViewSlot.prototype.removeAt = function removeAt(index, returnToCache, skipAnimation) {
+    ViewSlot.prototype.removeMany = function removeMany(viewsToRemove, returnToCache, skipAnimation) {
       var _this4 = this;
+
+      var children = this.children;
+      var ii = viewsToRemove.length;
+      var i = void 0;
+      var rmPromises = [];
+
+      viewsToRemove.forEach(function (child) {
+        if (skipAnimation) {
+          child.removeNodes();
+          return;
+        }
+
+        var animatableElement = getAnimatableElement(child);
+        if (animatableElement !== null) {
+          rmPromises.push(_this4.animator.leave(animatableElement).then(function () {
+            return child.removeNodes();
+          }));
+        } else {
+          child.removeNodes();
+        }
+      });
+
+      var removeAction = function removeAction() {
+        if (_this4.isAttached) {
+          for (i = 0; i < ii; ++i) {
+            viewsToRemove[i].detached();
+          }
+        }
+
+        if (returnToCache) {
+          for (i = 0; i < ii; ++i) {
+            viewsToRemove[i].returnToCache();
+          }
+        }
+
+        for (i = 0; i < ii; ++i) {
+          var index = children.indexOf(viewsToRemove[i]);
+          if (index >= 0) {
+            children.splice(index, 1);
+          }
+        }
+      };
+
+      if (rmPromises.length > 0) {
+        return Promise.all(rmPromises).then(function () {
+          return removeAction();
+        });
+      }
+
+      removeAction();
+    };
+
+    ViewSlot.prototype.removeAt = function removeAt(index, returnToCache, skipAnimation) {
+      var _this5 = this;
 
       var view = this.children[index];
 
       var removeAction = function removeAction() {
-        index = _this4.children.indexOf(view);
+        index = _this5.children.indexOf(view);
         view.removeNodes();
-        _this4.children.splice(index, 1);
+        _this5.children.splice(index, 1);
 
-        if (_this4.isAttached) {
+        if (_this5.isAttached) {
           view.detached();
         }
 
@@ -1336,7 +1405,7 @@ define(['exports', 'aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aureli
     };
 
     ViewSlot.prototype.removeAll = function removeAll(returnToCache, skipAnimation) {
-      var _this5 = this;
+      var _this6 = this;
 
       var children = this.children;
       var ii = children.length;
@@ -1351,7 +1420,7 @@ define(['exports', 'aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aureli
 
         var animatableElement = getAnimatableElement(child);
         if (animatableElement !== null) {
-          rmPromises.push(_this5.animator.leave(animatableElement).then(function () {
+          rmPromises.push(_this6.animator.leave(animatableElement).then(function () {
             return child.removeNodes();
           }));
         } else {
@@ -1360,7 +1429,7 @@ define(['exports', 'aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aureli
       });
 
       var removeAction = function removeAction() {
-        if (_this5.isAttached) {
+        if (_this6.isAttached) {
           for (i = 0; i < ii; ++i) {
             children[i].detached();
           }
@@ -1372,7 +1441,7 @@ define(['exports', 'aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aureli
           }
         }
 
-        _this5.children = [];
+        _this6.children = [];
       };
 
       if (rmPromises.length > 0) {
@@ -1889,7 +1958,7 @@ define(['exports', 'aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aureli
         applyInstructions(containers, instructable, instruction, controllers, bindings, children, contentSelectors, partReplacements, resources);
       }
 
-      view = new View(this, fragment, controllers, bindings, children, contentSelectors);
+      view = new View(container, this, fragment, controllers, bindings, children, contentSelectors);
 
       if (!createInstruction.initiatedByBehavior) {
         view.created();
@@ -2539,12 +2608,12 @@ define(['exports', 'aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aureli
 
   var ProxyViewFactory = function () {
     function ProxyViewFactory(promise) {
-      var _this6 = this;
+      var _this7 = this;
 
       _classCallCheck(this, ProxyViewFactory);
 
       promise.then(function (x) {
-        return _this6.viewFactory = x;
+        return _this7.viewFactory = x;
       });
     }
 
@@ -2593,7 +2662,7 @@ define(['exports', 'aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aureli
     };
 
     ViewEngine.prototype.loadViewFactory = function loadViewFactory(urlOrRegistryEntry, compileInstruction, loadContext) {
-      var _this7 = this;
+      var _this8 = this;
 
       loadContext = loadContext || new ResourceLoadContext();
 
@@ -2609,9 +2678,9 @@ define(['exports', 'aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aureli
 
         loadContext.addDependency(urlOrRegistryEntry);
 
-        registryEntry.onReady = _this7.loadTemplateResources(registryEntry, compileInstruction, loadContext).then(function (resources) {
+        registryEntry.onReady = _this8.loadTemplateResources(registryEntry, compileInstruction, loadContext).then(function (resources) {
           registryEntry.resources = resources;
-          var viewFactory = _this7.viewCompiler.compile(registryEntry.template, resources, compileInstruction);
+          var viewFactory = _this8.viewCompiler.compile(registryEntry.template, resources, compileInstruction);
           registryEntry.factory = viewFactory;
           return viewFactory;
         });
@@ -2644,30 +2713,30 @@ define(['exports', 'aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aureli
     };
 
     ViewEngine.prototype.importViewModelResource = function importViewModelResource(moduleImport, moduleMember) {
-      var _this8 = this;
+      var _this9 = this;
 
       return this.loader.loadModule(moduleImport).then(function (viewModelModule) {
         var normalizedId = _aureliaMetadata.Origin.get(viewModelModule).moduleId;
-        var resourceModule = _this8.moduleAnalyzer.analyze(normalizedId, viewModelModule, moduleMember);
+        var resourceModule = _this9.moduleAnalyzer.analyze(normalizedId, viewModelModule, moduleMember);
 
         if (!resourceModule.mainResource) {
           throw new Error('No view model found in module "' + moduleImport + '".');
         }
 
-        resourceModule.initialize(_this8.container);
+        resourceModule.initialize(_this9.container);
 
         return resourceModule.mainResource;
       });
     };
 
     ViewEngine.prototype.importViewResources = function importViewResources(moduleIds, names, resources, compileInstruction, loadContext) {
-      var _this9 = this;
+      var _this10 = this;
 
       loadContext = loadContext || new ResourceLoadContext();
       compileInstruction = compileInstruction || ViewCompileInstruction.normal;
 
       moduleIds = moduleIds.map(function (x) {
-        return _this9._applyLoaderPlugin(x);
+        return _this10._applyLoaderPlugin(x);
       });
 
       return this.loader.loadAllModules(moduleIds).then(function (imports) {
@@ -2677,8 +2746,8 @@ define(['exports', 'aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aureli
         var normalizedId = void 0;
         var current = void 0;
         var associatedModule = void 0;
-        var container = _this9.container;
-        var moduleAnalyzer = _this9.moduleAnalyzer;
+        var container = _this10.container;
+        var moduleAnalyzer = _this10.moduleAnalyzer;
         var allAnalysis = new Array(imports.length);
 
         for (i = 0, ii = imports.length; i < ii; ++i) {
@@ -3310,7 +3379,7 @@ define(['exports', 'aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aureli
     };
 
     HtmlBehaviorResource.prototype.load = function load(container, target, loadContext, viewStrategy, transientView) {
-      var _this10 = this;
+      var _this11 = this;
 
       var options = void 0;
 
@@ -3323,8 +3392,8 @@ define(['exports', 'aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aureli
         }
 
         return viewStrategy.loadViewFactory(container.get(ViewEngine), options, loadContext).then(function (viewFactory) {
-          if (!transientView || !_this10.viewFactory) {
-            _this10.viewFactory = viewFactory;
+          if (!transientView || !_this11.viewFactory) {
+            _this11.viewFactory = viewFactory;
           }
 
           return viewFactory;
@@ -3813,7 +3882,7 @@ define(['exports', 'aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aureli
     };
 
     CompositionEngine.prototype.createController = function createController(context) {
-      var _this11 = this;
+      var _this12 = this;
 
       var childContainer = void 0;
       var viewModel = void 0;
@@ -3826,7 +3895,7 @@ define(['exports', 'aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aureli
         viewModelResource = context.viewModelResource;
         m = viewModelResource.metadata;
 
-        var viewStrategy = _this11.viewLocator.getViewStrategy(context.view || viewModel);
+        var viewStrategy = _this12.viewLocator.getViewStrategy(context.view || viewModel);
 
         if (context.viewResources) {
           viewStrategy.makeRelativeTo(context.viewResources.viewUrl);
@@ -4126,7 +4195,7 @@ define(['exports', 'aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aureli
       var container = instruction.container || this._container.createChild();
       var view = factory.create(container, BehaviorInstruction.enhance());
 
-      view.bind(instruction.bindingContext || {});
+      view.bind(instruction.bindingContext || {}, instruction.overrideContext);
 
       return view;
     };
