@@ -163,7 +163,7 @@ export class ViewSlot {
       }
     }
   }
-  
+
   /**
    * Moves a view across the slot.
    * @param sourceIndex The index the view is currently at.
