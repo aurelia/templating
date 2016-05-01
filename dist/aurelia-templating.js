@@ -1222,13 +1222,15 @@ interface ViewNode {
 export class View {
   /**
   * Creates a View instance.
+  * @param container The container from which the view was created.
   * @param viewFactory The factory that created this view.
   * @param fragment The DOM fragement representing the view.
   * @param controllers The controllers inside this view.
   * @param bindings The bindings inside this view.
   * @param children The children of this view.
   */
-  constructor(viewFactory: ViewFactory, fragment: DocumentFragment, controllers: Controller[], bindings: Binding[], children: ViewNode[], contentSelectors: Array<Object>) {
+  constructor(container: Container, viewFactory: ViewFactory, fragment: DocumentFragment, controllers: Controller[], bindings: Binding[], children: ViewNode[], contentSelectors: Array<Object>) {
+    this.container = container;
     this.viewFactory = viewFactory;
     this.resources = viewFactory.resources;
     this.fragment = fragment;
@@ -1737,6 +1739,25 @@ export class ViewSlot {
       }
     }
   }
+  
+  /**
+   * Moves a view across the slot.
+   * @param sourceIndex The index the view is currently at.
+   * @param targetIndex The index to insert the view at.
+   */
+  move(sourceIndex, targetIndex) {
+    if (sourceIndex === targetIndex) {
+      return;
+    }
+
+    const children = this.children;
+    const view = children[sourceIndex];
+
+    view.removeNodes();
+    view.insertNodesBefore(children[targetIndex].firstChild);
+    children.splice(sourceIndex, 1);
+    children.splice(targetIndex, 0, view);
+  }
 
   /**
   * Removes a view from the slot.
@@ -1747,6 +1768,61 @@ export class ViewSlot {
   */
   remove(view: View, returnToCache?: boolean, skipAnimation?: boolean): void | Promise<View> {
     return this.removeAt(this.children.indexOf(view), returnToCache, skipAnimation);
+  }
+
+  /**
+  * Removes many views from the slot.
+  * @param viewsToRemove The array of views to remove.
+  * @param returnToCache Should the views be returned to the view cache?
+  * @param skipAnimation Should the removal animation be skipped?
+  * @return May return a promise if the view removal triggered an animation.
+  */
+  removeMany(viewsToRemove: View[], returnToCache?: boolean, skipAnimation?: boolean): void | Promise<View> {
+    const children = this.children;
+    let ii = viewsToRemove.length;
+    let i;
+    let rmPromises = [];
+
+    viewsToRemove.forEach(child => {
+      if (skipAnimation) {
+        child.removeNodes();
+        return;
+      }
+
+      let animatableElement = getAnimatableElement(child);
+      if (animatableElement !== null) {
+        rmPromises.push(this.animator.leave(animatableElement).then(() => child.removeNodes()));
+      } else {
+        child.removeNodes();
+      }
+    });
+
+    let removeAction = () => {
+      if (this.isAttached) {
+        for (i = 0; i < ii; ++i) {
+          viewsToRemove[i].detached();
+        }
+      }
+
+      if (returnToCache) {
+        for (i = 0; i < ii; ++i) {
+          viewsToRemove[i].returnToCache();
+        }
+      }
+
+      for (i = 0; i < ii; ++i) {
+        const index = children.indexOf(viewsToRemove[i]);
+        if (index >= 0) {
+          children.splice(index, 1);
+        }
+      }
+    };
+
+    if (rmPromises.length > 0) {
+      return Promise.all(rmPromises).then(() => removeAction());
+    }
+
+    removeAction();
   }
 
   /**
@@ -2408,7 +2484,7 @@ export class ViewFactory {
       applyInstructions(containers, instructable, instruction, controllers, bindings, children, contentSelectors, partReplacements, resources);
     }
 
-    view = new View(this, fragment, controllers, bindings, children, contentSelectors);
+    view = new View(container, this, fragment, controllers, bindings, children, contentSelectors);
 
     //if iniated by an element behavior, let the behavior trigger this callback once it's done creating the element
     if (!createInstruction.initiatedByBehavior) {
@@ -5039,6 +5115,10 @@ interface EnhanceInstruction {
   * A binding context for the enhancement.
   */
   bindingContext?: Object;
+  /**
+  * A secondary binding context that can override the standard context.
+  */
+  overrideContext?: any;
 }
 
 /**
@@ -5100,7 +5180,7 @@ export class TemplatingEngine {
     let container = instruction.container || this._container.createChild();
     let view = factory.create(container, BehaviorInstruction.enhance());
 
-    view.bind(instruction.bindingContext || {});
+    view.bind(instruction.bindingContext || {}, instruction.overrideContext);
 
     return view;
   }

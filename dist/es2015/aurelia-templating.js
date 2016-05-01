@@ -696,7 +696,8 @@ export let ViewResources = class ViewResources {
 };
 
 export let View = class View {
-  constructor(viewFactory, fragment, controllers, bindings, children, contentSelectors) {
+  constructor(container, viewFactory, fragment, controllers, bindings, children, contentSelectors) {
+    this.container = container;
     this.viewFactory = viewFactory;
     this.resources = viewFactory.resources;
     this.fragment = fragment;
@@ -1136,8 +1137,70 @@ export let ViewSlot = class ViewSlot {
     }
   }
 
+  move(sourceIndex, targetIndex) {
+    if (sourceIndex === targetIndex) {
+      return;
+    }
+
+    const children = this.children;
+    const view = children[sourceIndex];
+
+    view.removeNodes();
+    view.insertNodesBefore(children[targetIndex].firstChild);
+    children.splice(sourceIndex, 1);
+    children.splice(targetIndex, 0, view);
+  }
+
   remove(view, returnToCache, skipAnimation) {
     return this.removeAt(this.children.indexOf(view), returnToCache, skipAnimation);
+  }
+
+  removeMany(viewsToRemove, returnToCache, skipAnimation) {
+    const children = this.children;
+    let ii = viewsToRemove.length;
+    let i;
+    let rmPromises = [];
+
+    viewsToRemove.forEach(child => {
+      if (skipAnimation) {
+        child.removeNodes();
+        return;
+      }
+
+      let animatableElement = getAnimatableElement(child);
+      if (animatableElement !== null) {
+        rmPromises.push(this.animator.leave(animatableElement).then(() => child.removeNodes()));
+      } else {
+        child.removeNodes();
+      }
+    });
+
+    let removeAction = () => {
+      if (this.isAttached) {
+        for (i = 0; i < ii; ++i) {
+          viewsToRemove[i].detached();
+        }
+      }
+
+      if (returnToCache) {
+        for (i = 0; i < ii; ++i) {
+          viewsToRemove[i].returnToCache();
+        }
+      }
+
+      for (i = 0; i < ii; ++i) {
+        const index = children.indexOf(viewsToRemove[i]);
+        if (index >= 0) {
+          children.splice(index, 1);
+        }
+      }
+    };
+
+    if (rmPromises.length > 0) {
+      return Promise.all(rmPromises).then(() => removeAction());
+    }
+
+    removeAction();
   }
 
   removeAt(index, returnToCache, skipAnimation) {
@@ -1696,7 +1759,7 @@ export let ViewFactory = class ViewFactory {
       applyInstructions(containers, instructable, instruction, controllers, bindings, children, contentSelectors, partReplacements, resources);
     }
 
-    view = new View(this, fragment, controllers, bindings, children, contentSelectors);
+    view = new View(container, this, fragment, controllers, bindings, children, contentSelectors);
 
     if (!createInstruction.initiatedByBehavior) {
       view.created();
@@ -3833,7 +3896,7 @@ export let TemplatingEngine = (_dec10 = inject(Container, ModuleAnalyzer, ViewCo
     let container = instruction.container || this._container.createChild();
     let view = factory.create(container, BehaviorInstruction.enhance());
 
-    view.bind(instruction.bindingContext || {});
+    view.bind(instruction.bindingContext || {}, instruction.overrideContext);
 
     return view;
   }

@@ -1,4 +1,5 @@
 import {Binding, createOverrideContext} from 'aurelia-binding';
+import {Container} from 'aurelia-dependency-injection';
 
 /**
 * Represents a node in the view hierarchy.
@@ -27,13 +28,15 @@ interface ViewNode {
 export class View {
   /**
   * Creates a View instance.
+  * @param container The container from which the view was created.
   * @param viewFactory The factory that created this view.
   * @param fragment The DOM fragement representing the view.
   * @param controllers The controllers inside this view.
   * @param bindings The bindings inside this view.
   * @param children The children of this view.
   */
-  constructor(viewFactory: ViewFactory, fragment: DocumentFragment, controllers: Controller[], bindings: Binding[], children: ViewNode[], contentSelectors: Array<Object>) {
+  constructor(container: Container, viewFactory: ViewFactory, fragment: DocumentFragment, controllers: Controller[], bindings: Binding[], children: ViewNode[], contentSelectors: Array<Object>) {
+    this.container = container;
     this.viewFactory = viewFactory;
     this.resources = viewFactory.resources;
     this.fragment = fragment;

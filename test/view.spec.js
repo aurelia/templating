@@ -5,6 +5,7 @@ describe('View', () => {
     let view;
     let bindingContext = {};
     let overrideContext = {};
+    let container = {};
     let viewFactory = { resources: { _invokeHook: jasmine.createSpy('_invokeHook') } };
     let fragment = {};
     let controllers = [{ bind: jasmine.createSpy('bind'), unbind: jasmine.createSpy('unbind') }];
@@ -18,7 +19,7 @@ describe('View', () => {
     }];
     let children = [{ bind: jasmine.createSpy('bind'), unbind: jasmine.createSpy('unbind') }];
     let contentSelectors = [];
-    view = new View(viewFactory, fragment, controllers, bindings, children, contentSelectors);
+    view = new View(container, viewFactory, fragment, controllers, bindings, children, contentSelectors);
     view.bind(bindingContext, overrideContext);
     expect(viewFactory.resources._invokeHook).toHaveBeenCalledWith('beforeBind', view);
     expect(controllers[0].bind).toHaveBeenCalledWith(view);

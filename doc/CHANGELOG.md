@@ -1,3 +1,19 @@
+### 1.0.0-beta.1.2.3 (2016-04-29)
+
+
+#### Bug Fixes
+
+* **templating-engine:** allow for overrideContext in enhance ([49c99edf](http://github.com/aurelia/templating/commit/49c99edf254d3102feae8e1cac6f9edb292b109c))
+
+
+#### Features
+
+* **ViewSlot:**
+  * allow removal of many views at once to avoid a race condition ([4b1005b9](http://github.com/aurelia/templating/commit/4b1005b91213a26ff726f9ae29aea7ac09353330))
+  * moving Views across the slot ([02e59ef1](http://github.com/aurelia/templating/commit/02e59ef14051a2a03f9d5d2dbd8a0b6e9cb45c17))
+* **view:** reference creator container ([9431f536](http://github.com/aurelia/templating/commit/9431f536e6d57ce8ef654eea872c8d795ea02fd5))
+
+
 ### 1.0.0-beta.1.2.2 (2016-04-13)
 
 

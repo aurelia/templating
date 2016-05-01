@@ -430,7 +430,7 @@ export class ViewFactory {
       applyInstructions(containers, instructable, instruction, controllers, bindings, children, contentSelectors, partReplacements, resources);
     }
 
-    view = new View(this, fragment, controllers, bindings, children, contentSelectors);
+    view = new View(container, this, fragment, controllers, bindings, children, contentSelectors);
 
     //if iniated by an element behavior, let the behavior trigger this callback once it's done creating the element
     if (!createInstruction.initiatedByBehavior) {
