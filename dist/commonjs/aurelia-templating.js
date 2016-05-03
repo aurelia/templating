@@ -656,7 +656,7 @@ var BindingLanguage = exports.BindingLanguage = function () {
     _classCallCheck(this, BindingLanguage);
   }
 
-  BindingLanguage.prototype.inspectAttribute = function inspectAttribute(resources, attrName, attrValue) {
+  BindingLanguage.prototype.inspectAttribute = function inspectAttribute(resources, elementName, attrName, attrValue) {
     throw new Error('A BindingLanguage must implement inspectAttribute(...)');
   };
 
@@ -664,8 +664,8 @@ var BindingLanguage = exports.BindingLanguage = function () {
     throw new Error('A BindingLanguage must implement createAttributeInstruction(...)');
   };
 
-  BindingLanguage.prototype.parseText = function parseText(resources, value) {
-    throw new Error('A BindingLanguage must implement parseText(...)');
+  BindingLanguage.prototype.inspectTextContent = function inspectTextContent(resources, value) {
+    throw new Error('A BindingLanguage must implement inspectTextContent(...)');
   };
 
   return BindingLanguage;
@@ -2050,7 +2050,7 @@ var ViewCompiler = exports.ViewCompiler = (_dec6 = (0, _aureliaDependencyInjecti
       case 1:
         return this._compileElement(node, resources, instructions, parentNode, parentInjectorId, targetLightDOM);
       case 3:
-        var expression = resources.getBindingLanguage(this.bindingLanguage).parseText(resources, node.wholeText);
+        var expression = resources.getBindingLanguage(this.bindingLanguage).inspectTextContent(resources, node.wholeText);
         if (expression) {
           var marker = _aureliaPal.DOM.createElement('au-marker');
           var auTargetID = makeIntoInstructionTarget(marker);
@@ -2081,6 +2081,7 @@ var ViewCompiler = exports.ViewCompiler = (_dec6 = (0, _aureliaDependencyInjecti
   };
 
   ViewCompiler.prototype._compileSurrogate = function _compileSurrogate(node, resources) {
+    var tagName = node.tagName.toLowerCase();
     var attributes = node.attributes;
     var bindingLanguage = resources.getBindingLanguage(this.bindingLanguage);
     var knownAttribute = void 0;
@@ -2105,7 +2106,7 @@ var ViewCompiler = exports.ViewCompiler = (_dec6 = (0, _aureliaDependencyInjecti
       attrName = attr.name;
       attrValue = attr.value;
 
-      info = bindingLanguage.inspectAttribute(resources, attrName, attrValue);
+      info = bindingLanguage.inspectAttribute(resources, tagName, attrName, attrValue);
       type = resources.getAttribute(info.attrName);
 
       if (type) {
@@ -2230,7 +2231,7 @@ var ViewCompiler = exports.ViewCompiler = (_dec6 = (0, _aureliaDependencyInjecti
       attr = attributes[i];
       attrName = attr.name;
       attrValue = attr.value;
-      info = bindingLanguage.inspectAttribute(resources, attrName, attrValue);
+      info = bindingLanguage.inspectAttribute(resources, tagName, attrName, attrValue);
       type = resources.getAttribute(info.attrName);
       elementProperty = null;
 

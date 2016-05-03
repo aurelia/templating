@@ -719,11 +719,12 @@ declare module 'aurelia-templating' {
     /**
       * Inspects an attribute for bindings.
       * @param resources The ViewResources for the view being compiled.
+      * @param elementName The element name to inspect.
       * @param attrName The attribute name to inspect.
-      * @param attrValue The attribute value to inspce.
+      * @param attrValue The attribute value to inspect.
       * @return An info object with the results of the inspection.
       */
-    inspectAttribute(resources: ViewResources, attrName: string, attrValue: string): Object;
+    inspectAttribute(resources: ViewResources, elementName: string, attrName: string, attrValue: string): Object;
     
     /**
       * Creates an attribute behavior instruction.
@@ -741,7 +742,7 @@ declare module 'aurelia-templating' {
       * @param value The value of the text to parse.
       * @return A binding expression.
       */
-    parseText(resources: ViewResources, value: string): Object;
+    inspectTextContent(resources: ViewResources, value: string): Object;
   }
   
   /**

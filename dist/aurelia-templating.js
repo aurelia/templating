@@ -901,11 +901,12 @@ export class BindingLanguage {
   /**
   * Inspects an attribute for bindings.
   * @param resources The ViewResources for the view being compiled.
+  * @param elementName The element name to inspect.
   * @param attrName The attribute name to inspect.
-  * @param attrValue The attribute value to inspce.
+  * @param attrValue The attribute value to inspect.
   * @return An info object with the results of the inspection.
   */
-  inspectAttribute(resources: ViewResources, attrName: string, attrValue: string): Object {
+  inspectAttribute(resources: ViewResources, elementName: string, attrName: string, attrValue: string): Object {
     throw new Error('A BindingLanguage must implement inspectAttribute(...)');
   }
 
@@ -927,8 +928,8 @@ export class BindingLanguage {
   * @param value The value of the text to parse.
   * @return A binding expression.
   */
-  parseText(resources: ViewResources, value: string): Object {
-    throw new Error('A BindingLanguage must implement parseText(...)');
+  inspectTextContent(resources: ViewResources, value: string): Object {
+    throw new Error('A BindingLanguage must implement inspectTextContent(...)');
   }
 }
 
@@ -1739,7 +1740,7 @@ export class ViewSlot {
       }
     }
   }
-  
+
   /**
    * Moves a view across the slot.
    * @param sourceIndex The index the view is currently at.
@@ -2613,7 +2614,7 @@ export class ViewCompiler {
       return this._compileElement(node, resources, instructions, parentNode, parentInjectorId, targetLightDOM);
     case 3: //text node
       //use wholeText to retrieve the textContent of all adjacent text nodes.
-      let expression = resources.getBindingLanguage(this.bindingLanguage).parseText(resources, node.wholeText);
+      let expression = resources.getBindingLanguage(this.bindingLanguage).inspectTextContent(resources, node.wholeText);
       if (expression) {
         let marker = DOM.createElement('au-marker');
         let auTargetID = makeIntoInstructionTarget(marker);
@@ -2645,6 +2646,7 @@ export class ViewCompiler {
   }
 
   _compileSurrogate(node, resources) {
+    let tagName = node.tagName.toLowerCase();
     let attributes = node.attributes;
     let bindingLanguage = resources.getBindingLanguage(this.bindingLanguage);
     let knownAttribute;
@@ -2669,7 +2671,7 @@ export class ViewCompiler {
       attrName = attr.name;
       attrValue = attr.value;
 
-      info = bindingLanguage.inspectAttribute(resources, attrName, attrValue);
+      info = bindingLanguage.inspectAttribute(resources, tagName, attrName, attrValue);
       type = resources.getAttribute(info.attrName);
 
       if (type) { //do we have an attached behavior?
@@ -2794,7 +2796,7 @@ export class ViewCompiler {
       attr = attributes[i];
       attrName = attr.name;
       attrValue = attr.value;
-      info = bindingLanguage.inspectAttribute(resources, attrName, attrValue);
+      info = bindingLanguage.inspectAttribute(resources, tagName, attrName, attrValue);
       type = resources.getAttribute(info.attrName);
       elementProperty = null;
 

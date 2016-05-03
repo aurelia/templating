@@ -1144,7 +1144,7 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
           _classCallCheck(this, BindingLanguage);
         }
 
-        BindingLanguage.prototype.inspectAttribute = function inspectAttribute(resources, attrName, attrValue) {
+        BindingLanguage.prototype.inspectAttribute = function inspectAttribute(resources, elementName, attrName, attrValue) {
           throw new Error('A BindingLanguage must implement inspectAttribute(...)');
         };
 
@@ -1152,8 +1152,8 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
           throw new Error('A BindingLanguage must implement createAttributeInstruction(...)');
         };
 
-        BindingLanguage.prototype.parseText = function parseText(resources, value) {
-          throw new Error('A BindingLanguage must implement parseText(...)');
+        BindingLanguage.prototype.inspectTextContent = function inspectTextContent(resources, value) {
+          throw new Error('A BindingLanguage must implement inspectTextContent(...)');
         };
 
         return BindingLanguage;
@@ -2242,7 +2242,7 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
             case 1:
               return this._compileElement(node, resources, instructions, parentNode, parentInjectorId, targetLightDOM);
             case 3:
-              var expression = resources.getBindingLanguage(this.bindingLanguage).parseText(resources, node.wholeText);
+              var expression = resources.getBindingLanguage(this.bindingLanguage).inspectTextContent(resources, node.wholeText);
               if (expression) {
                 var marker = DOM.createElement('au-marker');
                 var auTargetID = makeIntoInstructionTarget(marker);
@@ -2273,6 +2273,7 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
         };
 
         ViewCompiler.prototype._compileSurrogate = function _compileSurrogate(node, resources) {
+          var tagName = node.tagName.toLowerCase();
           var attributes = node.attributes;
           var bindingLanguage = resources.getBindingLanguage(this.bindingLanguage);
           var knownAttribute = void 0;
@@ -2297,7 +2298,7 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
             attrName = attr.name;
             attrValue = attr.value;
 
-            info = bindingLanguage.inspectAttribute(resources, attrName, attrValue);
+            info = bindingLanguage.inspectAttribute(resources, tagName, attrName, attrValue);
             type = resources.getAttribute(info.attrName);
 
             if (type) {
@@ -2422,7 +2423,7 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
             attr = attributes[i];
             attrName = attr.name;
             attrValue = attr.value;
-            info = bindingLanguage.inspectAttribute(resources, attrName, attrValue);
+            info = bindingLanguage.inspectAttribute(resources, tagName, attrName, attrValue);
             type = resources.getAttribute(info.attrName);
             elementProperty = null;
 

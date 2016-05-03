@@ -537,7 +537,7 @@ export let ViewLocator = (_temp2 = _class9 = class ViewLocator {
 }, _class9.viewStrategyMetadataKey = 'aurelia:view-strategy', _temp2);
 
 export let BindingLanguage = class BindingLanguage {
-  inspectAttribute(resources, attrName, attrValue) {
+  inspectAttribute(resources, elementName, attrName, attrValue) {
     throw new Error('A BindingLanguage must implement inspectAttribute(...)');
   }
 
@@ -545,8 +545,8 @@ export let BindingLanguage = class BindingLanguage {
     throw new Error('A BindingLanguage must implement createAttributeInstruction(...)');
   }
 
-  parseText(resources, value) {
-    throw new Error('A BindingLanguage must implement parseText(...)');
+  inspectTextContent(resources, value) {
+    throw new Error('A BindingLanguage must implement inspectTextContent(...)');
   }
 };
 
@@ -1870,7 +1870,7 @@ export let ViewCompiler = (_dec6 = inject(BindingLanguage, ViewResources), _dec6
       case 1:
         return this._compileElement(node, resources, instructions, parentNode, parentInjectorId, targetLightDOM);
       case 3:
-        let expression = resources.getBindingLanguage(this.bindingLanguage).parseText(resources, node.wholeText);
+        let expression = resources.getBindingLanguage(this.bindingLanguage).inspectTextContent(resources, node.wholeText);
         if (expression) {
           let marker = DOM.createElement('au-marker');
           let auTargetID = makeIntoInstructionTarget(marker);
@@ -1901,6 +1901,7 @@ export let ViewCompiler = (_dec6 = inject(BindingLanguage, ViewResources), _dec6
   }
 
   _compileSurrogate(node, resources) {
+    let tagName = node.tagName.toLowerCase();
     let attributes = node.attributes;
     let bindingLanguage = resources.getBindingLanguage(this.bindingLanguage);
     let knownAttribute;
@@ -1925,7 +1926,7 @@ export let ViewCompiler = (_dec6 = inject(BindingLanguage, ViewResources), _dec6
       attrName = attr.name;
       attrValue = attr.value;
 
-      info = bindingLanguage.inspectAttribute(resources, attrName, attrValue);
+      info = bindingLanguage.inspectAttribute(resources, tagName, attrName, attrValue);
       type = resources.getAttribute(info.attrName);
 
       if (type) {
@@ -2050,7 +2051,7 @@ export let ViewCompiler = (_dec6 = inject(BindingLanguage, ViewResources), _dec6
       attr = attributes[i];
       attrName = attr.name;
       attrValue = attr.value;
-      info = bindingLanguage.inspectAttribute(resources, attrName, attrValue);
+      info = bindingLanguage.inspectAttribute(resources, tagName, attrName, attrValue);
       type = resources.getAttribute(info.attrName);
       elementProperty = null;
 
