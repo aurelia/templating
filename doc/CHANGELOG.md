@@ -1,3 +1,11 @@
+### 1.0.0-beta.1.2.5 (2016-05-05)
+
+
+#### Features
+
+* **view-compiler:** add element to processAttributes ([d753e672](http://github.com/aurelia/templating/commit/d753e672b2a0ca6069e9fdfcd1a71458ee9c30e0))
+
+
 ### 1.0.0-beta.1.2.4 (2016-05-03)
 
 

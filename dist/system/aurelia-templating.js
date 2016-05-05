@@ -2414,7 +2414,7 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
             type = resources.getElement(node.getAttribute('as-element') || tagName);
             if (type) {
               elementInstruction = BehaviorInstruction.element(node, type);
-              type.processAttributes(this, resources, attributes, elementInstruction);
+              type.processAttributes(this, resources, node, attributes, elementInstruction);
               behaviorInstructions.push(elementInstruction);
             }
           }

@@ -2042,7 +2042,7 @@ export let ViewCompiler = (_dec6 = inject(BindingLanguage, ViewResources), _dec6
       type = resources.getElement(node.getAttribute('as-element') || tagName);
       if (type) {
         elementInstruction = BehaviorInstruction.element(node, type);
-        type.processAttributes(this, resources, attributes, elementInstruction);
+        type.processAttributes(this, resources, node, attributes, elementInstruction);
         behaviorInstructions.push(elementInstruction);
       }
     }

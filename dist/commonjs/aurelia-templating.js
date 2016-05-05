@@ -2222,7 +2222,7 @@ var ViewCompiler = exports.ViewCompiler = (_dec6 = (0, _aureliaDependencyInjecti
       type = resources.getElement(node.getAttribute('as-element') || tagName);
       if (type) {
         elementInstruction = BehaviorInstruction.element(node, type);
-        type.processAttributes(this, resources, attributes, elementInstruction);
+        type.processAttributes(this, resources, node, attributes, elementInstruction);
         behaviorInstructions.push(elementInstruction);
       }
     }
