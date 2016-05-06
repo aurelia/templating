@@ -37,7 +37,7 @@ export function child(selectorOrConfig: string | Object): any {
   return createChildObserverDecorator(selectorOrConfig, false);
 }
 
-class ChildObserver {
+export class ChildObserver {
   constructor(config) {
     this.name = config.name;
     this.changeHandler = config.changeHandler || this.name + 'Changed';
