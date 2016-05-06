@@ -1,4 +1,4 @@
-import {Origin} from 'aurelia-metadata';
+import {Origin, metadata} from 'aurelia-metadata';
 import {ObserverLocator, Binding} from 'aurelia-binding';
 import {TaskQueue} from 'aurelia-task-queue';
 import {Container} from 'aurelia-dependency-injection';
@@ -7,6 +7,7 @@ import {ViewEngine} from './view-engine';
 import {ViewCompiler} from './view-compiler';
 import {_ContentSelector} from './content-selector';
 import {_hyphenate} from './util';
+import {ChildObserver} from './child-observation'
 import {BindableProperty} from './bindable-property';
 import {Controller} from './controller';
 import {ViewResources} from './view-resources';
@@ -149,6 +150,38 @@ export class HtmlBehaviorResource {
       for (i = 0, ii = properties.length; i < ii; ++i) {
         properties[i].defineOn(target, this);
       }
+    }
+    
+    let parent = Object.getPrototypeOf(target);
+    if (parent) {
+        let parentBehavior = metadata.get(metadata.resource, parent);
+        if (parentBehavior) {
+            let properties = parentBehavior.properties;
+            for (let property of properties) {
+                if (!this.properties.some(prop => prop.name === property.name)) {
+                    let changeHandler = property.changeHandler || (`${property.name}Changed` in proto ? `${property.name}Changed` : null);
+                    new BindableProperty({
+                      name: property.name,
+                      changeHandler,
+                      attribute: property.attribute,
+                      defaultBindingMode: property.defaultBindingMode
+                    }).registerWith(target, this);
+                }
+            }
+            if (this.elementName !== null && Array.isArray(parentBehavior.childBindings) && parentBehavior.childBindings.length > 0) {
+                let childBindings = this.childBindings || (this.childBindings = []);
+                for (let childBinding of parentBehavior.childBindings) {
+                    if (!childBindings.some(binding => binding.name === childBinding.name)) {
+                        this.addChildBinding(new ChildObserver({
+                            name: childBinding.name,
+                            changeHandler: childBinding.changeHandler,
+                            all: childBinding.all,
+                            selector: childBinding.selector
+                        }));
+                    }
+                }
+            }
+        }
     }
   }
 
