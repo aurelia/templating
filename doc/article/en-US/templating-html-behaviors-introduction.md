@@ -240,10 +240,25 @@ Binding with Custom Attributes is a bit more nuanced than Custom Elements in tha
 The `@bindable` decorator isn't used when doing single value binding with a Custom Attribute because all attributes have a value be default. This is ensured by Aurelia. Instead, we implement a `valueChanged` callback function that Aurelia calls to alert us that the bound value of the Custom Attribute has changed. Aurelia will set the value to the `value` property of the Custom Attribute's ViewModel, and will pass two parameters to the `valueChanged` callback: the new value and the old value. Let's look at an example.
 
 <code-listing heading="square${context.language.fileExtension}">
-  <source-code lang="ES 2015/2016">
+  <source-code lang="ES 2015">
     export class SquareCustomAttribute {
-      static inject = [Element];
+      static inject() { return [Element]; }
 
+      constructor(element){
+        this.element = element;
+        this.element.style.width = this.element.style.height = '100px';
+      }
+
+      valueChanged(newValue, oldValue){
+        this.element.style.backgroundColor = newValue;
+      }
+    }
+  </source-code>
+  <source-code lang="ES 2016">
+    import {inject} from 'aurelia-framework';
+
+    @inject(Element)
+    export class SquareCustomAttribute {
       constructor(element){
         this.element = element;
         this.element.style.width = this.element.style.height = '100px';
@@ -306,7 +321,76 @@ Creating an HTML Only Custom Element is as simple as creating an HTML view file 
   </source-code>
 </code-listing>
 
-## [Conclusion](aurelia-doc://section/7/version/1.0.0)
+## [HTML Behavior Lifecycle](aurelia-doc://section/7/version/1.0.0)
+
+All HTML Behaviors have a well defined lifecycle. Using this lifecycle, you can tap in and trigger code to run when appropriate. Below is a listing of the standard lifecycle callbacks:
+
+1. `constructor()` - The view-model's constructor is called first.
+2. `created(owningView: View, myView: View)` - If the view-model implements the `created` callback it is invoked next. If your behavior is a custom element, it's view has also been created and both the view-model and the view are connected to their controller. The created callback will receive the instance of the "owningView". This is the view that the component is declared inside of. If the component itself has a view, this will be passed second.
+3. `bind(bindingContext: Object, overrideContext: Object)` - Databinding is then activated on the view and view-model. If the view-model has a `bind` callback, it will be invoked at this time. The "binding context" to which the component is being bound will be passed first. An "override context" will be passed second. The override context contains information used to traverse the parent hierarchy and can also be used to add any contextual properties that the component wants to add. It should be noted that when the view-model has implemented the `bind` callback, the databinding framework will not invoke the changed handlers for the view-model's bindable properties until the "next" time those properties are updated. If you need to perform specific post-processing on your bindable properties, when implementing the `bind` callback, you should do so manually within the callback itself.
+4. `attached()` - Next, the component is attached to the DOM (in document). If the view-model has an `attached` callback, it will be invoked at this time.
+5. `detached()` - At some point in the future, the component may be removed from the DOM. If/When this happens, and if the view-model has a `detached` callback, this is when it will be invoked.
+6. `unbind()` - After a component is detached, it's usually unbound. If your view-model has the `unbind` callback, it will be invoked during this process.
+
+Tapping into a lifecycle event is as simple as implementing any of the above methods on the behavior's view-model class. Here's an example of a custom attribute that uses the attached and detached callbacks, something common when wrapping jQuery plugins:
+
+<code-listing heading="some-plugin${context.language.fileExtension}">
+  <source-code lang="ES 2015">
+    export class SomePlugginCustomAttribute {
+      static inject() { return [Element]; }
+
+      constructor(element){
+        this.element = element;
+      }
+
+      attached() {
+        this.plugin = jQuery(this.element).somePlugin();
+      }
+
+      detached() {
+        this.plugin.destroy();
+      }
+    }
+  </source-code>
+  <source-code lang="ES 2016">
+    import {inject} from 'aurelia-framework';
+
+    @inject(Element)
+    export class SomePlugginCustomAttribute {
+      constructor(element){
+        this.element = element;
+      }
+
+      attached() {
+        this.plugin = jQuery(this.element).somePlugin();
+      }
+
+      detached() {
+        this.plugin.destroy();
+      }
+    }
+  </source-code>
+  <source-code lang="TypeScript">
+    import {autoinject} from 'aurelia-framework';
+
+    @autoinject
+    export class SomePlugginCustomAttribute {
+      plugin;
+
+      constructor(private element: Element){ }
+
+      attached() {
+        this.plugin = jQuery(this.element).somePlugin();
+      }
+
+      detached() {
+        this.plugin.destroy();
+      }
+    }
+  </source-code>
+</code-listing>
+
+## [Conclusion](aurelia-doc://section/8/version/1.0.0)
 
 If you've made it this far, you should have the basics down of creating HTML Behaviors. HTML Behaviors in Aurelia can be a Custom Element or a Custom Attribute. Both of these have ViewModels, while only Custom Elements can have Views. There is no need to use jQuery or `document.querySelector` to get the DOM Element your behavior is associated with, as you can simply have Aurelia inject it in to your ViewModel. You must make sure that an HTML Behavior is accessible to the template you are using it in, either by using the `require` element or by making the behavior a global resource. When doing either of these, you do not provide a file extension in the path for the behavior, unless you are specifying an HTML Only Custom Element.
 
