@@ -204,3 +204,83 @@ Any properties or functions of the VM class may be used for binding within the c
 In this example, the `secret-message` custom element will check every ten seconds to see if it needs to destroy (set to an empty string) the message it receives via databinding. When told to destroy the message, Aurelia's databinding system will update the bound property of the component using the custom element, thanks to the custom element specifying that this property's default binding mode is two-way. Thus, the text box will be cleared when the message "self destructs."  Of course, the component using the custom element is free to override this default by explicitly specifying the binding direction via the `one-way`, `two-way`, or `one-time` binding commands.
 
 Whether a secret message that is only shown to the person who writes the message is very useful is for you to decide.
+
+## [Surrogate Behaviors](aurelia-doc://section/5/version/1.0.0)
+
+Surrogate behaviors allow you to add attributes, event handlers, and bindings on the template element for a custom element. This can be extremely useful in many cases, but one particular area that it is helpful is with dealing with `aria` attributes to help add accessibility to your custom elements. When using surrogate behaviors, you add attributes to the template element for your custom element. These attributes will be placed on the custom element itself at runtime. For example, consider the view for a `my-button` custom element:
+
+
+<code-listing heading="my-button.html">
+  <source-code lang="HTML">
+    <template role="button">
+      <div>My Button</div>
+    </template>
+  </source-code>
+</code-listing>
+
+<code-listing heading="Template using `my-button` custom element">
+  <source-code lang="HTML">
+    <template>
+      <require from="my-button"></reqire>
+
+      <my-button></my-button>
+    </template>
+  </source-code>
+</code-listing>
+
+The `role="button"` attribute will automatically be set on the `my-button` element whenever it used in an Aurelia application. If you were to check your browser's Dev Tools while running a template that used the `my-buttom` custom element, you will see something that looks like the below
+
+<code-listing heading="Template using `my-button` custom element">
+  <source-code lang="HTML">
+    <my-button class="au-target" au-target-id="1" role="button">
+      <div>My Button</div>
+    </my-button>
+  </source-code>
+</code-listing>
+
+It is important to note that Surrogate Behaviors cannot be used with a custom element that is using the `@containerless` decorator discussed below as this decorator removes the wrapping custom element from the DOM, and thus there is nowhere for the Surrogate Behaviors to be placed.
+
+## [Content Projection](aurelia-doc://section/5/version/1.0.0)
+
+> Info: `<slot>` vs `<content>`
+> Throughout its beta, Aurelia has used the `<content>` element for content projection. This will be changing in RC1, as Aurelia moves to the `<slot>` element. This is being done to synchronize with changes made to the Web Components specifications. In the meantime, you can simply replace `<slot></slot>` with `<content></content>` in the examples below.
+
+So far, we've only talked about custom elements that look like `<custom-element attr.bind="vmProp"></custom-element>`. Now it's time to look at creating custom elements that have content inside them. Let's create a name tag custom element. When the `name-tag` element is used, it will take the name it will display as content in the element.
+
+<code-listing heading="`name-tag` custom element usage">
+  <source-code lang="HTML">
+    <name-tag>
+      Ralphie
+    </name-tag>
+  </source-code>
+</code-listing>
+
+Aurelia custom elements utilize the "slot based" content projection standard from the Web Component specifications. Let's look at how this will work with our `name-tag` element. This custom element utilizes a single slot, so we simply need to add a `<slot></slot>` element in our template where we would like content to be projected.
+
+<code-listing heading="name-tag.html">
+  <source-code lang="HTML">
+    <template>
+      <div class="header">
+        Hello, my name is
+      </div>
+      <div class="name">
+        <slot></slot>
+      </div>
+    </template>
+  </source-code>
+</code-listing>
+
+Aurelia will project the element's content in to the template where the `<slot></slot>` element is located.
+
+## [Options for Customizing Aurelia Custom Element Processing](aurelia-doc://section/6/version/1.0.0)
+
+There are lots of options that allow you to change how custom elements work. These are expressed by decorators added to the custom element's viewmodel or properties on the viewmodel.
+
+* `@children(selector)` - Decorates a property to create an array on your class that has its items automatically synchronized based on a query selector against the element's immediate child content.
+* `@child(selector)` - Decorates a property to create a reference to a single immediate child content element.
+* `@processContent(false|Function)` - Tells the compiler that the element's content requires special processing. If you provide `false` to the decorator, the compiler will not process the content of your custom element. It is expected that you will do custom processing yourself. But, you can also supply a custom function that lets you process the content during the view's compilation. That function can then return true/false to indicate whether or not the compiler should also process the content. The function takes the following form `function(compiler, resources, node, instruction):boolean`
+* `@useView(path)` - Specifies a different view to use.
+* `@noView()` - Indicates that this custom element does not have a view and that the author intends for the element to handle its own rendering internally.
+* `@inlineView(markup, dependencies?)` - Allows the developer to provide a string that will be compiled into the view.
+* `@useShadowDOM()` - Causes the view to be rendered in the ShadowDOM. When an element is rendered to ShadowDOM, a special `DOMBoundary` instance can optionally be injected into the constructor. This represents the shadow root.
+* `@containerless()` - Causes the element's view to be rendered without the custom element container wrapping it. This cannot be used in conjunction with `@child`, `@children` or `@useShadowDOM` decorators. It also cannot be used with surrogate behaviors. Use sparingly.
