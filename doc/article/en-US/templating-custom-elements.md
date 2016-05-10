@@ -242,7 +242,10 @@ It is important to note that Surrogate Behaviors cannot be used with a custom el
 
 ## [Content Projection](aurelia-doc://section/5/version/1.0.0)
 
-So far, we've only talked about custom elements that look like `<custom-element attr.bind="vmProp"></custom-element>`. Not it's time to look at creating custom elements that have content inside them. Let's create a name tag custom element. When the `name-tag` element is used, it will take the name it will display as content in the element.
+> Info: `<slot>` vs `<content>`
+> Throughout its beta, Aurelia has used the `<content>` element for content projection. This will be changing in RC1, as Aurelia moves to the `<slot>` element. This is being done to synchronize with changes made to the Web Components specifications. In the meantime, you can simply replace `<slot></slot>` with `<content></content>` in the examples below.
+
+So far, we've only talked about custom elements that look like `<custom-element attr.bind="vmProp"></custom-element>`. Now it's time to look at creating custom elements that have content inside them. Let's create a name tag custom element. When the `name-tag` element is used, it will take the name it will display as content in the element.
 
 <code-listing heading="`name-tag` custom element usage">
   <source-code lang="HTML">
