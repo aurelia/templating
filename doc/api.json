@@ -904,7 +904,7 @@
                   "type": {
                     "type": "reference",
                     "name": "TaskQueue",
-                    "id": 1619,
+                    "id": 1488,
                     "moduleName": "\"aurelia-task-queue\""
                   }
                 },
@@ -2860,7 +2860,7 @@
                   "type": {
                     "type": "reference",
                     "name": "Origin",
-                    "id": 1430,
+                    "id": 1434,
                     "moduleName": "\"aurelia-metadata\""
                   }
                 }
@@ -8407,7 +8407,7 @@
                   "type": {
                     "type": "reference",
                     "name": "Origin",
-                    "id": 1430,
+                    "id": 1434,
                     "moduleName": "\"aurelia-metadata\""
                   }
                 }
@@ -8451,7 +8451,7 @@
                   "type": {
                     "type": "reference",
                     "name": "Origin",
-                    "id": 1430,
+                    "id": 1434,
                     "moduleName": "\"aurelia-metadata\""
                   }
                 }
