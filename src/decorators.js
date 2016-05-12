@@ -123,17 +123,23 @@ export function dynamicOptions(target?): any {
   return target ? deco(target) : deco;
 }
 
+const defaultShadowDOMOptions = { mode: 'open' };
 /**
 * Decorator: Indicates that the custom element should render its view in Shadow
 * DOM. This decorator may change slightly when Aurelia updates to Shadow DOM v1.
 */
-export function useShadowDOM(target?): any {
+export function useShadowDOM(targetOrOptions?): any {
+  let options = typeof targetOrOptions === 'function' || !targetOrOptions
+    ? defaultShadowDOMOptions
+    : targetOrOptions;
+
   let deco = function(t) {
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
     r.targetShadowDOM = true;
+    r.shadowDOMOptions = options;
   };
 
-  return target ? deco(target) : deco;
+  return typeof targetOrOptions === 'function' ? deco(targetOrOptions) : deco;
 }
 
 /**

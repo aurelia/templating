@@ -37,6 +37,7 @@ export class HtmlBehaviorResource {
     this.attributeDefaultBindingMode = undefined;
     this.liftsContent = false;
     this.targetShadowDOM = false;
+    this.shadowDOMOptions = null;
     this.processAttributes = doProcessAttributes;
     this.processContent = doProcessContent;
     this.usesShadowDOM = false;
@@ -307,7 +308,7 @@ export class HtmlBehaviorResource {
 
     if (this.elementName !== null && element) {
       if (this.usesShadowDOM) {
-        host = element.createShadowRoot();
+        host = element.attachShadow(this.shadowDOMOptions);
         container.registerInstance(DOM.boundary, host);
       } else {
         host = element;
