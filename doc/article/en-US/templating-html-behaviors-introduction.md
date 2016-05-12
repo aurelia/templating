@@ -92,7 +92,7 @@ When you tell Aurelia to inject an instance of the `Element` class in to your cl
 
 Remember, you don't need jQuery to get the Element your HTML Behavior is attached to. Aurelia can provide it to you!
 
-> Warn: Try to Avoid Browser Globals
+> Warning: Try to Avoid Browser Globals
 > In the above examples, we used a browser global: `Element`. Sometimes using browser globals can cause testing issues. That's not the case here. However, should you desire to leverage server-side rendering, you'll need to have a codebase free of browser globals. You may want to prepare for this in advance. To help you avoid browser globals, Aurelia provides a Platform Abstraction Layer (PAL) that provides three exports `DOM`, `FEATURE` and `PLATFORM`. In the case above, you could substitute `Element` for `DOM.Element`.
 
 ## [Making an HTML Behavior Available in a View](aurelia-doc://section/4/version/1.0.0)
@@ -123,7 +123,7 @@ The path you supply in the `from` attribute can take one of two forms: It can be
   </source-code>
 </code-listing>
 
-The name the resource will take in your view is determined in one of three ways: by Aurelia convention, by explicit naming in the resource, or by being overriden using the `as` attribute. If you happen to be using multiple resources that have the same name, you must provide a value for the `as` attribute for all but one of the conflicting resources. The `as` attribute can also be used whenever you would like to alias the name of a resource. Perhaps the standard name for an HTML Behavior is really long and you want to give it a shorter name. The `as` attribute can help you out.
+The name the resource will take in your view is determined in one of three ways: by Aurelia convention, by explicit naming in the resource, or by being overridden using the `as` attribute. If you happen to be using multiple resources that have the same name, you must provide a value for the `as` attribute for all but one of the conflicting resources. The `as` attribute can also be used whenever you would like to alias the name of a resource. Perhaps the standard name for an HTML Behavior is really long and you want to give it a shorter name. The `as` attribute can help you out.
 
 <code-listing heading="Overriding a Resource Name">
   <source-code lang="HTML">
@@ -151,7 +151,7 @@ You will typically not provide a file extension to the `from` attribute. There a
   </source-code>
 </code-listing>
 
-> Info: Require's Inspiration
+> Info: The Inspiration for Require
 > Aurelia's `require` element was inspired by the `import` statement in ES 2015. In the same way that modern JavaScript has modules which contain imports, so Aurelia's views are also modularized and can contain imports, which we accomplish via `require`. You may wonder why we didn't just name our element `import` instead of `require`. Those who have been using Aurelia for a while may remember that the initial name was in fact 'import'. The name was changed in order to enable compatibility with older version of Internet Explorer, which didn't like the use of `import`.
 
 ## [Global Resources](aurelia-doc://section/5/version/1.0.0)
