@@ -173,16 +173,14 @@ export class TargetInstruction {
   static noExpressions = Object.freeze([]);
 
   /**
-  * Creates an instruction that represents a content selector.
-  * @param node The node that represents the selector.
+  * Creates an instruction that represents a shadow dom slot.
   * @param parentInjectorId The id of the parent dependency injection container.
   * @return The created instruction.
   */
-  static contentSelector(node: Node, parentInjectorId: number): TargetInstruction {
+  static shadowSlot(parentInjectorId: number): TargetInstruction {
     let instruction = new TargetInstruction();
     instruction.parentInjectorId = parentInjectorId;
-    instruction.contentSelector = true;
-    instruction.selector = node.getAttribute('select');
+    instruction.shadowSlot = true;
     return instruction;
   }
 
@@ -260,8 +258,9 @@ export class TargetInstruction {
     this.injectorId = null;
     this.parentInjectorId = null;
 
-    this.contentSelector = false;
-    this.selector = null;
+    this.shadowSlot = false;
+    this.slotName = null;
+    this.slotFallbackFactory = null;
 
     this.contentExpression = null;
 

@@ -121,10 +121,10 @@ function applyInstructions(containers, element, instruction, controllers, bindin
     return;
   }
 
-  if (instruction.contentSelector) {
+  if (instruction.shadowSlot) {
     let commentAnchor = DOM.createComment('anchor');
     DOM.replaceNode(commentAnchor, element);
-    contentSelectors.push(new _ContentSelector(commentAnchor, instruction.selector));
+    contentSelectors.push(new _ContentSelector(commentAnchor, instruction.slotName));
     return;
   }
 

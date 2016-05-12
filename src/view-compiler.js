@@ -54,6 +54,29 @@ function makeIntoInstructionTarget(element) {
   return auTargetID;
 }
 
+function makeShadowSlot(compiler, resources, node, instructions, parentInjectorId) {
+  let auShadowSlot = DOM.createElement('au-shadow-slot');
+  DOM.replaceNode(auShadowSlot, node);
+
+  let auTargetID = makeIntoInstructionTarget(auShadowSlot);
+  let instruction = TargetInstruction.shadowSlot(parentInjectorId);
+
+  instruction.slotName = node.getAttribute('name');
+
+  if(node.innerHTML.trim()) {
+    let fragment = DOM.createDocumentFragment();
+    let child;
+
+    while (child = node.firstChild) {
+      fragment.appendChild(child);
+    }
+
+    instruction.slotFallbackFactory = compiler.compile(fragment, resources);
+  }
+
+  instructions[auTargetID] = instruction;
+}
+
 /**
 * Compiles html templates, dom fragments and strings into ViewFactory instances, capable of instantiating Views.
 */
@@ -281,10 +304,9 @@ export class ViewCompiler {
     let auTargetID;
     let injectorId;
 
-    if (tagName === 'content') {
+    if (tagName === 'slot') {
       if (targetLightDOM) {
-        auTargetID = makeIntoInstructionTarget(node);
-        instructions[auTargetID] = TargetInstruction.contentSelector(node, parentInjectorId);
+        makeShadowSlot(this, resources, node, instructions, parentInjectorId);
       }
       return node.nextSibling;
     } else if (tagName === 'template') {
