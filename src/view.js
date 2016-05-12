@@ -35,7 +35,7 @@ export class View {
   * @param bindings The bindings inside this view.
   * @param children The children of this view.
   */
-  constructor(container: Container, viewFactory: ViewFactory, fragment: DocumentFragment, controllers: Controller[], bindings: Binding[], children: ViewNode[], contentSelectors: Array<Object>) {
+  constructor(container: Container, viewFactory: ViewFactory, fragment: DocumentFragment, controllers: Controller[], bindings: Binding[], children: ViewNode[], shadowSlots: Array<ShadowSlot>) {
     this.container = container;
     this.viewFactory = viewFactory;
     this.resources = viewFactory.resources;
@@ -43,7 +43,7 @@ export class View {
     this.controllers = controllers;
     this.bindings = bindings;
     this.children = children;
-    this.contentSelectors = contentSelectors;
+    this.shadowSlots = shadowSlots;
     this.firstChild = fragment.firstChild;
     this.lastChild = fragment.lastChild;
     this.fromCache = false;

@@ -5,5 +5,9 @@ export class SlotCustomAttribute {
 }
 
 export class ShadowSlot {
-
+  constructor(anchor, name) {
+    this.anchor = anchor;
+    this.name = name;
+    this.isDefault = !name;
+  }
 }

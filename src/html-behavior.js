@@ -13,7 +13,7 @@ import {ViewResources} from './view-resources';
 import {ResourceLoadContext, ViewCompileInstruction, BehaviorInstruction} from './instructions';
 import {FEATURE, DOM} from 'aurelia-pal';
 
-const contentSelectorViewCreateInstruction = { enhance: false };
+const contentViewCreateInstruction = { enhance: false };
 let lastProviderId = 0;
 
 function nextProviderId() {
@@ -260,26 +260,29 @@ export class HtmlBehaviorResource {
 
           instruction.skipContentProcessing = false;
         } else {
-          let fragment = DOM.createDocumentFragment();
-          let currentChild = node.firstChild;
-          let nextSibling;
-          let toReplace;
+          if (node.innerHTML.trim()) {
+            let fragment = DOM.createDocumentFragment();
+            let currentChild = node.firstChild;
+            let nextSibling;
+            let toReplace;
 
-          while (currentChild) {
-            nextSibling = currentChild.nextSibling;
+            while (currentChild) {
+              nextSibling = currentChild.nextSibling;
 
-            if (currentChild.tagName === 'TEMPLATE' && (toReplace = currentChild.getAttribute('replace-part'))) {
-              partReplacements[toReplace] = compiler.compile(currentChild, resources);
-              DOM.removeNode(currentChild, parentNode);
-              instruction.partReplacements = partReplacements;
-            } else {
-              fragment.appendChild(currentChild);
+              if (currentChild.tagName === 'TEMPLATE' && (toReplace = currentChild.getAttribute('replace-part'))) {
+                partReplacements[toReplace] = compiler.compile(currentChild, resources);
+                DOM.removeNode(currentChild, parentNode);
+                instruction.partReplacements = partReplacements;
+              } else {
+                fragment.appendChild(currentChild);
+              }
+
+              currentChild = nextSibling;
             }
 
-            currentChild = nextSibling;
+            instruction.contentFactory = compiler.compile(fragment, resources);
           }
 
-          instruction.contentFactory = compiler.compile(fragment, resources);
           instruction.skipContentProcessing = true;
         }
       } else {
@@ -344,18 +347,8 @@ export class HtmlBehaviorResource {
         au.controller = controller;
 
         if (controller.view) {
-          if (!this.usesShadowDOM) {
-            if (instruction.contentFactory) {
-              let contentView = instruction.contentFactory.create(container, contentSelectorViewCreateInstruction);
-
-              _ContentSelector.applySelectors(
-                contentView,
-                controller.view.contentSelectors,
-                (contentSelector, group) => contentSelector.add(group)
-              );
-
-              controller.contentView = contentView;
-            }
+          if (!this.usesShadowDOM && instruction.contentFactory) {
+            controller.contentView = instruction.contentFactory.create(container, contentViewCreateInstruction);
           }
 
           if (instruction.anchorIsContainer) {

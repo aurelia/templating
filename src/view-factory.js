@@ -1,7 +1,7 @@
 import {Container, resolver} from 'aurelia-dependency-injection';
 import {View} from './view';
 import {ViewSlot} from './view-slot';
-import {_ContentSelector} from './content-selector';
+import {ShadowSlot} from './shadow-slot';
 import {ViewResources} from './view-resources';
 import {BehaviorInstruction, TargetInstruction} from './instructions';
 import {DOM} from 'aurelia-pal';
@@ -106,7 +106,7 @@ function makeElementIntoAnchor(element, elementInstruction) {
   return anchor;
 }
 
-function applyInstructions(containers, element, instruction, controllers, bindings, children, contentSelectors, partReplacements, resources) {
+function applyInstructions(containers, element, instruction, controllers, bindings, children, shadowSlots, partReplacements, resources) {
   let behaviorInstructions = instruction.behaviorInstructions;
   let expressions = instruction.expressions;
   let elementContainer;
@@ -122,9 +122,9 @@ function applyInstructions(containers, element, instruction, controllers, bindin
   }
 
   if (instruction.shadowSlot) {
-    let commentAnchor = DOM.createComment('anchor');
+    let commentAnchor = DOM.createComment('slot');
     DOM.replaceNode(commentAnchor, element);
-    contentSelectors.push(new _ContentSelector(commentAnchor, instruction.slotName));
+    shadowSlots.push(new ShadowSlot(commentAnchor, instruction.slotName));
     return;
   }
 
@@ -408,7 +408,7 @@ export class ViewFactory {
     let controllers = [];
     let bindings = [];
     let children = [];
-    let contentSelectors = [];
+    let shadowSlots = [];
     let containers = { root: container };
     let partReplacements = createInstruction.partReplacements;
     let i;
@@ -427,10 +427,10 @@ export class ViewFactory {
       instructable = instructables[i];
       instruction = instructions[instructable.getAttribute('au-target-id')];
 
-      applyInstructions(containers, instructable, instruction, controllers, bindings, children, contentSelectors, partReplacements, resources);
+      applyInstructions(containers, instructable, instruction, controllers, bindings, children, shadowSlots, partReplacements, resources);
     }
 
-    view = new View(container, this, fragment, controllers, bindings, children, contentSelectors);
+    view = new View(container, this, fragment, controllers, bindings, children, shadowSlots);
 
     //if iniated by an element behavior, let the behavior trigger this callback once it's done creating the element
     if (!createInstruction.initiatedByBehavior) {
