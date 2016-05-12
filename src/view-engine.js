@@ -7,6 +7,7 @@ import {ViewResources} from './view-resources';
 import {ModuleAnalyzer, ResourceDescription} from './module-analyzer';
 import {ViewFactory} from './view-factory';
 import {ResourceLoadContext, ViewCompileInstruction} from './instructions';
+import {SlotCustomAttribute} from './shadow-slot';
 
 let logger = LogManager.getLogger('templating');
 
@@ -64,6 +65,11 @@ export class ViewEngine {
     this.moduleAnalyzer = moduleAnalyzer;
     this.appResources = appResources;
     this._pluginMap = {};
+
+    let auSlotBehavior = new HtmlBehaviorResource();
+    auSlotBehavior.attributeName = 'au-slot';
+    auSlotBehavior.initialize(container, SlotCustomAttribute);
+    auSlotBehavior.register(appResources);
   }
 
   /**
