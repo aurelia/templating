@@ -140,6 +140,10 @@ export class Controller {
         overrideContext.__parentOverrideContext = scope.overrideContext;
       }
       this.view.bind(this.viewModel, overrideContext);
+
+      if (this.contentView) {
+        ShadowSlot.distribute(this.contentView, this.view);
+      }
     } else if (skipSelfSubscriber) {
       overrideContext = scope.overrideContext;
       // the factoryCreateInstruction's partReplacements will either be null or an object
