@@ -4,6 +4,7 @@ import {BindingLanguage} from './binding-language';
 import {ViewCompileInstruction, BehaviorInstruction, TargetInstruction} from './instructions';
 import {inject} from 'aurelia-dependency-injection';
 import {DOM, FEATURE} from 'aurelia-pal';
+import {ShadowSlot} from './shadow-slot';
 
 let nextInjectorId = 0;
 function getNextInjectorId() {
@@ -61,7 +62,7 @@ function makeShadowSlot(compiler, resources, node, instructions, parentInjectorI
   let auTargetID = makeIntoInstructionTarget(auShadowSlot);
   let instruction = TargetInstruction.shadowSlot(parentInjectorId);
 
-  instruction.slotName = node.getAttribute('name');
+  instruction.slotName = node.getAttribute('name') || ShadowSlot.defaultName;
 
   if(node.innerHTML.trim()) {
     let fragment = DOM.createDocumentFragment();

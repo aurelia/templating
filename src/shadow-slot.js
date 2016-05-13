@@ -14,24 +14,33 @@ export class SlotCustomAttribute {
 }
 
 export class ShadowSlot {
-  constructor(anchor, name) {
+  static defaultName = '__au-default-slot-key__';
+
+  constructor(anchor, name, fallbackFactory) {
     this.anchor = anchor;
     this.name = name;
+    this.fallbackFactory = fallbackFactory;
     this.isDefault = !name;
-  }
-
-  matches(node) {
-    if (node.auSlotAttribute === undefined) {
-      return this.isDefault;
-    }
-
-    return node.auSlotAttribute.value === this.name;
+    this.isProjecting = false;
   }
 
   add(node) {
     let parent = this.anchor.parentNode;
     node.auAssignedSlot = this;
     parent.insertBefore(node, this.anchor);
+    this.isProjecting = true;
+  }
+
+  get needsFallbackRendering() {
+    return !this.isProjecting && this.fallbackFactory;
+  }
+
+  static getSlotName(node) {
+    if (node.auSlotAttribute === undefined) {
+      return ShadowSlot.defaultName;
+    }
+
+    return node.auSlotAttribute.value;
   }
 
   static distribute(contentView, componentView) {
@@ -47,19 +56,11 @@ export class ShadowSlot {
       if (currentChild.isContentProjectionSource) {
         console.log('content projection source', currentChild.viewSlot);
       } else if (nodeType === 1 || nodeType === 3) { //project only elements and text
-        let found = false;
+        let found = slots[ShadowSlot.getSlotName(currentChild)];
 
-        for (let i = 0, ii = slots.length; i < ii; i++) {
-          let slot = slots[i];
-
-          if (slot.matches(currentChild)) {
-            slot.add(currentChild);
-            found = true;
-            break;
-          }
-        }
-
-        if (!found) {
+        if (found) {
+          found.add(currentChild);
+        } else {
           console.log('not found', currentChild);
         }
       }

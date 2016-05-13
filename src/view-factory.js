@@ -124,7 +124,7 @@ function applyInstructions(containers, element, instruction, controllers, bindin
   if (instruction.shadowSlot) {
     let commentAnchor = DOM.createComment('slot');
     DOM.replaceNode(commentAnchor, element);
-    shadowSlots.push(new ShadowSlot(commentAnchor, instruction.slotName));
+    shadowSlots[instruction.slotName] = new ShadowSlot(commentAnchor, instruction.slotName, instruction.slotFallbackFactory);
     return;
   }
 
@@ -408,7 +408,7 @@ export class ViewFactory {
     let controllers = [];
     let bindings = [];
     let children = [];
-    let shadowSlots = [];
+    let shadowSlots = Object.create(null);
     let containers = { root: container };
     let partReplacements = createInstruction.partReplacements;
     let i;
