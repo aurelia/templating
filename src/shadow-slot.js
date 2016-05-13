@@ -29,7 +29,9 @@ export class ShadowSlot {
   }
 
   add(node) {
-    console.log('slot projection', this.name, node);
+    let parent = this.anchor.parentNode;
+    node.auAssignedSlot = this;
+    parent.insertBefore(node, this.anchor);
   }
 
   static distribute(contentView, componentView) {
@@ -44,7 +46,7 @@ export class ShadowSlot {
 
       if (currentChild.isContentProjectionSource) {
         console.log('content projection source', currentChild.viewSlot);
-      } else if (nodeType === 1 || nodeType === 3) {
+      } else if (nodeType === 1 || nodeType === 3) { //project only elements and text
         let found = false;
 
         for (let i = 0, ii = slots.length; i < ii; i++) {
