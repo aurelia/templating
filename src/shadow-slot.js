@@ -24,6 +24,10 @@ export class ShadowSlot {
     this.isProjecting = false;
   }
 
+  get needsFallbackRendering() {
+    return !this.isProjecting && this.fallbackFactory;
+  }
+
   add(node) {
     let parent = this.anchor.parentNode;
     node.auAssignedSlot = this;
@@ -31,8 +35,29 @@ export class ShadowSlot {
     this.isProjecting = true;
   }
 
-  get needsFallbackRendering() {
-    return !this.isProjecting && this.fallbackFactory;
+  created(ownerView) {
+    this.ownerView = ownerView;
+  }
+
+  renderFallbackContent() {
+    this.contentView = this.fallbackFactory.create(this.ownerView.container);
+    this.contentView.insertNodesBefore(this.anchor);
+  }
+
+  bind(){
+
+  }
+
+  attached() {
+
+  }
+
+  detached() {
+
+  }
+
+  unbind() {
+
   }
 
   static getSlotName(node) {
@@ -67,5 +92,15 @@ export class ShadowSlot {
 
       currentChild = nextSibling;
     }
+
+    for(let slotName in slots) {
+      let slot = slots[slotName];
+
+      if (slot.needsFallbackRendering) {
+        slot.renderFallbackContent();
+      }
+    }
+
+    //process not found
   }
 }

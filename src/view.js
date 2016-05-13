@@ -55,6 +55,10 @@ export class View {
     this.controller = null;
     this.viewModelScope = null;
     this._isUserControlled = false;
+
+    for(let slotName in shadowSlots) {
+      controllers.push(shadowSlots[slotName]);
+    }
   }
 
   /**
