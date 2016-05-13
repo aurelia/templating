@@ -9,7 +9,7 @@ export class SlotCustomAttribute {
   }
 
   valueChanged(newValue, oldValue) {
-    console.log('au-slot', newValue);
+    //console.log('au-slot', newValue);
   }
 }
 
@@ -41,23 +41,32 @@ export class ShadowSlot {
 
   renderFallbackContent() {
     this.contentView = this.fallbackFactory.create(this.ownerView.container);
+    this.contentView.bind(this.ownerView.bindingContext, this.ownerView.overrideContext);
     this.contentView.insertNodesBefore(this.anchor);
   }
 
-  bind(){
-
+  bind(view){
+    if(this.contentView) {
+      this.contentView.bind(view.bindingContext, view.overrideContext);
+    }
   }
 
   attached() {
-
+    if(this.contentView) {
+      this.contentView.attached();
+    }
   }
 
   detached() {
-
+    if(this.contentView) {
+      this.contentView.detached();
+    }
   }
 
   unbind() {
-
+    if(this.contentView) {
+      this.contentView.unbind();
+    }
   }
 
   static getSlotName(node) {
@@ -86,7 +95,7 @@ export class ShadowSlot {
         if (found) {
           found.add(currentChild);
         } else {
-          console.log('not found', currentChild);
+          //console.log('not found', currentChild);
         }
       }
 
