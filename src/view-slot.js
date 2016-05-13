@@ -2,6 +2,7 @@ import {_ContentSelector} from './content-selector';
 import {Animator} from './animator';
 import {View} from './view';
 import {DOM} from 'aurelia-pal';
+import {ShadowSlot} from './shadow-slot';
 
 function getAnimatableElement(view) {
   let firstChild = view.firstChild;
@@ -382,13 +383,43 @@ export class ViewSlot {
     }
   }
 
-  _installContentSelectors(contentSelectors: _ContentSelector[]): void {
-    this.contentSelectors = contentSelectors;
-    this.add = this._contentSelectorAdd;
-    this.insert = this._contentSelectorInsert;
-    this.remove = this._contentSelectorRemove;
-    this.removeAt = this._contentSelectorRemoveAt;
-    this.removeAll = this._contentSelectorRemoveAll;
+  projectTo(slots: Object): void {
+    this.projectToSlots = slots;
+    this.add = this._projectionAdd;
+    this.insert = this._projectionInsert;
+    this.remove = this._projectionRemove;
+    this.removeAt = this._projectionRemoveAt;
+    this.removeAll = this._projectionRemoveAll;
+
+    this.children.forEach(view => {
+      ShadowSlot.distribute(view, slots, this);
+    });
+  }
+
+  _projectionAdd(view) {
+    ShadowSlot.distribute(view, this.projectToSlots, this);
+
+    this.children.push(view);
+
+    if (this.isAttached) {
+      view.attached();
+    }
+  }
+
+  _projectionInsert() {
+
+  }
+
+  _projectionRemove() {
+
+  }
+
+  _projectionRemoveAt() {
+
+  }
+
+  _projectionRemoveAll() {
+
   }
 
   _contentSelectorAdd(view) {
