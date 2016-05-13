@@ -1,6 +1,8 @@
 import {inject} from 'aurelia-dependency-injection';
 import {DOM} from 'aurelia-pal';
 
+let slice = Array.prototype.slice;
+
 @inject(DOM.Element)
 export class SlotCustomAttribute {
   constructor(element) {
@@ -39,10 +41,14 @@ export class ShadowSlot {
     this.ownerView = ownerView;
   }
 
-  renderFallbackContent() {
+  renderFallbackContent(nodes) {
     this.contentView = this.fallbackFactory.create(this.ownerView.container);
     this.contentView.bind(this.ownerView.bindingContext, this.ownerView.overrideContext);
     this.contentView.insertNodesBefore(this.anchor);
+
+    if(this.contentView.hasSlots) {
+      _distributeNodes(nodes, this.contentView.slots);
+    }
   }
 
   bind(view){
@@ -78,38 +84,56 @@ export class ShadowSlot {
   }
 
   static distribute(contentView, componentView) {
-    let slots = componentView.shadowSlots;
-    let currentChild = contentView.fragment.firstChild;
-    let nextSibling;
-    let nodeType;
+    if (!componentView.hasSlots) {
+      return;
+    }
 
-    while (currentChild) {
-      nextSibling = currentChild.nextSibling;
-      nodeType = currentChild.nodeType;
+    _distributeNodes(
+      slice.call(contentView.fragment.childNodes),
+      componentView.slots
+    );
+  }
+}
 
-      if (currentChild.isContentProjectionSource) {
-        console.log('content projection source', currentChild.viewSlot);
-      } else if (nodeType === 1 || nodeType === 3) { //project only elements and text
-        let found = slots[ShadowSlot.getSlotName(currentChild)];
+function _distributeNodes(nodes, slots) {
+  for(let i = 0, ii = nodes.length; i < ii; ++i) {
+    let currentNode = nodes[i];
+    let nodeType = currentNode.nodeType;
+
+    if (currentNode.isContentProjectionSource) {
+      console.log('content projection source', currentNode.viewSlot);
+      nodes.splice(i, 1);
+      ii--; i--;
+    } else if (nodeType === 1 || nodeType === 3) { //project only elements and text
+      if(nodeType === 3 && isAllWhitespace(currentNode)) {
+        nodes.splice(i, 1);
+        ii--; i--;
+      } else {
+        let found = slots[ShadowSlot.getSlotName(currentNode)];
 
         if (found) {
-          found.add(currentChild);
-        } else {
-          //console.log('not found', currentChild);
+          found.add(currentNode);
+          nodes.splice(i, 1);
+          ii--; i--;
         }
       }
-
-      currentChild = nextSibling;
+    } else {
+      nodes.splice(i, 1);
+      ii--; i--;
     }
-
-    for(let slotName in slots) {
-      let slot = slots[slotName];
-
-      if (slot.needsFallbackRendering) {
-        slot.renderFallbackContent();
-      }
-    }
-
-    //process not found
   }
+
+  for(let slotName in slots) {
+    let slot = slots[slotName];
+
+    if (slot.needsFallbackRendering) {
+      slot.renderFallbackContent(nodes);
+    }
+  }
+}
+
+//https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model/Whitespace_in_the_DOM
+function isAllWhitespace(node) {
+  // Use ECMA-262 Edition 3 String and RegExp features
+  return !(/[^\t\n\r ]/.test(node.textContent));
 }

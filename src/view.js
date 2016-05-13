@@ -35,7 +35,7 @@ export class View {
   * @param bindings The bindings inside this view.
   * @param children The children of this view.
   */
-  constructor(container: Container, viewFactory: ViewFactory, fragment: DocumentFragment, controllers: Controller[], bindings: Binding[], children: ViewNode[], shadowSlots: Array<ShadowSlot>) {
+  constructor(container: Container, viewFactory: ViewFactory, fragment: DocumentFragment, controllers: Controller[], bindings: Binding[], children: ViewNode[], slots: Object) {
     this.container = container;
     this.viewFactory = viewFactory;
     this.resources = viewFactory.resources;
@@ -43,7 +43,8 @@ export class View {
     this.controllers = controllers;
     this.bindings = bindings;
     this.children = children;
-    this.shadowSlots = shadowSlots;
+    this.slots = slots;
+    this.hasSlots = false;
     this.firstChild = fragment.firstChild;
     this.lastChild = fragment.lastChild;
     this.fromCache = false;
@@ -56,8 +57,9 @@ export class View {
     this.viewModelScope = null;
     this._isUserControlled = false;
 
-    for(let slotName in shadowSlots) {
-      controllers.push(shadowSlots[slotName]);
+    for(let slotName in slots) {
+      this.hasSlots = true;
+      controllers.push(slots[slotName]);
     }
   }
 
