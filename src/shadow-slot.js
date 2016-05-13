@@ -25,20 +25,21 @@ export class ShadowSlot {
     this.isDefault = !name;
     this.isProjecting = false;
     this.children = [];
+    this.contentView = null;
   }
 
   get needsFallbackRendering() {
     return !this.isProjecting && this.fallbackFactory;
   }
 
-  addNode(node, source) {
+  addNode(node, projectionSource) {
     if (this.contentView) {
-      //TODO: remove the default view
+      this.contentView.removeNodes();
     }
 
     node.auAssignedSlot = this;
 
-    let anchor = this._findAnchor(source);
+    let anchor = this._findAnchor(projectionSource);
     let parent = anchor.parentNode;
 
     parent.insertBefore(node, anchor);
@@ -46,9 +47,9 @@ export class ShadowSlot {
     this.isProjecting = true;
   }
 
-  _findAnchor(source) {
-    if (source) {
-      let found = this.children.find(x => x.auSlotProjectFrom === source);
+  _findAnchor(projectionSource) {
+    if (projectionSource) {
+      let found = this.children.find(x => x.auSlotProjectFrom === projectionSource);
       if (found) {
         return found;
       }
@@ -57,10 +58,10 @@ export class ShadowSlot {
     return this.anchor;
   }
 
-  projectFrom(sourceSlot) {
+  projectFrom(projectionSource) {
     let anchor = DOM.createComment('anchor');
     let parent = this.anchor.parentNode;
-    anchor.auSlotProjectFrom = sourceSlot;
+    anchor.auSlotProjectFrom = projectionSource;
     parent.insertBefore(anchor, this.anchor);
     this.children.push(anchor);
   }
@@ -111,16 +112,16 @@ export class ShadowSlot {
     return node.auSlotAttribute.value;
   }
 
-  static distribute(contentView, slots, source) {
+  static distribute(contentView, slots, projectionSource) {
     _distributeNodes(
       slice.call(contentView.fragment.childNodes),
       slots,
-      source
+      projectionSource
     );
   }
 }
 
-function _distributeNodes(nodes, slots, source) {
+function _distributeNodes(nodes, slots, projectionSource) {
   for(let i = 0, ii = nodes.length; i < ii; ++i) {
     let currentNode = nodes[i];
     let nodeType = currentNode.nodeType;
@@ -142,7 +143,7 @@ function _distributeNodes(nodes, slots, source) {
         let found = slots[ShadowSlot.getSlotName(currentNode)];
 
         if (found) {
-          found.addNode(currentNode, source);
+          found.addNode(currentNode, projectionSource);
           nodes.splice(i, 1);
           ii--; i--;
         }

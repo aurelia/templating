@@ -406,45 +406,11 @@ export class ViewSlot {
     }
   }
 
-  _projectionInsert() {
-
-  }
-
-  _projectionRemove() {
-
-  }
-
-  _projectionRemoveAt() {
-
-  }
-
-  _projectionRemoveAll() {
-
-  }
-
-  _contentSelectorAdd(view) {
-    _ContentSelector.applySelectors(
-      view,
-      this.contentSelectors,
-      (contentSelector, group) => contentSelector.add(group)
-      );
-
-    this.children.push(view);
-
-    if (this.isAttached) {
-      view.attached();
-    }
-  }
-
-  _contentSelectorInsert(index, view) {
+  _projectionInsert(index, view) {
     if ((index === 0 && !this.children.length) || index >= this.children.length) {
       this.add(view);
     } else {
-      _ContentSelector.applySelectors(
-        view,
-        this.contentSelectors,
-        (contentSelector, group) => contentSelector.insert(index, group)
-      );
+      ShadowSlot.distribute(view, this.projectToSlots, this, index); //TODO: what?
 
       this.children.splice(index, 0, view);
 
@@ -452,6 +418,26 @@ export class ViewSlot {
         view.attached();
       }
     }
+  }
+
+  _projectionMove(sourceIndex, targetIndex) {
+
+  }
+
+  _projectionRemove(view, returnToCache) {
+
+  }
+
+  _projectionRemoveMany(viewsToRemove, returnToCache?) {
+
+  }
+
+  _projectionRemoveAt(index, returnToCache) {
+
+  }
+
+  _projectionRemoveAll(returnToCache) {
+
   }
 
   _contentSelectorRemove(view) {
