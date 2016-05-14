@@ -117,6 +117,7 @@ function applyInstructions(containers, element, instruction, controllers, bindin
 
   if (instruction.contentExpression) {
     bindings.push(instruction.contentExpression.createBinding(element.nextSibling));
+    element.nextSibling.auInterpolationTarget = true;
     element.parentNode.removeChild(element);
     return;
   }

@@ -35,6 +35,9 @@ export class ShadowSlot {
   addNode(node, projectionSource) {
     if (this.contentView) {
       this.contentView.removeNodes();
+      this.contentView.detached();
+      this.contentView.unbind();
+      this.contentView = null;
     }
 
     node.auAssignedSlot = this;
@@ -166,5 +169,5 @@ function _distributeNodes(nodes, slots, projectionSource) {
 //https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model/Whitespace_in_the_DOM
 function isAllWhitespace(node) {
   // Use ECMA-262 Edition 3 String and RegExp features
-  return !(/[^\t\n\r ]/.test(node.textContent));
+  return !(node.auInterpolationTarget || (/[^\t\n\r ]/.test(node.textContent)));
 }
