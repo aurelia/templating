@@ -392,12 +392,12 @@ export class ViewSlot {
     this.removeAll = this._projectionRemoveAll;
 
     this.children.forEach(view => {
-      ShadowSlot.distribute(view, slots, this);
+      ShadowSlot.distribute(view, slots, view.id, this);
     });
   }
 
   _projectionAdd(view) {
-    ShadowSlot.distribute(view, this.projectToSlots, this);
+    ShadowSlot.distribute(view, this.projectToSlots, view.id, this);
 
     this.children.push(view);
 
@@ -410,7 +410,7 @@ export class ViewSlot {
     if ((index === 0 && !this.children.length) || index >= this.children.length) {
       this.add(view);
     } else {
-      ShadowSlot.distribute(view, this.projectToSlots, this, index); //TODO: what?
+      ShadowSlot.distribute(view, this.projectToSlots, view.id, this, index);
 
       this.children.splice(index, 0, view);
 
