@@ -100,9 +100,11 @@ export class ShadowSlot {
   }
 
   renderFallbackContent(nodes, groupId, projectionSource) {
-    this.contentView = this.fallbackFactory.create(this.ownerView.container);
-    this.contentView.bind(this.ownerView.bindingContext, this.ownerView.overrideContext);
-    this.contentView.insertNodesBefore(this.anchor);
+    if (!this.contentView) {
+      this.contentView = this.fallbackFactory.create(this.ownerView.container);
+      this.contentView.bind(this.ownerView.bindingContext, this.ownerView.overrideContext);
+      this.contentView.insertNodesBefore(this.anchor);
+    }
 
     if(this.contentView.hasSlots) {
       _distributeNodes(nodes, this.contentView.slots, groupId, projectionSource);
@@ -199,6 +201,8 @@ function _distributeNodes(nodes, slots, groupId, projectionSource, index) {
 }
 
 //https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model/Whitespace_in_the_DOM
+//We need to ignore whitespace so we don't mess up fallback rendering
+//However, we cannot ignore empty text nodes that container interpolations.
 function isAllWhitespace(node) {
   // Use ECMA-262 Edition 3 String and RegExp features
   return !(node.auInterpolationTarget || (/[^\t\n\r ]/.test(node.textContent)));
