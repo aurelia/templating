@@ -1,11 +1,6 @@
 import {Binding, createOverrideContext} from 'aurelia-binding';
 import {Container} from 'aurelia-dependency-injection';
 
-var currentViewId = 0;
-function nextViewId() {
-  return (++currentViewId).toString();
-}
-
 /**
 * Represents a node in the view hierarchy.
 */
@@ -41,7 +36,6 @@ export class View {
   * @param children The children of this view.
   */
   constructor(container: Container, viewFactory: ViewFactory, fragment: DocumentFragment, controllers: Controller[], bindings: Binding[], children: ViewNode[], slots: Object) {
-    this.id = nextViewId();
     this.container = container;
     this.viewFactory = viewFactory;
     this.resources = viewFactory.resources;

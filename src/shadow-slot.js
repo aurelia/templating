@@ -32,7 +32,7 @@ export class ShadowSlot {
     return !this.isProjecting && this.fallbackFactory;
   }
 
-  addNode(node, groupId, projectionSource, index) {
+  addNode(view, node, projectionSource, index) {
     if (this.contentView) {
       this.contentView.removeNodes();
       this.contentView.detached();
@@ -40,7 +40,7 @@ export class ShadowSlot {
       this.contentView = null;
     }
 
-    node.auShadowGroupId = groupId;
+    node.auOwnerView = view;
     node.auProjectionSource = projectionSource;
     node.auAssignedSlot = this;
 
@@ -59,17 +59,17 @@ export class ShadowSlot {
       if (found) {
         if (index !== undefined) {
           let children = found.auProjectionChildren;
-          let groupIndex = -1;
-          let lastGroupId;
+          let viewIndex = -1;
+          let lastView;
 
           for (let i = 0, ii = children.length; i < ii; ++i) {
             let current = children[i];
 
-            if (current.auShadowGroupId !== lastGroupId) {
-              groupIndex++;
-              lastGroupId = current.auShadowGroupId;
+            if (current.auOwnerView !== lastView) {
+              viewIndex++;
+              lastView = current.auOwnerView;
 
-              if (groupIndex === index) {
+              if (viewIndex === index) {
                 children.splice(i, 0, node);
                 return current;
               }
@@ -85,11 +85,11 @@ export class ShadowSlot {
     return this.anchor;
   }
 
-  projectFrom(groupId, projectionSource) {
+  projectFrom(view, projectionSource) {
     let anchor = DOM.createComment('anchor');
     let parent = this.anchor.parentNode;
     anchor.auSlotProjectFrom = projectionSource;
-    anchor.auShadowGroupId = groupId;
+    anchor.auOwnerView = view;
     anchor.auProjectionChildren = [];
     parent.insertBefore(anchor, this.anchor);
     this.children.push(anchor);
@@ -99,15 +99,15 @@ export class ShadowSlot {
     this.ownerView = ownerView;
   }
 
-  renderFallbackContent(nodes, groupId, projectionSource) {
+  renderFallbackContent(view, nodes, projectionSource, index) {
     if (!this.contentView) {
       this.contentView = this.fallbackFactory.create(this.ownerView.container);
       this.contentView.bind(this.ownerView.bindingContext, this.ownerView.overrideContext);
       this.contentView.insertNodesBefore(this.anchor);
     }
 
-    if(this.contentView.hasSlots) {
-      _distributeNodes(nodes, this.contentView.slots, groupId, projectionSource);
+    if (this.contentView.hasSlots) {
+      _distributeNodes(view, nodes, this.contentView.slots, projectionSource, index);
     }
   }
 
@@ -143,22 +143,18 @@ export class ShadowSlot {
     return node.auSlotAttribute.value;
   }
 
-  static distribute(contentView, slots, groupId, projectionSource, index) {
+  static distribute(view, slots, projectionSource, index) {
     _distributeNodes(
-      slice.call(contentView.fragment.childNodes),
+      view,
+      slice.call(view.fragment.childNodes),
       slots,
-      groupId || contentView.id,
       projectionSource,
       index
     );
   }
 }
 
-function _findInsertionPoint(children, view, index) {
-  //return node anchor and children index
-}
-
-function _distributeNodes(nodes, slots, groupId, projectionSource, index) {
+function _distributeNodes(view, nodes, slots, projectionSource, index) {
   for(let i = 0, ii = nodes.length; i < ii; ++i) {
     let currentNode = nodes[i];
     let nodeType = currentNode.nodeType;
@@ -167,7 +163,7 @@ function _distributeNodes(nodes, slots, groupId, projectionSource, index) {
       currentNode.viewSlot.projectTo(slots);
 
       for(let slotName in slots) {
-        slots[slotName].projectFrom(groupId, currentNode.viewSlot);
+        slots[slotName].projectFrom(view, currentNode.viewSlot);
       }
 
       nodes.splice(i, 1);
@@ -180,7 +176,7 @@ function _distributeNodes(nodes, slots, groupId, projectionSource, index) {
         let found = slots[ShadowSlot.getSlotName(currentNode)];
 
         if (found) {
-          found.addNode(currentNode, groupId, projectionSource, index);
+          found.addNode(view, currentNode, projectionSource, index);
           nodes.splice(i, 1);
           ii--; i--;
         }
@@ -195,7 +191,7 @@ function _distributeNodes(nodes, slots, groupId, projectionSource, index) {
     let slot = slots[slotName];
 
     if (slot.needsFallbackRendering) {
-      slot.renderFallbackContent(nodes, groupId, projectionSource);
+      slot.renderFallbackContent(view, nodes, projectionSource, index);
     }
   }
 }
