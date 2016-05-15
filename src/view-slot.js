@@ -389,10 +389,7 @@ export class ViewSlot {
     this.remove = this._projectionRemove;
     this.removeAt = this._projectionRemoveAt;
     this.removeAll = this._projectionRemoveAll;
-
-    this.children.forEach(view => {
-      ShadowSlot.distribute(view, slots, this);
-    });
+    this.children.forEach(view => ShadowSlot.distribute(view, slots, this));
   }
 
   _projectionAdd(view) {
@@ -428,51 +425,27 @@ export class ViewSlot {
   }
 
   _projectionRemove(view, returnToCache) {
+    ShadowSlot.undistribute(view, this.projectToSlots, this);
+    this.children.splice(this.children.indexOf(view), 1);
 
+    if (this.isAttached) {
+      view.detached();
+    }
   }
 
   _projectionRemoveAt(index, returnToCache) {
+    let view = this.children[index];
 
+    ShadowSlot.undistribute(view, this.projectToSlots, this);
+    this.children.splice(index, 1);
+
+    if (this.isAttached) {
+      view.detached();
+    }
   }
 
   _projectionRemoveAll(returnToCache) {
 
-  }
-
-  _contentSelectorRemove(view) {
-    let index = this.children.indexOf(view);
-    let contentSelectors = this.contentSelectors;
-    let i;
-    let ii;
-
-    for (i = 0, ii = contentSelectors.length; i < ii; ++i) {
-      contentSelectors[i].removeAt(index, view.fragment);
-    }
-
-    this.children.splice(index, 1);
-
-    if (this.isAttached) {
-      view.detached();
-    }
-  }
-
-  _contentSelectorRemoveAt(index) {
-    let view = this.children[index];
-    let contentSelectors = this.contentSelectors;
-    let i;
-    let ii;
-
-    for (i = 0, ii = contentSelectors.length; i < ii; ++i) {
-      contentSelectors[i].removeAt(index, view.fragment);
-    }
-
-    this.children.splice(index, 1);
-
-    if (this.isAttached) {
-      view.detached();
-    }
-
-    return view;
   }
 
   _contentSelectorRemoveAll() {

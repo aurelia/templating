@@ -152,6 +152,10 @@ export class ShadowSlot {
       index
     );
   }
+
+  static undistribute(view, slots, projectionSource) {
+    console.log('undistribute', view);
+  }
 }
 
 function _distributeNodes(view, nodes, slots, projectionSource, index) {
