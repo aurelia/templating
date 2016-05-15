@@ -5,7 +5,6 @@ import {Container} from 'aurelia-dependency-injection';
 import {ViewLocator} from './view-locator';
 import {ViewEngine} from './view-engine';
 import {ViewCompiler} from './view-compiler';
-import {_ContentSelector} from './content-selector';
 import {_hyphenate} from './util';
 import {BindableProperty} from './bindable-property';
 import {Controller} from './controller';

@@ -27,7 +27,6 @@ gulp.task('build-index', function(){
     'shadow-slot.js',
     'view-resources.js',
     'view.js',
-    'content-selector.js',
     'view-slot.js',
     'view-factory.js',
     'view-compiler.js',

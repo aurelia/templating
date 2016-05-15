@@ -1,4 +1,3 @@
-import {_ContentSelector} from './content-selector';
 import {Animator} from './animator';
 import {View} from './view';
 import {DOM} from 'aurelia-pal';
