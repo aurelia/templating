@@ -26,6 +26,7 @@ export class ShadowSlot {
     this.isDefault = !name;
     this.projections = 0;
     this.children = [];
+    this.projectFromAnchors = null;
     this.contentView = null;
   }
 
@@ -54,42 +55,50 @@ export class ShadowSlot {
   }
 
   removeView(view, projectionSource) {
-    let found = this.children.find(x => x.auSlotProjectFrom === projectionSource);
-    if (found) {
-      let children = found.auProjectionChildren;
+    if (this.contentView && this.contentView.hasSlots) {
+      ShadowSlot.undistribute(view, this.contentView.slots, projectionSource)
+    } else {
+      let found = this.children.find(x => x.auSlotProjectFrom === projectionSource);
+      if (found) {
+        let children = found.auProjectionChildren;
 
-      for (let i = 0, ii = children.length; i < ii; ++i) {
-        let child = children[i];
+        for (let i = 0, ii = children.length; i < ii; ++i) {
+          let child = children[i];
 
-        if (child.auOwnerView === view) {
-          children.splice(i, 1);
-          view.fragment.appendChild(child);
-          i--; ii--;
-          this.projections--;
+          if (child.auOwnerView === view) {
+            children.splice(i, 1);
+            view.fragment.appendChild(child);
+            i--; ii--;
+            this.projections--;
+          }
         }
-      }
 
-      if (this.needsFallbackRendering) {
-        this.renderFallbackContent(view, noNodes, projectionSource);
+        if (this.needsFallbackRendering) {
+          this.renderFallbackContent(view, noNodes, projectionSource);
+        }
       }
     }
   }
 
   removeAll(projectionSource) {
-    let found = this.children.find(x => x.auSlotProjectFrom === projectionSource);
+    if (this.contentView && this.contentView.hasSlots) {
+      ShadowSlot.undistributeAll(this.contentView.slots, projectionSource)
+    } else {
+      let found = this.children.find(x => x.auSlotProjectFrom === projectionSource);
 
-    if (found) {
-      let children = found.auProjectionChildren;
-      for (let i = 0, ii = children.length; i < ii; ++i) {
-        let child = children[i];
-        child.auOwnerView.fragment.appendChild(child);
-        this.projections--;
-      }
+      if (found) {
+        let children = found.auProjectionChildren;
+        for (let i = 0, ii = children.length; i < ii; ++i) {
+          let child = children[i];
+          child.auOwnerView.fragment.appendChild(child);
+          this.projections--;
+        }
 
-      found.auProjectionChildren = [];
+        found.auProjectionChildren = [];
 
-      if (this.needsFallbackRendering) {
-        this.renderFallbackContent(null, noNodes, projectionSource);
+        if (this.needsFallbackRendering) {
+          this.renderFallbackContent(null, noNodes, projectionSource);
+        }
       }
     }
   }
@@ -135,6 +144,12 @@ export class ShadowSlot {
     anchor.auProjectionChildren = [];
     parent.insertBefore(anchor, this.anchor);
     this.children.push(anchor);
+
+    if (this.projectFromAnchors === null) {
+      this.projectFromAnchors = [];
+    }
+
+    this.projectFromAnchors.push(anchor);
   }
 
   created(ownerView) {
@@ -149,7 +164,15 @@ export class ShadowSlot {
     }
 
     if (this.contentView.hasSlots) {
-      _distributeNodes(view, nodes, this.contentView.slots, projectionSource, index);
+      let slots = this.contentView.slots;
+
+      if (this.projectFromAnchors !== null) {
+        for (let slotName in slots) {
+          this.projectFromAnchors.forEach(anchor => slots[slotName].projectFrom(anchor.auOwnerView, anchor.auSlotProjectFrom));
+        }
+      }
+
+      _distributeNodes(view, nodes, slots, projectionSource, index);
     }
   }
 
