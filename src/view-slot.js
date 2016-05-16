@@ -417,7 +417,18 @@ export class ViewSlot {
   }
 
   _projectionMove(sourceIndex, targetIndex) {
+    if (sourceIndex === targetIndex) {
+      return;
+    }
 
+    const children = this.children;
+    const view = children[sourceIndex];
+
+    ShadowSlot.undistribute(view, this.projectToSlots, this);
+    ShadowSlot.distribute(view, this.projectToSlots, this, targetIndex);
+
+    children.splice(sourceIndex, 1);
+    children.splice(targetIndex, 0, view);
   }
 
   _projectionRemoveMany(viewsToRemove, returnToCache?) {
