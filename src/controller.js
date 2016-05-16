@@ -141,8 +141,21 @@ export class Controller {
       }
       this.view.bind(this.viewModel, overrideContext);
 
-      if (this.contentView && this.view.hasSlots) {
-        ShadowSlot.distribute(this.contentView, this.view.slots);
+      if (this.contentView) {
+        if (this.view.hasSlots) {
+          ShadowSlot.distribute(this.contentView, this.view.slots);
+        } else {
+          let controllers = this.view.controllers;
+
+          for (let i = 0, ii = controllers.length; i < ii; ++i) {
+            let controller = controllers[i];
+            let view = controller.view;
+
+            if (controller.contentView && controller.contentView.hasSlots) {
+              ShadowSlot.distribute(this.contentView, controller.contentView.slots);
+            }
+          }
+        }
       }
     } else if (skipSelfSubscriber) {
       overrideContext = scope.overrideContext;

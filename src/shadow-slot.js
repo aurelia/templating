@@ -28,6 +28,9 @@ export class ShadowSlot {
     this.children = [];
     this.projectFromAnchors = null;
     this.contentView = null;
+    this.anchor.isContentProjectionSource = true;
+    this.anchor.viewSlot = this;
+    this.destinationSlots = null;
   }
 
   get needsFallbackRendering() {
@@ -40,6 +43,11 @@ export class ShadowSlot {
       this.contentView.detached();
       this.contentView.unbind();
       this.contentView = null;
+    }
+
+    if (this.destinationSlots !== null) {
+      ShadowSlot.distributeNodes(view, [node], this.destinationSlots, this, index)
+      return;
     }
 
     node.auOwnerView = view;
@@ -55,7 +63,9 @@ export class ShadowSlot {
   }
 
   removeView(view, projectionSource) {
-    if (this.contentView && this.contentView.hasSlots) {
+    if (this.destinationSlots !== null) {
+      ShadowSlot.undistribute(view, this.destinationSlots, this)
+    } else if (this.contentView && this.contentView.hasSlots) {
       ShadowSlot.undistribute(view, this.contentView.slots, projectionSource)
     } else {
       let found = this.children.find(x => x.auSlotProjectFrom === projectionSource);
@@ -81,7 +91,9 @@ export class ShadowSlot {
   }
 
   removeAll(projectionSource) {
-    if (this.contentView && this.contentView.hasSlots) {
+    if (this.destinationSlots !== null) {
+      ShadowSlot.undistributeAll(this.destinationSlots, this)
+    } else if (this.contentView && this.contentView.hasSlots) {
       ShadowSlot.undistributeAll(this.contentView.slots, projectionSource)
     } else {
       let found = this.children.find(x => x.auSlotProjectFrom === projectionSource);
@@ -136,6 +148,10 @@ export class ShadowSlot {
     return this.anchor;
   }
 
+  projectTo(slots) {
+    this.destinationSlots = slots;
+  }
+
   projectFrom(view, projectionSource) {
     let anchor = DOM.createComment('anchor');
     let parent = this.anchor.parentNode;
@@ -172,7 +188,7 @@ export class ShadowSlot {
         }
       }
 
-      _distributeNodes(view, nodes, slots, projectionSource, index);
+      ShadowSlot.distributeNodes(view, nodes, slots, projectionSource, index);
     }
   }
 
@@ -209,7 +225,7 @@ export class ShadowSlot {
   }
 
   static distribute(view, slots, projectionSource, index) {
-    _distributeNodes(
+    ShadowSlot.distributeNodes(
       view,
       slice.call(view.fragment.childNodes),
       slots,
@@ -229,46 +245,46 @@ export class ShadowSlot {
       slots[slotName].removeAll(projectionSource);
     }
   }
-}
 
-function _distributeNodes(view, nodes, slots, projectionSource, index) {
-  for(let i = 0, ii = nodes.length; i < ii; ++i) {
-    let currentNode = nodes[i];
-    let nodeType = currentNode.nodeType;
+  static distributeNodes(view, nodes, slots, projectionSource, index) {
+    for(let i = 0, ii = nodes.length; i < ii; ++i) {
+      let currentNode = nodes[i];
+      let nodeType = currentNode.nodeType;
 
-    if (currentNode.isContentProjectionSource) {
-      currentNode.viewSlot.projectTo(slots);
+      if (currentNode.isContentProjectionSource) {
+        currentNode.viewSlot.projectTo(slots);
 
-      for(let slotName in slots) {
-        slots[slotName].projectFrom(view, currentNode.viewSlot);
-      }
+        for(let slotName in slots) {
+          slots[slotName].projectFrom(view, currentNode.viewSlot);
+        }
 
-      nodes.splice(i, 1);
-      ii--; i--;
-    } else if (nodeType === 1 || nodeType === 3) { //project only elements and text
-      if(nodeType === 3 && isAllWhitespace(currentNode)) {
         nodes.splice(i, 1);
         ii--; i--;
-      } else {
-        let found = slots[ShadowSlot.getSlotName(currentNode)];
-
-        if (found) {
-          found.addNode(view, currentNode, projectionSource, index);
+      } else if (nodeType === 1 || nodeType === 3) { //project only elements and text
+        if(nodeType === 3 && isAllWhitespace(currentNode)) {
           nodes.splice(i, 1);
           ii--; i--;
+        } else {
+          let found = slots[ShadowSlot.getSlotName(currentNode)];
+
+          if (found) {
+            found.addNode(view, currentNode, projectionSource, index);
+            nodes.splice(i, 1);
+            ii--; i--;
+          }
         }
+      } else {
+        nodes.splice(i, 1);
+        ii--; i--;
       }
-    } else {
-      nodes.splice(i, 1);
-      ii--; i--;
     }
-  }
 
-  for(let slotName in slots) {
-    let slot = slots[slotName];
+    for(let slotName in slots) {
+      let slot = slots[slotName];
 
-    if (slot.needsFallbackRendering) {
-      slot.renderFallbackContent(view, nodes, projectionSource, index);
+      if (slot.needsFallbackRendering) {
+        slot.renderFallbackContent(view, nodes, projectionSource, index);
+      }
     }
   }
 }
