@@ -421,7 +421,7 @@ export class ViewSlot {
   }
 
   _projectionRemoveMany(viewsToRemove, returnToCache?) {
-
+    viewsToRemove.forEach(view => this.remove(view, returnToCache));
   }
 
   _projectionRemove(view, returnToCache) {

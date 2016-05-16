@@ -2,6 +2,7 @@ import {inject} from 'aurelia-dependency-injection';
 import {DOM} from 'aurelia-pal';
 
 let slice = Array.prototype.slice;
+let noNodes = Object.freeze([]);
 
 @inject(DOM.Element)
 export class SlotCustomAttribute {
@@ -23,13 +24,13 @@ export class ShadowSlot {
     this.name = name;
     this.fallbackFactory = fallbackFactory;
     this.isDefault = !name;
-    this.isProjecting = false;
+    this.projections = 0;
     this.children = [];
     this.contentView = null;
   }
 
   get needsFallbackRendering() {
-    return !this.isProjecting && this.fallbackFactory;
+    return this.fallbackFactory && this.projections === 0;
   }
 
   addNode(view, node, projectionSource, index) {
@@ -49,7 +50,7 @@ export class ShadowSlot {
 
     parent.insertBefore(node, anchor);
     this.children.push(node);
-    this.isProjecting = true;
+    this.projections++;
   }
 
   removeView(view, projectionSource) {
@@ -64,20 +65,32 @@ export class ShadowSlot {
           children.splice(i, 1);
           view.fragment.appendChild(child);
           i--; ii--;
+          this.projections--;
         }
+      }
+
+      if (this.needsFallbackRendering) {
+        this.renderFallbackContent(view, noNodes, projectionSource);
       }
     }
   }
 
   removeAll(projectionSource) {
     let found = this.children.find(x => x.auSlotProjectFrom === projectionSource);
+
     if (found) {
       let children = found.auProjectionChildren;
       for (let i = 0, ii = children.length; i < ii; ++i) {
         let child = children[i];
         child.auOwnerView.fragment.appendChild(child);
+        this.projections--;
       }
+
       found.auProjectionChildren = [];
+
+      if (this.needsFallbackRendering) {
+        this.renderFallbackContent(null, noNodes, projectionSource);
+      }
     }
   }
 
