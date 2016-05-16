@@ -45,7 +45,7 @@ export class ShadowSlot {
     node.auProjectionSource = projectionSource;
     node.auAssignedSlot = this;
 
-    let anchor = this._findAnchor(projectionSource, index, node);
+    let anchor = this._findAnchor(view, node, projectionSource, index);
     let parent = anchor.parentNode;
 
     parent.insertBefore(node, anchor);
@@ -94,7 +94,7 @@ export class ShadowSlot {
     }
   }
 
-  _findAnchor(projectionSource, index, node) {
+  _findAnchor(view, node, projectionSource, index) {
     if (projectionSource) {
       //find the anchor associated with the projected view slot
       let found = this.children.find(x => x.auSlotProjectFrom === projectionSource);
@@ -111,7 +111,7 @@ export class ShadowSlot {
               viewIndex++;
               lastView = current.auOwnerView;
 
-              if (viewIndex === index) {
+              if (viewIndex >= index && lastView !== view) {
                 children.splice(i, 0, node);
                 return current;
               }
