@@ -386,8 +386,10 @@ export class ViewSlot {
     this.projectToSlots = slots;
     this.add = this._projectionAdd;
     this.insert = this._projectionInsert;
+    this.move = this._projectionMove;
     this.remove = this._projectionRemove;
     this.removeAt = this._projectionRemoveAt;
+    this.removeMany = this._projectionRemoveMany;
     this.removeAll = this._projectionRemoveAll;
     this.children.forEach(view => ShadowSlot.distribute(view, slots, this));
   }
@@ -431,10 +433,6 @@ export class ViewSlot {
     children.splice(targetIndex, 0, view);
   }
 
-  _projectionRemoveMany(viewsToRemove, returnToCache?) {
-    viewsToRemove.forEach(view => this.remove(view, returnToCache));
-  }
-
   _projectionRemove(view, returnToCache) {
     ShadowSlot.undistribute(view, this.projectToSlots, this);
     this.children.splice(this.children.indexOf(view), 1);
@@ -453,6 +451,10 @@ export class ViewSlot {
     if (this.isAttached) {
       view.detached();
     }
+  }
+
+  _projectionRemoveMany(viewsToRemove, returnToCache?) {
+    viewsToRemove.forEach(view => this.remove(view, returnToCache));
   }
 
   _projectionRemoveAll(returnToCache) {
