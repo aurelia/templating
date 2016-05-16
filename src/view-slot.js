@@ -445,28 +445,12 @@ export class ViewSlot {
   }
 
   _projectionRemoveAll(returnToCache) {
+    ShadowSlot.undistributeAll(this.projectToSlots, this);
 
-  }
-
-  _contentSelectorRemoveAll() {
     let children = this.children;
-    let contentSelectors = this.contentSelectors;
-    let ii = children.length;
-    let jj = contentSelectors.length;
-    let i;
-    let j;
-    let view;
-
-    for (i = 0; i < ii; ++i) {
-      view = children[i];
-
-      for (j = 0; j < jj; ++j) {
-        contentSelectors[j].removeAt(0, view.fragment);
-      }
-    }
 
     if (this.isAttached) {
-      for (i = 0; i < ii; ++i) {
+      for (let i = 0, ii = children.length; i < ii; ++i) {
         children[i].detached();
       }
     }

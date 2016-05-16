@@ -52,6 +52,35 @@ export class ShadowSlot {
     this.isProjecting = true;
   }
 
+  removeView(view, projectionSource) {
+    let found = this.children.find(x => x.auSlotProjectFrom === projectionSource);
+    if (found) {
+      let children = found.auProjectionChildren;
+
+      for (let i = 0, ii = children.length; i < ii; ++i) {
+        let child = children[i];
+
+        if (child.auOwnerView === view) {
+          children.splice(i, 1);
+          view.fragment.appendChild(child);
+          i--; ii--;
+        }
+      }
+    }
+  }
+
+  removeAll(projectionSource) {
+    let found = this.children.find(x => x.auSlotProjectFrom === projectionSource);
+    if (found) {
+      let children = found.auProjectionChildren;
+      for (let i = 0, ii = children.length; i < ii; ++i) {
+        let child = children[i];
+        child.auOwnerView.fragment.appendChild(child);
+      }
+      found.auProjectionChildren = [];
+    }
+  }
+
   _findAnchor(projectionSource, index, node) {
     if (projectionSource) {
       //find the anchor associated with the projected view slot
@@ -154,7 +183,15 @@ export class ShadowSlot {
   }
 
   static undistribute(view, slots, projectionSource) {
-    console.log('undistribute', view);
+    for (let slotName in slots) {
+      slots[slotName].removeView(view, projectionSource);
+    }
+  }
+
+  static undistributeAll(slots, projectionSource) {
+    for (let slotName in slots) {
+      slots[slotName].removeAll(projectionSource);
+    }
   }
 }
 
