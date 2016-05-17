@@ -19,7 +19,7 @@ export class SlotCustomAttribute {
 export class ShadowSlot {
   static defaultName = '__au-default-slot-key__';
 
-  constructor(anchor, name, fallbackFactory) {
+  constructor(anchor, name, fallbackFactory, slotDestination) {
     this.anchor = anchor;
     this.name = name;
     this.fallbackFactory = fallbackFactory;
@@ -31,6 +31,12 @@ export class ShadowSlot {
     this.anchor.isContentProjectionSource = true;
     this.anchor.viewSlot = this;
     this.destinationSlots = null;
+
+    if (slotDestination) {
+      let slotAttr = anchor.auSlotAttribute = new SlotCustomAttribute(anchor);
+      slotAttr.value = slotDestination;
+      slotAttr.passthrough = true;
+    }
   }
 
   get needsFallbackRendering() {
@@ -252,14 +258,16 @@ export class ShadowSlot {
       let nodeType = currentNode.nodeType;
 
       if (currentNode.isContentProjectionSource) {
-        currentNode.viewSlot.projectTo(slots);
+        if (ShadowSlot.getSlotName(currentNode) in slots) {
+          currentNode.viewSlot.projectTo(slots);
 
-        for(let slotName in slots) {
-          slots[slotName].projectFrom(view, currentNode.viewSlot);
+          for(let slotName in slots) {
+            slots[slotName].projectFrom(view, currentNode.viewSlot);
+          }
+
+          nodes.splice(i, 1);
+          ii--; i--;
         }
-
-        nodes.splice(i, 1);
-        ii--; i--;
       } else if (nodeType === 1 || nodeType === 3) { //project only elements and text
         if(nodeType === 3 && isAllWhitespace(currentNode)) {
           nodes.splice(i, 1);

@@ -125,7 +125,7 @@ function applyInstructions(containers, element, instruction, controllers, bindin
   if (instruction.shadowSlot) {
     let commentAnchor = DOM.createComment('slot');
     DOM.replaceNode(commentAnchor, element);
-    shadowSlots[instruction.slotName] = new ShadowSlot(commentAnchor, instruction.slotName, instruction.slotFallbackFactory);
+    shadowSlots[instruction.slotName] = new ShadowSlot(commentAnchor, instruction.slotName, instruction.slotFallbackFactory, instruction.slotDestination);
     return;
   }
 

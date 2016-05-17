@@ -63,6 +63,7 @@ function makeShadowSlot(compiler, resources, node, instructions, parentInjectorI
   let instruction = TargetInstruction.shadowSlot(parentInjectorId);
 
   instruction.slotName = node.getAttribute('name') || ShadowSlot.defaultName;
+  instruction.slotDestination = node.getAttribute('slot');
 
   if(node.innerHTML.trim()) {
     let fragment = DOM.createDocumentFragment();
@@ -76,7 +77,7 @@ function makeShadowSlot(compiler, resources, node, instructions, parentInjectorI
   }
 
   instructions[auTargetID] = instruction;
-  
+
   return auShadowSlot;
 }
 
