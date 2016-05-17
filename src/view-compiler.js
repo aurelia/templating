@@ -76,6 +76,8 @@ function makeShadowSlot(compiler, resources, node, instructions, parentInjectorI
   }
 
   instructions[auTargetID] = instruction;
+  
+  return auShadowSlot;
 }
 
 /**
@@ -307,7 +309,7 @@ export class ViewCompiler {
 
     if (tagName === 'slot') {
       if (targetLightDOM) {
-        makeShadowSlot(this, resources, node, instructions, parentInjectorId);
+        node = makeShadowSlot(this, resources, node, instructions, parentInjectorId);
       }
       return node.nextSibling;
     } else if (tagName === 'template') {
