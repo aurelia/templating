@@ -17,8 +17,6 @@ export class SlotCustomAttribute {
 }
 
 export class ShadowSlot {
-  static defaultName = '__au-default-slot-key__';
-
   constructor(anchor, name, fallbackFactory, slotDestination) {
     this.anchor = anchor;
     this.name = name;
@@ -52,7 +50,7 @@ export class ShadowSlot {
     }
 
     if (this.destinationSlots !== null) {
-      ShadowSlot.distributeNodes(view, [node], this.destinationSlots, this, index)
+      ShadowDOM.distributeNodes(view, [node], this.destinationSlots, this, index)
       return;
     }
 
@@ -70,9 +68,9 @@ export class ShadowSlot {
 
   removeView(view, projectionSource) {
     if (this.destinationSlots !== null) {
-      ShadowSlot.undistribute(view, this.destinationSlots, this)
+      ShadowDOM.undistribute(view, this.destinationSlots, this)
     } else if (this.contentView && this.contentView.hasSlots) {
-      ShadowSlot.undistribute(view, this.contentView.slots, projectionSource)
+      ShadowDOM.undistribute(view, this.contentView.slots, projectionSource)
     } else {
       let found = this.children.find(x => x.auSlotProjectFrom === projectionSource);
       if (found) {
@@ -98,9 +96,9 @@ export class ShadowSlot {
 
   removeAll(projectionSource) {
     if (this.destinationSlots !== null) {
-      ShadowSlot.undistributeAll(this.destinationSlots, this)
+      ShadowDOM.undistributeAll(this.destinationSlots, this)
     } else if (this.contentView && this.contentView.hasSlots) {
-      ShadowSlot.undistributeAll(this.contentView.slots, projectionSource)
+      ShadowDOM.undistributeAll(this.contentView.slots, projectionSource)
     } else {
       let found = this.children.find(x => x.auSlotProjectFrom === projectionSource);
 
@@ -194,7 +192,7 @@ export class ShadowSlot {
         }
       }
 
-      ShadowSlot.distributeNodes(view, nodes, slots, projectionSource, index);
+      ShadowDOM.distributeNodes(view, nodes, slots, projectionSource, index);
     }
   }
 
@@ -221,17 +219,21 @@ export class ShadowSlot {
       this.contentView.unbind();
     }
   }
+}
+
+export class ShadowDOM {
+  static defaultSlotKey = '__au-default-slot-key__';
 
   static getSlotName(node) {
     if (node.auSlotAttribute === undefined) {
-      return ShadowSlot.defaultName;
+      return ShadowDOM.defaultSlotKey;
     }
 
     return node.auSlotAttribute.value;
   }
 
   static distribute(view, slots, projectionSource, index) {
-    ShadowSlot.distributeNodes(
+    ShadowDOM.distributeNodes(
       view,
       slice.call(view.fragment.childNodes),
       slots,
@@ -258,7 +260,7 @@ export class ShadowSlot {
       let nodeType = currentNode.nodeType;
 
       if (currentNode.isContentProjectionSource) {
-        if (ShadowSlot.getSlotName(currentNode) in slots) {
+        if (ShadowDOM.getSlotName(currentNode) in slots) {
           currentNode.viewSlot.projectTo(slots);
 
           for(let slotName in slots) {
@@ -273,7 +275,7 @@ export class ShadowSlot {
           nodes.splice(i, 1);
           ii--; i--;
         } else {
-          let found = slots[ShadowSlot.getSlotName(currentNode)];
+          let found = slots[ShadowDOM.getSlotName(currentNode)];
 
           if (found) {
             found.addNode(view, currentNode, projectionSource, index);

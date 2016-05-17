@@ -7,7 +7,7 @@ import {ViewResources} from './view-resources';
 import {ModuleAnalyzer, ResourceDescription} from './module-analyzer';
 import {ViewFactory} from './view-factory';
 import {ResourceLoadContext, ViewCompileInstruction} from './instructions';
-import {SlotCustomAttribute} from './shadow-slot';
+import {SlotCustomAttribute} from './shadow-dom';
 
 let logger = LogManager.getLogger('templating');
 

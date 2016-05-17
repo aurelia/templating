@@ -1,7 +1,7 @@
 import {Container, resolver} from 'aurelia-dependency-injection';
 import {View} from './view';
 import {ViewSlot} from './view-slot';
-import {ShadowSlot} from './shadow-slot';
+import {ShadowSlot} from './shadow-dom';
 import {ViewResources} from './view-resources';
 import {BehaviorInstruction, TargetInstruction} from './instructions';
 import {DOM} from 'aurelia-pal';

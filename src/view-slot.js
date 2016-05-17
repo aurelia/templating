@@ -1,7 +1,7 @@
 import {Animator} from './animator';
 import {View} from './view';
 import {DOM} from 'aurelia-pal';
-import {ShadowSlot} from './shadow-slot';
+import {ShadowDOM} from './shadow-dom';
 
 function getAnimatableElement(view) {
   let firstChild = view.firstChild;
@@ -391,11 +391,11 @@ export class ViewSlot {
     this.removeAt = this._projectionRemoveAt;
     this.removeMany = this._projectionRemoveMany;
     this.removeAll = this._projectionRemoveAll;
-    this.children.forEach(view => ShadowSlot.distribute(view, slots, this));
+    this.children.forEach(view => ShadowDOM.distribute(view, slots, this));
   }
 
   _projectionAdd(view) {
-    ShadowSlot.distribute(view, this.projectToSlots, this);
+    ShadowDOM.distribute(view, this.projectToSlots, this);
 
     this.children.push(view);
 
@@ -408,7 +408,7 @@ export class ViewSlot {
     if ((index === 0 && !this.children.length) || index >= this.children.length) {
       this.add(view);
     } else {
-      ShadowSlot.distribute(view, this.projectToSlots, this, index);
+      ShadowDOM.distribute(view, this.projectToSlots, this, index);
 
       this.children.splice(index, 0, view);
 
@@ -426,15 +426,15 @@ export class ViewSlot {
     const children = this.children;
     const view = children[sourceIndex];
 
-    ShadowSlot.undistribute(view, this.projectToSlots, this);
-    ShadowSlot.distribute(view, this.projectToSlots, this, targetIndex);
+    ShadowDOM.undistribute(view, this.projectToSlots, this);
+    ShadowDOM.distribute(view, this.projectToSlots, this, targetIndex);
 
     children.splice(sourceIndex, 1);
     children.splice(targetIndex, 0, view);
   }
 
   _projectionRemove(view, returnToCache) {
-    ShadowSlot.undistribute(view, this.projectToSlots, this);
+    ShadowDOM.undistribute(view, this.projectToSlots, this);
     this.children.splice(this.children.indexOf(view), 1);
 
     if (this.isAttached) {
@@ -445,7 +445,7 @@ export class ViewSlot {
   _projectionRemoveAt(index, returnToCache) {
     let view = this.children[index];
 
-    ShadowSlot.undistribute(view, this.projectToSlots, this);
+    ShadowDOM.undistribute(view, this.projectToSlots, this);
     this.children.splice(index, 1);
 
     if (this.isAttached) {
@@ -458,7 +458,7 @@ export class ViewSlot {
   }
 
   _projectionRemoveAll(returnToCache) {
-    ShadowSlot.undistributeAll(this.projectToSlots, this);
+    ShadowDOM.undistributeAll(this.projectToSlots, this);
 
     let children = this.children;
 

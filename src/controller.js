@@ -1,5 +1,6 @@
 import {createOverrideContext} from 'aurelia-binding';
 import {ElementEvents} from './element-events';
+import {ShadowDOM} from './shadow-dom';
 
 /**
 * Controls a view model (and optionally its view), according to a particular behavior and by following a set of instructions.
@@ -143,7 +144,7 @@ export class Controller {
 
       if (this.contentView) {
         if (this.view.hasSlots) {
-          ShadowSlot.distribute(this.contentView, this.view.slots);
+          ShadowDOM.distribute(this.contentView, this.view.slots);
         } else {
           let controllers = this.view.controllers;
 
@@ -152,7 +153,7 @@ export class Controller {
             let view = controller.view;
 
             if (controller.contentView && controller.contentView.hasSlots) {
-              ShadowSlot.distribute(this.contentView, controller.contentView.slots);
+              ShadowDOM.distribute(this.contentView, controller.contentView.slots);
             }
           }
         }
