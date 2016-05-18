@@ -140,23 +140,11 @@ export class Controller {
         overrideContext = createOverrideContext(this.viewModel);
         overrideContext.__parentOverrideContext = scope.overrideContext;
       }
+
       this.view.bind(this.viewModel, overrideContext);
 
-      if (this.contentView) {
-        if (this.view.hasSlots) {
-          ShadowDOM.distribute(this.contentView, this.view.slots);
-        } else {
-          let controllers = this.view.controllers;
-
-          for (let i = 0, ii = controllers.length; i < ii; ++i) {
-            let controller = controllers[i];
-            let view = controller.view;
-
-            if (controller.contentView && controller.contentView.hasSlots) {
-              ShadowDOM.distribute(this.contentView, controller.contentView.slots);
-            }
-          }
-        }
+      if (this.view.hasSlots && this.contentView) {
+        ShadowDOM.distributeView(this.contentView, this.view.slots);
       }
     } else if (skipSelfSubscriber) {
       overrideContext = scope.overrideContext;

@@ -5,14 +5,13 @@ import {Container} from 'aurelia-dependency-injection';
 import {ViewLocator} from './view-locator';
 import {ViewEngine} from './view-engine';
 import {ViewCompiler} from './view-compiler';
-import {_hyphenate} from './util';
+import {_hyphenate, _isAllWhitespace} from './util';
 import {BindableProperty} from './bindable-property';
 import {Controller} from './controller';
 import {ViewResources} from './view-resources';
 import {ResourceLoadContext, ViewCompileInstruction, BehaviorInstruction} from './instructions';
 import {FEATURE, DOM} from 'aurelia-pal';
 
-const contentViewCreateInstruction = { enhance: false };
 let lastProviderId = 0;
 
 function nextProviderId() {
@@ -240,50 +239,34 @@ export class HtmlBehaviorResource {
       let partReplacements = {};
 
       if (this.processContent(compiler, resources, node, instruction) && node.hasChildNodes()) {
-        if (this.usesShadowDOM) {
-          let currentChild = node.firstChild;
-          let nextSibling;
-          let toReplace;
+        let currentChild = node.firstChild;
+        let contentElement = this.usesShadowDOM ? null : DOM.createElement('au-content');
+        let nextSibling;
+        let toReplace;
 
-          while (currentChild) {
-            nextSibling = currentChild.nextSibling;
+        while (currentChild) {
+          nextSibling = currentChild.nextSibling;
 
-            if (currentChild.tagName === 'TEMPLATE' && (toReplace = currentChild.getAttribute('replace-part'))) {
-              partReplacements[toReplace] = compiler.compile(currentChild, resources);
+          if (currentChild.tagName === 'TEMPLATE' && (toReplace = currentChild.getAttribute('replace-part'))) {
+            partReplacements[toReplace] = compiler.compile(currentChild, resources);
+            DOM.removeNode(currentChild, parentNode);
+            instruction.partReplacements = partReplacements;
+          } else if (contentElement !== null) {
+            if (currentChild.nodeType === 3 && _isAllWhitespace(currentChild)) {
               DOM.removeNode(currentChild, parentNode);
-              instruction.partReplacements = partReplacements;
+            } else {
+              contentElement.appendChild(currentChild);
             }
-
-            currentChild = nextSibling;
           }
 
-          instruction.skipContentProcessing = false;
-        } else {
-          if (node.innerHTML.trim()) {
-            let fragment = DOM.createDocumentFragment();
-            let currentChild = node.firstChild;
-            let nextSibling;
-            let toReplace;
-
-            while (currentChild) {
-              nextSibling = currentChild.nextSibling;
-
-              if (currentChild.tagName === 'TEMPLATE' && (toReplace = currentChild.getAttribute('replace-part'))) {
-                partReplacements[toReplace] = compiler.compile(currentChild, resources);
-                DOM.removeNode(currentChild, parentNode);
-                instruction.partReplacements = partReplacements;
-              } else {
-                fragment.appendChild(currentChild);
-              }
-
-              currentChild = nextSibling;
-            }
-
-            instruction.contentFactory = compiler.compile(fragment, resources);
-          }
-
-          instruction.skipContentProcessing = true;
+          currentChild = nextSibling;
         }
+
+        if (contentElement !== null && contentElement.hasChildNodes()) {
+          node.appendChild(contentElement);
+        }
+
+        instruction.skipContentProcessing = false;
       } else {
         instruction.skipContentProcessing = true;
       }
@@ -314,7 +297,6 @@ export class HtmlBehaviorResource {
         container.registerInstance(DOM.boundary, host);
       } else {
         host = element;
-
         if (this.targetShadowDOM) {
           container.registerInstance(DOM.boundary, host);
         }
@@ -346,8 +328,10 @@ export class HtmlBehaviorResource {
         au.controller = controller;
 
         if (controller.view) {
-          if (!this.usesShadowDOM && instruction.contentFactory) {
-            controller.contentView = instruction.contentFactory.create(container, contentViewCreateInstruction);
+          if (!this.usesShadowDOM && element.childNodes.length === 1) {
+            let contentNode = element.childNodes[0];
+            controller.contentView = { fragment:  contentNode }; //store the content before appending the view
+            DOM.removeNode(contentNode);
           }
 
           if (instruction.anchorIsContainer) {

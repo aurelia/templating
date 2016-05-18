@@ -1,5 +1,6 @@
 import {inject} from 'aurelia-dependency-injection';
 import {DOM} from 'aurelia-pal';
+import {_isAllWhitespace} from './util';
 
 let slice = Array.prototype.slice;
 let noNodes = Object.freeze([]);
@@ -68,9 +69,9 @@ export class ShadowSlot {
 
   removeView(view, projectionSource) {
     if (this.destinationSlots !== null) {
-      ShadowDOM.undistribute(view, this.destinationSlots, this)
+      ShadowDOM.undistributeView(view, this.destinationSlots, this)
     } else if (this.contentView && this.contentView.hasSlots) {
-      ShadowDOM.undistribute(view, this.contentView.slots, projectionSource)
+      ShadowDOM.undistributeView(view, this.contentView.slots, projectionSource)
     } else {
       let found = this.children.find(x => x.auSlotProjectFrom === projectionSource);
       if (found) {
@@ -232,7 +233,7 @@ export class ShadowDOM {
     return node.auSlotAttribute.value;
   }
 
-  static distribute(view, slots, projectionSource, index) {
+  static distributeView(view, slots, projectionSource, index) {
     ShadowDOM.distributeNodes(
       view,
       slice.call(view.fragment.childNodes),
@@ -242,7 +243,7 @@ export class ShadowDOM {
     );
   }
 
-  static undistribute(view, slots, projectionSource) {
+  static undistributeView(view, slots, projectionSource) {
     for (let slotName in slots) {
       slots[slotName].removeView(view, projectionSource);
     }
@@ -260,18 +261,16 @@ export class ShadowDOM {
       let nodeType = currentNode.nodeType;
 
       if (currentNode.isContentProjectionSource) {
-        if (ShadowDOM.getSlotName(currentNode) in slots) {
-          currentNode.viewSlot.projectTo(slots);
+        currentNode.viewSlot.projectTo(slots);
 
-          for(let slotName in slots) {
-            slots[slotName].projectFrom(view, currentNode.viewSlot);
-          }
-
-          nodes.splice(i, 1);
-          ii--; i--;
+        for(let slotName in slots) {
+          slots[slotName].projectFrom(view, currentNode.viewSlot);
         }
+
+        nodes.splice(i, 1);
+        ii--; i--;
       } else if (nodeType === 1 || nodeType === 3) { //project only elements and text
-        if(nodeType === 3 && isAllWhitespace(currentNode)) {
+        if(nodeType === 3 && _isAllWhitespace(currentNode)) {
           nodes.splice(i, 1);
           ii--; i--;
         } else {
@@ -297,12 +296,4 @@ export class ShadowDOM {
       }
     }
   }
-}
-
-//https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model/Whitespace_in_the_DOM
-//We need to ignore whitespace so we don't mess up fallback rendering
-//However, we cannot ignore empty text nodes that container interpolations.
-function isAllWhitespace(node) {
-  // Use ECMA-262 Edition 3 String and RegExp features
-  return !(node.auInterpolationTarget || (/[^\t\n\r ]/.test(node.textContent)));
 }

@@ -391,11 +391,11 @@ export class ViewSlot {
     this.removeAt = this._projectionRemoveAt;
     this.removeMany = this._projectionRemoveMany;
     this.removeAll = this._projectionRemoveAll;
-    this.children.forEach(view => ShadowDOM.distribute(view, slots, this));
+    this.children.forEach(view => ShadowDOM.distributeView(view, slots, this));
   }
 
   _projectionAdd(view) {
-    ShadowDOM.distribute(view, this.projectToSlots, this);
+    ShadowDOM.distributeView(view, this.projectToSlots, this);
 
     this.children.push(view);
 
@@ -408,7 +408,7 @@ export class ViewSlot {
     if ((index === 0 && !this.children.length) || index >= this.children.length) {
       this.add(view);
     } else {
-      ShadowDOM.distribute(view, this.projectToSlots, this, index);
+      ShadowDOM.distributeView(view, this.projectToSlots, this, index);
 
       this.children.splice(index, 0, view);
 
@@ -426,15 +426,15 @@ export class ViewSlot {
     const children = this.children;
     const view = children[sourceIndex];
 
-    ShadowDOM.undistribute(view, this.projectToSlots, this);
-    ShadowDOM.distribute(view, this.projectToSlots, this, targetIndex);
+    ShadowDOM.undistributeView(view, this.projectToSlots, this);
+    ShadowDOM.distributeView(view, this.projectToSlots, this, targetIndex);
 
     children.splice(sourceIndex, 1);
     children.splice(targetIndex, 0, view);
   }
 
   _projectionRemove(view, returnToCache) {
-    ShadowDOM.undistribute(view, this.projectToSlots, this);
+    ShadowDOM.undistributeView(view, this.projectToSlots, this);
     this.children.splice(this.children.indexOf(view), 1);
 
     if (this.isAttached) {
@@ -445,7 +445,7 @@ export class ViewSlot {
   _projectionRemoveAt(index, returnToCache) {
     let view = this.children[index];
 
-    ShadowDOM.undistribute(view, this.projectToSlots, this);
+    ShadowDOM.undistributeView(view, this.projectToSlots, this);
     this.children.splice(index, 1);
 
     if (this.isAttached) {
