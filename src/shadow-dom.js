@@ -9,6 +9,7 @@ export class SlotCustomAttribute {
   constructor(element) {
     this.element = element;
     this.element.auSlotAttribute = this;
+    this.passthrough = false;
   }
 
   valueChanged(newValue, oldValue) {
@@ -232,6 +233,14 @@ export class ShadowDOM {
     return node.auSlotAttribute.value;
   }
 
+  static isPassthroughSlot(node) {
+    if (node.auSlotAttribute === undefined) {
+      return false;
+    }
+
+    return node.auSlotAttribute.passthrough;
+  }
+
   static distributeView(view, slots, projectionSource, index) {
     ShadowDOM.distributeNodes(
       view,
@@ -260,14 +269,19 @@ export class ShadowDOM {
       let nodeType = currentNode.nodeType;
 
       if (currentNode.isContentProjectionSource) {
-        currentNode.viewSlot.projectTo(slots);
+        let slotDestination = ShadowDOM.getSlotName(currentNode);
+        let isPassthroughSlot = ShadowDOM.isPassthroughSlot(currentNode);
 
-        for(let slotName in slots) {
-          slots[slotName].projectFrom(view, currentNode.viewSlot);
+        if (slotDestination in slots || !isPassthroughSlot) {
+          currentNode.viewSlot.projectTo(slots);
+
+          for(let slotName in slots) {
+            slots[slotName].projectFrom(view, currentNode.viewSlot);
+          }
+
+          nodes.splice(i, 1);
+          ii--; i--;
         }
-
-        nodes.splice(i, 1);
-        ii--; i--;
       } else if (nodeType === 1 || nodeType === 3) { //project only elements and text
         if(nodeType === 3 && _isAllWhitespace(currentNode)) {
           nodes.splice(i, 1);
