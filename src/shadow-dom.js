@@ -2,7 +2,6 @@ import {inject} from 'aurelia-dependency-injection';
 import {DOM} from 'aurelia-pal';
 import {_isAllWhitespace} from './util';
 
-let slice = Array.prototype.slice;
 let noNodes = Object.freeze([]);
 
 @inject(DOM.Element)
@@ -236,7 +235,7 @@ export class ShadowDOM {
   static distributeView(view, slots, projectionSource, index) {
     ShadowDOM.distributeNodes(
       view,
-      slice.call(view.fragment.childNodes),
+      view.childNodes,
       slots,
       projectionSource,
       index

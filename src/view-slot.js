@@ -4,19 +4,21 @@ import {DOM} from 'aurelia-pal';
 import {ShadowDOM} from './shadow-dom';
 
 function getAnimatableElement(view) {
-  let firstChild = view.firstChild;
+  if (view.animatableElement !== undefined) {
+    return view.animatableElement;
+  }
 
-  if (firstChild !== null && firstChild !== undefined && firstChild.nodeType === 8) {
-    let element = DOM.nextElementSibling(firstChild);
+  let childNodes = view.childNodes;
 
-    if (element !== null && element !== undefined &&
-      element.nodeType === 1 &&
-      element.classList.contains('au-animate')) {
-      return element;
+  for (let i = 0, ii = childNodes.length; i < ii; ++i) {
+    let element = childNodes[i];
+
+    if (element.nodeType === 1) {
+      return (view.animatableElement = element.classList.contains('au-animate') ? element : null);
     }
   }
 
-  return null;
+  return (view.animatableElement = null);
 }
 
 /**
@@ -32,7 +34,7 @@ export class ViewSlot {
   */
   constructor(anchor: Node, anchorIsContainer: boolean, animator?: Animator = Animator.instance) {
     this.anchor = anchor;
-    this.viewAddMethod = anchorIsContainer ? 'appendNodesTo' : 'insertNodesBefore';
+    this.anchorIsContainer = anchorIsContainer;
     this.bindingContext = null;
     this.overrideContext = null;
     this.animator = animator;
@@ -53,8 +55,8 @@ export class ViewSlot {
 
     this.children.push({
       fragment: parent,
-      firstChild: parent.firstChild,
-      lastChild: parent.lastChild,
+      animatableElement: null,
+      childNodes: Array.prototype.slice.call(parent.childNodes),
       returnToCache() {},
       removeNodes() {
         let last;
@@ -124,7 +126,16 @@ export class ViewSlot {
   * @return May return a promise if the view addition triggered an animation.
   */
   add(view: View): void | Promise<any> {
-    view[this.viewAddMethod](this.anchor);
+    let children = this.children;
+
+    if (this.anchorIsContainer) {
+      view.appendNodesTo(this.anchor);
+    } else if (children.length > 0) {
+      view.insertNodesAfter(children[children.length - 1].lastChild);
+    } else {
+      view.insertNodesAfter(this.anchor);
+    }
+
     this.children.push(view);
 
     if (this.isAttached) {
@@ -151,7 +162,7 @@ export class ViewSlot {
       return this.add(view);
     }
 
-    view.insertNodesBefore(children[index].firstChild);
+    view.insertNodesAfter(children[index].lastChild);
     children.splice(index, 0, view);
 
     if (this.isAttached) {
@@ -178,7 +189,7 @@ export class ViewSlot {
     const view = children[sourceIndex];
 
     view.removeNodes();
-    view.insertNodesBefore(children[targetIndex].firstChild);
+    view.insertNodesAfter(children[targetIndex].lastChild);
     children.splice(sourceIndex, 1);
     children.splice(targetIndex, 0, view);
   }
@@ -354,12 +365,8 @@ export class ViewSlot {
       child = children[i];
       child.attached();
 
-      let element = child.firstChild ? DOM.nextElementSibling(child.firstChild) : null;
-      if (child.firstChild &&
-        child.firstChild.nodeType === 8 &&
-         element &&
-         element.nodeType === 1 &&
-         element.classList.contains('au-animate')) {
+      let element = getAnimatableElement(child);
+      if (element) {
         this.animator.enter(element);
       }
     }

@@ -45,22 +45,38 @@ export class View {
     this.children = children;
     this.slots = slots;
     this.hasSlots = false;
-    this.firstChild = fragment.firstChild;
-    this.lastChild = fragment.lastChild;
     this.fromCache = false;
     this.isBound = false;
     this.isAttached = false;
-    this.fromCache = false;
     this.bindingContext = null;
     this.overrideContext = null;
     this.controller = null;
     this.viewModelScope = null;
+    this.animatableElement = undefined;
     this._isUserControlled = false;
 
     for(let slotName in slots) {
       this.hasSlots = true;
       controllers.push(slots[slotName]);
     }
+
+    let childNodes = fragment.childNodes;
+    let ii = childNodes.length;
+    let nodes = new Array(ii);
+
+    for(let i = 0; i < ii; ++i) {
+      nodes[i] = childNodes[i];
+    }
+
+    this.childNodes = nodes;
+  }
+
+  get firstChild(): Node {
+    return this.childNodes[0];
+  }
+
+  get lastChild(): Node {
+    return this.childNodes[this.childNodes.length - 1];
   }
 
   /**
@@ -189,8 +205,19 @@ export class View {
   * @param refNode The node to insert this view's nodes before.
   */
   insertNodesBefore(refNode: Node): void {
-    let parent = refNode.parentNode;
-    parent.insertBefore(this.fragment, refNode);
+    refNode.parentNode.insertBefore(this.fragment, refNode);
+  }
+
+  /**
+  * Inserts this view's nodes after the specified DOM node.
+  * @param refNode The node to insert this view's nodes after.
+  */
+  insertNodesAfter(refNode: Node): void {
+    if (refNode.nextSibling) {
+      refNode.parentNode.insertBefore(this.fragment, refNode.nextSibling);
+    } else {
+      refNode.parentNode.appendChild(this.fragment);
+    }
   }
 
   /**
@@ -205,21 +232,11 @@ export class View {
   * Removes this view's nodes from the DOM.
   */
   removeNodes(): void {
-    let start = this.firstChild;
-    let end = this.lastChild;
+    let childNodes = this.childNodes;
     let fragment = this.fragment;
-    let next;
-    let current = start;
-    let loop = true;
 
-    while (loop) {
-      if (current === end) {
-        loop = false;
-      }
-
-      next = current.nextSibling;
-      fragment.appendChild(current);
-      current = next;
+    for(let i = 0, ii = childNodes.length; i < ii; ++i) {
+      fragment.appendChild(childNodes[i]);
     }
   }
 

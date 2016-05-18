@@ -330,7 +330,7 @@ export class HtmlBehaviorResource {
         if (controller.view) {
           if (!this.usesShadowDOM && element.childNodes.length === 1) {
             let contentNode = element.childNodes[0];
-            controller.contentView = { fragment:  contentNode }; //store the content before appending the view
+            controller.contentNodes = contentNode.childNodes; //store the content before appending the view
             DOM.removeNode(contentNode);
           }
 
