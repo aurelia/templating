@@ -9,7 +9,7 @@ export class SlotCustomAttribute {
   constructor(element) {
     this.element = element;
     this.element.auSlotAttribute = this;
-    this.passthrough = false;
+    this.passThrough = false;
   }
 
   valueChanged(newValue, oldValue) {
@@ -30,11 +30,12 @@ export class ShadowSlot {
     this.anchor.isContentProjectionSource = true;
     this.anchor.viewSlot = this;
     this.destinationSlots = null;
+    this.passThroughSlot = null;
 
     if (slotDestination) {
       let slotAttr = anchor.auSlotAttribute = new SlotCustomAttribute(anchor);
       slotAttr.value = slotDestination;
-      slotAttr.passthrough = true;
+      slotAttr.passThrough = true;
     }
   }
 
@@ -42,8 +43,21 @@ export class ShadowSlot {
     return this.fallbackFactory && this.projections === 0;
   }
 
-  addNode(view, node, projectionSource, index) {
+  addNode(view, node, projectionSource, index, destination) {
+    if (this.passThroughSlot !== null) {
+      this.passThroughSlot.slot.addNode(view, node, projectionSource, index, this.passThroughSlot.destination);
+      return;
+    }
+
     if (this.contentView) {
+      if (this.fallbackSlots && destination) {
+        let found = this.fallbackSlots[destination];
+        if (found) {
+          found.addNode(view, node, projectionSource, index);
+          return;
+        }
+      }
+
       this.contentView.removeNodes();
       this.contentView.detached();
       this.contentView.unbind();
@@ -51,20 +65,20 @@ export class ShadowSlot {
     }
 
     if (this.destinationSlots !== null) {
-      ShadowDOM.distributeNodes(view, [node], this.destinationSlots, this, index)
-      return;
+      let nodes = [node];
+      ShadowDOM.distributeNodes(view, nodes, this.destinationSlots, this, index);
+    } else {
+      node.auOwnerView = view;
+      node.auProjectionSource = projectionSource;
+      node.auAssignedSlot = this;
+
+      let anchor = this._findAnchor(view, node, projectionSource, index);
+      let parent = anchor.parentNode;
+
+      parent.insertBefore(node, anchor);
+      this.children.push(node);
+      this.projections++;
     }
-
-    node.auOwnerView = view;
-    node.auProjectionSource = projectionSource;
-    node.auAssignedSlot = this;
-
-    let anchor = this._findAnchor(view, node, projectionSource, index);
-    let parent = anchor.parentNode;
-
-    parent.insertBefore(node, anchor);
-    this.children.push(node);
-    this.projections++;
   }
 
   removeView(view, projectionSource) {
@@ -157,6 +171,13 @@ export class ShadowSlot {
     this.destinationSlots = slots;
   }
 
+  makePassThrough(slot, destination) {
+    this.passThroughSlot = {
+      slot: slot,
+      destination: destination
+    };
+  }
+
   projectFrom(view, projectionSource) {
     let anchor = DOM.createComment('anchor');
     let parent = this.anchor.parentNode;
@@ -193,6 +214,7 @@ export class ShadowSlot {
         }
       }
 
+      this.fallbackSlots = slots;
       ShadowDOM.distributeNodes(view, nodes, slots, projectionSource, index);
     }
   }
@@ -233,12 +255,12 @@ export class ShadowDOM {
     return node.auSlotAttribute.value;
   }
 
-  static isPassthroughSlot(node) {
+  static isPassThroughSlot(node) {
     if (node.auSlotAttribute === undefined) {
       return false;
     }
 
-    return node.auSlotAttribute.passthrough;
+    return node.auSlotAttribute.passThrough;
   }
 
   static distributeView(view, slots, projectionSource, index) {
@@ -278,9 +300,9 @@ export class ShadowDOM {
 
       if (currentNode.isContentProjectionSource) {
         let slotDestination = ShadowDOM.getSlotName(currentNode);
-        let isPassthroughSlot = ShadowDOM.isPassthroughSlot(currentNode);
+        let isPassThroughSlot = ShadowDOM.isPassThroughSlot(currentNode);
 
-        if (slotDestination in slots || !isPassthroughSlot) {
+        if (slotDestination in slots || !isPassThroughSlot) {
           currentNode.viewSlot.projectTo(slots);
 
           for(let slotName in slots) {
@@ -289,6 +311,11 @@ export class ShadowDOM {
 
           nodes.splice(i, 1);
           ii--; i--;
+        } else if (isPassThroughSlot) {
+          let found = slots[currentNode.viewSlot.name];
+          if (found) {
+            currentNode.viewSlot.makePassThrough(found, slotDestination);
+          }
         }
       } else if (nodeType === 1 || nodeType === 3) { //project only elements and text
         if(nodeType === 3 && _isAllWhitespace(currentNode)) {
