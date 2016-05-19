@@ -1,6 +1,5 @@
 import {Animator} from './animator';
 import {View} from './view';
-import {DOM} from 'aurelia-pal';
 import {ShadowDOM} from './shadow-dom';
 
 function getAnimatableElement(view) {
@@ -8,14 +7,14 @@ function getAnimatableElement(view) {
     return view.animatableElement;
   }
 
-  let childNodes = view.childNodes;
+  let current = view.firstChild;
 
-  for (let i = 0, ii = childNodes.length; i < ii; ++i) {
-    let element = childNodes[i];
+  while(current && current.nodeType !== 1) {
+    current = current.nextSibling;
+  }
 
-    if (element.nodeType === 1) {
-      return (view.animatableElement = element.classList.contains('au-animate') ? element : null);
-    }
+  if (current && current.nodeType === 1) {
+    return (view.animatableElement = current.classList.contains('au-animate') ? current : null);
   }
 
   return (view.animatableElement = null);
@@ -55,8 +54,8 @@ export class ViewSlot {
 
     this.children.push({
       fragment: parent,
-      animatableElement: null,
-      childNodes: Array.prototype.slice.call(parent.childNodes),
+      firstChild: parent.firstChild,
+      lastChild: parent.lastChild,
       returnToCache() {},
       removeNodes() {
         let last;
@@ -130,10 +129,8 @@ export class ViewSlot {
 
     if (this.anchorIsContainer) {
       view.appendNodesTo(this.anchor);
-    } else if (children.length > 0) {
-      view.insertNodesAfter(children[children.length - 1].lastChild);
     } else {
-      view.insertNodesAfter(this.anchor);
+      view.insertNodesBefore(this.anchor);
     }
 
     this.children.push(view);
@@ -162,7 +159,7 @@ export class ViewSlot {
       return this.add(view);
     }
 
-    view.insertNodesAfter(children[index].lastChild);
+    view.insertNodesBefore(children[index].firstChild);
     children.splice(index, 0, view);
 
     if (this.isAttached) {
@@ -189,7 +186,7 @@ export class ViewSlot {
     const view = children[sourceIndex];
 
     view.removeNodes();
-    view.insertNodesAfter(children[targetIndex].lastChild);
+    view.insertNodesBefore(children[targetIndex].firstChild);
     children.splice(sourceIndex, 1);
     children.splice(targetIndex, 0, view);
   }

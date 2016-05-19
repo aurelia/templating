@@ -40,6 +40,8 @@ export class View {
     this.viewFactory = viewFactory;
     this.resources = viewFactory.resources;
     this.fragment = fragment;
+    this.firstChild = fragment.firstChild;
+    this.lastChild = fragment.lastChild;
     this.controllers = controllers;
     this.bindings = bindings;
     this.children = children;
@@ -59,24 +61,6 @@ export class View {
       this.hasSlots = true;
       controllers.push(slots[slotName]);
     }
-
-    let childNodes = fragment.childNodes;
-    let ii = childNodes.length;
-    let nodes = new Array(ii);
-
-    for(let i = 0; i < ii; ++i) {
-      nodes[i] = childNodes[i];
-    }
-
-    this.childNodes = nodes;
-  }
-
-  get firstChild(): Node {
-    return this.childNodes[0];
-  }
-
-  get lastChild(): Node {
-    return this.childNodes[this.childNodes.length - 1];
   }
 
   /**
@@ -209,18 +193,6 @@ export class View {
   }
 
   /**
-  * Inserts this view's nodes after the specified DOM node.
-  * @param refNode The node to insert this view's nodes after.
-  */
-  insertNodesAfter(refNode: Node): void {
-    if (refNode.nextSibling) {
-      refNode.parentNode.insertBefore(this.fragment, refNode.nextSibling);
-    } else {
-      refNode.parentNode.appendChild(this.fragment);
-    }
-  }
-
-  /**
   * Appends this view's to the specified DOM node.
   * @param parent The parent element to append this view's nodes to.
   */
@@ -232,11 +204,20 @@ export class View {
   * Removes this view's nodes from the DOM.
   */
   removeNodes(): void {
-    let childNodes = this.childNodes;
     let fragment = this.fragment;
+    let current = this.firstChild;
+    let end = this.lastChild;
+    let next;
 
-    for(let i = 0, ii = childNodes.length; i < ii; ++i) {
-      fragment.appendChild(childNodes[i]);
+    while (true) {
+      next = current.nextSibling;
+      fragment.appendChild(current);
+
+      if (current === end) {
+        break;
+      }
+
+      current = next;
     }
   }
 

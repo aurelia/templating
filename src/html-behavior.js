@@ -329,9 +329,9 @@ export class HtmlBehaviorResource {
 
         if (controller.view) {
           if (!this.usesShadowDOM && element.childNodes.length === 1) {
-            let contentNode = element.childNodes[0];
-            controller.contentNodes = contentNode.childNodes; //store the content before appending the view
-            DOM.removeNode(contentNode);
+            let contentElement = element.childNodes[0];
+            controller.contentElement = contentElement; //store the content before appending the view
+            DOM.removeNode(contentElement);
           }
 
           if (instruction.anchorIsContainer) {

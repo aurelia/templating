@@ -242,9 +242,17 @@ export class ShadowDOM {
   }
 
   static distributeView(view, slots, projectionSource, index) {
+    let childNodes = view.fragment.childNodes;
+    let ii = childNodes.length;
+    let nodes = new Array(ii);
+
+    for(let i = 0; i < ii; ++i) {
+      nodes[i] = childNodes[i];
+    }
+
     ShadowDOM.distributeNodes(
       view,
-      view.childNodes,
+      nodes,
       slots,
       projectionSource,
       index
