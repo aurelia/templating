@@ -45,7 +45,7 @@ export class ShadowSlot {
 
   addNode(view, node, projectionSource, index, destination) {
     if (this.passThroughSlot !== null) {
-      this.passThroughSlot.slot.addNode(view, node, projectionSource, index, this.passThroughSlot.destination);
+      this.passThroughSlot.slot.addNode(view, node, this, index, this.passThroughSlot.destination);
       return;
     }
 
