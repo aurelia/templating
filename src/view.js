@@ -57,9 +57,9 @@ export class View {
     this.animatableElement = undefined;
     this._isUserControlled = false;
 
-    for(let slotName in slots) {
+    for (let key in slots) {
       this.hasSlots = true;
-      controllers.push(slots[slotName]);
+      break;
     }
   }
 
