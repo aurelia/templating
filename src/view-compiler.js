@@ -126,8 +126,17 @@ export class ViewCompiler {
     let instructions = {};
     this._compileNode(content, resources, instructions, source, 'root', !compileInstruction.targetShadowDOM);
 
-    content.insertBefore(DOM.createComment('<view>'), content.firstChild);
-    content.appendChild(DOM.createComment('</view>'));
+    let firstChild = content.firstChild;
+    if (firstChild.nodeType === 1) {
+      let targetId = firstChild.getAttribute('au-target-id')
+      if (targetId) {
+        let ins = instructions[targetId];
+
+        if (ins.shadowSlot || ins.lifting) {
+          content.insertBefore(DOM.createComment('view'), firstChild);
+        }
+      }
+    }
 
     let factory = new ViewFactory(content, instructions, resources);
 
