@@ -114,16 +114,17 @@ class ChildObserverBinder {
     this.controller = controller;
     this.changeHandler = changeHandler in viewModel ? changeHandler : null;
     this.usesShadowDOM = controller.behavior.usesShadowDOM;
+    this.contentView = this.usesShadowDOM ? null : (controller.view ? (controller.view.contentView  || null) : null);
     this.all = all;
   }
 
   matches(element) {
     if (element.matches(this.selector)) {
-      if (this.usesShadowDOM) {
+      if (this.contentView === null) {
         return true;
       }
 
-      let contentView = this.controller.contentView;
+      let contentView = this.contentView;
       let assignedSlot = element.auAssignedSlot;
 
       if (assignedSlot && assignedSlot.projectFromAnchors) {
@@ -147,7 +148,6 @@ class ChildObserverBinder {
   bind(source) {
     let viewHost = this.viewHost;
     let viewModel = this.viewModel;
-    let current = viewHost.firstElementChild;
     let observer = viewHost.__childObserver__;
 
     if (!observer) {
@@ -165,6 +165,8 @@ class ChildObserverBinder {
     observer.binders.push(this);
 
     if (this.usesShadowDOM) { //if using shadow dom, the content is already present, so sync the items
+      let current = viewHost.firstElementChild;
+
       if (this.all) {
         let items = viewModel[this.property];
         if (!items) {

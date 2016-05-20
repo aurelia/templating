@@ -3,15 +3,16 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.TemplatingEngine = exports.ElementConfigResource = exports.CompositionEngine = exports.HtmlBehaviorResource = exports.BindableProperty = exports.BehaviorPropertyObserver = exports.Controller = exports.ViewEngine = exports.ModuleAnalyzer = exports.ResourceDescription = exports.ResourceModule = exports.ViewCompiler = exports.ViewFactory = exports.BoundViewFactory = exports.ViewSlot = exports._ContentSelector = exports.View = exports.ViewResources = exports.BindingLanguage = exports.ViewLocator = exports.InlineViewStrategy = exports.TemplateRegistryViewStrategy = exports.NoViewStrategy = exports.ConventionalViewStrategy = exports.RelativeViewStrategy = exports.viewStrategy = exports.TargetInstruction = exports.BehaviorInstruction = exports.ViewCompileInstruction = exports.ResourceLoadContext = exports.ElementEvents = exports.CompositionTransaction = exports.Animator = exports.animationEvent = undefined;
+exports.TemplatingEngine = exports.ElementConfigResource = exports.CompositionEngine = exports.HtmlBehaviorResource = exports.BindableProperty = exports.BehaviorPropertyObserver = exports.Controller = exports.ViewEngine = exports.ModuleAnalyzer = exports.ResourceDescription = exports.ResourceModule = exports.ViewCompiler = exports.ViewFactory = exports.BoundViewFactory = exports.ViewSlot = exports.View = exports.ViewResources = exports.ShadowDOM = exports.ShadowSlot = exports.PassThroughSlot = exports.SlotCustomAttribute = exports.BindingLanguage = exports.ViewLocator = exports.InlineViewStrategy = exports.TemplateRegistryViewStrategy = exports.NoViewStrategy = exports.ConventionalViewStrategy = exports.RelativeViewStrategy = exports.viewStrategy = exports.TargetInstruction = exports.BehaviorInstruction = exports.ViewCompileInstruction = exports.ResourceLoadContext = exports.ElementEvents = exports.CompositionTransaction = exports.Animator = exports.animationEvent = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _class3, _temp, _dec, _class4, _dec2, _class5, _dec3, _class6, _dec4, _class7, _dec5, _class8, _class9, _temp2, _class11, _dec6, _class13, _dec7, _class14, _dec8, _class16, _dec9, _class17, _dec10, _class18;
+var _class3, _temp, _dec, _class4, _dec2, _class5, _dec3, _class6, _dec4, _class7, _dec5, _class8, _class9, _temp2, _dec6, _class10, _class11, _temp3, _class13, _dec7, _class15, _dec8, _class16, _dec9, _class18, _dec10, _class19, _dec11, _class20;
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
 exports._hyphenate = _hyphenate;
+exports._isAllWhitespace = _isAllWhitespace;
 exports.children = children;
 exports.child = child;
 exports.resource = resource;
@@ -43,9 +44,9 @@ var _aureliaPath = require('aurelia-path');
 
 var _aureliaLoader = require('aurelia-loader');
 
-var _aureliaBinding = require('aurelia-binding');
-
 var _aureliaDependencyInjection = require('aurelia-dependency-injection');
+
+var _aureliaBinding = require('aurelia-binding');
 
 var _aureliaTaskQueue = require('aurelia-task-queue');
 
@@ -189,6 +190,10 @@ function addHyphenAndLower(char) {
 
 function _hyphenate(name) {
   return (name.charAt(0).toLowerCase() + name.slice(1)).replace(capitalMatcher, addHyphenAndLower);
+}
+
+function _isAllWhitespace(node) {
+  return !(node.auInterpolationTarget || /[^\t\n\r ]/.test(node.textContent));
 }
 
 var ElementEvents = exports.ElementEvents = function () {
@@ -385,11 +390,10 @@ var BehaviorInstruction = exports.BehaviorInstruction = function () {
 BehaviorInstruction.normal = new BehaviorInstruction();
 
 var TargetInstruction = exports.TargetInstruction = (_temp = _class3 = function () {
-  TargetInstruction.contentSelector = function contentSelector(node, parentInjectorId) {
+  TargetInstruction.shadowSlot = function shadowSlot(parentInjectorId) {
     var instruction = new TargetInstruction();
     instruction.parentInjectorId = parentInjectorId;
-    instruction.contentSelector = true;
-    instruction.selector = node.getAttribute('select');
+    instruction.shadowSlot = true;
     return instruction;
   };
 
@@ -437,8 +441,9 @@ var TargetInstruction = exports.TargetInstruction = (_temp = _class3 = function 
     this.injectorId = null;
     this.parentInjectorId = null;
 
-    this.contentSelector = false;
-    this.selector = null;
+    this.shadowSlot = false;
+    this.slotName = null;
+    this.slotFallbackFactory = null;
 
     this.contentExpression = null;
 
@@ -627,7 +632,7 @@ var ViewLocator = exports.ViewLocator = (_temp2 = _class9 = function () {
 
     if (!strategy) {
       if (!origin) {
-        throw new Error('Cannot determinte default view strategy for object.', value);
+        throw new Error('Cannot determine default view strategy for object.', value);
       }
 
       strategy = this.createFallbackViewStrategy(origin);
@@ -670,6 +675,439 @@ var BindingLanguage = exports.BindingLanguage = function () {
 
   return BindingLanguage;
 }();
+
+var noNodes = Object.freeze([]);
+
+var SlotCustomAttribute = exports.SlotCustomAttribute = (_dec6 = (0, _aureliaDependencyInjection.inject)(_aureliaPal.DOM.Element), _dec6(_class10 = function () {
+  function SlotCustomAttribute(element) {
+    _classCallCheck(this, SlotCustomAttribute);
+
+    this.element = element;
+    this.element.auSlotAttribute = this;
+  }
+
+  SlotCustomAttribute.prototype.valueChanged = function valueChanged(newValue, oldValue) {};
+
+  return SlotCustomAttribute;
+}()) || _class10);
+
+var PassThroughSlot = exports.PassThroughSlot = function () {
+  function PassThroughSlot(anchor, name, destinationName, fallbackFactory) {
+    _classCallCheck(this, PassThroughSlot);
+
+    this.anchor = anchor;
+    this.anchor.viewSlot = this;
+    this.name = name;
+    this.destinationName = destinationName;
+    this.fallbackFactory = fallbackFactory;
+    this.destinationSlot = null;
+    this.projections = 0;
+    this.contentView = null;
+
+    var attr = new SlotCustomAttribute(this.anchor);
+    attr.value = this.destinationName;
+  }
+
+  PassThroughSlot.prototype.renderFallbackContent = function renderFallbackContent(view, nodes, projectionSource, index) {
+    if (this.contentView === null) {
+      this.contentView = this.fallbackFactory.create(this.ownerView.container);
+      this.contentView.bind(this.ownerView.bindingContext, this.ownerView.overrideContext);
+
+      var slots = Object.create(null);
+      slots[this.destinationSlot.name] = this.destinationSlot;
+
+      ShadowDOM.distributeView(this.contentView, slots, projectionSource, index, this.destinationSlot.name);
+    }
+  };
+
+  PassThroughSlot.prototype.passThroughTo = function passThroughTo(destinationSlot) {
+    this.destinationSlot = destinationSlot;
+  };
+
+  PassThroughSlot.prototype.addNode = function addNode(view, node, projectionSource, index) {
+    if (this.contentView !== null) {
+      this.contentView.removeNodes();
+      this.contentView.detached();
+      this.contentView.unbind();
+      this.contentView = null;
+    }
+
+    if (node.viewSlot instanceof PassThroughSlot) {
+      node.viewSlot.passThroughTo(this);
+      return;
+    }
+
+    this.projections++;
+    this.destinationSlot.addNode(view, node, projectionSource, index);
+  };
+
+  PassThroughSlot.prototype.removeView = function removeView(view, projectionSource) {
+    this.projections--;
+    this.destinationSlot.removeView(view, projectionSource);
+
+    if (this.needsFallbackRendering) {
+      this.renderFallbackContent(null, noNodes, projectionSource);
+    }
+  };
+
+  PassThroughSlot.prototype.removeAll = function removeAll(projectionSource) {
+    this.projections = 0;
+    this.destinationSlot.removeAll(projectionSource);
+
+    if (this.needsFallbackRendering) {
+      this.renderFallbackContent(null, noNodes, projectionSource);
+    }
+  };
+
+  PassThroughSlot.prototype.projectFrom = function projectFrom(view, projectionSource) {
+    this.destinationSlot.projectFrom(view, projectionSource);
+  };
+
+  PassThroughSlot.prototype.created = function created(ownerView) {
+    this.ownerView = ownerView;
+  };
+
+  PassThroughSlot.prototype.bind = function bind(view) {
+    if (this.contentView) {
+      this.contentView.bind(view.bindingContext, view.overrideContext);
+    }
+  };
+
+  PassThroughSlot.prototype.attached = function attached() {
+    if (this.contentView) {
+      this.contentView.attached();
+    }
+  };
+
+  PassThroughSlot.prototype.detached = function detached() {
+    if (this.contentView) {
+      this.contentView.detached();
+    }
+  };
+
+  PassThroughSlot.prototype.unbind = function unbind() {
+    if (this.contentView) {
+      this.contentView.unbind();
+    }
+  };
+
+  _createClass(PassThroughSlot, [{
+    key: 'needsFallbackRendering',
+    get: function get() {
+      return this.fallbackFactory && this.projections === 0;
+    }
+  }]);
+
+  return PassThroughSlot;
+}();
+
+var ShadowSlot = exports.ShadowSlot = function () {
+  function ShadowSlot(anchor, name, fallbackFactory) {
+    _classCallCheck(this, ShadowSlot);
+
+    this.anchor = anchor;
+    this.anchor.isContentProjectionSource = true;
+    this.anchor.viewSlot = this;
+    this.name = name;
+    this.fallbackFactory = fallbackFactory;
+    this.contentView = null;
+    this.projections = 0;
+    this.children = [];
+    this.projectFromAnchors = null;
+    this.destinationSlots = null;
+  }
+
+  ShadowSlot.prototype.addNode = function addNode(view, node, projectionSource, index, destination) {
+    if (this.contentView !== null) {
+      this.contentView.removeNodes();
+      this.contentView.detached();
+      this.contentView.unbind();
+      this.contentView = null;
+    }
+
+    if (node.viewSlot instanceof PassThroughSlot) {
+      node.viewSlot.passThroughTo(this);
+      return;
+    }
+
+    if (this.destinationSlots !== null) {
+      ShadowDOM.distributeNodes(view, [node], this.destinationSlots, this, index);
+    } else {
+      node.auOwnerView = view;
+      node.auProjectionSource = projectionSource;
+      node.auAssignedSlot = this;
+
+      var anchor = this._findAnchor(view, node, projectionSource, index);
+      var parent = anchor.parentNode;
+
+      parent.insertBefore(node, anchor);
+      this.children.push(node);
+      this.projections++;
+    }
+  };
+
+  ShadowSlot.prototype.removeView = function removeView(view, projectionSource) {
+    if (this.destinationSlots !== null) {
+      ShadowDOM.undistributeView(view, this.destinationSlots, this);
+    } else if (this.contentView && this.contentView.hasSlots) {
+      ShadowDOM.undistributeView(view, this.contentView.slots, projectionSource);
+    } else {
+      var found = this.children.find(function (x) {
+        return x.auSlotProjectFrom === projectionSource;
+      });
+      if (found) {
+        var _children = found.auProjectionChildren;
+
+        for (var i = 0, ii = _children.length; i < ii; ++i) {
+          var _child = _children[i];
+
+          if (_child.auOwnerView === view) {
+            _children.splice(i, 1);
+            view.fragment.appendChild(_child);
+            i--;ii--;
+            this.projections--;
+          }
+        }
+
+        if (this.needsFallbackRendering) {
+          this.renderFallbackContent(view, noNodes, projectionSource);
+        }
+      }
+    }
+  };
+
+  ShadowSlot.prototype.removeAll = function removeAll(projectionSource) {
+    if (this.destinationSlots !== null) {
+      ShadowDOM.undistributeAll(this.destinationSlots, this);
+    } else if (this.contentView && this.contentView.hasSlots) {
+      ShadowDOM.undistributeAll(this.contentView.slots, projectionSource);
+    } else {
+      var found = this.children.find(function (x) {
+        return x.auSlotProjectFrom === projectionSource;
+      });
+
+      if (found) {
+        var _children2 = found.auProjectionChildren;
+        for (var i = 0, ii = _children2.length; i < ii; ++i) {
+          var _child2 = _children2[i];
+          _child2.auOwnerView.fragment.appendChild(_child2);
+          this.projections--;
+        }
+
+        found.auProjectionChildren = [];
+
+        if (this.needsFallbackRendering) {
+          this.renderFallbackContent(null, noNodes, projectionSource);
+        }
+      }
+    }
+  };
+
+  ShadowSlot.prototype._findAnchor = function _findAnchor(view, node, projectionSource, index) {
+    if (projectionSource) {
+      var found = this.children.find(function (x) {
+        return x.auSlotProjectFrom === projectionSource;
+      });
+      if (found) {
+        if (index !== undefined) {
+          var _children3 = found.auProjectionChildren;
+          var viewIndex = -1;
+          var lastView = void 0;
+
+          for (var i = 0, ii = _children3.length; i < ii; ++i) {
+            var current = _children3[i];
+
+            if (current.auOwnerView !== lastView) {
+              viewIndex++;
+              lastView = current.auOwnerView;
+
+              if (viewIndex >= index && lastView !== view) {
+                _children3.splice(i, 0, node);
+                return current;
+              }
+            }
+          }
+        }
+
+        found.auProjectionChildren.push(node);
+        return found;
+      }
+    }
+
+    return this.anchor;
+  };
+
+  ShadowSlot.prototype.projectTo = function projectTo(slots) {
+    this.destinationSlots = slots;
+  };
+
+  ShadowSlot.prototype.projectFrom = function projectFrom(view, projectionSource) {
+    var anchor = _aureliaPal.DOM.createComment('anchor');
+    var parent = this.anchor.parentNode;
+    anchor.auSlotProjectFrom = projectionSource;
+    anchor.auOwnerView = view;
+    anchor.auProjectionChildren = [];
+    parent.insertBefore(anchor, this.anchor);
+    this.children.push(anchor);
+
+    if (this.projectFromAnchors === null) {
+      this.projectFromAnchors = [];
+    }
+
+    this.projectFromAnchors.push(anchor);
+  };
+
+  ShadowSlot.prototype.renderFallbackContent = function renderFallbackContent(view, nodes, projectionSource, index) {
+    var _this4 = this;
+
+    if (this.contentView === null) {
+      this.contentView = this.fallbackFactory.create(this.ownerView.container);
+      this.contentView.bind(this.ownerView.bindingContext, this.ownerView.overrideContext);
+      this.contentView.insertNodesBefore(this.anchor);
+    }
+
+    if (this.contentView.hasSlots) {
+      (function () {
+        var slots = _this4.contentView.slots;
+
+        if (_this4.projectFromAnchors !== null) {
+          var _loop = function _loop(slotName) {
+            _this4.projectFromAnchors.forEach(function (anchor) {
+              return slots[slotName].projectFrom(anchor.auOwnerView, anchor.auSlotProjectFrom);
+            });
+          };
+
+          for (var slotName in slots) {
+            _loop(slotName);
+          }
+        }
+
+        _this4.fallbackSlots = slots;
+        ShadowDOM.distributeNodes(view, nodes, slots, projectionSource, index);
+      })();
+    }
+  };
+
+  ShadowSlot.prototype.created = function created(ownerView) {
+    this.ownerView = ownerView;
+  };
+
+  ShadowSlot.prototype.bind = function bind(view) {
+    if (this.contentView) {
+      this.contentView.bind(view.bindingContext, view.overrideContext);
+    }
+  };
+
+  ShadowSlot.prototype.attached = function attached() {
+    if (this.contentView) {
+      this.contentView.attached();
+    }
+  };
+
+  ShadowSlot.prototype.detached = function detached() {
+    if (this.contentView) {
+      this.contentView.detached();
+    }
+  };
+
+  ShadowSlot.prototype.unbind = function unbind() {
+    if (this.contentView) {
+      this.contentView.unbind();
+    }
+  };
+
+  _createClass(ShadowSlot, [{
+    key: 'needsFallbackRendering',
+    get: function get() {
+      return this.fallbackFactory && this.projections === 0;
+    }
+  }]);
+
+  return ShadowSlot;
+}();
+
+var ShadowDOM = exports.ShadowDOM = (_temp3 = _class11 = function () {
+  function ShadowDOM() {
+    _classCallCheck(this, ShadowDOM);
+  }
+
+  ShadowDOM.getSlotName = function getSlotName(node) {
+    if (node.auSlotAttribute === undefined) {
+      return ShadowDOM.defaultSlotKey;
+    }
+
+    return node.auSlotAttribute.value;
+  };
+
+  ShadowDOM.distributeView = function distributeView(view, slots, projectionSource, index, destinationOverride) {
+    var childNodes = view.fragment.childNodes;
+    var ii = childNodes.length;
+    var nodes = new Array(ii);
+
+    for (var i = 0; i < ii; ++i) {
+      nodes[i] = childNodes[i];
+    }
+
+    ShadowDOM.distributeNodes(view, nodes, slots, projectionSource, index, destinationOverride);
+  };
+
+  ShadowDOM.undistributeView = function undistributeView(view, slots, projectionSource) {
+    for (var slotName in slots) {
+      slots[slotName].removeView(view, projectionSource);
+    }
+  };
+
+  ShadowDOM.undistributeAll = function undistributeAll(slots, projectionSource) {
+    for (var slotName in slots) {
+      slots[slotName].removeAll(projectionSource);
+    }
+  };
+
+  ShadowDOM.distributeNodes = function distributeNodes(view, nodes, slots, projectionSource, index, destinationOverride) {
+    for (var i = 0, ii = nodes.length; i < ii; ++i) {
+      var currentNode = nodes[i];
+      var nodeType = currentNode.nodeType;
+
+      if (currentNode.isContentProjectionSource) {
+        currentNode.viewSlot.projectTo(slots);
+
+        for (var slotName in slots) {
+          slots[slotName].projectFrom(view, currentNode.viewSlot);
+        }
+
+        nodes.splice(i, 1);
+        ii--;i--;
+      } else if (nodeType === 1 || nodeType === 3 || currentNode.viewSlot instanceof PassThroughSlot) {
+        if (nodeType === 3 && _isAllWhitespace(currentNode)) {
+          nodes.splice(i, 1);
+          ii--;i--;
+        } else {
+          var found = slots[destinationOverride || ShadowDOM.getSlotName(currentNode)];
+
+          if (found) {
+            found.addNode(view, currentNode, projectionSource, index);
+            nodes.splice(i, 1);
+            ii--;i--;
+          }
+        }
+      } else {
+        nodes.splice(i, 1);
+        ii--;i--;
+      }
+    }
+
+    for (var _slotName in slots) {
+      var slot = slots[_slotName];
+
+      if (slot.needsFallbackRendering) {
+        slot.renderFallbackContent(view, nodes, projectionSource, index);
+      }
+    }
+  };
+
+  return ShadowDOM;
+}(), _class11.defaultSlotKey = '__au-default-slot-key__', _temp3);
+
 
 function register(lookup, name, resource, type) {
   if (!name) {
@@ -821,28 +1259,35 @@ var ViewResources = exports.ViewResources = function () {
 }();
 
 var View = exports.View = function () {
-  function View(container, viewFactory, fragment, controllers, bindings, children, contentSelectors) {
+  function View(container, viewFactory, fragment, controllers, bindings, children, slots) {
     _classCallCheck(this, View);
 
     this.container = container;
     this.viewFactory = viewFactory;
     this.resources = viewFactory.resources;
     this.fragment = fragment;
+    this.firstChild = fragment.firstChild;
+    this.lastChild = fragment.lastChild;
     this.controllers = controllers;
     this.bindings = bindings;
     this.children = children;
-    this.contentSelectors = contentSelectors;
-    this.firstChild = fragment.firstChild;
-    this.lastChild = fragment.lastChild;
+    this.slots = slots;
+    this.hasSlots = false;
     this.fromCache = false;
     this.isBound = false;
     this.isAttached = false;
-    this.fromCache = false;
     this.bindingContext = null;
     this.overrideContext = null;
     this.controller = null;
     this.viewModelScope = null;
+    this.animatableElement = undefined;
     this._isUserControlled = false;
+    this.contentView = null;
+
+    for (var key in slots) {
+      this.hasSlots = true;
+      break;
+    }
   }
 
   View.prototype.returnToCache = function returnToCache() {
@@ -903,6 +1348,10 @@ var View = exports.View = function () {
     for (i = 0, ii = children.length; i < ii; ++i) {
       children[i].bind(bindingContext, overrideContext, true);
     }
+
+    if (this.hasSlots && this.contentView !== null) {
+      ShadowDOM.distributeView(this.contentView, this.slots);
+    }
   };
 
   View.prototype.addBinding = function addBinding(binding) {
@@ -949,8 +1398,7 @@ var View = exports.View = function () {
   };
 
   View.prototype.insertNodesBefore = function insertNodesBefore(refNode) {
-    var parent = refNode.parentNode;
-    parent.insertBefore(this.fragment, refNode);
+    refNode.parentNode.insertBefore(this.fragment, refNode);
   };
 
   View.prototype.appendNodesTo = function appendNodesTo(parent) {
@@ -958,20 +1406,19 @@ var View = exports.View = function () {
   };
 
   View.prototype.removeNodes = function removeNodes() {
-    var start = this.firstChild;
-    var end = this.lastChild;
     var fragment = this.fragment;
+    var current = this.firstChild;
+    var end = this.lastChild;
     var next = void 0;
-    var current = start;
-    var loop = true;
 
-    while (loop) {
-      if (current === end) {
-        loop = false;
-      }
-
+    while (true) {
       next = current.nextSibling;
       fragment.appendChild(current);
+
+      if (current === end) {
+        break;
+      }
+
       current = next;
     }
   };
@@ -1031,133 +1478,22 @@ var View = exports.View = function () {
   return View;
 }();
 
-var placeholder = [];
-
-function findInsertionPoint(groups, index) {
-  var insertionPoint = void 0;
-
-  while (!insertionPoint && index >= 0) {
-    insertionPoint = groups[index][0];
-    index--;
-  }
-
-  return insertionPoint;
-}
-
-var _ContentSelector = exports._ContentSelector = function () {
-  _ContentSelector.applySelectors = function applySelectors(view, contentSelectors, callback) {
-    var currentChild = view.fragment.firstChild;
-    var contentMap = new Map();
-    var nextSibling = void 0;
-    var i = void 0;
-    var ii = void 0;
-    var contentSelector = void 0;
-
-    while (currentChild) {
-      nextSibling = currentChild.nextSibling;
-
-      if (currentChild.isContentProjectionSource) {
-        var viewSlotSelectors = contentSelectors.map(function (x) {
-          return x.copyForViewSlot();
-        });
-        currentChild.viewSlot._installContentSelectors(viewSlotSelectors);
-      } else {
-        for (i = 0, ii = contentSelectors.length; i < ii; i++) {
-          contentSelector = contentSelectors[i];
-          if (contentSelector.matches(currentChild)) {
-            var elements = contentMap.get(contentSelector);
-            if (!elements) {
-              elements = [];
-              contentMap.set(contentSelector, elements);
-            }
-
-            elements.push(currentChild);
-            break;
-          }
-        }
-      }
-
-      currentChild = nextSibling;
-    }
-
-    for (i = 0, ii = contentSelectors.length; i < ii; ++i) {
-      contentSelector = contentSelectors[i];
-      callback(contentSelector, contentMap.get(contentSelector) || placeholder);
-    }
-  };
-
-  function _ContentSelector(anchor, selector) {
-    _classCallCheck(this, _ContentSelector);
-
-    this.anchor = anchor;
-    this.selector = selector;
-    this.all = !this.selector;
-    this.groups = [];
-  }
-
-  _ContentSelector.prototype.copyForViewSlot = function copyForViewSlot() {
-    return new _ContentSelector(this.anchor, this.selector);
-  };
-
-  _ContentSelector.prototype.matches = function matches(node) {
-    return this.all || node.nodeType === 1 && node.matches(this.selector);
-  };
-
-  _ContentSelector.prototype.add = function add(group) {
-    var anchor = this.anchor;
-    var parent = anchor.parentNode;
-    var i = void 0;
-    var ii = void 0;
-
-    for (i = 0, ii = group.length; i < ii; ++i) {
-      parent.insertBefore(group[i], anchor);
-    }
-
-    this.groups.push(group);
-  };
-
-  _ContentSelector.prototype.insert = function insert(index, group) {
-    if (group.length) {
-      var anchor = findInsertionPoint(this.groups, index) || this.anchor;
-      var parent = anchor.parentNode;
-      var i = void 0;
-      var ii = void 0;
-
-      for (i = 0, ii = group.length; i < ii; ++i) {
-        parent.insertBefore(group[i], anchor);
-      }
-    }
-
-    this.groups.splice(index, 0, group);
-  };
-
-  _ContentSelector.prototype.removeAt = function removeAt(index, fragment) {
-    var group = this.groups[index];
-    var i = void 0;
-    var ii = void 0;
-
-    for (i = 0, ii = group.length; i < ii; ++i) {
-      fragment.appendChild(group[i]);
-    }
-
-    this.groups.splice(index, 1);
-  };
-
-  return _ContentSelector;
-}();
-
 function getAnimatableElement(view) {
-  var firstChild = view.firstChild;
-
-  if (firstChild !== null && firstChild !== undefined && firstChild.nodeType === 8) {
-    var _element = _aureliaPal.DOM.nextElementSibling(firstChild);
-
-    if (_element !== null && _element !== undefined && _element.nodeType === 1 && _element.classList.contains('au-animate')) {
-      return _element;
-    }
+  if (view.animatableElement !== undefined) {
+    return view.animatableElement;
   }
 
-  return null;
+  var current = view.firstChild;
+
+  while (current && current.nodeType !== 1) {
+    current = current.nextSibling;
+  }
+
+  if (current && current.nodeType === 1) {
+    return view.animatableElement = current.classList.contains('au-animate') ? current : null;
+  }
+
+  return view.animatableElement = null;
 }
 
 var ViewSlot = exports.ViewSlot = function () {
@@ -1167,7 +1503,7 @@ var ViewSlot = exports.ViewSlot = function () {
     _classCallCheck(this, ViewSlot);
 
     this.anchor = anchor;
-    this.viewAddMethod = anchorIsContainer ? 'appendNodesTo' : 'insertNodesBefore';
+    this.anchorIsContainer = anchorIsContainer;
     this.bindingContext = null;
     this.overrideContext = null;
     this.animator = animator;
@@ -1229,20 +1565,27 @@ var ViewSlot = exports.ViewSlot = function () {
     if (this.isBound) {
       var i = void 0;
       var ii = void 0;
-      var _children = this.children;
+      var _children4 = this.children;
 
       this.isBound = false;
       this.bindingContext = null;
       this.overrideContext = null;
 
-      for (i = 0, ii = _children.length; i < ii; ++i) {
-        _children[i].unbind();
+      for (i = 0, ii = _children4.length; i < ii; ++i) {
+        _children4[i].unbind();
       }
     }
   };
 
   ViewSlot.prototype.add = function add(view) {
-    view[this.viewAddMethod](this.anchor);
+    var children = this.children;
+
+    if (this.anchorIsContainer) {
+      view.appendNodesTo(this.anchor);
+    } else {
+      view.insertNodesBefore(this.anchor);
+    }
+
     this.children.push(view);
 
     if (this.isAttached) {
@@ -1295,7 +1638,7 @@ var ViewSlot = exports.ViewSlot = function () {
   };
 
   ViewSlot.prototype.removeMany = function removeMany(viewsToRemove, returnToCache, skipAnimation) {
-    var _this4 = this;
+    var _this5 = this;
 
     var children = this.children;
     var ii = viewsToRemove.length;
@@ -1310,7 +1653,7 @@ var ViewSlot = exports.ViewSlot = function () {
 
       var animatableElement = getAnimatableElement(child);
       if (animatableElement !== null) {
-        rmPromises.push(_this4.animator.leave(animatableElement).then(function () {
+        rmPromises.push(_this5.animator.leave(animatableElement).then(function () {
           return child.removeNodes();
         }));
       } else {
@@ -1319,7 +1662,7 @@ var ViewSlot = exports.ViewSlot = function () {
     });
 
     var removeAction = function removeAction() {
-      if (_this4.isAttached) {
+      if (_this5.isAttached) {
         for (i = 0; i < ii; ++i) {
           viewsToRemove[i].detached();
         }
@@ -1349,16 +1692,16 @@ var ViewSlot = exports.ViewSlot = function () {
   };
 
   ViewSlot.prototype.removeAt = function removeAt(index, returnToCache, skipAnimation) {
-    var _this5 = this;
+    var _this6 = this;
 
     var view = this.children[index];
 
     var removeAction = function removeAction() {
-      index = _this5.children.indexOf(view);
+      index = _this6.children.indexOf(view);
       view.removeNodes();
-      _this5.children.splice(index, 1);
+      _this6.children.splice(index, 1);
 
-      if (_this5.isAttached) {
+      if (_this6.isAttached) {
         view.detached();
       }
 
@@ -1382,7 +1725,7 @@ var ViewSlot = exports.ViewSlot = function () {
   };
 
   ViewSlot.prototype.removeAll = function removeAll(returnToCache, skipAnimation) {
-    var _this6 = this;
+    var _this7 = this;
 
     var children = this.children;
     var ii = children.length;
@@ -1397,7 +1740,7 @@ var ViewSlot = exports.ViewSlot = function () {
 
       var animatableElement = getAnimatableElement(child);
       if (animatableElement !== null) {
-        rmPromises.push(_this6.animator.leave(animatableElement).then(function () {
+        rmPromises.push(_this7.animator.leave(animatableElement).then(function () {
           return child.removeNodes();
         }));
       } else {
@@ -1406,7 +1749,7 @@ var ViewSlot = exports.ViewSlot = function () {
     });
 
     var removeAction = function removeAction() {
-      if (_this6.isAttached) {
+      if (_this7.isAttached) {
         for (i = 0; i < ii; ++i) {
           children[i].detached();
         }
@@ -1418,7 +1761,7 @@ var ViewSlot = exports.ViewSlot = function () {
         }
       }
 
-      _this6.children = [];
+      _this7.children = [];
     };
 
     if (rmPromises.length > 0) {
@@ -1447,9 +1790,9 @@ var ViewSlot = exports.ViewSlot = function () {
       child = children[i];
       child.attached();
 
-      var _element2 = child.firstChild ? _aureliaPal.DOM.nextElementSibling(child.firstChild) : null;
-      if (child.firstChild && child.firstChild.nodeType === 8 && _element2 && _element2.nodeType === 1 && _element2.classList.contains('au-animate')) {
-        this.animator.enter(_element2);
+      var _element = getAnimatableElement(child);
+      if (_element) {
+        this.animator.enter(_element);
       }
     }
   };
@@ -1468,19 +1811,24 @@ var ViewSlot = exports.ViewSlot = function () {
     }
   };
 
-  ViewSlot.prototype._installContentSelectors = function _installContentSelectors(contentSelectors) {
-    this.contentSelectors = contentSelectors;
-    this.add = this._contentSelectorAdd;
-    this.insert = this._contentSelectorInsert;
-    this.remove = this._contentSelectorRemove;
-    this.removeAt = this._contentSelectorRemoveAt;
-    this.removeAll = this._contentSelectorRemoveAll;
+  ViewSlot.prototype.projectTo = function projectTo(slots) {
+    var _this8 = this;
+
+    this.projectToSlots = slots;
+    this.add = this._projectionAdd;
+    this.insert = this._projectionInsert;
+    this.move = this._projectionMove;
+    this.remove = this._projectionRemove;
+    this.removeAt = this._projectionRemoveAt;
+    this.removeMany = this._projectionRemoveMany;
+    this.removeAll = this._projectionRemoveAll;
+    this.children.forEach(function (view) {
+      return ShadowDOM.distributeView(view, slots, _this8);
+    });
   };
 
-  ViewSlot.prototype._contentSelectorAdd = function _contentSelectorAdd(view) {
-    _ContentSelector.applySelectors(view, this.contentSelectors, function (contentSelector, group) {
-      return contentSelector.add(group);
-    });
+  ViewSlot.prototype._projectionAdd = function _projectionAdd(view) {
+    ShadowDOM.distributeView(view, this.projectToSlots, this);
 
     this.children.push(view);
 
@@ -1489,13 +1837,11 @@ var ViewSlot = exports.ViewSlot = function () {
     }
   };
 
-  ViewSlot.prototype._contentSelectorInsert = function _contentSelectorInsert(index, view) {
+  ViewSlot.prototype._projectionInsert = function _projectionInsert(index, view) {
     if (index === 0 && !this.children.length || index >= this.children.length) {
       this.add(view);
     } else {
-      _ContentSelector.applySelectors(view, this.contentSelectors, function (contentSelector, group) {
-        return contentSelector.insert(index, group);
-      });
+      ShadowDOM.distributeView(view, this.projectToSlots, this, index);
 
       this.children.splice(index, 0, view);
 
@@ -1505,61 +1851,56 @@ var ViewSlot = exports.ViewSlot = function () {
     }
   };
 
-  ViewSlot.prototype._contentSelectorRemove = function _contentSelectorRemove(view) {
-    var index = this.children.indexOf(view);
-    var contentSelectors = this.contentSelectors;
-    var i = void 0;
-    var ii = void 0;
-
-    for (i = 0, ii = contentSelectors.length; i < ii; ++i) {
-      contentSelectors[i].removeAt(index, view.fragment);
+  ViewSlot.prototype._projectionMove = function _projectionMove(sourceIndex, targetIndex) {
+    if (sourceIndex === targetIndex) {
+      return;
     }
 
-    this.children.splice(index, 1);
-
-    if (this.isAttached) {
-      view.detached();
-    }
-  };
-
-  ViewSlot.prototype._contentSelectorRemoveAt = function _contentSelectorRemoveAt(index) {
-    var view = this.children[index];
-    var contentSelectors = this.contentSelectors;
-    var i = void 0;
-    var ii = void 0;
-
-    for (i = 0, ii = contentSelectors.length; i < ii; ++i) {
-      contentSelectors[i].removeAt(index, view.fragment);
-    }
-
-    this.children.splice(index, 1);
-
-    if (this.isAttached) {
-      view.detached();
-    }
-
-    return view;
-  };
-
-  ViewSlot.prototype._contentSelectorRemoveAll = function _contentSelectorRemoveAll() {
     var children = this.children;
-    var contentSelectors = this.contentSelectors;
-    var ii = children.length;
-    var jj = contentSelectors.length;
-    var i = void 0;
-    var j = void 0;
-    var view = void 0;
+    var view = children[sourceIndex];
 
-    for (i = 0; i < ii; ++i) {
-      view = children[i];
+    ShadowDOM.undistributeView(view, this.projectToSlots, this);
+    ShadowDOM.distributeView(view, this.projectToSlots, this, targetIndex);
 
-      for (j = 0; j < jj; ++j) {
-        contentSelectors[j].removeAt(0, view.fragment);
-      }
-    }
+    children.splice(sourceIndex, 1);
+    children.splice(targetIndex, 0, view);
+  };
+
+  ViewSlot.prototype._projectionRemove = function _projectionRemove(view, returnToCache) {
+    ShadowDOM.undistributeView(view, this.projectToSlots, this);
+    this.children.splice(this.children.indexOf(view), 1);
 
     if (this.isAttached) {
-      for (i = 0; i < ii; ++i) {
+      view.detached();
+    }
+  };
+
+  ViewSlot.prototype._projectionRemoveAt = function _projectionRemoveAt(index, returnToCache) {
+    var view = this.children[index];
+
+    ShadowDOM.undistributeView(view, this.projectToSlots, this);
+    this.children.splice(index, 1);
+
+    if (this.isAttached) {
+      view.detached();
+    }
+  };
+
+  ViewSlot.prototype._projectionRemoveMany = function _projectionRemoveMany(viewsToRemove, returnToCache) {
+    var _this9 = this;
+
+    viewsToRemove.forEach(function (view) {
+      return _this9.remove(view, returnToCache);
+    });
+  };
+
+  ViewSlot.prototype._projectionRemoveAll = function _projectionRemoveAll(returnToCache) {
+    ShadowDOM.undistributeAll(this.projectToSlots, this);
+
+    var children = this.children;
+
+    if (this.isAttached) {
+      for (var i = 0, ii = children.length; i < ii; ++i) {
         children[i].detached();
       }
     }
@@ -1570,7 +1911,7 @@ var ViewSlot = exports.ViewSlot = function () {
   return ViewSlot;
 }();
 
-var ProviderResolver = (0, _aureliaDependencyInjection.resolver)(_class11 = function () {
+var ProviderResolver = (0, _aureliaDependencyInjection.resolver)(_class13 = function () {
   function ProviderResolver() {
     _classCallCheck(this, ProviderResolver);
   }
@@ -1581,7 +1922,7 @@ var ProviderResolver = (0, _aureliaDependencyInjection.resolver)(_class11 = func
   };
 
   return ProviderResolver;
-}()) || _class11;
+}()) || _class13;
 
 var providerResolverInstance = new ProviderResolver();
 
@@ -1679,7 +2020,7 @@ function makeElementIntoAnchor(element, elementInstruction) {
   return anchor;
 }
 
-function applyInstructions(containers, element, instruction, controllers, bindings, children, contentSelectors, partReplacements, resources) {
+function applyInstructions(containers, element, instruction, controllers, bindings, children, shadowSlots, partReplacements, resources) {
   var behaviorInstructions = instruction.behaviorInstructions;
   var expressions = instruction.expressions;
   var elementContainer = void 0;
@@ -1690,14 +2031,24 @@ function applyInstructions(containers, element, instruction, controllers, bindin
 
   if (instruction.contentExpression) {
     bindings.push(instruction.contentExpression.createBinding(element.nextSibling));
+    element.nextSibling.auInterpolationTarget = true;
     element.parentNode.removeChild(element);
     return;
   }
 
-  if (instruction.contentSelector) {
-    var commentAnchor = _aureliaPal.DOM.createComment('anchor');
+  if (instruction.shadowSlot) {
+    var commentAnchor = _aureliaPal.DOM.createComment('slot');
+    var slot = void 0;
+
+    if (instruction.slotDestination) {
+      slot = new PassThroughSlot(commentAnchor, instruction.slotName, instruction.slotDestination, instruction.slotFallbackFactory);
+    } else {
+      slot = new ShadowSlot(commentAnchor, instruction.slotName, instruction.slotFallbackFactory);
+    }
+
     _aureliaPal.DOM.replaceNode(commentAnchor, element);
-    contentSelectors.push(new _ContentSelector(commentAnchor, instruction.selector));
+    shadowSlots[instruction.slotName] = slot;
+    controllers.push(slot);
     return;
   }
 
@@ -1711,11 +2062,6 @@ function applyInstructions(containers, element, instruction, controllers, bindin
     for (i = 0, ii = behaviorInstructions.length; i < ii; ++i) {
       current = behaviorInstructions[i];
       instance = current.type.create(elementContainer, current, element, bindings);
-
-      if (instance.contentView) {
-        children.push(instance.contentView);
-      }
-
       controllers.push(instance);
     }
   }
@@ -1899,7 +2245,6 @@ var ViewFactory = exports.ViewFactory = function () {
 
   ViewFactory.prototype.create = function create(container, createInstruction, element) {
     createInstruction = createInstruction || BehaviorInstruction.normal;
-    element = element || null;
 
     var cachedView = this.getCachedView();
     if (cachedView !== null) {
@@ -1913,7 +2258,7 @@ var ViewFactory = exports.ViewFactory = function () {
     var controllers = [];
     var bindings = [];
     var children = [];
-    var contentSelectors = [];
+    var shadowSlots = Object.create(null);
     var containers = { root: container };
     var partReplacements = createInstruction.partReplacements;
     var i = void 0;
@@ -1924,7 +2269,7 @@ var ViewFactory = exports.ViewFactory = function () {
 
     this.resources._invokeHook('beforeCreate', this, container, fragment, createInstruction);
 
-    if (element !== null && this.surrogateInstruction !== null) {
+    if (element && this.surrogateInstruction !== null) {
       applySurrogateInstruction(container, element, this.surrogateInstruction, controllers, bindings, children);
     }
 
@@ -1932,10 +2277,10 @@ var ViewFactory = exports.ViewFactory = function () {
       instructable = instructables[i];
       instruction = instructions[instructable.getAttribute('au-target-id')];
 
-      applyInstructions(containers, instructable, instruction, controllers, bindings, children, contentSelectors, partReplacements, resources);
+      applyInstructions(containers, instructable, instruction, controllers, bindings, children, shadowSlots, partReplacements, resources);
     }
 
-    view = new View(container, this, fragment, controllers, bindings, children, contentSelectors);
+    view = new View(container, this, fragment, controllers, bindings, children, shadowSlots);
 
     if (!createInstruction.initiatedByBehavior) {
       view.created();
@@ -1998,7 +2343,33 @@ function makeIntoInstructionTarget(element) {
   return auTargetID;
 }
 
-var ViewCompiler = exports.ViewCompiler = (_dec6 = (0, _aureliaDependencyInjection.inject)(BindingLanguage, ViewResources), _dec6(_class13 = function () {
+function makeShadowSlot(compiler, resources, node, instructions, parentInjectorId) {
+  var auShadowSlot = _aureliaPal.DOM.createElement('au-shadow-slot');
+  _aureliaPal.DOM.replaceNode(auShadowSlot, node);
+
+  var auTargetID = makeIntoInstructionTarget(auShadowSlot);
+  var instruction = TargetInstruction.shadowSlot(parentInjectorId);
+
+  instruction.slotName = node.getAttribute('name') || ShadowDOM.defaultSlotKey;
+  instruction.slotDestination = node.getAttribute('slot');
+
+  if (node.innerHTML.trim()) {
+    var fragment = _aureliaPal.DOM.createDocumentFragment();
+    var _child3 = void 0;
+
+    while (_child3 = node.firstChild) {
+      fragment.appendChild(_child3);
+    }
+
+    instruction.slotFallbackFactory = compiler.compile(fragment, resources);
+  }
+
+  instructions[auTargetID] = instruction;
+
+  return auShadowSlot;
+}
+
+var ViewCompiler = exports.ViewCompiler = (_dec7 = (0, _aureliaDependencyInjection.inject)(BindingLanguage, ViewResources), _dec7(_class15 = function () {
   function ViewCompiler(bindingLanguage, resources) {
     _classCallCheck(this, ViewCompiler);
 
@@ -2028,8 +2399,18 @@ var ViewCompiler = exports.ViewCompiler = (_dec6 = (0, _aureliaDependencyInjecti
 
     var instructions = {};
     this._compileNode(content, resources, instructions, source, 'root', !compileInstruction.targetShadowDOM);
-    content.insertBefore(_aureliaPal.DOM.createComment('<view>'), content.firstChild);
-    content.appendChild(_aureliaPal.DOM.createComment('</view>'));
+
+    var firstChild = content.firstChild;
+    if (firstChild.nodeType === 1) {
+      var targetId = firstChild.getAttribute('au-target-id');
+      if (targetId) {
+        var ins = instructions[targetId];
+
+        if (ins.shadowSlot || ins.lifting) {
+          content.insertBefore(_aureliaPal.DOM.createComment('view'), firstChild);
+        }
+      }
+    }
 
     var factory = new ViewFactory(content, instructions, resources);
 
@@ -2209,10 +2590,9 @@ var ViewCompiler = exports.ViewCompiler = (_dec6 = (0, _aureliaDependencyInjecti
     var auTargetID = void 0;
     var injectorId = void 0;
 
-    if (tagName === 'content') {
+    if (tagName === 'slot') {
       if (targetLightDOM) {
-        auTargetID = makeIntoInstructionTarget(node);
-        instructions[auTargetID] = TargetInstruction.contentSelector(node, parentInjectorId);
+        node = makeShadowSlot(this, resources, node, instructions, parentInjectorId);
       }
       return node.nextSibling;
     } else if (tagName === 'template') {
@@ -2232,6 +2612,11 @@ var ViewCompiler = exports.ViewCompiler = (_dec6 = (0, _aureliaDependencyInjecti
       attrName = attr.name;
       attrValue = attr.value;
       info = bindingLanguage.inspectAttribute(resources, tagName, attrName, attrValue);
+
+      if (targetLightDOM && info.attrName === 'slot') {
+        info.attrName = attrName = 'au-slot';
+      }
+
       type = resources.getAttribute(info.attrName);
       elementProperty = null;
 
@@ -2344,7 +2729,7 @@ var ViewCompiler = exports.ViewCompiler = (_dec6 = (0, _aureliaDependencyInjecti
   };
 
   return ViewCompiler;
-}()) || _class13);
+}()) || _class15);
 
 var ResourceModule = exports.ResourceModule = function () {
   function ResourceModule(moduleId) {
@@ -2586,12 +2971,12 @@ function ensureRegistryEntry(loader, urlOrRegistryEntry) {
 
 var ProxyViewFactory = function () {
   function ProxyViewFactory(promise) {
-    var _this7 = this;
+    var _this10 = this;
 
     _classCallCheck(this, ProxyViewFactory);
 
     promise.then(function (x) {
-      return _this7.viewFactory = x;
+      return _this10.viewFactory = x;
     });
   }
 
@@ -2621,7 +3006,7 @@ var ProxyViewFactory = function () {
   return ProxyViewFactory;
 }();
 
-var ViewEngine = exports.ViewEngine = (_dec7 = (0, _aureliaDependencyInjection.inject)(_aureliaLoader.Loader, _aureliaDependencyInjection.Container, ViewCompiler, ModuleAnalyzer, ViewResources), _dec7(_class14 = function () {
+var ViewEngine = exports.ViewEngine = (_dec8 = (0, _aureliaDependencyInjection.inject)(_aureliaLoader.Loader, _aureliaDependencyInjection.Container, ViewCompiler, ModuleAnalyzer, ViewResources), _dec8(_class16 = function () {
   function ViewEngine(loader, container, viewCompiler, moduleAnalyzer, appResources) {
     _classCallCheck(this, ViewEngine);
 
@@ -2631,6 +3016,11 @@ var ViewEngine = exports.ViewEngine = (_dec7 = (0, _aureliaDependencyInjection.i
     this.moduleAnalyzer = moduleAnalyzer;
     this.appResources = appResources;
     this._pluginMap = {};
+
+    var auSlotBehavior = new HtmlBehaviorResource();
+    auSlotBehavior.attributeName = 'au-slot';
+    auSlotBehavior.initialize(container, SlotCustomAttribute);
+    auSlotBehavior.register(appResources);
   }
 
   ViewEngine.prototype.addResourcePlugin = function addResourcePlugin(extension, implementation) {
@@ -2640,7 +3030,7 @@ var ViewEngine = exports.ViewEngine = (_dec7 = (0, _aureliaDependencyInjection.i
   };
 
   ViewEngine.prototype.loadViewFactory = function loadViewFactory(urlOrRegistryEntry, compileInstruction, loadContext) {
-    var _this8 = this;
+    var _this11 = this;
 
     loadContext = loadContext || new ResourceLoadContext();
 
@@ -2656,9 +3046,9 @@ var ViewEngine = exports.ViewEngine = (_dec7 = (0, _aureliaDependencyInjection.i
 
       loadContext.addDependency(urlOrRegistryEntry);
 
-      registryEntry.onReady = _this8.loadTemplateResources(registryEntry, compileInstruction, loadContext).then(function (resources) {
+      registryEntry.onReady = _this11.loadTemplateResources(registryEntry, compileInstruction, loadContext).then(function (resources) {
         registryEntry.resources = resources;
-        var viewFactory = _this8.viewCompiler.compile(registryEntry.template, resources, compileInstruction);
+        var viewFactory = _this11.viewCompiler.compile(registryEntry.template, resources, compileInstruction);
         registryEntry.factory = viewFactory;
         return viewFactory;
       });
@@ -2691,30 +3081,30 @@ var ViewEngine = exports.ViewEngine = (_dec7 = (0, _aureliaDependencyInjection.i
   };
 
   ViewEngine.prototype.importViewModelResource = function importViewModelResource(moduleImport, moduleMember) {
-    var _this9 = this;
+    var _this12 = this;
 
     return this.loader.loadModule(moduleImport).then(function (viewModelModule) {
       var normalizedId = _aureliaMetadata.Origin.get(viewModelModule).moduleId;
-      var resourceModule = _this9.moduleAnalyzer.analyze(normalizedId, viewModelModule, moduleMember);
+      var resourceModule = _this12.moduleAnalyzer.analyze(normalizedId, viewModelModule, moduleMember);
 
       if (!resourceModule.mainResource) {
         throw new Error('No view model found in module "' + moduleImport + '".');
       }
 
-      resourceModule.initialize(_this9.container);
+      resourceModule.initialize(_this12.container);
 
       return resourceModule.mainResource;
     });
   };
 
   ViewEngine.prototype.importViewResources = function importViewResources(moduleIds, names, resources, compileInstruction, loadContext) {
-    var _this10 = this;
+    var _this13 = this;
 
     loadContext = loadContext || new ResourceLoadContext();
     compileInstruction = compileInstruction || ViewCompileInstruction.normal;
 
     moduleIds = moduleIds.map(function (x) {
-      return _this10._applyLoaderPlugin(x);
+      return _this13._applyLoaderPlugin(x);
     });
 
     return this.loader.loadAllModules(moduleIds).then(function (imports) {
@@ -2724,8 +3114,8 @@ var ViewEngine = exports.ViewEngine = (_dec7 = (0, _aureliaDependencyInjection.i
       var normalizedId = void 0;
       var current = void 0;
       var associatedModule = void 0;
-      var container = _this10.container;
-      var moduleAnalyzer = _this10.moduleAnalyzer;
+      var container = _this13.container;
+      var moduleAnalyzer = _this13.moduleAnalyzer;
       var allAnalysis = new Array(imports.length);
 
       for (i = 0, ii = imports.length; i < ii; ++i) {
@@ -2774,7 +3164,7 @@ var ViewEngine = exports.ViewEngine = (_dec7 = (0, _aureliaDependencyInjection.i
   };
 
   return ViewEngine;
-}()) || _class14);
+}()) || _class16);
 
 var Controller = exports.Controller = function () {
   function Controller(behavior, instruction, viewModel, elementEvents) {
@@ -2873,6 +3263,7 @@ var Controller = exports.Controller = function () {
             overrideContext = (0, _aureliaBinding.createOverrideContext)(this.viewModel);
             overrideContext.__parentOverrideContext = scope.overrideContext;
           }
+
       this.view.bind(this.viewModel, overrideContext);
     } else if (skipSelfSubscriber) {
       overrideContext = scope.overrideContext;
@@ -2945,7 +3336,7 @@ var Controller = exports.Controller = function () {
   return Controller;
 }();
 
-var BehaviorPropertyObserver = exports.BehaviorPropertyObserver = (_dec8 = (0, _aureliaBinding.subscriberCollection)(), _dec8(_class16 = function () {
+var BehaviorPropertyObserver = exports.BehaviorPropertyObserver = (_dec9 = (0, _aureliaBinding.subscriberCollection)(), _dec9(_class18 = function () {
   function BehaviorPropertyObserver(taskQueue, obj, propertyName, selfSubscriber, initialValue) {
     _classCallCheck(this, BehaviorPropertyObserver);
 
@@ -3003,7 +3394,7 @@ var BehaviorPropertyObserver = exports.BehaviorPropertyObserver = (_dec8 = (0, _
   };
 
   return BehaviorPropertyObserver;
-}()) || _class16);
+}()) || _class18);
 
 
 function getObserver(behavior, instance, name) {
@@ -3225,7 +3616,6 @@ var BindableProperty = exports.BindableProperty = function () {
   return BindableProperty;
 }();
 
-var contentSelectorViewCreateInstruction = { enhance: false };
 var lastProviderId = 0;
 
 function nextProviderId() {
@@ -3246,6 +3636,7 @@ var HtmlBehaviorResource = exports.HtmlBehaviorResource = function () {
     this.attributeDefaultBindingMode = undefined;
     this.liftsContent = false;
     this.targetShadowDOM = false;
+    this.shadowDOMOptions = null;
     this.processAttributes = doProcessAttributes;
     this.processContent = doProcessContent;
     this.usesShadowDOM = false;
@@ -3357,7 +3748,7 @@ var HtmlBehaviorResource = exports.HtmlBehaviorResource = function () {
   };
 
   HtmlBehaviorResource.prototype.load = function load(container, target, loadContext, viewStrategy, transientView) {
-    var _this11 = this;
+    var _this14 = this;
 
     var options = void 0;
 
@@ -3370,8 +3761,8 @@ var HtmlBehaviorResource = exports.HtmlBehaviorResource = function () {
       }
 
       return viewStrategy.loadViewFactory(container.get(ViewEngine), options, loadContext).then(function (viewFactory) {
-        if (!transientView || !_this11.viewFactory) {
-          _this11.viewFactory = viewFactory;
+        if (!transientView || !_this14.viewFactory) {
+          _this14.viewFactory = viewFactory;
         }
 
         return viewFactory;
@@ -3410,47 +3801,34 @@ var HtmlBehaviorResource = exports.HtmlBehaviorResource = function () {
       var _partReplacements2 = {};
 
       if (this.processContent(compiler, resources, node, instruction) && node.hasChildNodes()) {
-        if (this.usesShadowDOM) {
-          var currentChild = node.firstChild;
-          var nextSibling = void 0;
-          var toReplace = void 0;
+        var currentChild = node.firstChild;
+        var contentElement = this.usesShadowDOM ? null : _aureliaPal.DOM.createElement('au-content');
+        var nextSibling = void 0;
+        var toReplace = void 0;
 
-          while (currentChild) {
-            nextSibling = currentChild.nextSibling;
+        while (currentChild) {
+          nextSibling = currentChild.nextSibling;
 
-            if (currentChild.tagName === 'TEMPLATE' && (toReplace = currentChild.getAttribute('replace-part'))) {
-              _partReplacements2[toReplace] = compiler.compile(currentChild, resources);
+          if (currentChild.tagName === 'TEMPLATE' && (toReplace = currentChild.getAttribute('replace-part'))) {
+            _partReplacements2[toReplace] = compiler.compile(currentChild, resources);
+            _aureliaPal.DOM.removeNode(currentChild, parentNode);
+            instruction.partReplacements = _partReplacements2;
+          } else if (contentElement !== null) {
+            if (currentChild.nodeType === 3 && _isAllWhitespace(currentChild)) {
               _aureliaPal.DOM.removeNode(currentChild, parentNode);
-              instruction.partReplacements = _partReplacements2;
-            }
-
-            currentChild = nextSibling;
-          }
-
-          instruction.skipContentProcessing = false;
-        } else {
-          var _fragment = _aureliaPal.DOM.createDocumentFragment();
-          var _currentChild = node.firstChild;
-          var _nextSibling = void 0;
-          var _toReplace = void 0;
-
-          while (_currentChild) {
-            _nextSibling = _currentChild.nextSibling;
-
-            if (_currentChild.tagName === 'TEMPLATE' && (_toReplace = _currentChild.getAttribute('replace-part'))) {
-              _partReplacements2[_toReplace] = compiler.compile(_currentChild, resources);
-              _aureliaPal.DOM.removeNode(_currentChild, parentNode);
-              instruction.partReplacements = _partReplacements2;
             } else {
-              _fragment.appendChild(_currentChild);
+              contentElement.appendChild(currentChild);
             }
-
-            _currentChild = _nextSibling;
           }
 
-          instruction.contentFactory = compiler.compile(_fragment, resources);
-          instruction.skipContentProcessing = true;
+          currentChild = nextSibling;
         }
+
+        if (contentElement !== null && contentElement.hasChildNodes()) {
+          node.appendChild(contentElement);
+        }
+
+        instruction.skipContentProcessing = false;
       } else {
         instruction.skipContentProcessing = true;
       }
@@ -3460,7 +3838,7 @@ var HtmlBehaviorResource = exports.HtmlBehaviorResource = function () {
   };
 
   HtmlBehaviorResource.prototype.create = function create(container, instruction, element, bindings) {
-    var host = void 0;
+    var viewHost = void 0;
     var au = null;
 
     instruction = instruction || BehaviorInstruction.normal;
@@ -3469,13 +3847,12 @@ var HtmlBehaviorResource = exports.HtmlBehaviorResource = function () {
 
     if (this.elementName !== null && element) {
       if (this.usesShadowDOM) {
-        host = element.createShadowRoot();
-        container.registerInstance(_aureliaPal.DOM.boundary, host);
+        viewHost = element.attachShadow(this.shadowDOMOptions);
+        container.registerInstance(_aureliaPal.DOM.boundary, viewHost);
       } else {
-        host = element;
-
+        viewHost = element;
         if (this.targetShadowDOM) {
-          container.registerInstance(_aureliaPal.DOM.boundary, host);
+          container.registerInstance(_aureliaPal.DOM.boundary, viewHost);
         }
       }
     }
@@ -3503,32 +3880,26 @@ var HtmlBehaviorResource = exports.HtmlBehaviorResource = function () {
         au.controller = controller;
 
         if (controller.view) {
-          if (!this.usesShadowDOM) {
-            if (instruction.contentFactory) {
-              var contentView = instruction.contentFactory.create(container, contentSelectorViewCreateInstruction);
-
-              _ContentSelector.applySelectors(contentView, controller.view.contentSelectors, function (contentSelector, group) {
-                return contentSelector.add(group);
-              });
-
-              controller.contentView = contentView;
-            }
+          if (!this.usesShadowDOM && element.childNodes.length === 1) {
+            var contentElement = element.childNodes[0];
+            controller.view.contentView = { fragment: contentElement };
+            _aureliaPal.DOM.removeNode(contentElement);
           }
 
           if (instruction.anchorIsContainer) {
             if (childBindings !== null) {
               for (var i = 0, ii = childBindings.length; i < ii; ++i) {
-                controller.view.addBinding(childBindings[i].create(element, viewModel));
+                controller.view.addBinding(childBindings[i].create(element, viewModel, controller));
               }
             }
 
-            controller.view.appendNodesTo(host);
+            controller.view.appendNodesTo(viewHost);
           } else {
-            controller.view.insertNodesBefore(host);
+            controller.view.insertNodesBefore(viewHost);
           }
         } else if (childBindings !== null) {
           for (var _i2 = 0, _ii2 = childBindings.length; _i2 < _ii2; ++_i2) {
-            bindings.push(childBindings[_i2].create(element, viewModel));
+            bindings.push(childBindings[_i2].create(element, viewModel, controller));
           }
         }
       } else if (controller.view) {
@@ -3536,17 +3907,17 @@ var HtmlBehaviorResource = exports.HtmlBehaviorResource = function () {
 
         if (childBindings !== null) {
           for (var _i3 = 0, _ii3 = childBindings.length; _i3 < _ii3; ++_i3) {
-            controller.view.addBinding(childBindings[_i3].create(instruction.host, viewModel));
+            controller.view.addBinding(childBindings[_i3].create(instruction.host, viewModel, controller));
           }
         }
       } else if (childBindings !== null) {
         for (var _i4 = 0, _ii4 = childBindings.length; _i4 < _ii4; ++_i4) {
-          bindings.push(childBindings[_i4].create(instruction.host, viewModel));
+          bindings.push(childBindings[_i4].create(instruction.host, viewModel, controller));
         }
       }
     } else if (childBindings !== null) {
       for (var _i5 = 0, _ii5 = childBindings.length; _i5 < _ii5; ++_i5) {
-        bindings.push(childBindings[_i5].create(element, viewModel));
+        bindings.push(childBindings[_i5].create(element, viewModel, controller));
       }
     }
 
@@ -3625,8 +3996,8 @@ var ChildObserver = function () {
     this.all = config.all;
   }
 
-  ChildObserver.prototype.create = function create(target, viewModel) {
-    return new ChildObserverBinder(this.selector, target, this.name, viewModel, this.changeHandler, this.all);
+  ChildObserver.prototype.create = function create(viewHost, viewModel, controller) {
+    return new ChildObserverBinder(this.selector, viewHost, this.name, viewModel, controller, this.changeHandler, this.all);
   };
 
   return ChildObserver;
@@ -3688,71 +4059,109 @@ function onChildChange(mutations, observer) {
 }
 
 var ChildObserverBinder = function () {
-  function ChildObserverBinder(selector, target, property, viewModel, changeHandler, all) {
+  function ChildObserverBinder(selector, viewHost, property, viewModel, controller, changeHandler, all) {
     _classCallCheck(this, ChildObserverBinder);
 
     this.selector = selector;
-    this.target = target;
+    this.viewHost = viewHost;
     this.property = property;
     this.viewModel = viewModel;
+    this.controller = controller;
     this.changeHandler = changeHandler in viewModel ? changeHandler : null;
+    this.usesShadowDOM = controller.behavior.usesShadowDOM;
+    this.contentView = this.usesShadowDOM ? null : controller.view ? controller.view.contentView || null : null;
     this.all = all;
   }
 
+  ChildObserverBinder.prototype.matches = function matches(element) {
+    if (element.matches(this.selector)) {
+      if (this.contentView === null) {
+        return true;
+      }
+
+      var contentView = this.contentView;
+      var assignedSlot = element.auAssignedSlot;
+
+      if (assignedSlot && assignedSlot.projectFromAnchors) {
+        var anchors = assignedSlot.projectFromAnchors;
+
+        for (var i = 0, ii = anchors.length; i < ii; ++i) {
+          if (anchors[i].auOwnerView === contentView) {
+            return true;
+          }
+        }
+
+        return false;
+      }
+
+      return element.auOwnerView === contentView;
+    }
+
+    return false;
+  };
+
   ChildObserverBinder.prototype.bind = function bind(source) {
-    var target = this.target;
+    var viewHost = this.viewHost;
     var viewModel = this.viewModel;
-    var selector = this.selector;
-    var current = target.firstElementChild;
-    var observer = target.__childObserver__;
+    var observer = viewHost.__childObserver__;
 
     if (!observer) {
-      observer = target.__childObserver__ = _aureliaPal.DOM.createMutationObserver(onChildChange);
-      observer.observe(target, { childList: true });
+      observer = viewHost.__childObserver__ = _aureliaPal.DOM.createMutationObserver(onChildChange);
+
+      var options = {
+        childList: true,
+        subtree: !this.usesShadowDOM
+      };
+
+      observer.observe(viewHost, options);
       observer.binders = [];
     }
 
     observer.binders.push(this);
 
-    if (this.all) {
-      var items = viewModel[this.property];
-      if (!items) {
-        items = viewModel[this.property] = [];
-      } else {
-        items.length = 0;
-      }
+    if (this.usesShadowDOM) {
+      var current = viewHost.firstElementChild;
 
-      while (current) {
-        if (current.matches(selector)) {
-          items.push(current.au && current.au.controller ? current.au.controller.viewModel : current);
+      if (this.all) {
+        var items = viewModel[this.property];
+        if (!items) {
+          items = viewModel[this.property] = [];
+        } else {
+          items.length = 0;
         }
 
-        current = current.nextElementSibling;
-      }
-
-      if (this.changeHandler !== null) {
-        this.viewModel[this.changeHandler](noMutations);
-      }
-    } else {
-      while (current) {
-        if (current.matches(selector)) {
-          var value = current.au && current.au.controller ? current.au.controller.viewModel : current;
-          this.viewModel[this.property] = value;
-
-          if (this.changeHandler !== null) {
-            this.viewModel[this.changeHandler](value);
+        while (current) {
+          if (this.matches(current)) {
+            items.push(current.au && current.au.controller ? current.au.controller.viewModel : current);
           }
 
-          break;
+          current = current.nextElementSibling;
         }
 
-        current = current.nextElementSibling;
+        if (this.changeHandler !== null) {
+          this.viewModel[this.changeHandler](noMutations);
+        }
+      } else {
+        while (current) {
+          if (this.matches(current)) {
+            var value = current.au && current.au.controller ? current.au.controller.viewModel : current;
+            this.viewModel[this.property] = value;
+
+            if (this.changeHandler !== null) {
+              this.viewModel[this.changeHandler](value);
+            }
+
+            break;
+          }
+
+          current = current.nextElementSibling;
+        }
       }
     }
   };
 
   ChildObserverBinder.prototype.onRemove = function onRemove(element) {
-    if (element.matches(this.selector)) {
+    if (this.matches(element)) {
       var value = element.au && element.au.controller ? element.au.controller.viewModel : element;
 
       if (this.all) {
@@ -3771,9 +4180,7 @@ var ChildObserverBinder = function () {
   };
 
   ChildObserverBinder.prototype.onAdd = function onAdd(element) {
-    var selector = this.selector;
-
-    if (element.matches(selector)) {
+    if (this.matches(element)) {
       var value = element.au && element.au.controller ? element.au.controller.viewModel : element;
 
       if (this.all) {
@@ -3782,7 +4189,7 @@ var ChildObserverBinder = function () {
         var prev = element.previousElementSibling;
 
         while (prev) {
-          if (prev.matches(selector)) {
+          if (this.matches(prev)) {
             index++;
           }
 
@@ -3804,9 +4211,9 @@ var ChildObserverBinder = function () {
   };
 
   ChildObserverBinder.prototype.unbind = function unbind() {
-    if (this.target.__childObserver__) {
-      this.target.__childObserver__.disconnect();
-      this.target.__childObserver__ = null;
+    if (this.viewHost.__childObserver__) {
+      this.viewHost.__childObserver__.disconnect();
+      this.viewHost.__childObserver__ = null;
     }
   };
 
@@ -3821,7 +4228,7 @@ function tryActivateViewModel(context) {
   return context.viewModel.activate(context.model) || Promise.resolve();
 }
 
-var CompositionEngine = exports.CompositionEngine = (_dec9 = (0, _aureliaDependencyInjection.inject)(ViewEngine, ViewLocator), _dec9(_class17 = function () {
+var CompositionEngine = exports.CompositionEngine = (_dec10 = (0, _aureliaDependencyInjection.inject)(ViewEngine, ViewLocator), _dec10(_class19 = function () {
   function CompositionEngine(viewEngine, viewLocator) {
     _classCallCheck(this, CompositionEngine);
 
@@ -3860,7 +4267,7 @@ var CompositionEngine = exports.CompositionEngine = (_dec9 = (0, _aureliaDepende
   };
 
   CompositionEngine.prototype.createController = function createController(context) {
-    var _this12 = this;
+    var _this15 = this;
 
     var childContainer = void 0;
     var viewModel = void 0;
@@ -3873,7 +4280,7 @@ var CompositionEngine = exports.CompositionEngine = (_dec9 = (0, _aureliaDepende
       viewModelResource = context.viewModelResource;
       m = viewModelResource.metadata;
 
-      var viewStrategy = _this12.viewLocator.getViewStrategy(context.view || viewModel);
+      var viewStrategy = _this15.viewLocator.getViewStrategy(context.view || viewModel);
 
       if (context.viewResources) {
         viewStrategy.makeRelativeTo(context.viewResources.viewUrl);
@@ -3966,7 +4373,7 @@ var CompositionEngine = exports.CompositionEngine = (_dec9 = (0, _aureliaDepende
   };
 
   return CompositionEngine;
-}()) || _class17);
+}()) || _class19);
 
 var ElementConfigResource = exports.ElementConfigResource = function () {
   function ElementConfigResource() {
@@ -4073,13 +4480,17 @@ function dynamicOptions(target) {
   return target ? deco(target) : deco;
 }
 
-function useShadowDOM(target) {
+var defaultShadowDOMOptions = { mode: 'open' };
+function useShadowDOM(targetOrOptions) {
+  var options = typeof targetOrOptions === 'function' || !targetOrOptions ? defaultShadowDOMOptions : targetOrOptions;
+
   var deco = function deco(t) {
     var r = _aureliaMetadata.metadata.getOrCreateOwn(_aureliaMetadata.metadata.resource, HtmlBehaviorResource, t);
     r.targetShadowDOM = true;
+    r.shadowDOMOptions = options;
   };
 
-  return target ? deco(target) : deco;
+  return typeof targetOrOptions === 'function' ? deco(targetOrOptions) : deco;
 }
 
 function processAttributes(processor) {
@@ -4139,7 +4550,7 @@ function elementConfig(target) {
   return target ? deco(target) : deco;
 }
 
-var TemplatingEngine = exports.TemplatingEngine = (_dec10 = (0, _aureliaDependencyInjection.inject)(_aureliaDependencyInjection.Container, ModuleAnalyzer, ViewCompiler, CompositionEngine), _dec10(_class18 = function () {
+var TemplatingEngine = exports.TemplatingEngine = (_dec11 = (0, _aureliaDependencyInjection.inject)(_aureliaDependencyInjection.Container, ModuleAnalyzer, ViewCompiler, CompositionEngine), _dec11(_class20 = function () {
   function TemplatingEngine(container, moduleAnalyzer, viewCompiler, compositionEngine) {
     _classCallCheck(this, TemplatingEngine);
 
@@ -4200,4 +4611,4 @@ var TemplatingEngine = exports.TemplatingEngine = (_dec10 = (0, _aureliaDependen
   };
 
   return TemplatingEngine;
-}()) || _class18);
+}()) || _class20);

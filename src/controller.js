@@ -1,6 +1,5 @@
 import {createOverrideContext} from 'aurelia-binding';
 import {ElementEvents} from './element-events';
-import {ShadowDOM} from './shadow-dom';
 
 /**
 * Controls a view model (and optionally its view), according to a particular behavior and by following a set of instructions.
@@ -142,10 +141,6 @@ export class Controller {
       }
 
       this.view.bind(this.viewModel, overrideContext);
-
-      if (this.view.hasSlots && this.contentView) {
-        ShadowDOM.distributeView(this.contentView, this.view.slots);
-      }
     } else if (skipSelfSubscriber) {
       overrideContext = scope.overrideContext;
       // the factoryCreateInstruction's partReplacements will either be null or an object

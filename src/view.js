@@ -1,5 +1,6 @@
 import {Binding, createOverrideContext} from 'aurelia-binding';
 import {Container} from 'aurelia-dependency-injection';
+import {ShadowDOM} from './shadow-dom';
 
 /**
 * Represents a node in the view hierarchy.
@@ -56,6 +57,7 @@ export class View {
     this.viewModelScope = null;
     this.animatableElement = undefined;
     this._isUserControlled = false;
+    this.contentView = null;
 
     for (let key in slots) {
       this.hasSlots = true;
@@ -131,6 +133,10 @@ export class View {
     children = this.children;
     for (i = 0, ii = children.length; i < ii; ++i) {
       children[i].bind(bindingContext, overrideContext, true);
+    }
+
+    if (this.hasSlots && this.contentView !== null) {
+      ShadowDOM.distributeView(this.contentView, this.slots);
     }
   }
 

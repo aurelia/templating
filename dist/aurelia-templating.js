@@ -3,8 +3,8 @@ import {DOM,PLATFORM,FEATURE} from 'aurelia-pal';
 import {Origin,protocol,metadata} from 'aurelia-metadata';
 import {relativeToFile} from 'aurelia-path';
 import {TemplateRegistryEntry,Loader} from 'aurelia-loader';
+import {inject,Container,resolver} from 'aurelia-dependency-injection';
 import {Binding,createOverrideContext,ValueConverterResource,BindingBehaviorResource,subscriberCollection,bindingMode,ObserverLocator,EventManager,createScopeForTest} from 'aurelia-binding';
-import {Container,resolver,inject} from 'aurelia-dependency-injection';
 import {TaskQueue} from 'aurelia-task-queue';
 
 /**
@@ -203,6 +203,14 @@ function addHyphenAndLower(char) {
 
 export function _hyphenate(name) {
   return (name.charAt(0).toLowerCase() + name.slice(1)).replace(capitalMatcher, addHyphenAndLower);
+}
+
+//https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model/Whitespace_in_the_DOM
+//We need to ignore whitespace so we don't mess up fallback rendering
+//However, we cannot ignore empty text nodes that container interpolations.
+export function _isAllWhitespace(node) {
+  // Use ECMA-262 Edition 3 String and RegExp features
+  return !(node.auInterpolationTarget || (/[^\t\n\r ]/.test(node.textContent)));
 }
 
 interface EventHandler {
@@ -495,16 +503,14 @@ export class TargetInstruction {
   static noExpressions = Object.freeze([]);
 
   /**
-  * Creates an instruction that represents a content selector.
-  * @param node The node that represents the selector.
+  * Creates an instruction that represents a shadow dom slot.
   * @param parentInjectorId The id of the parent dependency injection container.
   * @return The created instruction.
   */
-  static contentSelector(node: Node, parentInjectorId: number): TargetInstruction {
+  static shadowSlot(parentInjectorId: number): TargetInstruction {
     let instruction = new TargetInstruction();
     instruction.parentInjectorId = parentInjectorId;
-    instruction.contentSelector = true;
-    instruction.selector = node.getAttribute('select');
+    instruction.shadowSlot = true;
     return instruction;
   }
 
@@ -582,8 +588,9 @@ export class TargetInstruction {
     this.injectorId = null;
     this.parentInjectorId = null;
 
-    this.contentSelector = false;
-    this.selector = null;
+    this.shadowSlot = false;
+    this.slotName = null;
+    this.slotFallbackFactory = null;
 
     this.contentExpression = null;
 
@@ -860,7 +867,7 @@ export class ViewLocator {
 
     if (!strategy) {
       if (!origin) {
-        throw new Error('Cannot determinte default view strategy for object.', value);
+        throw new Error('Cannot determine default view strategy for object.', value);
       }
 
       strategy = this.createFallbackViewStrategy(origin);
@@ -930,6 +937,411 @@ export class BindingLanguage {
   */
   inspectTextContent(resources: ViewResources, value: string): Object {
     throw new Error('A BindingLanguage must implement inspectTextContent(...)');
+  }
+}
+
+let noNodes = Object.freeze([]);
+
+@inject(DOM.Element)
+export class SlotCustomAttribute {
+  constructor(element) {
+    this.element = element;
+    this.element.auSlotAttribute = this;
+  }
+
+  valueChanged(newValue, oldValue) {
+    //console.log('au-slot', newValue);
+  }
+}
+
+export class PassThroughSlot {
+  constructor(anchor, name, destinationName, fallbackFactory) {
+    this.anchor = anchor;
+    this.anchor.viewSlot = this;
+    this.name = name;
+    this.destinationName = destinationName;
+    this.fallbackFactory = fallbackFactory;
+    this.destinationSlot = null;
+    this.projections = 0;
+    this.contentView = null;
+
+    let attr = new SlotCustomAttribute(this.anchor);
+    attr.value = this.destinationName;
+  }
+
+  get needsFallbackRendering() {
+    return this.fallbackFactory && this.projections === 0;
+  }
+
+  renderFallbackContent(view, nodes, projectionSource, index) {
+    if (this.contentView === null) {
+      this.contentView = this.fallbackFactory.create(this.ownerView.container);
+      this.contentView.bind(this.ownerView.bindingContext, this.ownerView.overrideContext);
+
+      let slots = Object.create(null);
+      slots[this.destinationSlot.name] = this.destinationSlot;
+
+      ShadowDOM.distributeView(this.contentView, slots, projectionSource, index, this.destinationSlot.name);
+    }
+  }
+
+  passThroughTo(destinationSlot) {
+    this.destinationSlot = destinationSlot;
+  }
+
+  addNode(view, node, projectionSource, index) {
+    if (this.contentView !== null) {
+      this.contentView.removeNodes();
+      this.contentView.detached();
+      this.contentView.unbind();
+      this.contentView = null;
+    }
+
+    if (node.viewSlot instanceof PassThroughSlot) {
+      node.viewSlot.passThroughTo(this);
+      return;
+    }
+
+    this.projections++;
+    this.destinationSlot.addNode(view, node, projectionSource, index);
+  }
+
+  removeView(view, projectionSource) {
+    this.projections--;
+    this.destinationSlot.removeView(view, projectionSource);
+
+    if (this.needsFallbackRendering) {
+      this.renderFallbackContent(null, noNodes, projectionSource);
+    }
+  }
+
+  removeAll(projectionSource) {
+    this.projections = 0;
+    this.destinationSlot.removeAll(projectionSource);
+
+    if (this.needsFallbackRendering) {
+      this.renderFallbackContent(null, noNodes, projectionSource);
+    }
+  }
+
+  projectFrom(view, projectionSource) {
+    this.destinationSlot.projectFrom(view, projectionSource);
+  }
+
+  created(ownerView) {
+    this.ownerView = ownerView;
+  }
+
+  bind(view){
+    if(this.contentView) {
+      this.contentView.bind(view.bindingContext, view.overrideContext);
+    }
+  }
+
+  attached() {
+    if(this.contentView) {
+      this.contentView.attached();
+    }
+  }
+
+  detached() {
+    if(this.contentView) {
+      this.contentView.detached();
+    }
+  }
+
+  unbind() {
+    if(this.contentView) {
+      this.contentView.unbind();
+    }
+  }
+}
+
+export class ShadowSlot {
+  constructor(anchor, name, fallbackFactory) {
+    this.anchor = anchor;
+    this.anchor.isContentProjectionSource = true;
+    this.anchor.viewSlot = this;
+    this.name = name;
+    this.fallbackFactory = fallbackFactory;
+    this.contentView = null;
+    this.projections = 0;
+    this.children = [];
+    this.projectFromAnchors = null;
+    this.destinationSlots = null;
+  }
+
+  get needsFallbackRendering() {
+    return this.fallbackFactory && this.projections === 0;
+  }
+
+  addNode(view, node, projectionSource, index, destination) {
+    if (this.contentView !== null) {
+      this.contentView.removeNodes();
+      this.contentView.detached();
+      this.contentView.unbind();
+      this.contentView = null;
+    }
+
+    if (node.viewSlot instanceof PassThroughSlot) {
+      node.viewSlot.passThroughTo(this);
+      return;
+    }
+
+    if (this.destinationSlots !== null) {
+      ShadowDOM.distributeNodes(view, [node], this.destinationSlots, this, index);
+    } else {
+      node.auOwnerView = view;
+      node.auProjectionSource = projectionSource;
+      node.auAssignedSlot = this;
+
+      let anchor = this._findAnchor(view, node, projectionSource, index);
+      let parent = anchor.parentNode;
+
+      parent.insertBefore(node, anchor);
+      this.children.push(node);
+      this.projections++;
+    }
+  }
+
+  removeView(view, projectionSource) {
+    if (this.destinationSlots !== null) {
+      ShadowDOM.undistributeView(view, this.destinationSlots, this)
+    } else if (this.contentView && this.contentView.hasSlots) {
+      ShadowDOM.undistributeView(view, this.contentView.slots, projectionSource)
+    } else {
+      let found = this.children.find(x => x.auSlotProjectFrom === projectionSource);
+      if (found) {
+        let children = found.auProjectionChildren;
+
+        for (let i = 0, ii = children.length; i < ii; ++i) {
+          let child = children[i];
+
+          if (child.auOwnerView === view) {
+            children.splice(i, 1);
+            view.fragment.appendChild(child);
+            i--; ii--;
+            this.projections--;
+          }
+        }
+
+        if (this.needsFallbackRendering) {
+          this.renderFallbackContent(view, noNodes, projectionSource);
+        }
+      }
+    }
+  }
+
+  removeAll(projectionSource) {
+    if (this.destinationSlots !== null) {
+      ShadowDOM.undistributeAll(this.destinationSlots, this)
+    } else if (this.contentView && this.contentView.hasSlots) {
+      ShadowDOM.undistributeAll(this.contentView.slots, projectionSource)
+    } else {
+      let found = this.children.find(x => x.auSlotProjectFrom === projectionSource);
+
+      if (found) {
+        let children = found.auProjectionChildren;
+        for (let i = 0, ii = children.length; i < ii; ++i) {
+          let child = children[i];
+          child.auOwnerView.fragment.appendChild(child);
+          this.projections--;
+        }
+
+        found.auProjectionChildren = [];
+
+        if (this.needsFallbackRendering) {
+          this.renderFallbackContent(null, noNodes, projectionSource);
+        }
+      }
+    }
+  }
+
+  _findAnchor(view, node, projectionSource, index) {
+    if (projectionSource) {
+      //find the anchor associated with the projected view slot
+      let found = this.children.find(x => x.auSlotProjectFrom === projectionSource);
+      if (found) {
+        if (index !== undefined) {
+          let children = found.auProjectionChildren;
+          let viewIndex = -1;
+          let lastView;
+
+          for (let i = 0, ii = children.length; i < ii; ++i) {
+            let current = children[i];
+
+            if (current.auOwnerView !== lastView) {
+              viewIndex++;
+              lastView = current.auOwnerView;
+
+              if (viewIndex >= index && lastView !== view) {
+                children.splice(i, 0, node);
+                return current;
+              }
+            }
+          }
+        }
+
+        found.auProjectionChildren.push(node);
+        return found;
+      }
+    }
+
+    return this.anchor;
+  }
+
+  projectTo(slots) {
+    this.destinationSlots = slots;
+  }
+
+  projectFrom(view, projectionSource) {
+    let anchor = DOM.createComment('anchor');
+    let parent = this.anchor.parentNode;
+    anchor.auSlotProjectFrom = projectionSource;
+    anchor.auOwnerView = view;
+    anchor.auProjectionChildren = [];
+    parent.insertBefore(anchor, this.anchor);
+    this.children.push(anchor);
+
+    if (this.projectFromAnchors === null) {
+      this.projectFromAnchors = [];
+    }
+
+    this.projectFromAnchors.push(anchor);
+  }
+
+  renderFallbackContent(view, nodes, projectionSource, index) {
+    if (this.contentView === null) {
+      this.contentView = this.fallbackFactory.create(this.ownerView.container);
+      this.contentView.bind(this.ownerView.bindingContext, this.ownerView.overrideContext);
+      this.contentView.insertNodesBefore(this.anchor);
+    }
+
+    if (this.contentView.hasSlots) {
+      let slots = this.contentView.slots;
+
+      if (this.projectFromAnchors !== null) {
+        for (let slotName in slots) {
+          this.projectFromAnchors.forEach(anchor => slots[slotName].projectFrom(anchor.auOwnerView, anchor.auSlotProjectFrom));
+        }
+      }
+
+      this.fallbackSlots = slots;
+      ShadowDOM.distributeNodes(view, nodes, slots, projectionSource, index);
+    }
+  }
+
+  created(ownerView) {
+    this.ownerView = ownerView;
+  }
+
+  bind(view){
+    if(this.contentView) {
+      this.contentView.bind(view.bindingContext, view.overrideContext);
+    }
+  }
+
+  attached() {
+    if(this.contentView) {
+      this.contentView.attached();
+    }
+  }
+
+  detached() {
+    if(this.contentView) {
+      this.contentView.detached();
+    }
+  }
+
+  unbind() {
+    if(this.contentView) {
+      this.contentView.unbind();
+    }
+  }
+}
+
+export class ShadowDOM {
+  static defaultSlotKey = '__au-default-slot-key__';
+
+  static getSlotName(node) {
+    if (node.auSlotAttribute === undefined) {
+      return ShadowDOM.defaultSlotKey;
+    }
+
+    return node.auSlotAttribute.value;
+  }
+
+  static distributeView(view, slots, projectionSource, index, destinationOverride) {
+    let childNodes = view.fragment.childNodes;
+    let ii = childNodes.length;
+    let nodes = new Array(ii);
+
+    for(let i = 0; i < ii; ++i) {
+      nodes[i] = childNodes[i];
+    }
+
+    ShadowDOM.distributeNodes(
+      view,
+      nodes,
+      slots,
+      projectionSource,
+      index,
+      destinationOverride
+    );
+  }
+
+  static undistributeView(view, slots, projectionSource) {
+    for (let slotName in slots) {
+      slots[slotName].removeView(view, projectionSource);
+    }
+  }
+
+  static undistributeAll(slots, projectionSource) {
+    for (let slotName in slots) {
+      slots[slotName].removeAll(projectionSource);
+    }
+  }
+
+  static distributeNodes(view, nodes, slots, projectionSource, index, destinationOverride) {
+    for(let i = 0, ii = nodes.length; i < ii; ++i) {
+      let currentNode = nodes[i];
+      let nodeType = currentNode.nodeType;
+
+      if (currentNode.isContentProjectionSource) {
+        currentNode.viewSlot.projectTo(slots);
+
+        for(let slotName in slots) {
+          slots[slotName].projectFrom(view, currentNode.viewSlot);
+        }
+
+        nodes.splice(i, 1);
+        ii--; i--;
+      } else if (nodeType === 1 || nodeType === 3 || currentNode.viewSlot instanceof PassThroughSlot) { //project only elements and text
+        if(nodeType === 3 && _isAllWhitespace(currentNode)) {
+          nodes.splice(i, 1);
+          ii--; i--;
+        } else {
+          let found = slots[destinationOverride || ShadowDOM.getSlotName(currentNode)];
+
+          if (found) {
+            found.addNode(view, currentNode, projectionSource, index);
+            nodes.splice(i, 1);
+            ii--; i--;
+          }
+        }
+      } else {
+        nodes.splice(i, 1);
+        ii--; i--;
+      }
+    }
+
+    for(let slotName in slots) {
+      let slot = slots[slotName];
+
+      if (slot.needsFallbackRendering) {
+        slot.renderFallbackContent(view, nodes, projectionSource, index);
+      }
+    }
   }
 }
 
@@ -1230,26 +1642,33 @@ export class View {
   * @param bindings The bindings inside this view.
   * @param children The children of this view.
   */
-  constructor(container: Container, viewFactory: ViewFactory, fragment: DocumentFragment, controllers: Controller[], bindings: Binding[], children: ViewNode[], contentSelectors: Array<Object>) {
+  constructor(container: Container, viewFactory: ViewFactory, fragment: DocumentFragment, controllers: Controller[], bindings: Binding[], children: ViewNode[], slots: Object) {
     this.container = container;
     this.viewFactory = viewFactory;
     this.resources = viewFactory.resources;
     this.fragment = fragment;
+    this.firstChild = fragment.firstChild;
+    this.lastChild = fragment.lastChild;
     this.controllers = controllers;
     this.bindings = bindings;
     this.children = children;
-    this.contentSelectors = contentSelectors;
-    this.firstChild = fragment.firstChild;
-    this.lastChild = fragment.lastChild;
+    this.slots = slots;
+    this.hasSlots = false;
     this.fromCache = false;
     this.isBound = false;
     this.isAttached = false;
-    this.fromCache = false;
     this.bindingContext = null;
     this.overrideContext = null;
     this.controller = null;
     this.viewModelScope = null;
+    this.animatableElement = undefined;
     this._isUserControlled = false;
+    this.contentView = null;
+
+    for (let key in slots) {
+      this.hasSlots = true;
+      break;
+    }
   }
 
   /**
@@ -1321,6 +1740,10 @@ export class View {
     for (i = 0, ii = children.length; i < ii; ++i) {
       children[i].bind(bindingContext, overrideContext, true);
     }
+
+    if (this.hasSlots && this.contentView !== null) {
+      ShadowDOM.distributeView(this.contentView, this.slots);
+    }
   }
 
   /**
@@ -1378,8 +1801,7 @@ export class View {
   * @param refNode The node to insert this view's nodes before.
   */
   insertNodesBefore(refNode: Node): void {
-    let parent = refNode.parentNode;
-    parent.insertBefore(this.fragment, refNode);
+    refNode.parentNode.insertBefore(this.fragment, refNode);
   }
 
   /**
@@ -1394,20 +1816,19 @@ export class View {
   * Removes this view's nodes from the DOM.
   */
   removeNodes(): void {
-    let start = this.firstChild;
-    let end = this.lastChild;
     let fragment = this.fragment;
+    let current = this.firstChild;
+    let end = this.lastChild;
     let next;
-    let current = start;
-    let loop = true;
 
-    while (loop) {
-      if (current === end) {
-        loop = false;
-      }
-
+    while (true) {
       next = current.nextSibling;
       fragment.appendChild(current);
+
+      if (current === end) {
+        break;
+      }
+
       current = next;
     }
   }
@@ -1471,129 +1892,22 @@ export class View {
   }
 }
 
-let placeholder = [];
-
-function findInsertionPoint(groups, index) {
-  let insertionPoint;
-
-  while (!insertionPoint && index >= 0) {
-    insertionPoint = groups[index][0];
-    index--;
-  }
-
-  return insertionPoint;
-}
-
-export class _ContentSelector {
-  static applySelectors(view, contentSelectors, callback) {
-    let currentChild = view.fragment.firstChild;
-    let contentMap = new Map();
-    let nextSibling;
-    let i;
-    let ii;
-    let contentSelector;
-
-    while (currentChild) {
-      nextSibling = currentChild.nextSibling;
-
-      if (currentChild.isContentProjectionSource) {
-        let viewSlotSelectors = contentSelectors.map(x => x.copyForViewSlot());
-        currentChild.viewSlot._installContentSelectors(viewSlotSelectors);
-      } else {
-        for (i = 0, ii = contentSelectors.length; i < ii; i++) {
-          contentSelector = contentSelectors[i];
-          if (contentSelector.matches(currentChild)) {
-            let elements = contentMap.get(contentSelector);
-            if (!elements) {
-              elements = [];
-              contentMap.set(contentSelector, elements);
-            }
-
-            elements.push(currentChild);
-            break;
-          }
-        }
-      }
-
-      currentChild = nextSibling;
-    }
-
-    for (i = 0, ii = contentSelectors.length; i < ii; ++i) {
-      contentSelector = contentSelectors[i];
-      callback(contentSelector, contentMap.get(contentSelector) || placeholder);
-    }
-  }
-
-  constructor(anchor, selector) {
-    this.anchor = anchor;
-    this.selector = selector;
-    this.all = !this.selector;
-    this.groups = [];
-  }
-
-  copyForViewSlot() {
-    return new _ContentSelector(this.anchor, this.selector);
-  }
-
-  matches(node) {
-    return this.all || (node.nodeType === 1 && node.matches(this.selector));
-  }
-
-  add(group) {
-    let anchor = this.anchor;
-    let parent = anchor.parentNode;
-    let i;
-    let ii;
-
-    for (i = 0, ii = group.length; i < ii; ++i) {
-      parent.insertBefore(group[i], anchor);
-    }
-
-    this.groups.push(group);
-  }
-
-  insert(index, group) {
-    if (group.length) {
-      let anchor = findInsertionPoint(this.groups, index) || this.anchor;
-      let parent = anchor.parentNode;
-      let i;
-      let ii;
-
-      for (i = 0, ii = group.length; i < ii; ++i) {
-        parent.insertBefore(group[i], anchor);
-      }
-    }
-
-    this.groups.splice(index, 0, group);
-  }
-
-  removeAt(index, fragment) {
-    let group = this.groups[index];
-    let i;
-    let ii;
-
-    for (i = 0, ii = group.length; i < ii; ++i) {
-      fragment.appendChild(group[i]);
-    }
-
-    this.groups.splice(index, 1);
-  }
-}
-
 function getAnimatableElement(view) {
-  let firstChild = view.firstChild;
-
-  if (firstChild !== null && firstChild !== undefined && firstChild.nodeType === 8) {
-    let element = DOM.nextElementSibling(firstChild);
-
-    if (element !== null && element !== undefined &&
-      element.nodeType === 1 &&
-      element.classList.contains('au-animate')) {
-      return element;
-    }
+  if (view.animatableElement !== undefined) {
+    return view.animatableElement;
   }
 
-  return null;
+  let current = view.firstChild;
+
+  while(current && current.nodeType !== 1) {
+    current = current.nextSibling;
+  }
+
+  if (current && current.nodeType === 1) {
+    return (view.animatableElement = current.classList.contains('au-animate') ? current : null);
+  }
+
+  return (view.animatableElement = null);
 }
 
 /**
@@ -1609,7 +1923,7 @@ export class ViewSlot {
   */
   constructor(anchor: Node, anchorIsContainer: boolean, animator?: Animator = Animator.instance) {
     this.anchor = anchor;
-    this.viewAddMethod = anchorIsContainer ? 'appendNodesTo' : 'insertNodesBefore';
+    this.anchorIsContainer = anchorIsContainer;
     this.bindingContext = null;
     this.overrideContext = null;
     this.animator = animator;
@@ -1701,7 +2015,14 @@ export class ViewSlot {
   * @return May return a promise if the view addition triggered an animation.
   */
   add(view: View): void | Promise<any> {
-    view[this.viewAddMethod](this.anchor);
+    let children = this.children;
+
+    if (this.anchorIsContainer) {
+      view.appendNodesTo(this.anchor);
+    } else {
+      view.insertNodesBefore(this.anchor);
+    }
+
     this.children.push(view);
 
     if (this.isAttached) {
@@ -1931,12 +2252,8 @@ export class ViewSlot {
       child = children[i];
       child.attached();
 
-      let element = child.firstChild ? DOM.nextElementSibling(child.firstChild) : null;
-      if (child.firstChild &&
-        child.firstChild.nodeType === 8 &&
-         element &&
-         element.nodeType === 1 &&
-         element.classList.contains('au-animate')) {
+      let element = getAnimatableElement(child);
+      if (element) {
         this.animator.enter(element);
       }
     }
@@ -1959,21 +2276,20 @@ export class ViewSlot {
     }
   }
 
-  _installContentSelectors(contentSelectors: _ContentSelector[]): void {
-    this.contentSelectors = contentSelectors;
-    this.add = this._contentSelectorAdd;
-    this.insert = this._contentSelectorInsert;
-    this.remove = this._contentSelectorRemove;
-    this.removeAt = this._contentSelectorRemoveAt;
-    this.removeAll = this._contentSelectorRemoveAll;
+  projectTo(slots: Object): void {
+    this.projectToSlots = slots;
+    this.add = this._projectionAdd;
+    this.insert = this._projectionInsert;
+    this.move = this._projectionMove;
+    this.remove = this._projectionRemove;
+    this.removeAt = this._projectionRemoveAt;
+    this.removeMany = this._projectionRemoveMany;
+    this.removeAll = this._projectionRemoveAll;
+    this.children.forEach(view => ShadowDOM.distributeView(view, slots, this));
   }
 
-  _contentSelectorAdd(view) {
-    _ContentSelector.applySelectors(
-      view,
-      this.contentSelectors,
-      (contentSelector, group) => contentSelector.add(group)
-      );
+  _projectionAdd(view) {
+    ShadowDOM.distributeView(view, this.projectToSlots, this);
 
     this.children.push(view);
 
@@ -1982,15 +2298,11 @@ export class ViewSlot {
     }
   }
 
-  _contentSelectorInsert(index, view) {
+  _projectionInsert(index, view) {
     if ((index === 0 && !this.children.length) || index >= this.children.length) {
       this.add(view);
     } else {
-      _ContentSelector.applySelectors(
-        view,
-        this.contentSelectors,
-        (contentSelector, group) => contentSelector.insert(index, group)
-      );
+      ShadowDOM.distributeView(view, this.projectToSlots, this, index);
 
       this.children.splice(index, 0, view);
 
@@ -2000,61 +2312,52 @@ export class ViewSlot {
     }
   }
 
-  _contentSelectorRemove(view) {
-    let index = this.children.indexOf(view);
-    let contentSelectors = this.contentSelectors;
-    let i;
-    let ii;
-
-    for (i = 0, ii = contentSelectors.length; i < ii; ++i) {
-      contentSelectors[i].removeAt(index, view.fragment);
+  _projectionMove(sourceIndex, targetIndex) {
+    if (sourceIndex === targetIndex) {
+      return;
     }
 
-    this.children.splice(index, 1);
+    const children = this.children;
+    const view = children[sourceIndex];
+
+    ShadowDOM.undistributeView(view, this.projectToSlots, this);
+    ShadowDOM.distributeView(view, this.projectToSlots, this, targetIndex);
+
+    children.splice(sourceIndex, 1);
+    children.splice(targetIndex, 0, view);
+  }
+
+  _projectionRemove(view, returnToCache) {
+    ShadowDOM.undistributeView(view, this.projectToSlots, this);
+    this.children.splice(this.children.indexOf(view), 1);
 
     if (this.isAttached) {
       view.detached();
     }
   }
 
-  _contentSelectorRemoveAt(index) {
+  _projectionRemoveAt(index, returnToCache) {
     let view = this.children[index];
-    let contentSelectors = this.contentSelectors;
-    let i;
-    let ii;
 
-    for (i = 0, ii = contentSelectors.length; i < ii; ++i) {
-      contentSelectors[i].removeAt(index, view.fragment);
-    }
-
+    ShadowDOM.undistributeView(view, this.projectToSlots, this);
     this.children.splice(index, 1);
 
     if (this.isAttached) {
       view.detached();
     }
-
-    return view;
   }
 
-  _contentSelectorRemoveAll() {
+  _projectionRemoveMany(viewsToRemove, returnToCache?) {
+    viewsToRemove.forEach(view => this.remove(view, returnToCache));
+  }
+
+  _projectionRemoveAll(returnToCache) {
+    ShadowDOM.undistributeAll(this.projectToSlots, this);
+
     let children = this.children;
-    let contentSelectors = this.contentSelectors;
-    let ii = children.length;
-    let jj = contentSelectors.length;
-    let i;
-    let j;
-    let view;
-
-    for (i = 0; i < ii; ++i) {
-      view = children[i];
-
-      for (j = 0; j < jj; ++j) {
-        contentSelectors[j].removeAt(0, view.fragment);
-      }
-    }
 
     if (this.isAttached) {
-      for (i = 0; i < ii; ++i) {
+      for (let i = 0, ii = children.length; i < ii; ++i) {
         children[i].detached();
       }
     }
@@ -2161,7 +2464,7 @@ function makeElementIntoAnchor(element, elementInstruction) {
   return anchor;
 }
 
-function applyInstructions(containers, element, instruction, controllers, bindings, children, contentSelectors, partReplacements, resources) {
+function applyInstructions(containers, element, instruction, controllers, bindings, children, shadowSlots, partReplacements, resources) {
   let behaviorInstructions = instruction.behaviorInstructions;
   let expressions = instruction.expressions;
   let elementContainer;
@@ -2172,14 +2475,24 @@ function applyInstructions(containers, element, instruction, controllers, bindin
 
   if (instruction.contentExpression) {
     bindings.push(instruction.contentExpression.createBinding(element.nextSibling));
+    element.nextSibling.auInterpolationTarget = true;
     element.parentNode.removeChild(element);
     return;
   }
 
-  if (instruction.contentSelector) {
-    let commentAnchor = DOM.createComment('anchor');
+  if (instruction.shadowSlot) {
+    let commentAnchor = DOM.createComment('slot');
+    let slot;
+
+    if (instruction.slotDestination) {
+      slot = new PassThroughSlot(commentAnchor, instruction.slotName, instruction.slotDestination, instruction.slotFallbackFactory);
+    } else {
+      slot = new ShadowSlot(commentAnchor, instruction.slotName, instruction.slotFallbackFactory);
+    }
+    
     DOM.replaceNode(commentAnchor, element);
-    contentSelectors.push(new _ContentSelector(commentAnchor, instruction.selector));
+    shadowSlots[instruction.slotName] = slot;
+    controllers.push(slot);
     return;
   }
 
@@ -2201,11 +2514,6 @@ function applyInstructions(containers, element, instruction, controllers, bindin
     for (i = 0, ii = behaviorInstructions.length; i < ii; ++i) {
       current = behaviorInstructions[i];
       instance = current.type.create(elementContainer, current, element, bindings);
-
-      if (instance.contentView) {
-        children.push(instance.contentView);
-      }
-
       controllers.push(instance);
     }
   }
@@ -2449,7 +2757,6 @@ export class ViewFactory {
   */
   create(container: Container, createInstruction?: ViewCreateInstruction, element?: Element): View {
     createInstruction = createInstruction || BehaviorInstruction.normal;
-    element = element || null;
 
     let cachedView = this.getCachedView();
     if (cachedView !== null) {
@@ -2463,7 +2770,7 @@ export class ViewFactory {
     let controllers = [];
     let bindings = [];
     let children = [];
-    let contentSelectors = [];
+    let shadowSlots = Object.create(null);
     let containers = { root: container };
     let partReplacements = createInstruction.partReplacements;
     let i;
@@ -2474,7 +2781,7 @@ export class ViewFactory {
 
     this.resources._invokeHook('beforeCreate', this, container, fragment, createInstruction);
 
-    if (element !== null && this.surrogateInstruction !== null) {
+    if (element && this.surrogateInstruction !== null) {
       applySurrogateInstruction(container, element, this.surrogateInstruction, controllers, bindings, children);
     }
 
@@ -2482,10 +2789,10 @@ export class ViewFactory {
       instructable = instructables[i];
       instruction = instructions[instructable.getAttribute('au-target-id')];
 
-      applyInstructions(containers, instructable, instruction, controllers, bindings, children, contentSelectors, partReplacements, resources);
+      applyInstructions(containers, instructable, instruction, controllers, bindings, children, shadowSlots, partReplacements, resources);
     }
 
-    view = new View(container, this, fragment, controllers, bindings, children, contentSelectors);
+    view = new View(container, this, fragment, controllers, bindings, children, shadowSlots);
 
     //if iniated by an element behavior, let the behavior trigger this callback once it's done creating the element
     if (!createInstruction.initiatedByBehavior) {
@@ -2547,6 +2854,32 @@ function makeIntoInstructionTarget(element) {
   return auTargetID;
 }
 
+function makeShadowSlot(compiler, resources, node, instructions, parentInjectorId) {
+  let auShadowSlot = DOM.createElement('au-shadow-slot');
+  DOM.replaceNode(auShadowSlot, node);
+
+  let auTargetID = makeIntoInstructionTarget(auShadowSlot);
+  let instruction = TargetInstruction.shadowSlot(parentInjectorId);
+
+  instruction.slotName = node.getAttribute('name') || ShadowDOM.defaultSlotKey;
+  instruction.slotDestination = node.getAttribute('slot');
+
+  if(node.innerHTML.trim()) {
+    let fragment = DOM.createDocumentFragment();
+    let child;
+
+    while (child = node.firstChild) {
+      fragment.appendChild(child);
+    }
+
+    instruction.slotFallbackFactory = compiler.compile(fragment, resources);
+  }
+
+  instructions[auTargetID] = instruction;
+
+  return auShadowSlot;
+}
+
 /**
 * Compiles html templates, dom fragments and strings into ViewFactory instances, capable of instantiating Views.
 */
@@ -2591,8 +2924,18 @@ export class ViewCompiler {
 
     let instructions = {};
     this._compileNode(content, resources, instructions, source, 'root', !compileInstruction.targetShadowDOM);
-    content.insertBefore(DOM.createComment('<view>'), content.firstChild);
-    content.appendChild(DOM.createComment('</view>'));
+
+    let firstChild = content.firstChild;
+    if (firstChild.nodeType === 1) {
+      let targetId = firstChild.getAttribute('au-target-id')
+      if (targetId) {
+        let ins = instructions[targetId];
+
+        if (ins.shadowSlot || ins.lifting) {
+          content.insertBefore(DOM.createComment('view'), firstChild);
+        }
+      }
+    }
 
     let factory = new ViewFactory(content, instructions, resources);
 
@@ -2774,10 +3117,9 @@ export class ViewCompiler {
     let auTargetID;
     let injectorId;
 
-    if (tagName === 'content') {
+    if (tagName === 'slot') {
       if (targetLightDOM) {
-        auTargetID = makeIntoInstructionTarget(node);
-        instructions[auTargetID] = TargetInstruction.contentSelector(node, parentInjectorId);
+        node = makeShadowSlot(this, resources, node, instructions, parentInjectorId);
       }
       return node.nextSibling;
     } else if (tagName === 'template') {
@@ -2797,6 +3139,11 @@ export class ViewCompiler {
       attrName = attr.name;
       attrValue = attr.value;
       info = bindingLanguage.inspectAttribute(resources, tagName, attrName, attrValue);
+
+      if (targetLightDOM && info.attrName === 'slot') {
+        info.attrName = attrName = 'au-slot';
+      }
+
       type = resources.getAttribute(info.attrName);
       elementProperty = null;
 
@@ -3259,6 +3606,11 @@ export class ViewEngine {
     this.moduleAnalyzer = moduleAnalyzer;
     this.appResources = appResources;
     this._pluginMap = {};
+
+    let auSlotBehavior = new HtmlBehaviorResource();
+    auSlotBehavior.attributeName = 'au-slot';
+    auSlotBehavior.initialize(container, SlotCustomAttribute);
+    auSlotBehavior.register(appResources);
   }
 
   /**
@@ -3564,6 +3916,7 @@ export class Controller {
         overrideContext = createOverrideContext(this.viewModel);
         overrideContext.__parentOverrideContext = scope.overrideContext;
       }
+
       this.view.bind(this.viewModel, overrideContext);
     } else if (skipSelfSubscriber) {
       overrideContext = scope.overrideContext;
@@ -3973,7 +4326,6 @@ export class BindableProperty {
   }
 }
 
-const contentSelectorViewCreateInstruction = { enhance: false };
 let lastProviderId = 0;
 
 function nextProviderId() {
@@ -3997,6 +4349,7 @@ export class HtmlBehaviorResource {
     this.attributeDefaultBindingMode = undefined;
     this.liftsContent = false;
     this.targetShadowDOM = false;
+    this.shadowDOMOptions = null;
     this.processAttributes = doProcessAttributes;
     this.processContent = doProcessContent;
     this.usesShadowDOM = false;
@@ -4200,47 +4553,34 @@ export class HtmlBehaviorResource {
       let partReplacements = {};
 
       if (this.processContent(compiler, resources, node, instruction) && node.hasChildNodes()) {
-        if (this.usesShadowDOM) {
-          let currentChild = node.firstChild;
-          let nextSibling;
-          let toReplace;
+        let currentChild = node.firstChild;
+        let contentElement = this.usesShadowDOM ? null : DOM.createElement('au-content');
+        let nextSibling;
+        let toReplace;
 
-          while (currentChild) {
-            nextSibling = currentChild.nextSibling;
+        while (currentChild) {
+          nextSibling = currentChild.nextSibling;
 
-            if (currentChild.tagName === 'TEMPLATE' && (toReplace = currentChild.getAttribute('replace-part'))) {
-              partReplacements[toReplace] = compiler.compile(currentChild, resources);
+          if (currentChild.tagName === 'TEMPLATE' && (toReplace = currentChild.getAttribute('replace-part'))) {
+            partReplacements[toReplace] = compiler.compile(currentChild, resources);
+            DOM.removeNode(currentChild, parentNode);
+            instruction.partReplacements = partReplacements;
+          } else if (contentElement !== null) {
+            if (currentChild.nodeType === 3 && _isAllWhitespace(currentChild)) {
               DOM.removeNode(currentChild, parentNode);
-              instruction.partReplacements = partReplacements;
-            }
-
-            currentChild = nextSibling;
-          }
-
-          instruction.skipContentProcessing = false;
-        } else {
-          let fragment = DOM.createDocumentFragment();
-          let currentChild = node.firstChild;
-          let nextSibling;
-          let toReplace;
-
-          while (currentChild) {
-            nextSibling = currentChild.nextSibling;
-
-            if (currentChild.tagName === 'TEMPLATE' && (toReplace = currentChild.getAttribute('replace-part'))) {
-              partReplacements[toReplace] = compiler.compile(currentChild, resources);
-              DOM.removeNode(currentChild, parentNode);
-              instruction.partReplacements = partReplacements;
             } else {
-              fragment.appendChild(currentChild);
+              contentElement.appendChild(currentChild);
             }
-
-            currentChild = nextSibling;
           }
 
-          instruction.contentFactory = compiler.compile(fragment, resources);
-          instruction.skipContentProcessing = true;
+          currentChild = nextSibling;
         }
+
+        if (contentElement !== null && contentElement.hasChildNodes()) {
+          node.appendChild(contentElement);
+        }
+
+        instruction.skipContentProcessing = false;
       } else {
         instruction.skipContentProcessing = true;
       }
@@ -4258,7 +4598,7 @@ export class HtmlBehaviorResource {
   * @return The Controller of this behavior.
   */
   create(container: Container, instruction?: BehaviorInstruction, element?: Element, bindings?: Binding[]): Controller {
-    let host;
+    let viewHost;
     let au = null;
 
     instruction = instruction || BehaviorInstruction.normal;
@@ -4267,13 +4607,12 @@ export class HtmlBehaviorResource {
 
     if (this.elementName !== null && element) {
       if (this.usesShadowDOM) {
-        host = element.createShadowRoot();
-        container.registerInstance(DOM.boundary, host);
+        viewHost = element.attachShadow(this.shadowDOMOptions);
+        container.registerInstance(DOM.boundary, viewHost);
       } else {
-        host = element;
-
+        viewHost = element;
         if (this.targetShadowDOM) {
-          container.registerInstance(DOM.boundary, host);
+          container.registerInstance(DOM.boundary, viewHost);
         }
       }
     }
@@ -4303,34 +4642,26 @@ export class HtmlBehaviorResource {
         au.controller = controller;
 
         if (controller.view) {
-          if (!this.usesShadowDOM) {
-            if (instruction.contentFactory) {
-              let contentView = instruction.contentFactory.create(container, contentSelectorViewCreateInstruction);
-
-              _ContentSelector.applySelectors(
-                contentView,
-                controller.view.contentSelectors,
-                (contentSelector, group) => contentSelector.add(group)
-              );
-
-              controller.contentView = contentView;
-            }
+          if (!this.usesShadowDOM && element.childNodes.length === 1) {
+            let contentElement = element.childNodes[0];
+            controller.view.contentView = { fragment: contentElement }; //store the content before appending the view
+            DOM.removeNode(contentElement);
           }
 
           if (instruction.anchorIsContainer) {
             if (childBindings !== null) {
               for (let i = 0, ii = childBindings.length; i < ii; ++i) {
-                controller.view.addBinding(childBindings[i].create(element, viewModel));
+                controller.view.addBinding(childBindings[i].create(element, viewModel, controller));
               }
             }
 
-            controller.view.appendNodesTo(host);
+            controller.view.appendNodesTo(viewHost);
           } else {
-            controller.view.insertNodesBefore(host);
+            controller.view.insertNodesBefore(viewHost);
           }
         } else if (childBindings !== null) {
           for (let i = 0, ii = childBindings.length; i < ii; ++i) {
-            bindings.push(childBindings[i].create(element, viewModel));
+            bindings.push(childBindings[i].create(element, viewModel, controller));
           }
         }
       } else if (controller.view) {
@@ -4339,19 +4670,19 @@ export class HtmlBehaviorResource {
 
         if (childBindings !== null) {
           for (let i = 0, ii = childBindings.length; i < ii; ++i) {
-            controller.view.addBinding(childBindings[i].create(instruction.host, viewModel));
+            controller.view.addBinding(childBindings[i].create(instruction.host, viewModel, controller));
           }
         }
       } else if (childBindings !== null) {
         //dynamic element without view
         for (let i = 0, ii = childBindings.length; i < ii; ++i) {
-          bindings.push(childBindings[i].create(instruction.host, viewModel));
+          bindings.push(childBindings[i].create(instruction.host, viewModel, controller));
         }
       }
     } else if (childBindings !== null) {
       //custom attribute
       for (let i = 0, ii = childBindings.length; i < ii; ++i) {
-        bindings.push(childBindings[i].create(element, viewModel));
+        bindings.push(childBindings[i].create(element, viewModel, controller));
       }
     }
 
@@ -4432,8 +4763,8 @@ class ChildObserver {
     this.all = config.all;
   }
 
-  create(target, viewModel) {
-    return new ChildObserverBinder(this.selector, target, this.name, viewModel, this.changeHandler, this.all);
+  create(viewHost, viewModel, controller) {
+    return new ChildObserverBinder(this.selector, viewHost, this.name, viewModel, controller, this.changeHandler, this.all);
   }
 }
 
@@ -4493,69 +4824,107 @@ function onChildChange(mutations, observer) {
 }
 
 class ChildObserverBinder {
-  constructor(selector, target, property, viewModel, changeHandler, all) {
+  constructor(selector, viewHost, property, viewModel, controller, changeHandler, all) {
     this.selector = selector;
-    this.target = target;
+    this.viewHost = viewHost;
     this.property = property;
     this.viewModel = viewModel;
+    this.controller = controller;
     this.changeHandler = changeHandler in viewModel ? changeHandler : null;
+    this.usesShadowDOM = controller.behavior.usesShadowDOM;
+    this.contentView = this.usesShadowDOM ? null : (controller.view ? (controller.view.contentView  || null) : null);
     this.all = all;
   }
 
+  matches(element) {
+    if (element.matches(this.selector)) {
+      if (this.contentView === null) {
+        return true;
+      }
+
+      let contentView = this.contentView;
+      let assignedSlot = element.auAssignedSlot;
+
+      if (assignedSlot && assignedSlot.projectFromAnchors) {
+        let anchors = assignedSlot.projectFromAnchors;
+
+        for (let i = 0, ii = anchors.length; i < ii; ++i) {
+          if (anchors[i].auOwnerView === contentView) {
+            return true;
+          }
+        }
+
+        return false;
+      }
+
+      return element.auOwnerView === contentView;
+    }
+
+    return false;
+  }
+
   bind(source) {
-    let target = this.target;
+    let viewHost = this.viewHost;
     let viewModel = this.viewModel;
-    let selector = this.selector;
-    let current = target.firstElementChild;
-    let observer = target.__childObserver__;
+    let observer = viewHost.__childObserver__;
 
     if (!observer) {
-      observer = target.__childObserver__ = DOM.createMutationObserver(onChildChange);
-      observer.observe(target, {childList: true});
+      observer = viewHost.__childObserver__ = DOM.createMutationObserver(onChildChange);
+
+      let options = {
+        childList: true,
+        subtree: !this.usesShadowDOM
+      };
+
+      observer.observe(viewHost, options);
       observer.binders = [];
     }
 
     observer.binders.push(this);
 
-    if (this.all) {
-      let items = viewModel[this.property];
-      if (!items) {
-        items = viewModel[this.property] = [];
-      } else {
-        items.length = 0;
-      }
+    if (this.usesShadowDOM) { //if using shadow dom, the content is already present, so sync the items
+      let current = viewHost.firstElementChild;
 
-      while (current) {
-        if (current.matches(selector)) {
-          items.push(current.au && current.au.controller ? current.au.controller.viewModel : current);
+      if (this.all) {
+        let items = viewModel[this.property];
+        if (!items) {
+          items = viewModel[this.property] = [];
+        } else {
+          items.length = 0;
         }
 
-        current = current.nextElementSibling;
-      }
-
-      if (this.changeHandler !== null) {
-        this.viewModel[this.changeHandler](noMutations);
-      }
-    } else {
-      while (current) {
-        if (current.matches(selector)) {
-          let value = current.au && current.au.controller ? current.au.controller.viewModel : current;
-          this.viewModel[this.property] = value;
-
-          if (this.changeHandler !== null) {
-            this.viewModel[this.changeHandler](value);
+        while (current) {
+          if (this.matches(current)) {
+            items.push(current.au && current.au.controller ? current.au.controller.viewModel : current);
           }
 
-          break;
+          current = current.nextElementSibling;
         }
 
-        current = current.nextElementSibling;
+        if (this.changeHandler !== null) {
+          this.viewModel[this.changeHandler](noMutations);
+        }
+      } else {
+        while (current) {
+          if (this.matches(current)) {
+            let value = current.au && current.au.controller ? current.au.controller.viewModel : current;
+            this.viewModel[this.property] = value;
+
+            if (this.changeHandler !== null) {
+              this.viewModel[this.changeHandler](value);
+            }
+
+            break;
+          }
+
+          current = current.nextElementSibling;
+        }
       }
     }
   }
 
   onRemove(element) {
-    if (element.matches(this.selector)) {
+    if (this.matches(element)) {
       let value = element.au && element.au.controller ? element.au.controller.viewModel : element;
 
       if (this.all) {
@@ -4574,9 +4943,7 @@ class ChildObserverBinder {
   }
 
   onAdd(element) {
-    let selector = this.selector;
-
-    if (element.matches(selector)) {
+    if (this.matches(element)) {
       let value = element.au && element.au.controller ? element.au.controller.viewModel : element;
 
       if (this.all) {
@@ -4585,7 +4952,7 @@ class ChildObserverBinder {
         let prev = element.previousElementSibling;
 
         while (prev) {
-          if (prev.matches(selector)) {
+          if (this.matches(prev)) {
             index++;
           }
 
@@ -4607,9 +4974,9 @@ class ChildObserverBinder {
   }
 
   unbind() {
-    if (this.target.__childObserver__) {
-      this.target.__childObserver__.disconnect();
-      this.target.__childObserver__ = null;
+    if (this.viewHost.__childObserver__) {
+      this.viewHost.__childObserver__.disconnect();
+      this.viewHost.__childObserver__ = null;
     }
   }
 }
@@ -4991,17 +5358,23 @@ export function dynamicOptions(target?): any {
   return target ? deco(target) : deco;
 }
 
+const defaultShadowDOMOptions = { mode: 'open' };
 /**
 * Decorator: Indicates that the custom element should render its view in Shadow
 * DOM. This decorator may change slightly when Aurelia updates to Shadow DOM v1.
 */
-export function useShadowDOM(target?): any {
+export function useShadowDOM(targetOrOptions?): any {
+  let options = typeof targetOrOptions === 'function' || !targetOrOptions
+    ? defaultShadowDOMOptions
+    : targetOrOptions;
+
   let deco = function(t) {
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
     r.targetShadowDOM = true;
+    r.shadowDOMOptions = options;
   };
 
-  return target ? deco(target) : deco;
+  return typeof targetOrOptions === 'function' ? deco(targetOrOptions) : deco;
 }
 
 /**

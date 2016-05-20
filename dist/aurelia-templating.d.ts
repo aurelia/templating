@@ -18,6 +18,11 @@ declare module 'aurelia-templating' {
     Loader
   } from 'aurelia-loader';
   import {
+    inject,
+    Container,
+    resolver
+  } from 'aurelia-dependency-injection';
+  import {
     Binding,
     createOverrideContext,
     ValueConverterResource,
@@ -28,11 +33,6 @@ declare module 'aurelia-templating' {
     EventManager,
     createScopeForTest
   } from 'aurelia-binding';
-  import {
-    Container,
-    resolver,
-    inject
-  } from 'aurelia-dependency-injection';
   import {
     TaskQueue
   } from 'aurelia-task-queue';
@@ -509,12 +509,11 @@ declare module 'aurelia-templating' {
     static noExpressions: any;
     
     /**
-      * Creates an instruction that represents a content selector.
-      * @param node The node that represents the selector.
+      * Creates an instruction that represents a shadow dom slot.
       * @param parentInjectorId The id of the parent dependency injection container.
       * @return The created instruction.
       */
-    static contentSelector(node: Node, parentInjectorId: number): TargetInstruction;
+    static shadowSlot(parentInjectorId: number): TargetInstruction;
     
     /**
       * Creates an instruction that represents a binding expression in the content of an element.
@@ -744,6 +743,50 @@ declare module 'aurelia-templating' {
       */
     inspectTextContent(resources: ViewResources, value: string): Object;
   }
+  export class SlotCustomAttribute {
+    constructor(element: any);
+    valueChanged(newValue: any, oldValue: any): any;
+  }
+  
+  //console.log('au-slot', newValue);
+  export class PassThroughSlot {
+    constructor(anchor: any, name: any, destinationName: any, fallbackFactory: any);
+    needsFallbackRendering: any;
+    renderFallbackContent(view: any, nodes: any, projectionSource: any, index: any): any;
+    passThroughTo(destinationSlot: any): any;
+    addNode(view: any, node: any, projectionSource: any, index: any): any;
+    removeView(view: any, projectionSource: any): any;
+    removeAll(projectionSource: any): any;
+    projectFrom(view: any, projectionSource: any): any;
+    created(ownerView: any): any;
+    bind(view: any): any;
+    attached(): any;
+    detached(): any;
+    unbind(): any;
+  }
+  export class ShadowSlot {
+    constructor(anchor: any, name: any, fallbackFactory: any);
+    needsFallbackRendering: any;
+    addNode(view: any, node: any, projectionSource: any, index: any, destination: any): any;
+    removeView(view: any, projectionSource: any): any;
+    removeAll(projectionSource: any): any;
+    projectTo(slots: any): any;
+    projectFrom(view: any, projectionSource: any): any;
+    renderFallbackContent(view: any, nodes: any, projectionSource: any, index: any): any;
+    created(ownerView: any): any;
+    bind(view: any): any;
+    attached(): any;
+    detached(): any;
+    unbind(): any;
+  }
+  export class ShadowDOM {
+    static defaultSlotKey: any;
+    static getSlotName(node: any): any;
+    static distributeView(view: any, slots: any, projectionSource: any, index: any, destinationOverride: any): any;
+    static undistributeView(view: any, slots: any, projectionSource: any): any;
+    static undistributeAll(slots: any, projectionSource: any): any;
+    static distributeNodes(view: any, nodes: any, slots: any, projectionSource: any, index: any, destinationOverride: any): any;
+  }
   
   /**
   * Represents a collection of resources used during the compilation of a view.
@@ -866,7 +909,7 @@ declare module 'aurelia-templating' {
       * @param bindings The bindings inside this view.
       * @param children The children of this view.
       */
-    constructor(container: Container, viewFactory: ViewFactory, fragment: DocumentFragment, controllers: Controller[], bindings: Binding[], children: ViewNode[], contentSelectors: Array<Object>);
+    constructor(container: Container, viewFactory: ViewFactory, fragment: DocumentFragment, controllers: Controller[], bindings: Binding[], children: ViewNode[], slots: Object);
     
     /**
       * Returns this view to the appropriate view cache.
@@ -1022,6 +1065,7 @@ declare module 'aurelia-templating' {
       * Triggers the detach for the slot and its children.
       */
     detached(): void;
+    projectTo(slots: Object): void;
   }
   
   /**
@@ -1637,7 +1681,7 @@ declare module 'aurelia-templating' {
   * Decorator: Indicates that the custom element should render its view in Shadow
   * DOM. This decorator may change slightly when Aurelia updates to Shadow DOM v1.
   */
-  export function useShadowDOM(target?: any): any;
+  export function useShadowDOM(targetOrOptions?: any): any;
   
   /**
   * Decorator: Enables custom processing of the attributes on an element before the framework inspects them.
