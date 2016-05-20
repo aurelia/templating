@@ -24,9 +24,27 @@ export class PassThroughSlot {
     this.destinationName = destinationName;
     this.fallbackFactory = fallbackFactory;
     this.destinationSlot = null;
+    this.projections = 0;
+    this.contentView = null;
 
     let attr = new SlotCustomAttribute(this.anchor);
     attr.value = this.destinationName;
+  }
+
+  get needsFallbackRendering() {
+    return this.fallbackFactory && this.projections === 0;
+  }
+
+  renderFallbackContent(view, nodes, projectionSource, index) {
+    if (this.contentView === null) {
+      this.contentView = this.fallbackFactory.create(this.ownerView.container);
+      this.contentView.bind(this.ownerView.bindingContext, this.ownerView.overrideContext);
+
+      let slots = Object.create(null);
+      slots[this.destinationSlot.name] = this.destinationSlot;
+
+      ShadowDOM.distributeView(this.contentView, slots, projectionSource, index, this.destinationSlot.name);
+    }
   }
 
   passThroughTo(destinationSlot) {
@@ -39,14 +57,17 @@ export class PassThroughSlot {
       return;
     }
 
+    this.projections++;
     this.destinationSlot.addNode(view, node, projectionSource, index);
   }
 
   removeView(view, projectionSource) {
+    this.projections--;
     this.destinationSlot.removeView(view, projectionSource);
   }
 
   removeAll(projectionSource) {
+    this.projections = 0;
     this.destinationSlot.removeAll(projectionSource);
   }
 
@@ -59,19 +80,27 @@ export class PassThroughSlot {
   }
 
   bind(view){
-
+    if(this.contentView) {
+      this.contentView.bind(view.bindingContext, view.overrideContext);
+    }
   }
 
   attached() {
-
+    if(this.contentView) {
+      this.contentView.attached();
+    }
   }
 
   detached() {
-
+    if(this.contentView) {
+      this.contentView.detached();
+    }
   }
 
   unbind() {
-
+    if(this.contentView) {
+      this.contentView.unbind();
+    }
   }
 }
 
@@ -99,7 +128,7 @@ export class ShadowSlot {
       return;
     }
 
-    if (this.contentView) {
+    if (this.contentView !== null) {
       this.contentView.removeNodes();
       this.contentView.detached();
       this.contentView.unbind();
@@ -229,7 +258,7 @@ export class ShadowSlot {
   }
 
   renderFallbackContent(view, nodes, projectionSource, index) {
-    if (!this.contentView) {
+    if (this.contentView === null) {
       this.contentView = this.fallbackFactory.create(this.ownerView.container);
       this.contentView.bind(this.ownerView.bindingContext, this.ownerView.overrideContext);
       this.contentView.insertNodesBefore(this.anchor);
@@ -289,7 +318,7 @@ export class ShadowDOM {
     return node.auSlotAttribute.value;
   }
 
-  static distributeView(view, slots, projectionSource, index) {
+  static distributeView(view, slots, projectionSource, index, destinationOverride) {
     let childNodes = view.fragment.childNodes;
     let ii = childNodes.length;
     let nodes = new Array(ii);
@@ -303,7 +332,8 @@ export class ShadowDOM {
       nodes,
       slots,
       projectionSource,
-      index
+      index,
+      destinationOverride
     );
   }
 
@@ -319,7 +349,7 @@ export class ShadowDOM {
     }
   }
 
-  static distributeNodes(view, nodes, slots, projectionSource, index) {
+  static distributeNodes(view, nodes, slots, projectionSource, index, destinationOverride) {
     for(let i = 0, ii = nodes.length; i < ii; ++i) {
       let currentNode = nodes[i];
       let nodeType = currentNode.nodeType;
@@ -338,7 +368,7 @@ export class ShadowDOM {
           nodes.splice(i, 1);
           ii--; i--;
         } else {
-          let found = slots[ShadowDOM.getSlotName(currentNode)];
+          let found = slots[destinationOverride || ShadowDOM.getSlotName(currentNode)];
 
           if (found) {
             found.addNode(view, currentNode, projectionSource, index);
