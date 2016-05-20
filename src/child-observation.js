@@ -122,48 +122,57 @@ class ChildObserverBinder {
     let selector = this.selector;
     let current = viewHost.firstElementChild;
     let observer = viewHost.__childObserver__;
+    let usesShadowDOM = this.controller.behavior.usesShadowDOM;
 
     if (!observer) {
       observer = viewHost.__childObserver__ = DOM.createMutationObserver(onChildChange);
-      observer.observe(viewHost, {childList: true});
+
+      let options = {
+        childList: true,
+        subtree: !usesShadowDOM
+      };
+
+      observer.observe(viewHost, options);
       observer.binders = [];
     }
 
     observer.binders.push(this);
 
-    if (this.all) {
-      let items = viewModel[this.property];
-      if (!items) {
-        items = viewModel[this.property] = [];
-      } else {
-        items.length = 0;
-      }
-
-      while (current) {
-        if (current.matches(selector)) {
-          items.push(current.au && current.au.controller ? current.au.controller.viewModel : current);
+    if (usesShadowDOM) { //if using shadow dom, the content is already present, so sync the items
+      if (this.all) {
+        let items = viewModel[this.property];
+        if (!items) {
+          items = viewModel[this.property] = [];
+        } else {
+          items.length = 0;
         }
 
-        current = current.nextElementSibling;
-      }
-
-      if (this.changeHandler !== null) {
-        this.viewModel[this.changeHandler](noMutations);
-      }
-    } else {
-      while (current) {
-        if (current.matches(selector)) {
-          let value = current.au && current.au.controller ? current.au.controller.viewModel : current;
-          this.viewModel[this.property] = value;
-
-          if (this.changeHandler !== null) {
-            this.viewModel[this.changeHandler](value);
+        while (current) {
+          if (current.matches(selector)) {
+            items.push(current.au && current.au.controller ? current.au.controller.viewModel : current);
           }
 
-          break;
+          current = current.nextElementSibling;
         }
 
-        current = current.nextElementSibling;
+        if (this.changeHandler !== null) {
+          this.viewModel[this.changeHandler](noMutations);
+        }
+      } else {
+        while (current) {
+          if (current.matches(selector)) {
+            let value = current.au && current.au.controller ? current.au.controller.viewModel : current;
+            this.viewModel[this.property] = value;
+
+            if (this.changeHandler !== null) {
+              this.viewModel[this.changeHandler](value);
+            }
+
+            break;
+          }
+
+          current = current.nextElementSibling;
+        }
       }
     }
   }
