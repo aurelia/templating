@@ -143,8 +143,8 @@ export class Controller {
 
       this.view.bind(this.viewModel, overrideContext);
 
-      if (this.view.hasSlots && this.contentElement) {
-        ShadowDOM.distributeView({ fragment: this.contentElement }, this.view.slots);
+      if (this.view.hasSlots && this.contentView) {
+        ShadowDOM.distributeView(this.contentView, this.view.slots);
       }
     } else if (skipSelfSubscriber) {
       overrideContext = scope.overrideContext;

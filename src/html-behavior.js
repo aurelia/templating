@@ -330,14 +330,14 @@ export class HtmlBehaviorResource {
         if (controller.view) {
           if (!this.usesShadowDOM && element.childNodes.length === 1) {
             let contentElement = element.childNodes[0];
-            controller.contentElement = contentElement; //store the content before appending the view
+            controller.contentView = { fragment: contentElement }; //store the content before appending the view
             DOM.removeNode(contentElement);
           }
 
           if (instruction.anchorIsContainer) {
             if (childBindings !== null) {
               for (let i = 0, ii = childBindings.length; i < ii; ++i) {
-                controller.view.addBinding(childBindings[i].create(element, viewModel));
+                controller.view.addBinding(childBindings[i].create(element, viewModel, controller));
               }
             }
 
@@ -347,7 +347,7 @@ export class HtmlBehaviorResource {
           }
         } else if (childBindings !== null) {
           for (let i = 0, ii = childBindings.length; i < ii; ++i) {
-            bindings.push(childBindings[i].create(element, viewModel));
+            bindings.push(childBindings[i].create(element, viewModel, controller));
           }
         }
       } else if (controller.view) {
@@ -356,19 +356,19 @@ export class HtmlBehaviorResource {
 
         if (childBindings !== null) {
           for (let i = 0, ii = childBindings.length; i < ii; ++i) {
-            controller.view.addBinding(childBindings[i].create(instruction.host, viewModel));
+            controller.view.addBinding(childBindings[i].create(instruction.host, viewModel, controller));
           }
         }
       } else if (childBindings !== null) {
         //dynamic element without view
         for (let i = 0, ii = childBindings.length; i < ii; ++i) {
-          bindings.push(childBindings[i].create(instruction.host, viewModel));
+          bindings.push(childBindings[i].create(instruction.host, viewModel, controller));
         }
       }
     } else if (childBindings !== null) {
       //custom attribute
       for (let i = 0, ii = childBindings.length; i < ii; ++i) {
-        bindings.push(childBindings[i].create(element, viewModel));
+        bindings.push(childBindings[i].create(element, viewModel, controller));
       }
     }
 

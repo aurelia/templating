@@ -45,8 +45,8 @@ class ChildObserver {
     this.all = config.all;
   }
 
-  create(target, viewModel) {
-    return new ChildObserverBinder(this.selector, target, this.name, viewModel, this.changeHandler, this.all);
+  create(viewHost, viewModel, controller) {
+    return new ChildObserverBinder(this.selector, viewHost, this.name, viewModel, controller, this.changeHandler, this.all);
   }
 }
 
@@ -106,25 +106,26 @@ function onChildChange(mutations, observer) {
 }
 
 class ChildObserverBinder {
-  constructor(selector, target, property, viewModel, changeHandler, all) {
+  constructor(selector, viewHost, property, viewModel, controller, changeHandler, all) {
     this.selector = selector;
-    this.target = target;
+    this.viewHost = viewHost;
     this.property = property;
     this.viewModel = viewModel;
+    this.controller = controller;
     this.changeHandler = changeHandler in viewModel ? changeHandler : null;
     this.all = all;
   }
 
   bind(source) {
-    let target = this.target;
+    let viewHost = this.viewHost;
     let viewModel = this.viewModel;
     let selector = this.selector;
-    let current = target.firstElementChild;
-    let observer = target.__childObserver__;
+    let current = viewHost.firstElementChild;
+    let observer = viewHost.__childObserver__;
 
     if (!observer) {
-      observer = target.__childObserver__ = DOM.createMutationObserver(onChildChange);
-      observer.observe(target, {childList: true});
+      observer = viewHost.__childObserver__ = DOM.createMutationObserver(onChildChange);
+      observer.observe(viewHost, {childList: true});
       observer.binders = [];
     }
 
@@ -220,9 +221,9 @@ class ChildObserverBinder {
   }
 
   unbind() {
-    if (this.target.__childObserver__) {
-      this.target.__childObserver__.disconnect();
-      this.target.__childObserver__ = null;
+    if (this.viewHost.__childObserver__) {
+      this.viewHost.__childObserver__.disconnect();
+      this.viewHost.__childObserver__ = null;
     }
   }
 }
