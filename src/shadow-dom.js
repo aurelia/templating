@@ -9,7 +9,6 @@ export class SlotCustomAttribute {
   constructor(element) {
     this.element = element;
     this.element.auSlotAttribute = this;
-    this.passThrough = false;
   }
 
   valueChanged(newValue, oldValue) {
@@ -17,26 +16,77 @@ export class SlotCustomAttribute {
   }
 }
 
-export class ShadowSlot {
-  constructor(anchor, name, fallbackFactory, slotDestination) {
+export class PassThroughSlot {
+  constructor(anchor, name, destinationName, fallbackFactory) {
     this.anchor = anchor;
+    this.anchor.viewSlot = this;
+    this.name = name;
+    this.destinationName = destinationName;
+    this.fallbackFactory = fallbackFactory;
+    this.destinationSlot = null;
+
+    let attr = new SlotCustomAttribute(this.anchor);
+    attr.value = this.destinationName;
+  }
+
+  passThroughTo(destinationSlot) {
+    this.destinationSlot = destinationSlot;
+  }
+
+  addNode(view, node, projectionSource, index) {
+    if (node.viewSlot instanceof PassThroughSlot) {
+      node.viewSlot.passThroughTo(this);
+      return;
+    }
+
+    this.destinationSlot.addNode(view, node, projectionSource, index);
+  }
+
+  removeView(view, projectionSource) {
+    this.destinationSlot.removeView(view, projectionSource);
+  }
+
+  removeAll(projectionSource) {
+    this.destinationSlot.removeAll(projectionSource);
+  }
+
+  projectFrom(view, projectionSource) {
+    this.destinationSlot.projectFrom(view, projectionSource);
+  }
+
+  created(ownerView) {
+    this.ownerView = ownerView;
+  }
+
+  bind(view){
+
+  }
+
+  attached() {
+
+  }
+
+  detached() {
+
+  }
+
+  unbind() {
+
+  }
+}
+
+export class ShadowSlot {
+  constructor(anchor, name, fallbackFactory) {
+    this.anchor = anchor;
+    this.anchor.isContentProjectionSource = true;
+    this.anchor.viewSlot = this;
     this.name = name;
     this.fallbackFactory = fallbackFactory;
-    this.isDefault = !name;
+    this.contentView = null;
     this.projections = 0;
     this.children = [];
     this.projectFromAnchors = null;
-    this.contentView = null;
-    this.anchor.isContentProjectionSource = true;
-    this.anchor.viewSlot = this;
     this.destinationSlots = null;
-    this.passThroughSlot = null;
-
-    if (slotDestination) {
-      let slotAttr = anchor.auSlotAttribute = new SlotCustomAttribute(anchor);
-      slotAttr.value = slotDestination;
-      slotAttr.passThrough = true;
-    }
   }
 
   get needsFallbackRendering() {
@@ -44,20 +94,12 @@ export class ShadowSlot {
   }
 
   addNode(view, node, projectionSource, index, destination) {
-    if (this.passThroughSlot !== null) {
-      this.passThroughSlot.slot.addNode(view, node, this, index, this.passThroughSlot.destination);
+    if (node.viewSlot instanceof PassThroughSlot) {
+      node.viewSlot.passThroughTo(this);
       return;
     }
 
     if (this.contentView) {
-      if (this.fallbackSlots && destination) {
-        let found = this.fallbackSlots[destination];
-        if (found) {
-          found.addNode(view, node, projectionSource, index);
-          return;
-        }
-      }
-
       this.contentView.removeNodes();
       this.contentView.detached();
       this.contentView.unbind();
@@ -65,8 +107,7 @@ export class ShadowSlot {
     }
 
     if (this.destinationSlots !== null) {
-      let nodes = [node];
-      ShadowDOM.distributeNodes(view, nodes, this.destinationSlots, this, index);
+      ShadowDOM.distributeNodes(view, [node], this.destinationSlots, this, index);
     } else {
       node.auOwnerView = view;
       node.auProjectionSource = projectionSource;
@@ -171,13 +212,6 @@ export class ShadowSlot {
     this.destinationSlots = slots;
   }
 
-  makePassThrough(slot, destination) {
-    this.passThroughSlot = {
-      slot: slot,
-      destination: destination
-    };
-  }
-
   projectFrom(view, projectionSource) {
     let anchor = DOM.createComment('anchor');
     let parent = this.anchor.parentNode;
@@ -192,10 +226,6 @@ export class ShadowSlot {
     }
 
     this.projectFromAnchors.push(anchor);
-  }
-
-  created(ownerView) {
-    this.ownerView = ownerView;
   }
 
   renderFallbackContent(view, nodes, projectionSource, index) {
@@ -217,6 +247,10 @@ export class ShadowSlot {
       this.fallbackSlots = slots;
       ShadowDOM.distributeNodes(view, nodes, slots, projectionSource, index);
     }
+  }
+
+  created(ownerView) {
+    this.ownerView = ownerView;
   }
 
   bind(view){
@@ -255,14 +289,6 @@ export class ShadowDOM {
     return node.auSlotAttribute.value;
   }
 
-  static isPassThroughSlot(node) {
-    if (node.auSlotAttribute === undefined) {
-      return false;
-    }
-
-    return node.auSlotAttribute.passThrough;
-  }
-
   static distributeView(view, slots, projectionSource, index) {
     let childNodes = view.fragment.childNodes;
     let ii = childNodes.length;
@@ -299,25 +325,15 @@ export class ShadowDOM {
       let nodeType = currentNode.nodeType;
 
       if (currentNode.isContentProjectionSource) {
-        let slotDestination = ShadowDOM.getSlotName(currentNode);
-        let isPassThroughSlot = ShadowDOM.isPassThroughSlot(currentNode);
+        currentNode.viewSlot.projectTo(slots);
 
-        if (slotDestination in slots || !isPassThroughSlot) {
-          currentNode.viewSlot.projectTo(slots);
-
-          for(let slotName in slots) {
-            slots[slotName].projectFrom(view, currentNode.viewSlot);
-          }
-
-          nodes.splice(i, 1);
-          ii--; i--;
-        } else if (isPassThroughSlot) {
-          let found = slots[currentNode.viewSlot.name];
-          if (found) {
-            currentNode.viewSlot.makePassThrough(found, slotDestination);
-          }
+        for(let slotName in slots) {
+          slots[slotName].projectFrom(view, currentNode.viewSlot);
         }
-      } else if (nodeType === 1 || nodeType === 3) { //project only elements and text
+
+        nodes.splice(i, 1);
+        ii--; i--;
+      } else if (nodeType === 1 || nodeType === 3 || currentNode.viewSlot instanceof PassThroughSlot) { //project only elements and text
         if(nodeType === 3 && _isAllWhitespace(currentNode)) {
           nodes.splice(i, 1);
           ii--; i--;

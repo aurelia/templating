@@ -1,7 +1,7 @@
 import {Container, resolver} from 'aurelia-dependency-injection';
 import {View} from './view';
 import {ViewSlot} from './view-slot';
-import {ShadowSlot} from './shadow-dom';
+import {ShadowSlot, PassThroughSlot} from './shadow-dom';
 import {ViewResources} from './view-resources';
 import {BehaviorInstruction, TargetInstruction} from './instructions';
 import {DOM} from 'aurelia-pal';
@@ -124,10 +124,17 @@ function applyInstructions(containers, element, instruction, controllers, bindin
 
   if (instruction.shadowSlot) {
     let commentAnchor = DOM.createComment('slot');
-    let slot = new ShadowSlot(commentAnchor, instruction.slotName, instruction.slotFallbackFactory, instruction.slotDestination);
+    let slot;
+
+    if (instruction.slotDestination) {
+      slot = new PassThroughSlot(commentAnchor, instruction.slotName, instruction.slotDestination, instruction.slotFallbackFactory);
+    } else {
+      slot = new ShadowSlot(commentAnchor, instruction.slotName, instruction.slotFallbackFactory);
+    }
+    
+    DOM.replaceNode(commentAnchor, element);
     shadowSlots[instruction.slotName] = slot;
     controllers.push(slot);
-    DOM.replaceNode(commentAnchor, element);
     return;
   }
 
