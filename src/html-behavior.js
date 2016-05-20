@@ -284,7 +284,7 @@ export class HtmlBehaviorResource {
   * @return The Controller of this behavior.
   */
   create(container: Container, instruction?: BehaviorInstruction, element?: Element, bindings?: Binding[]): Controller {
-    let host;
+    let viewHost;
     let au = null;
 
     instruction = instruction || BehaviorInstruction.normal;
@@ -293,12 +293,12 @@ export class HtmlBehaviorResource {
 
     if (this.elementName !== null && element) {
       if (this.usesShadowDOM) {
-        host = element.attachShadow(this.shadowDOMOptions);
-        container.registerInstance(DOM.boundary, host);
+        viewHost = element.attachShadow(this.shadowDOMOptions);
+        container.registerInstance(DOM.boundary, viewHost);
       } else {
-        host = element;
+        viewHost = element;
         if (this.targetShadowDOM) {
-          container.registerInstance(DOM.boundary, host);
+          container.registerInstance(DOM.boundary, viewHost);
         }
       }
     }
@@ -341,9 +341,9 @@ export class HtmlBehaviorResource {
               }
             }
 
-            controller.view.appendNodesTo(host);
+            controller.view.appendNodesTo(viewHost);
           } else {
-            controller.view.insertNodesBefore(host);
+            controller.view.insertNodesBefore(viewHost);
           }
         } else if (childBindings !== null) {
           for (let i = 0, ii = childBindings.length; i < ii; ++i) {
