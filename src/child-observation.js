@@ -113,23 +113,49 @@ class ChildObserverBinder {
     this.viewModel = viewModel;
     this.controller = controller;
     this.changeHandler = changeHandler in viewModel ? changeHandler : null;
+    this.usesShadowDOM = controller.behavior.usesShadowDOM;
     this.all = all;
+  }
+
+  matches(element) {
+    if (element.matches(this.selector)) {
+      if (this.usesShadowDOM) {
+        return true;
+      }
+
+      let contentView = this.controller.contentView;
+      let assignedSlot = element.auAssignedSlot;
+
+      if (assignedSlot && assignedSlot.projectFromAnchors) {
+        let anchors = assignedSlot.projectFromAnchors;
+
+        for (let i = 0, ii = anchors.length; i < ii; ++i) {
+          if (anchors[i].auOwnerView === contentView) {
+            return true;
+          }
+        }
+
+        return false;
+      }
+
+      return element.auOwnerView === contentView;
+    }
+
+    return false;
   }
 
   bind(source) {
     let viewHost = this.viewHost;
     let viewModel = this.viewModel;
-    let selector = this.selector;
     let current = viewHost.firstElementChild;
     let observer = viewHost.__childObserver__;
-    let usesShadowDOM = this.controller.behavior.usesShadowDOM;
 
     if (!observer) {
       observer = viewHost.__childObserver__ = DOM.createMutationObserver(onChildChange);
 
       let options = {
         childList: true,
-        subtree: !usesShadowDOM
+        subtree: !this.usesShadowDOM
       };
 
       observer.observe(viewHost, options);
@@ -138,7 +164,7 @@ class ChildObserverBinder {
 
     observer.binders.push(this);
 
-    if (usesShadowDOM) { //if using shadow dom, the content is already present, so sync the items
+    if (this.usesShadowDOM) { //if using shadow dom, the content is already present, so sync the items
       if (this.all) {
         let items = viewModel[this.property];
         if (!items) {
@@ -148,7 +174,7 @@ class ChildObserverBinder {
         }
 
         while (current) {
-          if (current.matches(selector)) {
+          if (this.matches(current)) {
             items.push(current.au && current.au.controller ? current.au.controller.viewModel : current);
           }
 
@@ -160,7 +186,7 @@ class ChildObserverBinder {
         }
       } else {
         while (current) {
-          if (current.matches(selector)) {
+          if (this.matches(current)) {
             let value = current.au && current.au.controller ? current.au.controller.viewModel : current;
             this.viewModel[this.property] = value;
 
@@ -178,7 +204,7 @@ class ChildObserverBinder {
   }
 
   onRemove(element) {
-    if (element.matches(this.selector)) {
+    if (this.matches(element)) {
       let value = element.au && element.au.controller ? element.au.controller.viewModel : element;
 
       if (this.all) {
@@ -197,9 +223,7 @@ class ChildObserverBinder {
   }
 
   onAdd(element) {
-    let selector = this.selector;
-
-    if (element.matches(selector)) {
+    if (this.matches(element)) {
       let value = element.au && element.au.controller ? element.au.controller.viewModel : element;
 
       if (this.all) {
@@ -208,7 +232,7 @@ class ChildObserverBinder {
         let prev = element.previousElementSibling;
 
         while (prev) {
-          if (prev.matches(selector)) {
+          if (this.matches(prev)) {
             index++;
           }
 
