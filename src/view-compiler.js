@@ -65,7 +65,7 @@ function makeShadowSlot(compiler, resources, node, instructions, parentInjectorI
   instruction.slotName = node.getAttribute('name') || ShadowDOM.defaultSlotKey;
   instruction.slotDestination = node.getAttribute('slot');
 
-  if(node.innerHTML.trim()) {
+  if (node.innerHTML.trim()) {
     let fragment = DOM.createDocumentFragment();
     let child;
 
@@ -128,7 +128,7 @@ export class ViewCompiler {
 
     let firstChild = content.firstChild;
     if (firstChild.nodeType === 1) {
-      let targetId = firstChild.getAttribute('au-target-id')
+      let targetId = firstChild.getAttribute('au-target-id');
       if (targetId) {
         let ins = instructions[targetId];
 

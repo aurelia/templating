@@ -6,7 +6,7 @@ import { Origin, protocol, metadata } from 'aurelia-metadata';
 import { relativeToFile } from 'aurelia-path';
 import { TemplateRegistryEntry, Loader } from 'aurelia-loader';
 import { inject, Container, resolver } from 'aurelia-dependency-injection';
-import { Binding, createOverrideContext, ValueConverterResource, BindingBehaviorResource, subscriberCollection, bindingMode, ObserverLocator, EventManager, createScopeForTest } from 'aurelia-binding';
+import { Binding, createOverrideContext, ValueConverterResource, BindingBehaviorResource, subscriberCollection, bindingMode, ObserverLocator, EventManager } from 'aurelia-binding';
 import { TaskQueue } from 'aurelia-task-queue';
 
 export const animationEvent = {
@@ -540,17 +540,21 @@ export let ViewLocator = (_temp2 = _class9 = class ViewLocator {
   }
 }, _class9.viewStrategyMetadataKey = 'aurelia:view-strategy', _temp2);
 
+function mi(name) {
+  throw new Error(`BindingLanguage must implement ${ name }().`);
+}
+
 export let BindingLanguage = class BindingLanguage {
   inspectAttribute(resources, elementName, attrName, attrValue) {
-    throw new Error('A BindingLanguage must implement inspectAttribute(...)');
+    mi('inspectAttribute');
   }
 
   createAttributeInstruction(resources, element, info, existingInstruction) {
-    throw new Error('A BindingLanguage must implement createAttributeInstruction(...)');
+    mi('createAttributeInstruction');
   }
 
   inspectTextContent(resources, value) {
-    throw new Error('A BindingLanguage must implement inspectTextContent(...)');
+    mi('inspectTextContent');
   }
 };
 
@@ -829,10 +833,16 @@ export let ShadowSlot = class ShadowSlot {
 
     if (this.contentView.hasSlots) {
       let slots = this.contentView.slots;
+      let projectFromAnchors = this.projectFromAnchors;
 
-      if (this.projectFromAnchors !== null) {
+      if (projectFromAnchors !== null) {
         for (let slotName in slots) {
-          this.projectFromAnchors.forEach(anchor => slots[slotName].projectFrom(anchor.auOwnerView, anchor.auSlotProjectFrom));
+          let slot = slots[slotName];
+
+          for (let i = 0, ii = projectFromAnchors.length; i < ii; ++i) {
+            let anchor = projectFromAnchors[i];
+            slot.projectFrom(anchor.auOwnerView, anchor.auSlotProjectFrom);
+          }
         }
       }
 
@@ -1404,8 +1414,6 @@ export let ViewSlot = class ViewSlot {
   }
 
   add(view) {
-    let children = this.children;
-
     if (this.anchorIsContainer) {
       view.appendNodesTo(this.anchor);
     } else {
@@ -3775,8 +3783,13 @@ let ChildObserverBinder = class ChildObserverBinder {
     this.controller = controller;
     this.changeHandler = changeHandler in viewModel ? changeHandler : null;
     this.usesShadowDOM = controller.behavior.usesShadowDOM;
-    this.contentView = this.usesShadowDOM ? null : controller.view ? controller.view.contentView || null : null;
     this.all = all;
+
+    if (!this.usesShadowDOM && controller.view && controller.view.contentView) {
+      this.contentView = controller.view.contentView;
+    } else {
+      this.contentView = null;
+    }
   }
 
   matches(element) {
@@ -4275,24 +4288,5 @@ export let TemplatingEngine = (_dec11 = inject(Container, ModuleAnalyzer, ViewCo
     view.bind(instruction.bindingContext || {}, instruction.overrideContext);
 
     return view;
-  }
-
-  createControllerForUnitTest(viewModelType, attributesFromHTML) {
-    let exportName = viewModelType.name;
-    let resourceModule = this._moduleAnalyzer.analyze('test-module', { [exportName]: viewModelType }, exportName);
-    let description = resourceModule.mainResource;
-
-    description.initialize(this._container);
-
-    let viewModel = this._container.get(viewModelType);
-    let instruction = BehaviorInstruction.unitTest(description, attributesFromHTML);
-
-    return new Controller(description.metadata, instruction, viewModel);
-  }
-
-  createViewModelForUnitTest(viewModelType, attributesFromHTML, bindingContext) {
-    let controller = this.createControllerForUnitTest(viewModelType, attributesFromHTML);
-    controller.bind(createScopeForTest(bindingContext));
-    return controller.viewModel;
   }
 }) || _class20);

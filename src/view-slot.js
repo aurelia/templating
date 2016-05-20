@@ -9,7 +9,7 @@ function getAnimatableElement(view) {
 
   let current = view.firstChild;
 
-  while(current && current.nodeType !== 1) {
+  while (current && current.nodeType !== 1) {
     current = current.nextSibling;
   }
 
@@ -125,8 +125,6 @@ export class ViewSlot {
   * @return May return a promise if the view addition triggered an animation.
   */
   add(view: View): void | Promise<any> {
-    let children = this.children;
-
     if (this.anchorIsContainer) {
       view.appendNodesTo(this.anchor);
     } else {

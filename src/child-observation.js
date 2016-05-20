@@ -114,8 +114,13 @@ class ChildObserverBinder {
     this.controller = controller;
     this.changeHandler = changeHandler in viewModel ? changeHandler : null;
     this.usesShadowDOM = controller.behavior.usesShadowDOM;
-    this.contentView = this.usesShadowDOM ? null : (controller.view ? (controller.view.contentView  || null) : null);
     this.all = all;
+
+    if (!this.usesShadowDOM && controller.view && controller.view.contentView) {
+      this.contentView = controller.view.contentView;
+    } else {
+      this.contentView = null;
+    }
   }
 
   matches(element) {

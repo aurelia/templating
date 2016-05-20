@@ -30,8 +30,7 @@ declare module 'aurelia-templating' {
     subscriberCollection,
     bindingMode,
     ObserverLocator,
-    EventManager,
-    createScopeForTest
+    EventManager
   } from 'aurelia-binding';
   import {
     TaskQueue
@@ -127,6 +126,7 @@ declare module 'aurelia-templating' {
     beforeUnbind?: (view: View) => void;
   }
   
+  /* eslint no-unused-vars: 0, no-constant-condition: 0 */
   /**
   * Represents a node in the view hierarchy.
   */
@@ -1776,22 +1776,5 @@ declare module 'aurelia-templating' {
        * are responsible for enforcing the View lifecycle.
        */
     enhance(instruction: Element | EnhanceInstruction): View;
-    
-    /**
-       * Creates a behavior's controller for use in unit testing.
-       * @param viewModelType The constructor of the behavior view model to test.
-       * @param attributesFromHTML A key/value lookup of attributes representing what would be in HTML (values can be literals or binding expressions).
-       * @return The Controller of the behavior.
-       */
-    createControllerForUnitTest(viewModelType: Function, attributesFromHTML?: Object): Controller;
-    
-    /**
-       * Creates a behavior's view model for use in unit testing.
-       * @param viewModelType The constructor of the behavior view model to test.
-       * @param attributesFromHTML A key/value lookup of attributes representing what would be in HTML (values can be literals or binding expressions).
-       * @param bindingContext
-       * @return The view model instance.
-       */
-    createViewModelForUnitTest(viewModelType: Function, attributesFromHTML?: Object, bindingContext?: any): Object;
   }
 }

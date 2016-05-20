@@ -656,21 +656,26 @@ var ViewLocator = exports.ViewLocator = (_temp2 = _class9 = function () {
   return ViewLocator;
 }(), _class9.viewStrategyMetadataKey = 'aurelia:view-strategy', _temp2);
 
+
+function mi(name) {
+  throw new Error('BindingLanguage must implement ' + name + '().');
+}
+
 var BindingLanguage = exports.BindingLanguage = function () {
   function BindingLanguage() {
     _classCallCheck(this, BindingLanguage);
   }
 
   BindingLanguage.prototype.inspectAttribute = function inspectAttribute(resources, elementName, attrName, attrValue) {
-    throw new Error('A BindingLanguage must implement inspectAttribute(...)');
+    mi('inspectAttribute');
   };
 
   BindingLanguage.prototype.createAttributeInstruction = function createAttributeInstruction(resources, element, info, existingInstruction) {
-    throw new Error('A BindingLanguage must implement createAttributeInstruction(...)');
+    mi('createAttributeInstruction');
   };
 
   BindingLanguage.prototype.inspectTextContent = function inspectTextContent(resources, value) {
-    throw new Error('A BindingLanguage must implement inspectTextContent(...)');
+    mi('inspectTextContent');
   };
 
   return BindingLanguage;
@@ -958,8 +963,6 @@ var ShadowSlot = exports.ShadowSlot = function () {
   };
 
   ShadowSlot.prototype.renderFallbackContent = function renderFallbackContent(view, nodes, projectionSource, index) {
-    var _this4 = this;
-
     if (this.contentView === null) {
       this.contentView = this.fallbackFactory.create(this.ownerView.container);
       this.contentView.bind(this.ownerView.bindingContext, this.ownerView.overrideContext);
@@ -967,24 +970,22 @@ var ShadowSlot = exports.ShadowSlot = function () {
     }
 
     if (this.contentView.hasSlots) {
-      (function () {
-        var slots = _this4.contentView.slots;
+      var slots = this.contentView.slots;
+      var projectFromAnchors = this.projectFromAnchors;
 
-        if (_this4.projectFromAnchors !== null) {
-          var _loop = function _loop(slotName) {
-            _this4.projectFromAnchors.forEach(function (anchor) {
-              return slots[slotName].projectFrom(anchor.auOwnerView, anchor.auSlotProjectFrom);
-            });
-          };
+      if (projectFromAnchors !== null) {
+        for (var slotName in slots) {
+          var slot = slots[slotName];
 
-          for (var slotName in slots) {
-            _loop(slotName);
+          for (var i = 0, ii = projectFromAnchors.length; i < ii; ++i) {
+            var anchor = projectFromAnchors[i];
+            slot.projectFrom(anchor.auOwnerView, anchor.auSlotProjectFrom);
           }
         }
+      }
 
-        _this4.fallbackSlots = slots;
-        ShadowDOM.distributeNodes(view, nodes, slots, projectionSource, index);
-      })();
+      this.fallbackSlots = slots;
+      ShadowDOM.distributeNodes(view, nodes, slots, projectionSource, index);
     }
   };
 
@@ -1578,8 +1579,6 @@ var ViewSlot = exports.ViewSlot = function () {
   };
 
   ViewSlot.prototype.add = function add(view) {
-    var children = this.children;
-
     if (this.anchorIsContainer) {
       view.appendNodesTo(this.anchor);
     } else {
@@ -1638,7 +1637,7 @@ var ViewSlot = exports.ViewSlot = function () {
   };
 
   ViewSlot.prototype.removeMany = function removeMany(viewsToRemove, returnToCache, skipAnimation) {
-    var _this5 = this;
+    var _this4 = this;
 
     var children = this.children;
     var ii = viewsToRemove.length;
@@ -1653,7 +1652,7 @@ var ViewSlot = exports.ViewSlot = function () {
 
       var animatableElement = getAnimatableElement(child);
       if (animatableElement !== null) {
-        rmPromises.push(_this5.animator.leave(animatableElement).then(function () {
+        rmPromises.push(_this4.animator.leave(animatableElement).then(function () {
           return child.removeNodes();
         }));
       } else {
@@ -1662,7 +1661,7 @@ var ViewSlot = exports.ViewSlot = function () {
     });
 
     var removeAction = function removeAction() {
-      if (_this5.isAttached) {
+      if (_this4.isAttached) {
         for (i = 0; i < ii; ++i) {
           viewsToRemove[i].detached();
         }
@@ -1692,16 +1691,16 @@ var ViewSlot = exports.ViewSlot = function () {
   };
 
   ViewSlot.prototype.removeAt = function removeAt(index, returnToCache, skipAnimation) {
-    var _this6 = this;
+    var _this5 = this;
 
     var view = this.children[index];
 
     var removeAction = function removeAction() {
-      index = _this6.children.indexOf(view);
+      index = _this5.children.indexOf(view);
       view.removeNodes();
-      _this6.children.splice(index, 1);
+      _this5.children.splice(index, 1);
 
-      if (_this6.isAttached) {
+      if (_this5.isAttached) {
         view.detached();
       }
 
@@ -1725,7 +1724,7 @@ var ViewSlot = exports.ViewSlot = function () {
   };
 
   ViewSlot.prototype.removeAll = function removeAll(returnToCache, skipAnimation) {
-    var _this7 = this;
+    var _this6 = this;
 
     var children = this.children;
     var ii = children.length;
@@ -1740,7 +1739,7 @@ var ViewSlot = exports.ViewSlot = function () {
 
       var animatableElement = getAnimatableElement(child);
       if (animatableElement !== null) {
-        rmPromises.push(_this7.animator.leave(animatableElement).then(function () {
+        rmPromises.push(_this6.animator.leave(animatableElement).then(function () {
           return child.removeNodes();
         }));
       } else {
@@ -1749,7 +1748,7 @@ var ViewSlot = exports.ViewSlot = function () {
     });
 
     var removeAction = function removeAction() {
-      if (_this7.isAttached) {
+      if (_this6.isAttached) {
         for (i = 0; i < ii; ++i) {
           children[i].detached();
         }
@@ -1761,7 +1760,7 @@ var ViewSlot = exports.ViewSlot = function () {
         }
       }
 
-      _this7.children = [];
+      _this6.children = [];
     };
 
     if (rmPromises.length > 0) {
@@ -1812,7 +1811,7 @@ var ViewSlot = exports.ViewSlot = function () {
   };
 
   ViewSlot.prototype.projectTo = function projectTo(slots) {
-    var _this8 = this;
+    var _this7 = this;
 
     this.projectToSlots = slots;
     this.add = this._projectionAdd;
@@ -1823,7 +1822,7 @@ var ViewSlot = exports.ViewSlot = function () {
     this.removeMany = this._projectionRemoveMany;
     this.removeAll = this._projectionRemoveAll;
     this.children.forEach(function (view) {
-      return ShadowDOM.distributeView(view, slots, _this8);
+      return ShadowDOM.distributeView(view, slots, _this7);
     });
   };
 
@@ -1887,10 +1886,10 @@ var ViewSlot = exports.ViewSlot = function () {
   };
 
   ViewSlot.prototype._projectionRemoveMany = function _projectionRemoveMany(viewsToRemove, returnToCache) {
-    var _this9 = this;
+    var _this8 = this;
 
     viewsToRemove.forEach(function (view) {
-      return _this9.remove(view, returnToCache);
+      return _this8.remove(view, returnToCache);
     });
   };
 
@@ -2971,12 +2970,12 @@ function ensureRegistryEntry(loader, urlOrRegistryEntry) {
 
 var ProxyViewFactory = function () {
   function ProxyViewFactory(promise) {
-    var _this10 = this;
+    var _this9 = this;
 
     _classCallCheck(this, ProxyViewFactory);
 
     promise.then(function (x) {
-      return _this10.viewFactory = x;
+      return _this9.viewFactory = x;
     });
   }
 
@@ -3030,7 +3029,7 @@ var ViewEngine = exports.ViewEngine = (_dec8 = (0, _aureliaDependencyInjection.i
   };
 
   ViewEngine.prototype.loadViewFactory = function loadViewFactory(urlOrRegistryEntry, compileInstruction, loadContext) {
-    var _this11 = this;
+    var _this10 = this;
 
     loadContext = loadContext || new ResourceLoadContext();
 
@@ -3046,9 +3045,9 @@ var ViewEngine = exports.ViewEngine = (_dec8 = (0, _aureliaDependencyInjection.i
 
       loadContext.addDependency(urlOrRegistryEntry);
 
-      registryEntry.onReady = _this11.loadTemplateResources(registryEntry, compileInstruction, loadContext).then(function (resources) {
+      registryEntry.onReady = _this10.loadTemplateResources(registryEntry, compileInstruction, loadContext).then(function (resources) {
         registryEntry.resources = resources;
-        var viewFactory = _this11.viewCompiler.compile(registryEntry.template, resources, compileInstruction);
+        var viewFactory = _this10.viewCompiler.compile(registryEntry.template, resources, compileInstruction);
         registryEntry.factory = viewFactory;
         return viewFactory;
       });
@@ -3081,30 +3080,30 @@ var ViewEngine = exports.ViewEngine = (_dec8 = (0, _aureliaDependencyInjection.i
   };
 
   ViewEngine.prototype.importViewModelResource = function importViewModelResource(moduleImport, moduleMember) {
-    var _this12 = this;
+    var _this11 = this;
 
     return this.loader.loadModule(moduleImport).then(function (viewModelModule) {
       var normalizedId = _aureliaMetadata.Origin.get(viewModelModule).moduleId;
-      var resourceModule = _this12.moduleAnalyzer.analyze(normalizedId, viewModelModule, moduleMember);
+      var resourceModule = _this11.moduleAnalyzer.analyze(normalizedId, viewModelModule, moduleMember);
 
       if (!resourceModule.mainResource) {
         throw new Error('No view model found in module "' + moduleImport + '".');
       }
 
-      resourceModule.initialize(_this12.container);
+      resourceModule.initialize(_this11.container);
 
       return resourceModule.mainResource;
     });
   };
 
   ViewEngine.prototype.importViewResources = function importViewResources(moduleIds, names, resources, compileInstruction, loadContext) {
-    var _this13 = this;
+    var _this12 = this;
 
     loadContext = loadContext || new ResourceLoadContext();
     compileInstruction = compileInstruction || ViewCompileInstruction.normal;
 
     moduleIds = moduleIds.map(function (x) {
-      return _this13._applyLoaderPlugin(x);
+      return _this12._applyLoaderPlugin(x);
     });
 
     return this.loader.loadAllModules(moduleIds).then(function (imports) {
@@ -3114,8 +3113,8 @@ var ViewEngine = exports.ViewEngine = (_dec8 = (0, _aureliaDependencyInjection.i
       var normalizedId = void 0;
       var current = void 0;
       var associatedModule = void 0;
-      var container = _this13.container;
-      var moduleAnalyzer = _this13.moduleAnalyzer;
+      var container = _this12.container;
+      var moduleAnalyzer = _this12.moduleAnalyzer;
       var allAnalysis = new Array(imports.length);
 
       for (i = 0, ii = imports.length; i < ii; ++i) {
@@ -3748,7 +3747,7 @@ var HtmlBehaviorResource = exports.HtmlBehaviorResource = function () {
   };
 
   HtmlBehaviorResource.prototype.load = function load(container, target, loadContext, viewStrategy, transientView) {
-    var _this14 = this;
+    var _this13 = this;
 
     var options = void 0;
 
@@ -3761,8 +3760,8 @@ var HtmlBehaviorResource = exports.HtmlBehaviorResource = function () {
       }
 
       return viewStrategy.loadViewFactory(container.get(ViewEngine), options, loadContext).then(function (viewFactory) {
-        if (!transientView || !_this14.viewFactory) {
-          _this14.viewFactory = viewFactory;
+        if (!transientView || !_this13.viewFactory) {
+          _this13.viewFactory = viewFactory;
         }
 
         return viewFactory;
@@ -4069,8 +4068,13 @@ var ChildObserverBinder = function () {
     this.controller = controller;
     this.changeHandler = changeHandler in viewModel ? changeHandler : null;
     this.usesShadowDOM = controller.behavior.usesShadowDOM;
-    this.contentView = this.usesShadowDOM ? null : controller.view ? controller.view.contentView || null : null;
     this.all = all;
+
+    if (!this.usesShadowDOM && controller.view && controller.view.contentView) {
+      this.contentView = controller.view.contentView;
+    } else {
+      this.contentView = null;
+    }
   }
 
   ChildObserverBinder.prototype.matches = function matches(element) {
@@ -4267,7 +4271,7 @@ var CompositionEngine = exports.CompositionEngine = (_dec10 = (0, _aureliaDepend
   };
 
   CompositionEngine.prototype.createController = function createController(context) {
-    var _this15 = this;
+    var _this14 = this;
 
     var childContainer = void 0;
     var viewModel = void 0;
@@ -4280,7 +4284,7 @@ var CompositionEngine = exports.CompositionEngine = (_dec10 = (0, _aureliaDepend
       viewModelResource = context.viewModelResource;
       m = viewModelResource.metadata;
 
-      var viewStrategy = _this15.viewLocator.getViewStrategy(context.view || viewModel);
+      var viewStrategy = _this14.viewLocator.getViewStrategy(context.view || viewModel);
 
       if (context.viewResources) {
         viewStrategy.makeRelativeTo(context.viewResources.viewUrl);
@@ -4587,27 +4591,6 @@ var TemplatingEngine = exports.TemplatingEngine = (_dec11 = (0, _aureliaDependen
     view.bind(instruction.bindingContext || {}, instruction.overrideContext);
 
     return view;
-  };
-
-  TemplatingEngine.prototype.createControllerForUnitTest = function createControllerForUnitTest(viewModelType, attributesFromHTML) {
-    var _moduleAnalyzer$analy;
-
-    var exportName = viewModelType.name;
-    var resourceModule = this._moduleAnalyzer.analyze('test-module', (_moduleAnalyzer$analy = {}, _moduleAnalyzer$analy[exportName] = viewModelType, _moduleAnalyzer$analy), exportName);
-    var description = resourceModule.mainResource;
-
-    description.initialize(this._container);
-
-    var viewModel = this._container.get(viewModelType);
-    var instruction = BehaviorInstruction.unitTest(description, attributesFromHTML);
-
-    return new Controller(description.metadata, instruction, viewModel);
-  };
-
-  TemplatingEngine.prototype.createViewModelForUnitTest = function createViewModelForUnitTest(viewModelType, attributesFromHTML, bindingContext) {
-    var controller = this.createControllerForUnitTest(viewModelType, attributesFromHTML);
-    controller.bind((0, _aureliaBinding.createScopeForTest)(bindingContext));
-    return controller.viewModel;
   };
 
   return TemplatingEngine;

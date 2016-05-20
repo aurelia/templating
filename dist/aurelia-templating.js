@@ -4,7 +4,7 @@ import {Origin,protocol,metadata} from 'aurelia-metadata';
 import {relativeToFile} from 'aurelia-path';
 import {TemplateRegistryEntry,Loader} from 'aurelia-loader';
 import {inject,Container,resolver} from 'aurelia-dependency-injection';
-import {Binding,createOverrideContext,ValueConverterResource,BindingBehaviorResource,subscriberCollection,bindingMode,ObserverLocator,EventManager,createScopeForTest} from 'aurelia-binding';
+import {Binding,createOverrideContext,ValueConverterResource,BindingBehaviorResource,subscriberCollection,bindingMode,ObserverLocator,EventManager} from 'aurelia-binding';
 import {TaskQueue} from 'aurelia-task-queue';
 
 /**
@@ -901,6 +901,10 @@ export class ViewLocator {
   }
 }
 
+function mi(name) {
+  throw new Error(`BindingLanguage must implement ${name}().`);
+}
+
 /**
 * An abstract base class for implementations of a binding language.
 */
@@ -914,7 +918,7 @@ export class BindingLanguage {
   * @return An info object with the results of the inspection.
   */
   inspectAttribute(resources: ViewResources, elementName: string, attrName: string, attrValue: string): Object {
-    throw new Error('A BindingLanguage must implement inspectAttribute(...)');
+    mi('inspectAttribute');
   }
 
   /**
@@ -926,7 +930,7 @@ export class BindingLanguage {
   * @return The instruction instance.
   */
   createAttributeInstruction(resources: ViewResources, element: Element, info: Object, existingInstruction?: Object): BehaviorInstruction {
-    throw new Error('A BindingLanguage must implement createAttributeInstruction(...)');
+    mi('createAttributeInstruction');
   }
 
   /**
@@ -936,7 +940,7 @@ export class BindingLanguage {
   * @return A binding expression.
   */
   inspectTextContent(resources: ViewResources, value: string): Object {
-    throw new Error('A BindingLanguage must implement inspectTextContent(...)');
+    mi('inspectTextContent');
   }
 }
 
@@ -1032,26 +1036,26 @@ export class PassThroughSlot {
     this.ownerView = ownerView;
   }
 
-  bind(view){
-    if(this.contentView) {
+  bind(view) {
+    if (this.contentView) {
       this.contentView.bind(view.bindingContext, view.overrideContext);
     }
   }
 
   attached() {
-    if(this.contentView) {
+    if (this.contentView) {
       this.contentView.attached();
     }
   }
 
   detached() {
-    if(this.contentView) {
+    if (this.contentView) {
       this.contentView.detached();
     }
   }
 
   unbind() {
-    if(this.contentView) {
+    if (this.contentView) {
       this.contentView.unbind();
     }
   }
@@ -1106,9 +1110,9 @@ export class ShadowSlot {
 
   removeView(view, projectionSource) {
     if (this.destinationSlots !== null) {
-      ShadowDOM.undistributeView(view, this.destinationSlots, this)
+      ShadowDOM.undistributeView(view, this.destinationSlots, this);
     } else if (this.contentView && this.contentView.hasSlots) {
-      ShadowDOM.undistributeView(view, this.contentView.slots, projectionSource)
+      ShadowDOM.undistributeView(view, this.contentView.slots, projectionSource);
     } else {
       let found = this.children.find(x => x.auSlotProjectFrom === projectionSource);
       if (found) {
@@ -1134,9 +1138,9 @@ export class ShadowSlot {
 
   removeAll(projectionSource) {
     if (this.destinationSlots !== null) {
-      ShadowDOM.undistributeAll(this.destinationSlots, this)
+      ShadowDOM.undistributeAll(this.destinationSlots, this);
     } else if (this.contentView && this.contentView.hasSlots) {
-      ShadowDOM.undistributeAll(this.contentView.slots, projectionSource)
+      ShadowDOM.undistributeAll(this.contentView.slots, projectionSource);
     } else {
       let found = this.children.find(x => x.auSlotProjectFrom === projectionSource);
 
@@ -1219,10 +1223,16 @@ export class ShadowSlot {
 
     if (this.contentView.hasSlots) {
       let slots = this.contentView.slots;
+      let projectFromAnchors = this.projectFromAnchors;
 
-      if (this.projectFromAnchors !== null) {
+      if (projectFromAnchors !== null) {
         for (let slotName in slots) {
-          this.projectFromAnchors.forEach(anchor => slots[slotName].projectFrom(anchor.auOwnerView, anchor.auSlotProjectFrom));
+          let slot = slots[slotName];
+
+          for (let i = 0, ii = projectFromAnchors.length; i < ii; ++i) {
+            let anchor = projectFromAnchors[i];
+            slot.projectFrom(anchor.auOwnerView, anchor.auSlotProjectFrom);
+          }
         }
       }
 
@@ -1235,26 +1245,26 @@ export class ShadowSlot {
     this.ownerView = ownerView;
   }
 
-  bind(view){
-    if(this.contentView) {
+  bind(view) {
+    if (this.contentView) {
       this.contentView.bind(view.bindingContext, view.overrideContext);
     }
   }
 
   attached() {
-    if(this.contentView) {
+    if (this.contentView) {
       this.contentView.attached();
     }
   }
 
   detached() {
-    if(this.contentView) {
+    if (this.contentView) {
       this.contentView.detached();
     }
   }
 
   unbind() {
-    if(this.contentView) {
+    if (this.contentView) {
       this.contentView.unbind();
     }
   }
@@ -1276,7 +1286,7 @@ export class ShadowDOM {
     let ii = childNodes.length;
     let nodes = new Array(ii);
 
-    for(let i = 0; i < ii; ++i) {
+    for (let i = 0; i < ii; ++i) {
       nodes[i] = childNodes[i];
     }
 
@@ -1303,21 +1313,21 @@ export class ShadowDOM {
   }
 
   static distributeNodes(view, nodes, slots, projectionSource, index, destinationOverride) {
-    for(let i = 0, ii = nodes.length; i < ii; ++i) {
+    for (let i = 0, ii = nodes.length; i < ii; ++i) {
       let currentNode = nodes[i];
       let nodeType = currentNode.nodeType;
 
       if (currentNode.isContentProjectionSource) {
         currentNode.viewSlot.projectTo(slots);
 
-        for(let slotName in slots) {
+        for (let slotName in slots) {
           slots[slotName].projectFrom(view, currentNode.viewSlot);
         }
 
         nodes.splice(i, 1);
         ii--; i--;
       } else if (nodeType === 1 || nodeType === 3 || currentNode.viewSlot instanceof PassThroughSlot) { //project only elements and text
-        if(nodeType === 3 && _isAllWhitespace(currentNode)) {
+        if (nodeType === 3 && _isAllWhitespace(currentNode)) {
           nodes.splice(i, 1);
           ii--; i--;
         } else {
@@ -1335,7 +1345,7 @@ export class ShadowDOM {
       }
     }
 
-    for(let slotName in slots) {
+    for (let slotName in slots) {
       let slot = slots[slotName];
 
       if (slot.needsFallbackRendering) {
@@ -1608,6 +1618,7 @@ export class ViewResources {
   }
 }
 
+/* eslint no-unused-vars: 0, no-constant-condition: 0 */
 /**
 * Represents a node in the view hierarchy.
 */
@@ -1899,7 +1910,7 @@ function getAnimatableElement(view) {
 
   let current = view.firstChild;
 
-  while(current && current.nodeType !== 1) {
+  while (current && current.nodeType !== 1) {
     current = current.nextSibling;
   }
 
@@ -2015,8 +2026,6 @@ export class ViewSlot {
   * @return May return a promise if the view addition triggered an animation.
   */
   add(view: View): void | Promise<any> {
-    let children = this.children;
-
     if (this.anchorIsContainer) {
       view.appendNodesTo(this.anchor);
     } else {
@@ -2489,7 +2498,7 @@ function applyInstructions(containers, element, instruction, controllers, bindin
     } else {
       slot = new ShadowSlot(commentAnchor, instruction.slotName, instruction.slotFallbackFactory);
     }
-    
+
     DOM.replaceNode(commentAnchor, element);
     shadowSlots[instruction.slotName] = slot;
     controllers.push(slot);
@@ -2864,7 +2873,7 @@ function makeShadowSlot(compiler, resources, node, instructions, parentInjectorI
   instruction.slotName = node.getAttribute('name') || ShadowDOM.defaultSlotKey;
   instruction.slotDestination = node.getAttribute('slot');
 
-  if(node.innerHTML.trim()) {
+  if (node.innerHTML.trim()) {
     let fragment = DOM.createDocumentFragment();
     let child;
 
@@ -2927,7 +2936,7 @@ export class ViewCompiler {
 
     let firstChild = content.firstChild;
     if (firstChild.nodeType === 1) {
-      let targetId = firstChild.getAttribute('au-target-id')
+      let targetId = firstChild.getAttribute('au-target-id');
       if (targetId) {
         let ins = instructions[targetId];
 
@@ -4832,8 +4841,13 @@ class ChildObserverBinder {
     this.controller = controller;
     this.changeHandler = changeHandler in viewModel ? changeHandler : null;
     this.usesShadowDOM = controller.behavior.usesShadowDOM;
-    this.contentView = this.usesShadowDOM ? null : (controller.view ? (controller.view.contentView  || null) : null);
     this.all = all;
+
+    if (!this.usesShadowDOM && controller.view && controller.view.contentView) {
+      this.contentView = controller.view.contentView;
+    } else {
+      this.contentView = null;
+    }
   }
 
   matches(element) {
@@ -5558,37 +5572,5 @@ export class TemplatingEngine {
     view.bind(instruction.bindingContext || {}, instruction.overrideContext);
 
     return view;
-  }
-
-  /**
-   * Creates a behavior's controller for use in unit testing.
-   * @param viewModelType The constructor of the behavior view model to test.
-   * @param attributesFromHTML A key/value lookup of attributes representing what would be in HTML (values can be literals or binding expressions).
-   * @return The Controller of the behavior.
-   */
-  createControllerForUnitTest(viewModelType: Function, attributesFromHTML?: Object): Controller {
-    let exportName = viewModelType.name;
-    let resourceModule = this._moduleAnalyzer.analyze('test-module', { [exportName]: viewModelType }, exportName);
-    let description = resourceModule.mainResource;
-
-    description.initialize(this._container);
-
-    let viewModel = this._container.get(viewModelType);
-    let instruction = BehaviorInstruction.unitTest(description, attributesFromHTML);
-
-    return new Controller(description.metadata, instruction, viewModel);
-  }
-
-  /**
-   * Creates a behavior's view model for use in unit testing.
-   * @param viewModelType The constructor of the behavior view model to test.
-   * @param attributesFromHTML A key/value lookup of attributes representing what would be in HTML (values can be literals or binding expressions).
-   * @param bindingContext
-   * @return The view model instance.
-   */
-  createViewModelForUnitTest(viewModelType: Function, attributesFromHTML?: Object, bindingContext?: any): Object {
-    let controller = this.createControllerForUnitTest(viewModelType, attributesFromHTML);
-    controller.bind(createScopeForTest(bindingContext));
-    return controller.viewModel;
   }
 }

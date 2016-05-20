@@ -131,7 +131,7 @@ function applyInstructions(containers, element, instruction, controllers, bindin
     } else {
       slot = new ShadowSlot(commentAnchor, instruction.slotName, instruction.slotFallbackFactory);
     }
-    
+
     DOM.replaceNode(commentAnchor, element);
     shadowSlots[instruction.slotName] = slot;
     controllers.push(slot);

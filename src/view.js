@@ -1,3 +1,4 @@
+/* eslint no-unused-vars: 0, no-constant-condition: 0 */
 import {Binding, createOverrideContext} from 'aurelia-binding';
 import {Container} from 'aurelia-dependency-injection';
 import {ShadowDOM} from './shadow-dom';

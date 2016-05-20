@@ -94,26 +94,26 @@ export class PassThroughSlot {
     this.ownerView = ownerView;
   }
 
-  bind(view){
-    if(this.contentView) {
+  bind(view) {
+    if (this.contentView) {
       this.contentView.bind(view.bindingContext, view.overrideContext);
     }
   }
 
   attached() {
-    if(this.contentView) {
+    if (this.contentView) {
       this.contentView.attached();
     }
   }
 
   detached() {
-    if(this.contentView) {
+    if (this.contentView) {
       this.contentView.detached();
     }
   }
 
   unbind() {
-    if(this.contentView) {
+    if (this.contentView) {
       this.contentView.unbind();
     }
   }
@@ -168,9 +168,9 @@ export class ShadowSlot {
 
   removeView(view, projectionSource) {
     if (this.destinationSlots !== null) {
-      ShadowDOM.undistributeView(view, this.destinationSlots, this)
+      ShadowDOM.undistributeView(view, this.destinationSlots, this);
     } else if (this.contentView && this.contentView.hasSlots) {
-      ShadowDOM.undistributeView(view, this.contentView.slots, projectionSource)
+      ShadowDOM.undistributeView(view, this.contentView.slots, projectionSource);
     } else {
       let found = this.children.find(x => x.auSlotProjectFrom === projectionSource);
       if (found) {
@@ -196,9 +196,9 @@ export class ShadowSlot {
 
   removeAll(projectionSource) {
     if (this.destinationSlots !== null) {
-      ShadowDOM.undistributeAll(this.destinationSlots, this)
+      ShadowDOM.undistributeAll(this.destinationSlots, this);
     } else if (this.contentView && this.contentView.hasSlots) {
-      ShadowDOM.undistributeAll(this.contentView.slots, projectionSource)
+      ShadowDOM.undistributeAll(this.contentView.slots, projectionSource);
     } else {
       let found = this.children.find(x => x.auSlotProjectFrom === projectionSource);
 
@@ -281,10 +281,16 @@ export class ShadowSlot {
 
     if (this.contentView.hasSlots) {
       let slots = this.contentView.slots;
+      let projectFromAnchors = this.projectFromAnchors;
 
-      if (this.projectFromAnchors !== null) {
+      if (projectFromAnchors !== null) {
         for (let slotName in slots) {
-          this.projectFromAnchors.forEach(anchor => slots[slotName].projectFrom(anchor.auOwnerView, anchor.auSlotProjectFrom));
+          let slot = slots[slotName];
+
+          for (let i = 0, ii = projectFromAnchors.length; i < ii; ++i) {
+            let anchor = projectFromAnchors[i];
+            slot.projectFrom(anchor.auOwnerView, anchor.auSlotProjectFrom);
+          }
         }
       }
 
@@ -297,26 +303,26 @@ export class ShadowSlot {
     this.ownerView = ownerView;
   }
 
-  bind(view){
-    if(this.contentView) {
+  bind(view) {
+    if (this.contentView) {
       this.contentView.bind(view.bindingContext, view.overrideContext);
     }
   }
 
   attached() {
-    if(this.contentView) {
+    if (this.contentView) {
       this.contentView.attached();
     }
   }
 
   detached() {
-    if(this.contentView) {
+    if (this.contentView) {
       this.contentView.detached();
     }
   }
 
   unbind() {
-    if(this.contentView) {
+    if (this.contentView) {
       this.contentView.unbind();
     }
   }
@@ -338,7 +344,7 @@ export class ShadowDOM {
     let ii = childNodes.length;
     let nodes = new Array(ii);
 
-    for(let i = 0; i < ii; ++i) {
+    for (let i = 0; i < ii; ++i) {
       nodes[i] = childNodes[i];
     }
 
@@ -365,21 +371,21 @@ export class ShadowDOM {
   }
 
   static distributeNodes(view, nodes, slots, projectionSource, index, destinationOverride) {
-    for(let i = 0, ii = nodes.length; i < ii; ++i) {
+    for (let i = 0, ii = nodes.length; i < ii; ++i) {
       let currentNode = nodes[i];
       let nodeType = currentNode.nodeType;
 
       if (currentNode.isContentProjectionSource) {
         currentNode.viewSlot.projectTo(slots);
 
-        for(let slotName in slots) {
+        for (let slotName in slots) {
           slots[slotName].projectFrom(view, currentNode.viewSlot);
         }
 
         nodes.splice(i, 1);
         ii--; i--;
       } else if (nodeType === 1 || nodeType === 3 || currentNode.viewSlot instanceof PassThroughSlot) { //project only elements and text
-        if(nodeType === 3 && _isAllWhitespace(currentNode)) {
+        if (nodeType === 3 && _isAllWhitespace(currentNode)) {
           nodes.splice(i, 1);
           ii--; i--;
         } else {
@@ -397,7 +403,7 @@ export class ShadowDOM {
       }
     }
 
-    for(let slotName in slots) {
+    for (let slotName in slots) {
       let slot = slots[slotName];
 
       if (slot.needsFallbackRendering) {
