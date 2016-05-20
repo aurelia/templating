@@ -1,4 +1,3 @@
-import {createScopeForTest} from 'aurelia-binding';
 import {Container, inject} from 'aurelia-dependency-injection';
 import {DOM} from 'aurelia-pal';
 import {Controller} from './controller';
@@ -98,37 +97,5 @@ export class TemplatingEngine {
     view.bind(instruction.bindingContext || {}, instruction.overrideContext);
 
     return view;
-  }
-
-  /**
-   * Creates a behavior's controller for use in unit testing.
-   * @param viewModelType The constructor of the behavior view model to test.
-   * @param attributesFromHTML A key/value lookup of attributes representing what would be in HTML (values can be literals or binding expressions).
-   * @return The Controller of the behavior.
-   */
-  createControllerForUnitTest(viewModelType: Function, attributesFromHTML?: Object): Controller {
-    let exportName = viewModelType.name;
-    let resourceModule = this._moduleAnalyzer.analyze('test-module', { [exportName]: viewModelType }, exportName);
-    let description = resourceModule.mainResource;
-
-    description.initialize(this._container);
-
-    let viewModel = this._container.get(viewModelType);
-    let instruction = BehaviorInstruction.unitTest(description, attributesFromHTML);
-
-    return new Controller(description.metadata, instruction, viewModel);
-  }
-
-  /**
-   * Creates a behavior's view model for use in unit testing.
-   * @param viewModelType The constructor of the behavior view model to test.
-   * @param attributesFromHTML A key/value lookup of attributes representing what would be in HTML (values can be literals or binding expressions).
-   * @param bindingContext
-   * @return The view model instance.
-   */
-  createViewModelForUnitTest(viewModelType: Function, attributesFromHTML?: Object, bindingContext?: any): Object {
-    let controller = this.createControllerForUnitTest(viewModelType, attributesFromHTML);
-    controller.bind(createScopeForTest(bindingContext));
-    return controller.viewModel;
   }
 }
