@@ -52,6 +52,13 @@ export class PassThroughSlot {
   }
 
   addNode(view, node, projectionSource, index) {
+    if (this.contentView !== null) {
+      this.contentView.removeNodes();
+      this.contentView.detached();
+      this.contentView.unbind();
+      this.contentView = null;
+    }
+
     if (node.viewSlot instanceof PassThroughSlot) {
       node.viewSlot.passThroughTo(this);
       return;
@@ -64,11 +71,19 @@ export class PassThroughSlot {
   removeView(view, projectionSource) {
     this.projections--;
     this.destinationSlot.removeView(view, projectionSource);
+
+    if (this.needsFallbackRendering) {
+      this.renderFallbackContent(null, noNodes, projectionSource);
+    }
   }
 
   removeAll(projectionSource) {
     this.projections = 0;
     this.destinationSlot.removeAll(projectionSource);
+
+    if (this.needsFallbackRendering) {
+      this.renderFallbackContent(null, noNodes, projectionSource);
+    }
   }
 
   projectFrom(view, projectionSource) {
@@ -123,16 +138,16 @@ export class ShadowSlot {
   }
 
   addNode(view, node, projectionSource, index, destination) {
-    if (node.viewSlot instanceof PassThroughSlot) {
-      node.viewSlot.passThroughTo(this);
-      return;
-    }
-
     if (this.contentView !== null) {
       this.contentView.removeNodes();
       this.contentView.detached();
       this.contentView.unbind();
       this.contentView = null;
+    }
+
+    if (node.viewSlot instanceof PassThroughSlot) {
+      node.viewSlot.passThroughTo(this);
+      return;
     }
 
     if (this.destinationSlots !== null) {
