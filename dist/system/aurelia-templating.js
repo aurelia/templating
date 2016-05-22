@@ -130,6 +130,12 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
     var anchor = DOM.createComment('anchor');
 
     if (elementInstruction) {
+      var firstChild = element.firstChild;
+
+      if (firstChild && firstChild.tagName === 'AU-CONTENT') {
+        anchor.contentElement = firstChild;
+      }
+
       anchor.hasAttribute = function (name) {
         return element.hasAttribute(name);
       };
@@ -4058,10 +4064,10 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
               au.controller = controller;
 
               if (controller.view) {
-                if (!this.usesShadowDOM && element.childNodes.length === 1) {
-                  var contentElement = element.childNodes[0];
+                if (!this.usesShadowDOM && (element.childNodes.length === 1 || element.contentElement)) {
+                  var contentElement = element.childNodes[0] || element.contentElement;
                   controller.view.contentView = { fragment: contentElement };
-                  DOM.removeNode(contentElement);
+                  contentElement.parentNode && DOM.removeNode(contentElement);
                 }
 
                 if (instruction.anchorIsContainer) {

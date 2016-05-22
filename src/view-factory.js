@@ -96,6 +96,12 @@ function makeElementIntoAnchor(element, elementInstruction) {
   let anchor = DOM.createComment('anchor');
 
   if (elementInstruction) {
+    let firstChild = element.firstChild;
+
+    if (firstChild && firstChild.tagName === 'AU-CONTENT') {
+      anchor.contentElement = firstChild;
+    }
+
     anchor.hasAttribute = function(name) { return element.hasAttribute(name); };
     anchor.getAttribute = function(name) { return element.getAttribute(name); };
     anchor.setAttribute = function(name, value) { element.setAttribute(name, value); };

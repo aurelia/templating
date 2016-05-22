@@ -2463,6 +2463,12 @@ function makeElementIntoAnchor(element, elementInstruction) {
   let anchor = DOM.createComment('anchor');
 
   if (elementInstruction) {
+    let firstChild = element.firstChild;
+
+    if (firstChild && firstChild.tagName === 'AU-CONTENT') {
+      anchor.contentElement = firstChild;
+    }
+
     anchor.hasAttribute = function(name) { return element.hasAttribute(name); };
     anchor.getAttribute = function(name) { return element.getAttribute(name); };
     anchor.setAttribute = function(name, value) { element.setAttribute(name, value); };
@@ -4651,10 +4657,10 @@ export class HtmlBehaviorResource {
         au.controller = controller;
 
         if (controller.view) {
-          if (!this.usesShadowDOM && element.childNodes.length === 1) {
-            let contentElement = element.childNodes[0];
+          if (!this.usesShadowDOM && (element.childNodes.length === 1 || element.contentElement)) { //containerless passes content view special contentElement property
+            let contentElement = element.childNodes[0] || element.contentElement;
             controller.view.contentView = { fragment: contentElement }; //store the content before appending the view
-            DOM.removeNode(contentElement);
+            contentElement.parentNode && DOM.removeNode(contentElement); //containerless content element has no parent
           }
 
           if (instruction.anchorIsContainer) {
