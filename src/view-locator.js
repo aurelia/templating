@@ -55,7 +55,7 @@ export class ViewLocator {
 
     if (!strategy) {
       if (!origin) {
-        throw new Error('Cannot determinte default view strategy for object.', value);
+        throw new Error('Cannot determine default view strategy for object.', value);
       }
 
       strategy = this.createFallbackViewStrategy(origin);

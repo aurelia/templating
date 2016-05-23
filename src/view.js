@@ -1,5 +1,7 @@
+/* eslint no-unused-vars: 0, no-constant-condition: 0 */
 import {Binding, createOverrideContext} from 'aurelia-binding';
 import {Container} from 'aurelia-dependency-injection';
+import {ShadowDOM} from './shadow-dom';
 
 /**
 * Represents a node in the view hierarchy.
@@ -35,26 +37,33 @@ export class View {
   * @param bindings The bindings inside this view.
   * @param children The children of this view.
   */
-  constructor(container: Container, viewFactory: ViewFactory, fragment: DocumentFragment, controllers: Controller[], bindings: Binding[], children: ViewNode[], contentSelectors: Array<Object>) {
+  constructor(container: Container, viewFactory: ViewFactory, fragment: DocumentFragment, controllers: Controller[], bindings: Binding[], children: ViewNode[], slots: Object) {
     this.container = container;
     this.viewFactory = viewFactory;
     this.resources = viewFactory.resources;
     this.fragment = fragment;
+    this.firstChild = fragment.firstChild;
+    this.lastChild = fragment.lastChild;
     this.controllers = controllers;
     this.bindings = bindings;
     this.children = children;
-    this.contentSelectors = contentSelectors;
-    this.firstChild = fragment.firstChild;
-    this.lastChild = fragment.lastChild;
+    this.slots = slots;
+    this.hasSlots = false;
     this.fromCache = false;
     this.isBound = false;
     this.isAttached = false;
-    this.fromCache = false;
     this.bindingContext = null;
     this.overrideContext = null;
     this.controller = null;
     this.viewModelScope = null;
+    this.animatableElement = undefined;
     this._isUserControlled = false;
+    this.contentView = null;
+
+    for (let key in slots) {
+      this.hasSlots = true;
+      break;
+    }
   }
 
   /**
@@ -126,6 +135,10 @@ export class View {
     for (i = 0, ii = children.length; i < ii; ++i) {
       children[i].bind(bindingContext, overrideContext, true);
     }
+
+    if (this.hasSlots && this.contentView !== null) {
+      ShadowDOM.distributeView(this.contentView, this.slots);
+    }
   }
 
   /**
@@ -183,8 +196,7 @@ export class View {
   * @param refNode The node to insert this view's nodes before.
   */
   insertNodesBefore(refNode: Node): void {
-    let parent = refNode.parentNode;
-    parent.insertBefore(this.fragment, refNode);
+    refNode.parentNode.insertBefore(this.fragment, refNode);
   }
 
   /**
@@ -199,20 +211,19 @@ export class View {
   * Removes this view's nodes from the DOM.
   */
   removeNodes(): void {
-    let start = this.firstChild;
-    let end = this.lastChild;
     let fragment = this.fragment;
+    let current = this.firstChild;
+    let end = this.lastChild;
     let next;
-    let current = start;
-    let loop = true;
 
-    while (loop) {
-      if (current === end) {
-        loop = false;
-      }
-
+    while (true) {
       next = current.nextSibling;
       fragment.appendChild(current);
+
+      if (current === end) {
+        break;
+      }
+
       current = next;
     }
   }

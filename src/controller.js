@@ -139,6 +139,7 @@ export class Controller {
         overrideContext = createOverrideContext(this.viewModel);
         overrideContext.__parentOverrideContext = scope.overrideContext;
       }
+
       this.view.bind(this.viewModel, overrideContext);
     } else if (skipSelfSubscriber) {
       overrideContext = scope.overrideContext;

@@ -1,3 +1,7 @@
+function mi(name) {
+  throw new Error(`BindingLanguage must implement ${name}().`);
+}
+
 /**
 * An abstract base class for implementations of a binding language.
 */
@@ -11,7 +15,7 @@ export class BindingLanguage {
   * @return An info object with the results of the inspection.
   */
   inspectAttribute(resources: ViewResources, elementName: string, attrName: string, attrValue: string): Object {
-    throw new Error('A BindingLanguage must implement inspectAttribute(...)');
+    mi('inspectAttribute');
   }
 
   /**
@@ -23,7 +27,7 @@ export class BindingLanguage {
   * @return The instruction instance.
   */
   createAttributeInstruction(resources: ViewResources, element: Element, info: Object, existingInstruction?: Object): BehaviorInstruction {
-    throw new Error('A BindingLanguage must implement createAttributeInstruction(...)');
+    mi('createAttributeInstruction');
   }
 
   /**
@@ -33,6 +37,6 @@ export class BindingLanguage {
   * @return A binding expression.
   */
   inspectTextContent(resources: ViewResources, value: string): Object {
-    throw new Error('A BindingLanguage must implement inspectTextContent(...)');
+    mi('inspectTextContent');
   }
 }

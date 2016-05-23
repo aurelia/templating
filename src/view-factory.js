@@ -1,7 +1,7 @@
 import {Container, resolver} from 'aurelia-dependency-injection';
 import {View} from './view';
 import {ViewSlot} from './view-slot';
-import {_ContentSelector} from './content-selector';
+import {ShadowSlot, PassThroughSlot} from './shadow-dom';
 import {ViewResources} from './view-resources';
 import {BehaviorInstruction, TargetInstruction} from './instructions';
 import {DOM} from 'aurelia-pal';
@@ -96,6 +96,12 @@ function makeElementIntoAnchor(element, elementInstruction) {
   let anchor = DOM.createComment('anchor');
 
   if (elementInstruction) {
+    let firstChild = element.firstChild;
+
+    if (firstChild && firstChild.tagName === 'AU-CONTENT') {
+      anchor.contentElement = firstChild;
+    }
+
     anchor.hasAttribute = function(name) { return element.hasAttribute(name); };
     anchor.getAttribute = function(name) { return element.getAttribute(name); };
     anchor.setAttribute = function(name, value) { element.setAttribute(name, value); };
@@ -106,7 +112,7 @@ function makeElementIntoAnchor(element, elementInstruction) {
   return anchor;
 }
 
-function applyInstructions(containers, element, instruction, controllers, bindings, children, contentSelectors, partReplacements, resources) {
+function applyInstructions(containers, element, instruction, controllers, bindings, children, shadowSlots, partReplacements, resources) {
   let behaviorInstructions = instruction.behaviorInstructions;
   let expressions = instruction.expressions;
   let elementContainer;
@@ -117,14 +123,24 @@ function applyInstructions(containers, element, instruction, controllers, bindin
 
   if (instruction.contentExpression) {
     bindings.push(instruction.contentExpression.createBinding(element.nextSibling));
+    element.nextSibling.auInterpolationTarget = true;
     element.parentNode.removeChild(element);
     return;
   }
 
-  if (instruction.contentSelector) {
-    let commentAnchor = DOM.createComment('anchor');
+  if (instruction.shadowSlot) {
+    let commentAnchor = DOM.createComment('slot');
+    let slot;
+
+    if (instruction.slotDestination) {
+      slot = new PassThroughSlot(commentAnchor, instruction.slotName, instruction.slotDestination, instruction.slotFallbackFactory);
+    } else {
+      slot = new ShadowSlot(commentAnchor, instruction.slotName, instruction.slotFallbackFactory);
+    }
+
     DOM.replaceNode(commentAnchor, element);
-    contentSelectors.push(new _ContentSelector(commentAnchor, instruction.selector));
+    shadowSlots[instruction.slotName] = slot;
+    controllers.push(slot);
     return;
   }
 
@@ -146,11 +162,6 @@ function applyInstructions(containers, element, instruction, controllers, bindin
     for (i = 0, ii = behaviorInstructions.length; i < ii; ++i) {
       current = behaviorInstructions[i];
       instance = current.type.create(elementContainer, current, element, bindings);
-
-      if (instance.contentView) {
-        children.push(instance.contentView);
-      }
-
       controllers.push(instance);
     }
   }
@@ -394,7 +405,6 @@ export class ViewFactory {
   */
   create(container: Container, createInstruction?: ViewCreateInstruction, element?: Element): View {
     createInstruction = createInstruction || BehaviorInstruction.normal;
-    element = element || null;
 
     let cachedView = this.getCachedView();
     if (cachedView !== null) {
@@ -408,7 +418,7 @@ export class ViewFactory {
     let controllers = [];
     let bindings = [];
     let children = [];
-    let contentSelectors = [];
+    let shadowSlots = Object.create(null);
     let containers = { root: container };
     let partReplacements = createInstruction.partReplacements;
     let i;
@@ -419,7 +429,7 @@ export class ViewFactory {
 
     this.resources._invokeHook('beforeCreate', this, container, fragment, createInstruction);
 
-    if (element !== null && this.surrogateInstruction !== null) {
+    if (element && this.surrogateInstruction !== null) {
       applySurrogateInstruction(container, element, this.surrogateInstruction, controllers, bindings, children);
     }
 
@@ -427,10 +437,10 @@ export class ViewFactory {
       instructable = instructables[i];
       instruction = instructions[instructable.getAttribute('au-target-id')];
 
-      applyInstructions(containers, instructable, instruction, controllers, bindings, children, contentSelectors, partReplacements, resources);
+      applyInstructions(containers, instructable, instruction, controllers, bindings, children, shadowSlots, partReplacements, resources);
     }
 
-    view = new View(container, this, fragment, controllers, bindings, children, contentSelectors);
+    view = new View(container, this, fragment, controllers, bindings, children, shadowSlots);
 
     //if iniated by an element behavior, let the behavior trigger this callback once it's done creating the element
     if (!createInstruction.initiatedByBehavior) {

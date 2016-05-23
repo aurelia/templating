@@ -1,22 +1,23 @@
-import {_ContentSelector} from './content-selector';
 import {Animator} from './animator';
 import {View} from './view';
-import {DOM} from 'aurelia-pal';
+import {ShadowDOM} from './shadow-dom';
 
 function getAnimatableElement(view) {
-  let firstChild = view.firstChild;
-
-  if (firstChild !== null && firstChild !== undefined && firstChild.nodeType === 8) {
-    let element = DOM.nextElementSibling(firstChild);
-
-    if (element !== null && element !== undefined &&
-      element.nodeType === 1 &&
-      element.classList.contains('au-animate')) {
-      return element;
-    }
+  if (view.animatableElement !== undefined) {
+    return view.animatableElement;
   }
 
-  return null;
+  let current = view.firstChild;
+
+  while (current && current.nodeType !== 1) {
+    current = current.nextSibling;
+  }
+
+  if (current && current.nodeType === 1) {
+    return (view.animatableElement = current.classList.contains('au-animate') ? current : null);
+  }
+
+  return (view.animatableElement = null);
 }
 
 /**
@@ -32,7 +33,7 @@ export class ViewSlot {
   */
   constructor(anchor: Node, anchorIsContainer: boolean, animator?: Animator = Animator.instance) {
     this.anchor = anchor;
-    this.viewAddMethod = anchorIsContainer ? 'appendNodesTo' : 'insertNodesBefore';
+    this.anchorIsContainer = anchorIsContainer;
     this.bindingContext = null;
     this.overrideContext = null;
     this.animator = animator;
@@ -124,7 +125,12 @@ export class ViewSlot {
   * @return May return a promise if the view addition triggered an animation.
   */
   add(view: View): void | Promise<any> {
-    view[this.viewAddMethod](this.anchor);
+    if (this.anchorIsContainer) {
+      view.appendNodesTo(this.anchor);
+    } else {
+      view.insertNodesBefore(this.anchor);
+    }
+
     this.children.push(view);
 
     if (this.isAttached) {
@@ -354,12 +360,8 @@ export class ViewSlot {
       child = children[i];
       child.attached();
 
-      let element = child.firstChild ? DOM.nextElementSibling(child.firstChild) : null;
-      if (child.firstChild &&
-        child.firstChild.nodeType === 8 &&
-         element &&
-         element.nodeType === 1 &&
-         element.classList.contains('au-animate')) {
+      let element = getAnimatableElement(child);
+      if (element) {
         this.animator.enter(element);
       }
     }
@@ -382,21 +384,20 @@ export class ViewSlot {
     }
   }
 
-  _installContentSelectors(contentSelectors: _ContentSelector[]): void {
-    this.contentSelectors = contentSelectors;
-    this.add = this._contentSelectorAdd;
-    this.insert = this._contentSelectorInsert;
-    this.remove = this._contentSelectorRemove;
-    this.removeAt = this._contentSelectorRemoveAt;
-    this.removeAll = this._contentSelectorRemoveAll;
+  projectTo(slots: Object): void {
+    this.projectToSlots = slots;
+    this.add = this._projectionAdd;
+    this.insert = this._projectionInsert;
+    this.move = this._projectionMove;
+    this.remove = this._projectionRemove;
+    this.removeAt = this._projectionRemoveAt;
+    this.removeMany = this._projectionRemoveMany;
+    this.removeAll = this._projectionRemoveAll;
+    this.children.forEach(view => ShadowDOM.distributeView(view, slots, this));
   }
 
-  _contentSelectorAdd(view) {
-    _ContentSelector.applySelectors(
-      view,
-      this.contentSelectors,
-      (contentSelector, group) => contentSelector.add(group)
-      );
+  _projectionAdd(view) {
+    ShadowDOM.distributeView(view, this.projectToSlots, this);
 
     this.children.push(view);
 
@@ -405,15 +406,11 @@ export class ViewSlot {
     }
   }
 
-  _contentSelectorInsert(index, view) {
+  _projectionInsert(index, view) {
     if ((index === 0 && !this.children.length) || index >= this.children.length) {
       this.add(view);
     } else {
-      _ContentSelector.applySelectors(
-        view,
-        this.contentSelectors,
-        (contentSelector, group) => contentSelector.insert(index, group)
-      );
+      ShadowDOM.distributeView(view, this.projectToSlots, this, index);
 
       this.children.splice(index, 0, view);
 
@@ -423,61 +420,52 @@ export class ViewSlot {
     }
   }
 
-  _contentSelectorRemove(view) {
-    let index = this.children.indexOf(view);
-    let contentSelectors = this.contentSelectors;
-    let i;
-    let ii;
-
-    for (i = 0, ii = contentSelectors.length; i < ii; ++i) {
-      contentSelectors[i].removeAt(index, view.fragment);
+  _projectionMove(sourceIndex, targetIndex) {
+    if (sourceIndex === targetIndex) {
+      return;
     }
 
-    this.children.splice(index, 1);
+    const children = this.children;
+    const view = children[sourceIndex];
+
+    ShadowDOM.undistributeView(view, this.projectToSlots, this);
+    ShadowDOM.distributeView(view, this.projectToSlots, this, targetIndex);
+
+    children.splice(sourceIndex, 1);
+    children.splice(targetIndex, 0, view);
+  }
+
+  _projectionRemove(view, returnToCache) {
+    ShadowDOM.undistributeView(view, this.projectToSlots, this);
+    this.children.splice(this.children.indexOf(view), 1);
 
     if (this.isAttached) {
       view.detached();
     }
   }
 
-  _contentSelectorRemoveAt(index) {
+  _projectionRemoveAt(index, returnToCache) {
     let view = this.children[index];
-    let contentSelectors = this.contentSelectors;
-    let i;
-    let ii;
 
-    for (i = 0, ii = contentSelectors.length; i < ii; ++i) {
-      contentSelectors[i].removeAt(index, view.fragment);
-    }
-
+    ShadowDOM.undistributeView(view, this.projectToSlots, this);
     this.children.splice(index, 1);
 
     if (this.isAttached) {
       view.detached();
     }
-
-    return view;
   }
 
-  _contentSelectorRemoveAll() {
+  _projectionRemoveMany(viewsToRemove, returnToCache?) {
+    viewsToRemove.forEach(view => this.remove(view, returnToCache));
+  }
+
+  _projectionRemoveAll(returnToCache) {
+    ShadowDOM.undistributeAll(this.projectToSlots, this);
+
     let children = this.children;
-    let contentSelectors = this.contentSelectors;
-    let ii = children.length;
-    let jj = contentSelectors.length;
-    let i;
-    let j;
-    let view;
-
-    for (i = 0; i < ii; ++i) {
-      view = children[i];
-
-      for (j = 0; j < jj; ++j) {
-        contentSelectors[j].removeAt(0, view.fragment);
-      }
-    }
 
     if (this.isAttached) {
-      for (i = 0; i < ii; ++i) {
+      for (let i = 0, ii = children.length; i < ii; ++i) {
         children[i].detached();
       }
     }
