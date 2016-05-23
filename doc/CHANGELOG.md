@@ -1,3 +1,8 @@
+### 1.0.0-beta.2.0.0 (2016-05-23)
+
+* Shadow DOM v1 Slots Implementation
+* TemplatingEngine test methods removes. They are replaced by the new templating library.
+
 ### 1.0.0-beta.1.2.7 (2016-05-12)
 
 
