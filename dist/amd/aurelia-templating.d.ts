@@ -897,6 +897,20 @@ declare module 'aurelia-templating' {
       * @return The binding behavior instance.
       */
     getBindingBehavior(name: string): Object;
+    
+    /**
+      * Registers a value.
+      * @param name The name of the value.
+      * @param value The value.
+      */
+    registerValue(name: string, value: any): void;
+    
+    /**
+      * Gets a value.
+      * @param name The name of the value.
+      * @return The value.
+      */
+    getValue(name: string): any;
   }
   export class View {
     

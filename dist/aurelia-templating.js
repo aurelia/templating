@@ -1442,6 +1442,7 @@ export class ViewResources {
     this.valueConverters = Object.create(null);
     this.bindingBehaviors = Object.create(null);
     this.attributeMap = Object.create(null);
+    this.values = Object.create(null);
     this.beforeCompile = this.afterCompile = this.beforeCreate = this.afterCreate = this.beforeBind = this.beforeUnbind = false;
   }
 
@@ -1615,6 +1616,24 @@ export class ViewResources {
   */
   getBindingBehavior(name: string): Object {
     return this.bindingBehaviors[name] || (this.hasParent ? this.parent.getBindingBehavior(name) : null);
+  }
+
+  /**
+  * Registers a value.
+  * @param name The name of the value.
+  * @param value The value.
+  */
+  registerValue(name: string, value: any): void {
+    register(this.values, name, value, 'a value');
+  }
+
+  /**
+  * Gets a value.
+  * @param name The name of the value.
+  * @return The value.
+  */
+  getValue(name: string): any {
+    return this.values[name] || (this.hasParent ? this.parent.getValue(name) : null);
   }
 }
 

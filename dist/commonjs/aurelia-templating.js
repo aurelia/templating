@@ -1145,6 +1145,7 @@ var ViewResources = exports.ViewResources = function () {
     this.valueConverters = Object.create(null);
     this.bindingBehaviors = Object.create(null);
     this.attributeMap = Object.create(null);
+    this.values = Object.create(null);
     this.beforeCompile = this.afterCompile = this.beforeCreate = this.afterCreate = this.beforeBind = this.beforeUnbind = false;
   }
 
@@ -1254,6 +1255,14 @@ var ViewResources = exports.ViewResources = function () {
 
   ViewResources.prototype.getBindingBehavior = function getBindingBehavior(name) {
     return this.bindingBehaviors[name] || (this.hasParent ? this.parent.getBindingBehavior(name) : null);
+  };
+
+  ViewResources.prototype.registerValue = function registerValue(name, value) {
+    register(this.values, name, value, 'a value');
+  };
+
+  ViewResources.prototype.getValue = function getValue(name) {
+    return this.values[name] || (this.hasParent ? this.parent.getValue(name) : null);
   };
 
   return ViewResources;

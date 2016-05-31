@@ -1,3 +1,11 @@
+### 1.0.0-beta.2.0.1 (2016-05-31)
+
+
+#### Features
+
+* **view-resources:** enable arbitrary named value resolution ([4f85ecf9](http://github.com/aurelia/templating/commit/4f85ecf97a3176e6f3d61a554e5351562771af38))
+
+
 ### 1.0.0-beta.2.0.0 (2016-05-23)
 
 * Shadow DOM v1 Slots Implementation
