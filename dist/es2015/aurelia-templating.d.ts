@@ -27,6 +27,7 @@ declare module 'aurelia-templating' {
     createOverrideContext,
     ValueConverterResource,
     BindingBehaviorResource,
+    ViewEngineHooksResource,
     subscriberCollection,
     bindingMode,
     ObserverLocator,
