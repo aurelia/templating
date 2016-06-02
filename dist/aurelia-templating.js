@@ -4,7 +4,7 @@ import {Origin,protocol,metadata} from 'aurelia-metadata';
 import {relativeToFile} from 'aurelia-path';
 import {TemplateRegistryEntry,Loader} from 'aurelia-loader';
 import {inject,Container,resolver} from 'aurelia-dependency-injection';
-import {Binding,createOverrideContext,ValueConverterResource,BindingBehaviorResource,subscriberCollection,bindingMode,ObserverLocator,EventManager} from 'aurelia-binding';
+import {Binding,createOverrideContext,ValueConverterResource,BindingBehaviorResource,ViewEngineHooksResource,subscriberCollection,bindingMode,ObserverLocator,EventManager} from 'aurelia-binding';
 import {TaskQueue} from 'aurelia-task-queue';
 
 /**
@@ -3562,6 +3562,9 @@ export class ModuleAnalyzer {
           resources.push(new ResourceDescription(key, exportedValue, conventional));
           metadata.define(metadata.resource, conventional, exportedValue);
         } else if (conventional = BindingBehaviorResource.convention(key)) {
+          resources.push(new ResourceDescription(key, exportedValue, conventional));
+          metadata.define(metadata.resource, conventional, exportedValue);
+        } else if (conventional = ViewEngineHooksResource.convention(key)) {
           resources.push(new ResourceDescription(key, exportedValue, conventional));
           metadata.define(metadata.resource, conventional, exportedValue);
         } else if (!fallbackValue) {

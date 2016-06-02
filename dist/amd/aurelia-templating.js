@@ -2974,6 +2974,9 @@ define(['exports', 'aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aureli
           } else if (conventional = _aureliaBinding.BindingBehaviorResource.convention(key)) {
             resources.push(new ResourceDescription(key, exportedValue, conventional));
             _aureliaMetadata.metadata.define(_aureliaMetadata.metadata.resource, conventional, exportedValue);
+          } else if (conventional = _aureliaBinding.ViewEngineHooksResource.convention(key)) {
+            resources.push(new ResourceDescription(key, exportedValue, conventional));
+            _aureliaMetadata.metadata.define(_aureliaMetadata.metadata.resource, conventional, exportedValue);
           } else if (!fallbackValue) {
             fallbackValue = exportedValue;
             fallbackKey = key;
