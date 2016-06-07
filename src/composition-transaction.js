@@ -61,13 +61,12 @@ export class CompositionTransaction {
 
   _createOwnershipToken(): CompositionTransactionOwnershipToken {
     let token = {};
-    let promise = new Promise((resolve, reject) => {
-      token._resolve = resolve;
-    });
 
     token.waitForCompositionComplete = () => {
       this._tryCompleteTransaction();
-      return promise;
+      return new Promise((resolve, reject) => {
+        token._resolve = resolve;
+      });
     };
 
     return token;
