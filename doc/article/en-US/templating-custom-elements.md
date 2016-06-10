@@ -240,7 +240,7 @@ The `role="button"` attribute will automatically be set on the `my-button` eleme
 
 It is important to note that Surrogate Behaviors cannot be used with a custom element that is using the `@containerless` decorator discussed below as this decorator removes the wrapping custom element from the DOM, and thus there is nowhere for the Surrogate Behaviors to be placed.
 
-## [Content Projection](aurelia-doc://section/5/version/1.0.0)
+## [Content Projection](aurelia-doc://section/6/version/1.0.0)
 
 > Info: `<slot>` vs `<content>`
 > Throughout its beta, Aurelia has used the `<content>` element for content projection. This will be changing in RC1, as Aurelia moves to the `<slot>` element. This is being done to synchronize with changes made to the Web Components specifications. In the meantime, you can simply replace `<slot></slot>` with `<content></content>` in the examples below.
@@ -272,7 +272,7 @@ Aurelia custom elements utilize the "slot based" content projection standard fro
 
 Aurelia will project the element's content in to the template where the `<slot></slot>` element is located.
 
-## [Options for Customizing Aurelia Custom Element Processing](aurelia-doc://section/6/version/1.0.0)
+## [Options for Customizing Aurelia Custom Element Processing](aurelia-doc://section/7/version/1.0.0)
 
 There are lots of options that allow you to change how custom elements work. These are expressed by decorators added to the custom element's viewmodel or properties on the viewmodel.
 
