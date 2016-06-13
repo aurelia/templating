@@ -233,7 +233,7 @@ export class ViewSlot {
         return;
       }
 
-      let animation = this.animateView(view, 'leave');
+      let animation = this.animateView(child, 'leave');
       if (animation !== null) {
         rmPromises.push(animation.then(() => child.removeNodes()));
       } else {
