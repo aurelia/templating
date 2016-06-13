@@ -1,7 +1,8 @@
 import {metadata} from 'aurelia-metadata';
 import {Container} from 'aurelia-dependency-injection';
 import {TemplateRegistryEntry} from 'aurelia-loader';
-import { ValueConverterResource, BindingBehaviorResource, ViewEngineHooksResource } from 'aurelia-binding';
+import {ValueConverterResource, BindingBehaviorResource} from 'aurelia-binding';
+import {ViewEngineHooksResource} from './view-engine-hooks-resource';
 import {HtmlBehaviorResource} from './html-behavior';
 import {viewStrategy, TemplateRegistryViewStrategy} from './view-strategy';
 import {ViewResources} from './view-resources';
