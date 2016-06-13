@@ -40,7 +40,8 @@ gulp.task('build-index', function(){
     'composition-engine.js',
     'element-config.js',
     'decorators.js',
-    'templating-engine.js'
+    'templating-engine.js',
+    'view-engine-hooks-resource.js'
     ].map(function(file){
       return paths.root + file;
   });

@@ -1,8 +1,8 @@
 import {metadata} from 'aurelia-metadata';
 import {Container} from 'aurelia-dependency-injection';
 import {TemplateRegistryEntry} from 'aurelia-loader';
-import {ValueConverterResource} from 'aurelia-binding';
-import {BindingBehaviorResource} from 'aurelia-binding';
+import {ValueConverterResource, BindingBehaviorResource} from 'aurelia-binding';
+import {ViewEngineHooksResource} from './view-engine-hooks-resource';
 import {HtmlBehaviorResource} from './html-behavior';
 import {viewStrategy, TemplateRegistryViewStrategy} from './view-strategy';
 import {ViewResources} from './view-resources';
@@ -268,12 +268,14 @@ export class ModuleAnalyzer {
           }
 
           metadata.define(metadata.resource, conventional, exportedValue);
-        } else if (conventional = ValueConverterResource.convention(key)) {
+        } else if (conventional = 
+          ValueConverterResource.convention(key)
+          || BindingBehaviorResource.convention(key)
+          || ViewEngineHooksResource.convention(key)) {
+
           resources.push(new ResourceDescription(key, exportedValue, conventional));
           metadata.define(metadata.resource, conventional, exportedValue);
-        } else if (conventional = BindingBehaviorResource.convention(key)) {
-          resources.push(new ResourceDescription(key, exportedValue, conventional));
-          metadata.define(metadata.resource, conventional, exportedValue);
+        
         } else if (!fallbackValue) {
           fallbackValue = exportedValue;
           fallbackKey = key;
