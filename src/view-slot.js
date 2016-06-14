@@ -51,7 +51,7 @@ export class ViewSlot {
    *   @param  direction  The animation direction enter|leave
    *   @returns null or a Promise
    */
-  animateView(view:View, direction:String<enter|leave> = 'enter'):Promise<any> {
+  animateView(view:View, direction:String = 'enter'):Promise<any> {
     let animatableElement = getAnimatableElement(view);
     if (animatableElement !== null && direction in this.animator) {
       return this.animator[direction](animatableElement);
