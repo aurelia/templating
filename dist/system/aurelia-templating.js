@@ -616,7 +616,7 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
           
 
           this.owner = owner;
-          that.owner._compositionCount++;
+          this.owner._compositionCount++;
         }
 
         CompositionTransactionNotifier.prototype.done = function done() {

@@ -146,7 +146,7 @@ define(['exports', 'aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aureli
       
 
       this.owner = owner;
-      that.owner._compositionCount++;
+      this.owner._compositionCount++;
     }
 
     CompositionTransactionNotifier.prototype.done = function done() {

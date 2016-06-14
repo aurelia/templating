@@ -74,7 +74,7 @@ export let Animator = class Animator {
 export let CompositionTransactionNotifier = class CompositionTransactionNotifier {
   constructor(owner) {
     this.owner = owner;
-    that.owner._compositionCount++;
+    this.owner._compositionCount++;
   }
 
   done() {

@@ -88,7 +88,7 @@ export var CompositionTransactionNotifier = function () {
     
 
     this.owner = owner;
-    that.owner._compositionCount++;
+    this.owner._compositionCount++;
   }
 
   CompositionTransactionNotifier.prototype.done = function done() {
