@@ -3,6 +3,7 @@
 [![npm Version](https://img.shields.io/npm/v/aurelia-templating.svg)](https://www.npmjs.com/package/aurelia-templating)
 [![ZenHub](https://raw.githubusercontent.com/ZenHubIO/support/master/zenhub-badge.png)](https://zenhub.io)
 [![Join the chat at https://gitter.im/aurelia/discuss](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/aurelia/discuss?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![CircleCI](https://circleci.com/gh/aurelia/templating.svg?style=shield)](https://circleci.com/gh/aurelia/templating)
 
 This library is part of the [Aurelia](http://www.aurelia.io/) platform and contains an extensible HTML templating engine supporting databinding, custom elements, attached behaviors and more.
 
