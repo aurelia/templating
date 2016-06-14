@@ -4,7 +4,7 @@
 export class CompositionTransactionNotifier {
   constructor(owner) {
     this.owner = owner;
-    that.owner._compositionCount++;
+    this.owner._compositionCount++;
   }
 
   /**
