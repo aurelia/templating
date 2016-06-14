@@ -1,9 +1,52 @@
-interface CompositionTransactionOwnershipToken {
-  waitForCompositionComplete(): Promise<void>;
+/**
+* A mechanism by which an enlisted async render operation can notify the owning transaction when its work is done.
+*/
+export class CompositionTransactionNotifier {
+  constructor(owner) {
+    this.owner = owner;
+    that.owner._compositionCount++;
+  }
+
+  /**
+  * Notifies the owning transaction that its work is done.
+  */
+  done(): void {
+    this.owner._compositionCount--;
+    this.owner._tryCompleteTransaction();
+  }
 }
 
-interface CompositionTransactionNotifier {
-  done(): void;
+/**
+* Referenced by the subsytem which wishes to control a composition transaction.
+*/
+export class CompositionTransactionOwnershipToken {
+  constructor(owner) {
+    this.owner = owner;
+    this.owner._ownershipToken = this;
+    this.thenable = this._createThenable();
+  }
+
+  /**
+  * Allows the transaction owner to wait for the completion of all child compositions.
+  * @return A promise that resolves when all child compositions are done.
+  */
+  waitForCompositionComplete(): Promise<void> {
+    this.owner._tryCompleteTransaction();
+    return this.thenable;
+  }
+
+  /**
+  * Used internall to resolve the composition complete promise.
+  */
+  resolve(): void {
+    this._resolveCallback();
+  }
+
+  _createThenable() {
+    return new Promise((resolve, reject) => {
+      this._resolveCallback = resolve;
+    });
+  }
 }
 
 /**
@@ -23,11 +66,9 @@ export class CompositionTransaction {
   * @return An ownership token if successful, otherwise null.
   */
   tryCapture(): CompositionTransactionOwnershipToken {
-    if (this._ownershipToken !== null) {
-      return null;
-    }
-
-    return (this._ownershipToken = this._createOwnershipToken());
+    return this._ownershipToken === null
+      ? new CompositionTransactionOwnershipToken(this)
+      : null;
   }
 
   /**
@@ -35,16 +76,7 @@ export class CompositionTransaction {
   * @return A completion notifier.
   */
   enlist(): CompositionTransactionNotifier {
-    let that = this;
-
-    that._compositionCount++;
-
-    return {
-      done() {
-        that._compositionCount--;
-        that._tryCompleteTransaction();
-      }
-    };
+    return new CompositionTransactionNotifier(this);
   }
 
   _tryCompleteTransaction() {
@@ -52,23 +84,10 @@ export class CompositionTransaction {
       this._compositionCount = 0;
 
       if (this._ownershipToken !== null) {
-        let capture = this._ownershipToken;
+        let token = this._ownershipToken;
         this._ownershipToken = null;
-        capture._resolve();
+        token.resolve();
       }
     }
-  }
-
-  _createOwnershipToken(): CompositionTransactionOwnershipToken {
-    let token = {};
-
-    token.waitForCompositionComplete = () => {
-      this._tryCompleteTransaction();
-      return new Promise((resolve, reject) => {
-        token._resolve = resolve;
-      });
-    };
-
-    return token;
   }
 }
