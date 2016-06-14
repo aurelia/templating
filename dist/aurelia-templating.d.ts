@@ -34,12 +34,6 @@ import {
 import {
   TaskQueue
 } from 'aurelia-task-queue';
-export declare interface CompositionTransactionOwnershipToken {
-  waitForCompositionComplete(): Promise<void>;
-}
-export declare interface CompositionTransactionNotifier {
-  done(): void;
-}
 export declare interface EventHandler {
   eventName: string;
   bubbles: boolean;
@@ -323,8 +317,36 @@ export declare class Animator {
 }
 
 /**
-* Enables an initiator of a view composition to track any internal async rendering processes for completion.
+* A mechanism by which an enlisted async render operation can notify the owning transaction when its work is done.
 */
+export declare class CompositionTransactionNotifier {
+  constructor(owner?: any);
+  
+  /**
+    * Notifies the owning transaction that its work is done.
+    */
+  done(): void;
+}
+
+/**
+* Referenced by the subsytem which wishes to control a composition transaction.
+*/
+export declare class CompositionTransactionOwnershipToken {
+  constructor(owner?: any);
+  
+  /**
+    * Allows the transaction owner to wait for the completion of all child compositions.
+    * @return A promise that resolves when all child compositions are done.
+    */
+  waitForCompositionComplete(): Promise<void>;
+  
+  /**
+    * Used internall to resolve the composition complete promise.
+    */
+  resolve(): void;
+  _createThenable(): any;
+}
+
 /**
 * Enables an initiator of a view composition to track any internal async rendering processes for completion.
 */
@@ -347,7 +369,6 @@ export declare class CompositionTransaction {
     */
   enlist(): CompositionTransactionNotifier;
   _tryCompleteTransaction(): any;
-  _createOwnershipToken(): CompositionTransactionOwnershipToken;
 }
 export declare function _hyphenate(name?: any): any;
 

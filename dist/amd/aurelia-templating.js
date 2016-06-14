@@ -4,7 +4,7 @@ define(['exports', 'aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aureli
   Object.defineProperty(exports, "__esModule", {
     value: true
   });
-  exports.TemplatingEngine = exports.ElementConfigResource = exports.CompositionEngine = exports.HtmlBehaviorResource = exports.BindableProperty = exports.BehaviorPropertyObserver = exports.Controller = exports.ViewEngine = exports.ModuleAnalyzer = exports.ResourceDescription = exports.ResourceModule = exports.ViewCompiler = exports.ViewFactory = exports.BoundViewFactory = exports.ViewSlot = exports.View = exports.ViewResources = exports.ShadowDOM = exports.ShadowSlot = exports.PassThroughSlot = exports.SlotCustomAttribute = exports.BindingLanguage = exports.ViewLocator = exports.InlineViewStrategy = exports.TemplateRegistryViewStrategy = exports.NoViewStrategy = exports.ConventionalViewStrategy = exports.RelativeViewStrategy = exports.viewStrategy = exports.TargetInstruction = exports.BehaviorInstruction = exports.ViewCompileInstruction = exports.ResourceLoadContext = exports.ElementEvents = exports.CompositionTransaction = exports.Animator = exports.animationEvent = undefined;
+  exports.TemplatingEngine = exports.ElementConfigResource = exports.CompositionEngine = exports.HtmlBehaviorResource = exports.BindableProperty = exports.BehaviorPropertyObserver = exports.Controller = exports.ViewEngine = exports.ModuleAnalyzer = exports.ResourceDescription = exports.ResourceModule = exports.ViewCompiler = exports.ViewFactory = exports.BoundViewFactory = exports.ViewSlot = exports.View = exports.ViewResources = exports.ShadowDOM = exports.ShadowSlot = exports.PassThroughSlot = exports.SlotCustomAttribute = exports.BindingLanguage = exports.ViewLocator = exports.InlineViewStrategy = exports.TemplateRegistryViewStrategy = exports.NoViewStrategy = exports.ConventionalViewStrategy = exports.RelativeViewStrategy = exports.viewStrategy = exports.TargetInstruction = exports.BehaviorInstruction = exports.ViewCompileInstruction = exports.ResourceLoadContext = exports.ElementEvents = exports.CompositionTransaction = exports.CompositionTransactionOwnershipToken = exports.CompositionTransactionNotifier = exports.Animator = exports.animationEvent = undefined;
   exports._hyphenate = _hyphenate;
   exports._isAllWhitespace = _isAllWhitespace;
   exports.children = children;
@@ -141,6 +141,51 @@ define(['exports', 'aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aureli
     return Animator;
   }();
 
+  var CompositionTransactionNotifier = exports.CompositionTransactionNotifier = function () {
+    function CompositionTransactionNotifier(owner) {
+      
+
+      this.owner = owner;
+      that.owner._compositionCount++;
+    }
+
+    CompositionTransactionNotifier.prototype.done = function done() {
+      this.owner._compositionCount--;
+      this.owner._tryCompleteTransaction();
+    };
+
+    return CompositionTransactionNotifier;
+  }();
+
+  var CompositionTransactionOwnershipToken = exports.CompositionTransactionOwnershipToken = function () {
+    function CompositionTransactionOwnershipToken(owner) {
+      
+
+      this.owner = owner;
+      this.owner._ownershipToken = this;
+      this.thenable = this._createThenable();
+    }
+
+    CompositionTransactionOwnershipToken.prototype.waitForCompositionComplete = function waitForCompositionComplete() {
+      this.owner._tryCompleteTransaction();
+      return this.thenable;
+    };
+
+    CompositionTransactionOwnershipToken.prototype.resolve = function resolve() {
+      this._resolveCallback();
+    };
+
+    CompositionTransactionOwnershipToken.prototype._createThenable = function _createThenable() {
+      var _this = this;
+
+      return new Promise(function (resolve, reject) {
+        _this._resolveCallback = resolve;
+      });
+    };
+
+    return CompositionTransactionOwnershipToken;
+  }();
+
   var CompositionTransaction = exports.CompositionTransaction = function () {
     function CompositionTransaction() {
       
@@ -150,24 +195,11 @@ define(['exports', 'aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aureli
     }
 
     CompositionTransaction.prototype.tryCapture = function tryCapture() {
-      if (this._ownershipToken !== null) {
-        return null;
-      }
-
-      return this._ownershipToken = this._createOwnershipToken();
+      return this._ownershipToken === null ? new CompositionTransactionOwnershipToken(this) : null;
     };
 
     CompositionTransaction.prototype.enlist = function enlist() {
-      var that = this;
-
-      that._compositionCount++;
-
-      return {
-        done: function done() {
-          that._compositionCount--;
-          that._tryCompleteTransaction();
-        }
-      };
+      return new CompositionTransactionNotifier(this);
     };
 
     CompositionTransaction.prototype._tryCompleteTransaction = function _tryCompleteTransaction() {
@@ -175,26 +207,11 @@ define(['exports', 'aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aureli
         this._compositionCount = 0;
 
         if (this._ownershipToken !== null) {
-          var capture = this._ownershipToken;
+          var token = this._ownershipToken;
           this._ownershipToken = null;
-          capture._resolve();
+          token.resolve();
         }
       }
-    };
-
-    CompositionTransaction.prototype._createOwnershipToken = function _createOwnershipToken() {
-      var _this = this;
-
-      var token = {};
-
-      token.waitForCompositionComplete = function () {
-        _this._tryCompleteTransaction();
-        return new Promise(function (resolve, reject) {
-          token._resolve = resolve;
-        });
-      };
-
-      return token;
     };
 
     return CompositionTransaction;

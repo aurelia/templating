@@ -71,6 +71,41 @@ export let Animator = class Animator {
   unregisterEffect(effectName) {}
 };
 
+export let CompositionTransactionNotifier = class CompositionTransactionNotifier {
+  constructor(owner) {
+    this.owner = owner;
+    that.owner._compositionCount++;
+  }
+
+  done() {
+    this.owner._compositionCount--;
+    this.owner._tryCompleteTransaction();
+  }
+};
+
+export let CompositionTransactionOwnershipToken = class CompositionTransactionOwnershipToken {
+  constructor(owner) {
+    this.owner = owner;
+    this.owner._ownershipToken = this;
+    this.thenable = this._createThenable();
+  }
+
+  waitForCompositionComplete() {
+    this.owner._tryCompleteTransaction();
+    return this.thenable;
+  }
+
+  resolve() {
+    this._resolveCallback();
+  }
+
+  _createThenable() {
+    return new Promise((resolve, reject) => {
+      this._resolveCallback = resolve;
+    });
+  }
+};
+
 export let CompositionTransaction = class CompositionTransaction {
   constructor() {
     this._ownershipToken = null;
@@ -78,24 +113,11 @@ export let CompositionTransaction = class CompositionTransaction {
   }
 
   tryCapture() {
-    if (this._ownershipToken !== null) {
-      return null;
-    }
-
-    return this._ownershipToken = this._createOwnershipToken();
+    return this._ownershipToken === null ? new CompositionTransactionOwnershipToken(this) : null;
   }
 
   enlist() {
-    let that = this;
-
-    that._compositionCount++;
-
-    return {
-      done() {
-        that._compositionCount--;
-        that._tryCompleteTransaction();
-      }
-    };
+    return new CompositionTransactionNotifier(this);
   }
 
   _tryCompleteTransaction() {
@@ -103,24 +125,11 @@ export let CompositionTransaction = class CompositionTransaction {
       this._compositionCount = 0;
 
       if (this._ownershipToken !== null) {
-        let capture = this._ownershipToken;
+        let token = this._ownershipToken;
         this._ownershipToken = null;
-        capture._resolve();
+        token.resolve();
       }
     }
-  }
-
-  _createOwnershipToken() {
-    let token = {};
-
-    token.waitForCompositionComplete = () => {
-      this._tryCompleteTransaction();
-      return new Promise((resolve, reject) => {
-        token._resolve = resolve;
-      });
-    };
-
-    return token;
   }
 };
 

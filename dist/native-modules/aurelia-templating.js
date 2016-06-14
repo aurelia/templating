@@ -83,6 +83,51 @@ export var Animator = function () {
   return Animator;
 }();
 
+export var CompositionTransactionNotifier = function () {
+  function CompositionTransactionNotifier(owner) {
+    
+
+    this.owner = owner;
+    that.owner._compositionCount++;
+  }
+
+  CompositionTransactionNotifier.prototype.done = function done() {
+    this.owner._compositionCount--;
+    this.owner._tryCompleteTransaction();
+  };
+
+  return CompositionTransactionNotifier;
+}();
+
+export var CompositionTransactionOwnershipToken = function () {
+  function CompositionTransactionOwnershipToken(owner) {
+    
+
+    this.owner = owner;
+    this.owner._ownershipToken = this;
+    this.thenable = this._createThenable();
+  }
+
+  CompositionTransactionOwnershipToken.prototype.waitForCompositionComplete = function waitForCompositionComplete() {
+    this.owner._tryCompleteTransaction();
+    return this.thenable;
+  };
+
+  CompositionTransactionOwnershipToken.prototype.resolve = function resolve() {
+    this._resolveCallback();
+  };
+
+  CompositionTransactionOwnershipToken.prototype._createThenable = function _createThenable() {
+    var _this = this;
+
+    return new Promise(function (resolve, reject) {
+      _this._resolveCallback = resolve;
+    });
+  };
+
+  return CompositionTransactionOwnershipToken;
+}();
+
 export var CompositionTransaction = function () {
   function CompositionTransaction() {
     
@@ -92,24 +137,11 @@ export var CompositionTransaction = function () {
   }
 
   CompositionTransaction.prototype.tryCapture = function tryCapture() {
-    if (this._ownershipToken !== null) {
-      return null;
-    }
-
-    return this._ownershipToken = this._createOwnershipToken();
+    return this._ownershipToken === null ? new CompositionTransactionOwnershipToken(this) : null;
   };
 
   CompositionTransaction.prototype.enlist = function enlist() {
-    var that = this;
-
-    that._compositionCount++;
-
-    return {
-      done: function done() {
-        that._compositionCount--;
-        that._tryCompleteTransaction();
-      }
-    };
+    return new CompositionTransactionNotifier(this);
   };
 
   CompositionTransaction.prototype._tryCompleteTransaction = function _tryCompleteTransaction() {
@@ -117,26 +149,11 @@ export var CompositionTransaction = function () {
       this._compositionCount = 0;
 
       if (this._ownershipToken !== null) {
-        var capture = this._ownershipToken;
+        var token = this._ownershipToken;
         this._ownershipToken = null;
-        capture._resolve();
+        token.resolve();
       }
     }
-  };
-
-  CompositionTransaction.prototype._createOwnershipToken = function _createOwnershipToken() {
-    var _this = this;
-
-    var token = {};
-
-    token.waitForCompositionComplete = function () {
-      _this._tryCompleteTransaction();
-      return new Promise(function (resolve, reject) {
-        token._resolve = resolve;
-      });
-    };
-
-    return token;
   };
 
   return CompositionTransaction;

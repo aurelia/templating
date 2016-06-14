@@ -3,7 +3,7 @@
 System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-path', 'aurelia-loader', 'aurelia-dependency-injection', 'aurelia-binding', 'aurelia-task-queue'], function (_export, _context) {
   "use strict";
 
-  var LogManager, DOM, PLATFORM, FEATURE, Origin, protocol, metadata, relativeToFile, TemplateRegistryEntry, Loader, inject, Container, resolver, Binding, createOverrideContext, ValueConverterResource, BindingBehaviorResource, subscriberCollection, bindingMode, ObserverLocator, EventManager, TaskQueue, _createClass, _class3, _temp, _dec, _class4, _dec2, _class5, _dec3, _class6, _dec4, _class7, _dec5, _class8, _class9, _temp2, _dec6, _class10, _class11, _temp3, _class13, _dec7, _class15, _dec8, _class16, _dec9, _class18, _dec10, _class19, _dec11, _class20, _typeof, animationEvent, Animator, CompositionTransaction, capitalMatcher, ElementEvents, ResourceLoadContext, ViewCompileInstruction, BehaviorInstruction, TargetInstruction, viewStrategy, RelativeViewStrategy, ConventionalViewStrategy, NoViewStrategy, TemplateRegistryViewStrategy, InlineViewStrategy, ViewLocator, BindingLanguage, noNodes, SlotCustomAttribute, PassThroughSlot, ShadowSlot, ShadowDOM, ViewResources, View, ViewSlot, ProviderResolver, providerResolverInstance, BoundViewFactory, ViewFactory, nextInjectorId, lastAUTargetID, ViewCompiler, ResourceModule, ResourceDescription, ModuleAnalyzer, logger, ProxyViewFactory, ViewEngine, Controller, BehaviorPropertyObserver, BindableProperty, lastProviderId, HtmlBehaviorResource, ChildObserver, noMutations, ChildObserverBinder, CompositionEngine, ElementConfigResource, defaultShadowDOMOptions, TemplatingEngine;
+  var LogManager, DOM, PLATFORM, FEATURE, Origin, protocol, metadata, relativeToFile, TemplateRegistryEntry, Loader, inject, Container, resolver, Binding, createOverrideContext, ValueConverterResource, BindingBehaviorResource, subscriberCollection, bindingMode, ObserverLocator, EventManager, TaskQueue, _createClass, _class3, _temp, _dec, _class4, _dec2, _class5, _dec3, _class6, _dec4, _class7, _dec5, _class8, _class9, _temp2, _dec6, _class10, _class11, _temp3, _class13, _dec7, _class15, _dec8, _class16, _dec9, _class18, _dec10, _class19, _dec11, _class20, _typeof, animationEvent, Animator, CompositionTransactionNotifier, CompositionTransactionOwnershipToken, CompositionTransaction, capitalMatcher, ElementEvents, ResourceLoadContext, ViewCompileInstruction, BehaviorInstruction, TargetInstruction, viewStrategy, RelativeViewStrategy, ConventionalViewStrategy, NoViewStrategy, TemplateRegistryViewStrategy, InlineViewStrategy, ViewLocator, BindingLanguage, noNodes, SlotCustomAttribute, PassThroughSlot, ShadowSlot, ShadowDOM, ViewResources, View, ViewSlot, ProviderResolver, providerResolverInstance, BoundViewFactory, ViewFactory, nextInjectorId, lastAUTargetID, ViewCompiler, ResourceModule, ResourceDescription, ModuleAnalyzer, logger, ProxyViewFactory, ViewEngine, Controller, BehaviorPropertyObserver, BindableProperty, lastProviderId, HtmlBehaviorResource, ChildObserver, noMutations, ChildObserverBinder, CompositionEngine, ElementConfigResource, defaultShadowDOMOptions, TemplatingEngine;
 
   
 
@@ -611,6 +611,55 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
 
       _export('Animator', Animator);
 
+      _export('CompositionTransactionNotifier', CompositionTransactionNotifier = function () {
+        function CompositionTransactionNotifier(owner) {
+          
+
+          this.owner = owner;
+          that.owner._compositionCount++;
+        }
+
+        CompositionTransactionNotifier.prototype.done = function done() {
+          this.owner._compositionCount--;
+          this.owner._tryCompleteTransaction();
+        };
+
+        return CompositionTransactionNotifier;
+      }());
+
+      _export('CompositionTransactionNotifier', CompositionTransactionNotifier);
+
+      _export('CompositionTransactionOwnershipToken', CompositionTransactionOwnershipToken = function () {
+        function CompositionTransactionOwnershipToken(owner) {
+          
+
+          this.owner = owner;
+          this.owner._ownershipToken = this;
+          this.thenable = this._createThenable();
+        }
+
+        CompositionTransactionOwnershipToken.prototype.waitForCompositionComplete = function waitForCompositionComplete() {
+          this.owner._tryCompleteTransaction();
+          return this.thenable;
+        };
+
+        CompositionTransactionOwnershipToken.prototype.resolve = function resolve() {
+          this._resolveCallback();
+        };
+
+        CompositionTransactionOwnershipToken.prototype._createThenable = function _createThenable() {
+          var _this = this;
+
+          return new Promise(function (resolve, reject) {
+            _this._resolveCallback = resolve;
+          });
+        };
+
+        return CompositionTransactionOwnershipToken;
+      }());
+
+      _export('CompositionTransactionOwnershipToken', CompositionTransactionOwnershipToken);
+
       _export('CompositionTransaction', CompositionTransaction = function () {
         function CompositionTransaction() {
           
@@ -620,24 +669,11 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
         }
 
         CompositionTransaction.prototype.tryCapture = function tryCapture() {
-          if (this._ownershipToken !== null) {
-            return null;
-          }
-
-          return this._ownershipToken = this._createOwnershipToken();
+          return this._ownershipToken === null ? new CompositionTransactionOwnershipToken(this) : null;
         };
 
         CompositionTransaction.prototype.enlist = function enlist() {
-          var that = this;
-
-          that._compositionCount++;
-
-          return {
-            done: function done() {
-              that._compositionCount--;
-              that._tryCompleteTransaction();
-            }
-          };
+          return new CompositionTransactionNotifier(this);
         };
 
         CompositionTransaction.prototype._tryCompleteTransaction = function _tryCompleteTransaction() {
@@ -645,26 +681,11 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
             this._compositionCount = 0;
 
             if (this._ownershipToken !== null) {
-              var capture = this._ownershipToken;
+              var token = this._ownershipToken;
               this._ownershipToken = null;
-              capture._resolve();
+              token.resolve();
             }
           }
-        };
-
-        CompositionTransaction.prototype._createOwnershipToken = function _createOwnershipToken() {
-          var _this = this;
-
-          var token = {};
-
-          token.waitForCompositionComplete = function () {
-            _this._tryCompleteTransaction();
-            return new Promise(function (resolve, reject) {
-              token._resolve = resolve;
-            });
-          };
-
-          return token;
         };
 
         return CompositionTransaction;
