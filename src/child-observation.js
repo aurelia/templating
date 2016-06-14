@@ -227,6 +227,8 @@ class ChildObserverBinder {
 
       return false;
     }
+
+    return false;
   }
 
   onAdd(element) {

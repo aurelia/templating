@@ -141,6 +141,8 @@ export class ViewSlot {
         return this.animator.enter(animatableElement);
       }
     }
+
+    return undefined;
   }
 
   /**
@@ -168,6 +170,8 @@ export class ViewSlot {
         return this.animator.enter(animatableElement);
       }
     }
+
+    return undefined;
   }
 
   /**
@@ -252,7 +256,7 @@ export class ViewSlot {
       return Promise.all(rmPromises).then(() => removeAction());
     }
 
-    removeAction();
+    return removeAction();
   }
 
   /**
@@ -337,7 +341,7 @@ export class ViewSlot {
       return Promise.all(rmPromises).then(() => removeAction());
     }
 
-    removeAction();
+    return removeAction();
   }
 
   /**

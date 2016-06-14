@@ -5,7 +5,6 @@ import {TemplatingEngine} from '../src/templating-engine';
 import {View} from '../src/view';
 import {ViewResources} from '../src/view-resources';
 import {ViewFactory} from '../src/view-factory';
-import {_ContentSelector} from '../src/content-selector';
 import {DOM} from 'aurelia-pal';
 
 describe('view-slot', () => {
@@ -162,7 +161,7 @@ describe('view-slot', () => {
         expect(viewSlot.children[1]).toEqual(thirdView);
         expect(viewSlot.children[2]).toEqual(secondView);
       });
-      
+
       it('moves a view to the beginning of children when contains 3 already', () => {
         viewSlot.add(view);
         viewSlot.add(secondView);
@@ -173,7 +172,7 @@ describe('view-slot', () => {
         expect(viewSlot.children[1]).toEqual(view);
         expect(viewSlot.children[2]).toEqual(secondView);
       });
-      
+
       it('moves a view to the end of children when contains 3 already', () => {
         viewSlot.add(view);
         viewSlot.add(secondView);
@@ -279,80 +278,6 @@ describe('view-slot', () => {
         viewSlot.add(view);
         viewSlot.detached();
         expect(view.isAttached).toEqual(false);
-      });
-    });
-  });
-
-  describe('when using contentSelectors', () => {
-    let contentSelectors;
-    let contentSelectorOne;
-    let view;
-    let compilerInstructions;
-    let resources;
-    let factory;
-
-    beforeEach(() => {
-      compilerInstructions = {};
-      resources = container.get(ViewResources);
-      factory = new ViewFactory(parent, compilerInstructions, resources);
-      view = factory.create();
-
-      contentSelectors = [];
-      contentSelectorOne = new _ContentSelector(parent, '.test');
-      contentSelectors.push(contentSelectorOne);
-      viewSlot._installContentSelectors(contentSelectors);
-    });
-
-    describe('._installContentSelectors', () => {
-      it('installs content slots', () => {
-        expect(viewSlot.contentSelectors).toEqual(contentSelectors);
-      });
-    });
-
-    describe('._contentSelectorAdd', () => {
-      it ('calls applySelectors when adding a content slot', () => {
-        spyOn(_ContentSelector, 'applySelectors');
-        viewSlot._contentSelectorAdd(view);
-        expect(_ContentSelector.applySelectors).toHaveBeenCalled();
-      });
-
-      it ('adds the view to the children', () => {
-        expect(viewSlot.children.length).toEqual(0);
-        viewSlot._contentSelectorAdd(view);
-        expect(viewSlot.children.length).toEqual(1);
-      });
-
-      it ('calls attached method on the view if already attached', () => {
-        spyOn(view, 'attached');
-        viewSlot.attached();
-        viewSlot._contentSelectorAdd(view);
-        expect(view.attached).toHaveBeenCalled();
-      });
-    });
-
-    describe('._contentSelectorRemove', () => {
-      beforeEach(() => {
-        viewSlot._contentSelectorAdd(view);
-        expect(viewSlot.children.length).toEqual(1);
-      });
-
-      it('removes view from the children', () => {
-        viewSlot._contentSelectorRemove(view);
-        expect(viewSlot.children.length).toEqual(0);
-      });
-
-      it('removes view fragment from view.contentSelectors', () => {
-        let firstSlot = viewSlot.contentSelectors[0];
-        expect(firstSlot.groups.length).toEqual(1);
-        viewSlot._contentSelectorRemove(view);
-        expect(firstSlot.groups.length).toEqual(0);
-      });
-
-      it ('calls detached method on the view if already attached', () => {
-        spyOn(view, 'detached');
-        viewSlot.attached();
-        viewSlot._contentSelectorRemove(view);
-        expect(view.detached).toHaveBeenCalled();
       });
     });
   });

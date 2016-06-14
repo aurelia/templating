@@ -228,5 +228,7 @@ export class CompositionEngine {
 
       return Promise.resolve(null);
     }
+
+    return Promise.resolve(null);
   }
 }

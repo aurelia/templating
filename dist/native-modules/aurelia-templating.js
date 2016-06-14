@@ -1,4 +1,10 @@
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
 var _class3, _temp, _dec, _class4, _dec2, _class5, _dec3, _class6, _dec4, _class7, _dec5, _class8, _class9, _temp2, _dec6, _class10, _class11, _temp3, _class13, _dec7, _class15, _dec8, _class16, _dec9, _class18, _dec10, _class19, _dec11, _class20;
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
+
 
 import * as LogManager from 'aurelia-logging';
 import { DOM, PLATFORM, FEATURE } from 'aurelia-pal';
@@ -9,7 +15,7 @@ import { inject, Container, resolver } from 'aurelia-dependency-injection';
 import { Binding, createOverrideContext, ValueConverterResource, BindingBehaviorResource, subscriberCollection, bindingMode, ObserverLocator, EventManager } from 'aurelia-binding';
 import { TaskQueue } from 'aurelia-task-queue';
 
-export const animationEvent = {
+export var animationEvent = {
   enterBegin: 'animation:enter:begin',
   enterActive: 'animation:enter:active',
   enterDone: 'animation:enter:done',
@@ -41,90 +47,102 @@ export const animationEvent = {
   sequenceDone: 'animation:sequence:done'
 };
 
-export let Animator = class Animator {
-  enter(element) {
-    return Promise.resolve(false);
+export var Animator = function () {
+  function Animator() {
+    
   }
 
-  leave(element) {
+  Animator.prototype.enter = function enter(element) {
     return Promise.resolve(false);
-  }
+  };
 
-  removeClass(element, className) {
+  Animator.prototype.leave = function leave(element) {
+    return Promise.resolve(false);
+  };
+
+  Animator.prototype.removeClass = function removeClass(element, className) {
     element.classList.remove(className);
     return Promise.resolve(false);
-  }
+  };
 
-  addClass(element, className) {
+  Animator.prototype.addClass = function addClass(element, className) {
     element.classList.add(className);
     return Promise.resolve(false);
-  }
+  };
 
-  animate(element, className) {
+  Animator.prototype.animate = function animate(element, className) {
     return Promise.resolve(false);
-  }
+  };
 
-  runSequence(animations) {}
+  Animator.prototype.runSequence = function runSequence(animations) {};
 
-  registerEffect(effectName, properties) {}
+  Animator.prototype.registerEffect = function registerEffect(effectName, properties) {};
 
-  unregisterEffect(effectName) {}
-};
+  Animator.prototype.unregisterEffect = function unregisterEffect(effectName) {};
 
-export let CompositionTransaction = class CompositionTransaction {
-  constructor() {
+  return Animator;
+}();
+
+export var CompositionTransaction = function () {
+  function CompositionTransaction() {
+    
+
     this._ownershipToken = null;
     this._compositionCount = 0;
   }
 
-  tryCapture() {
+  CompositionTransaction.prototype.tryCapture = function tryCapture() {
     if (this._ownershipToken !== null) {
       return null;
     }
 
     return this._ownershipToken = this._createOwnershipToken();
-  }
+  };
 
-  enlist() {
-    let that = this;
+  CompositionTransaction.prototype.enlist = function enlist() {
+    var that = this;
 
     that._compositionCount++;
 
     return {
-      done() {
+      done: function done() {
         that._compositionCount--;
         that._tryCompleteTransaction();
       }
     };
-  }
+  };
 
-  _tryCompleteTransaction() {
+  CompositionTransaction.prototype._tryCompleteTransaction = function _tryCompleteTransaction() {
     if (this._compositionCount <= 0) {
       this._compositionCount = 0;
 
       if (this._ownershipToken !== null) {
-        let capture = this._ownershipToken;
+        var capture = this._ownershipToken;
         this._ownershipToken = null;
         capture._resolve();
       }
     }
-  }
+  };
 
-  _createOwnershipToken() {
-    let token = {};
+  CompositionTransaction.prototype._createOwnershipToken = function _createOwnershipToken() {
+    var _this = this;
 
-    token.waitForCompositionComplete = () => {
-      this._tryCompleteTransaction();
-      return new Promise((resolve, reject) => {
+    var token = {};
+
+    token.waitForCompositionComplete = function () {
+      _this._tryCompleteTransaction();
+      return new Promise(function (resolve, reject) {
         token._resolve = resolve;
       });
     };
 
     return token;
-  }
-};
+  };
 
-const capitalMatcher = /([A-Z])/g;
+  return CompositionTransaction;
+}();
+
+var capitalMatcher = /([A-Z])/g;
 
 function addHyphenAndLower(char) {
   return '-' + char.toLowerCase();
@@ -138,20 +156,22 @@ export function _isAllWhitespace(node) {
   return !(node.auInterpolationTarget || /[^\t\n\r ]/.test(node.textContent));
 }
 
-export let ElementEvents = class ElementEvents {
-  constructor(element) {
+export var ElementEvents = function () {
+  function ElementEvents(element) {
+    
+
     this.element = element;
     this.subscriptions = {};
   }
 
-  _enqueueHandler(handler) {
+  ElementEvents.prototype._enqueueHandler = function _enqueueHandler(handler) {
     this.subscriptions[handler.eventName] = this.subscriptions[handler.eventName] || [];
     this.subscriptions[handler.eventName].push(handler);
-  }
+  };
 
-  _dequeueHandler(handler) {
-    let index;
-    let subscriptions = this.subscriptions[handler.eventName];
+  ElementEvents.prototype._dequeueHandler = function _dequeueHandler(handler) {
+    var index = void 0;
+    var subscriptions = this.subscriptions[handler.eventName];
     if (subscriptions) {
       index = subscriptions.indexOf(handler);
       if (index > -1) {
@@ -159,21 +179,29 @@ export let ElementEvents = class ElementEvents {
       }
     }
     return handler;
-  }
+  };
 
-  publish(eventName, detail = {}, bubbles = true, cancelable = true) {
-    let event = DOM.createCustomEvent(eventName, { cancelable, bubbles, detail });
+  ElementEvents.prototype.publish = function publish(eventName) {
+    var detail = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+    var bubbles = arguments.length <= 2 || arguments[2] === undefined ? true : arguments[2];
+    var cancelable = arguments.length <= 3 || arguments[3] === undefined ? true : arguments[3];
+
+    var event = DOM.createCustomEvent(eventName, { cancelable: cancelable, bubbles: bubbles, detail: detail });
     this.element.dispatchEvent(event);
-  }
+  };
 
-  subscribe(eventName, handler, bubbles = true) {
+  ElementEvents.prototype.subscribe = function subscribe(eventName, handler) {
+    var _this2 = this;
+
+    var bubbles = arguments.length <= 2 || arguments[2] === undefined ? true : arguments[2];
+
     if (handler && typeof handler === 'function') {
       handler.eventName = eventName;
       handler.handler = handler;
       handler.bubbles = bubbles;
-      handler.dispose = () => {
-        this.element.removeEventListener(eventName, handler, bubbles);
-        this._dequeueHandler(handler);
+      handler.dispose = function () {
+        _this2.element.removeEventListener(eventName, handler, bubbles);
+        _this2._dequeueHandler(handler);
       };
       this.element.addEventListener(eventName, handler, bubbles);
       this._enqueueHandler(handler);
@@ -181,26 +209,36 @@ export let ElementEvents = class ElementEvents {
     }
 
     return undefined;
-  }
+  };
 
-  subscribeOnce(eventName, handler, bubbles = true) {
+  ElementEvents.prototype.subscribeOnce = function subscribeOnce(eventName, handler) {
+    var _this3 = this;
+
+    var bubbles = arguments.length <= 2 || arguments[2] === undefined ? true : arguments[2];
+
     if (handler && typeof handler === 'function') {
-      let _handler = event => {
-        handler(event);
-        _handler.dispose();
-      };
-      return this.subscribe(eventName, _handler, bubbles);
+      var _ret = function () {
+        var _handler = function _handler(event) {
+          handler(event);
+          _handler.dispose();
+        };
+        return {
+          v: _this3.subscribe(eventName, _handler, bubbles)
+        };
+      }();
+
+      if ((typeof _ret === 'undefined' ? 'undefined' : _typeof(_ret)) === "object") return _ret.v;
     }
 
     return undefined;
-  }
+  };
 
-  dispose(eventName) {
+  ElementEvents.prototype.dispose = function dispose(eventName) {
     if (eventName && typeof eventName === 'string') {
-      let subscriptions = this.subscriptions[eventName];
+      var subscriptions = this.subscriptions[eventName];
       if (subscriptions) {
         while (subscriptions.length) {
-          let subscription = subscriptions.pop();
+          var subscription = subscriptions.pop();
           if (subscription) {
             subscription.dispose();
           }
@@ -209,80 +247,91 @@ export let ElementEvents = class ElementEvents {
     } else {
       this.disposeAll();
     }
-  }
+  };
 
-  disposeAll() {
-    for (let key in this.subscriptions) {
+  ElementEvents.prototype.disposeAll = function disposeAll() {
+    for (var key in this.subscriptions) {
       this.dispose(key);
     }
-  }
-};
+  };
 
-export let ResourceLoadContext = class ResourceLoadContext {
-  constructor() {
+  return ElementEvents;
+}();
+
+export var ResourceLoadContext = function () {
+  function ResourceLoadContext() {
+    
+
     this.dependencies = {};
   }
 
-  addDependency(url) {
+  ResourceLoadContext.prototype.addDependency = function addDependency(url) {
     this.dependencies[url] = true;
-  }
+  };
 
-  hasDependency(url) {
+  ResourceLoadContext.prototype.hasDependency = function hasDependency(url) {
     return url in this.dependencies;
-  }
-};
+  };
 
-export let ViewCompileInstruction = class ViewCompileInstruction {
-  constructor(targetShadowDOM = false, compileSurrogate = false) {
-    this.targetShadowDOM = targetShadowDOM;
-    this.compileSurrogate = compileSurrogate;
-    this.associatedModuleId = null;
-  }
+  return ResourceLoadContext;
+}();
+
+export var ViewCompileInstruction = function ViewCompileInstruction() {
+  var targetShadowDOM = arguments.length <= 0 || arguments[0] === undefined ? false : arguments[0];
+  var compileSurrogate = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
+
+  
+
+  this.targetShadowDOM = targetShadowDOM;
+  this.compileSurrogate = compileSurrogate;
+  this.associatedModuleId = null;
 };
 
 ViewCompileInstruction.normal = new ViewCompileInstruction();
 
-export let BehaviorInstruction = class BehaviorInstruction {
-  static enhance() {
-    let instruction = new BehaviorInstruction();
+export var BehaviorInstruction = function () {
+  BehaviorInstruction.enhance = function enhance() {
+    var instruction = new BehaviorInstruction();
     instruction.enhance = true;
     return instruction;
-  }
+  };
 
-  static unitTest(type, attributes) {
-    let instruction = new BehaviorInstruction();
+  BehaviorInstruction.unitTest = function unitTest(type, attributes) {
+    var instruction = new BehaviorInstruction();
     instruction.type = type;
     instruction.attributes = attributes || {};
     return instruction;
-  }
+  };
 
-  static element(node, type) {
-    let instruction = new BehaviorInstruction();
+  BehaviorInstruction.element = function element(node, type) {
+    var instruction = new BehaviorInstruction();
     instruction.type = type;
     instruction.attributes = {};
     instruction.anchorIsContainer = !(node.hasAttribute('containerless') || type.containerless);
     instruction.initiatedByBehavior = true;
     return instruction;
-  }
+  };
 
-  static attribute(attrName, type) {
-    let instruction = new BehaviorInstruction();
+  BehaviorInstruction.attribute = function attribute(attrName, type) {
+    var instruction = new BehaviorInstruction();
     instruction.attrName = attrName;
     instruction.type = type || null;
     instruction.attributes = {};
     return instruction;
-  }
+  };
 
-  static dynamic(host, viewModel, viewFactory) {
-    let instruction = new BehaviorInstruction();
+  BehaviorInstruction.dynamic = function dynamic(host, viewModel, viewFactory) {
+    var instruction = new BehaviorInstruction();
     instruction.host = host;
     instruction.viewModel = viewModel;
     instruction.viewFactory = viewFactory;
     instruction.inheritBindingContext = true;
     return instruction;
-  }
+  };
 
-  constructor() {
+  function BehaviorInstruction() {
+    
+
     this.initiatedByBehavior = false;
     this.enhance = false;
     this.partReplacements = null;
@@ -298,26 +347,28 @@ export let BehaviorInstruction = class BehaviorInstruction {
     this.attrName = null;
     this.inheritBindingContext = false;
   }
-};
+
+  return BehaviorInstruction;
+}();
 
 BehaviorInstruction.normal = new BehaviorInstruction();
 
-export let TargetInstruction = (_temp = _class3 = class TargetInstruction {
-  static shadowSlot(parentInjectorId) {
-    let instruction = new TargetInstruction();
+export var TargetInstruction = (_temp = _class3 = function () {
+  TargetInstruction.shadowSlot = function shadowSlot(parentInjectorId) {
+    var instruction = new TargetInstruction();
     instruction.parentInjectorId = parentInjectorId;
     instruction.shadowSlot = true;
     return instruction;
-  }
+  };
 
-  static contentExpression(expression) {
-    let instruction = new TargetInstruction();
+  TargetInstruction.contentExpression = function contentExpression(expression) {
+    var instruction = new TargetInstruction();
     instruction.contentExpression = expression;
     return instruction;
-  }
+  };
 
-  static lifting(parentInjectorId, liftingInstruction) {
-    let instruction = new TargetInstruction();
+  TargetInstruction.lifting = function lifting(parentInjectorId, liftingInstruction) {
+    var instruction = new TargetInstruction();
     instruction.parentInjectorId = parentInjectorId;
     instruction.expressions = TargetInstruction.noExpressions;
     instruction.behaviorInstructions = [liftingInstruction];
@@ -325,10 +376,10 @@ export let TargetInstruction = (_temp = _class3 = class TargetInstruction {
     instruction.providers = [liftingInstruction.type.target];
     instruction.lifting = true;
     return instruction;
-  }
+  };
 
-  static normal(injectorId, parentInjectorId, providers, behaviorInstructions, expressions, elementInstruction) {
-    let instruction = new TargetInstruction();
+  TargetInstruction.normal = function normal(injectorId, parentInjectorId, providers, behaviorInstructions, expressions, elementInstruction) {
+    var instruction = new TargetInstruction();
     instruction.injectorId = injectorId;
     instruction.parentInjectorId = parentInjectorId;
     instruction.providers = providers;
@@ -337,18 +388,20 @@ export let TargetInstruction = (_temp = _class3 = class TargetInstruction {
     instruction.anchorIsContainer = elementInstruction ? elementInstruction.anchorIsContainer : true;
     instruction.elementInstruction = elementInstruction;
     return instruction;
-  }
+  };
 
-  static surrogate(providers, behaviorInstructions, expressions, values) {
-    let instruction = new TargetInstruction();
+  TargetInstruction.surrogate = function surrogate(providers, behaviorInstructions, expressions, values) {
+    var instruction = new TargetInstruction();
     instruction.expressions = expressions;
     instruction.behaviorInstructions = behaviorInstructions;
     instruction.providers = providers;
     instruction.values = values;
     return instruction;
-  }
+  };
 
-  constructor() {
+  function TargetInstruction() {
+    
+
     this.injectorId = null;
     this.parentInjectorId = null;
 
@@ -370,71 +423,89 @@ export let TargetInstruction = (_temp = _class3 = class TargetInstruction {
 
     this.values = null;
   }
-}, _class3.noExpressions = Object.freeze([]), _temp);
 
-export const viewStrategy = protocol.create('aurelia:view-strategy', {
-  validate(target) {
+  return TargetInstruction;
+}(), _class3.noExpressions = Object.freeze([]), _temp);
+
+export var viewStrategy = protocol.create('aurelia:view-strategy', {
+  validate: function validate(target) {
     if (!(typeof target.loadViewFactory === 'function')) {
       return 'View strategies must implement: loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewFactory>';
     }
 
     return true;
   },
-  compose(target) {
+  compose: function compose(target) {
     if (!(typeof target.makeRelativeTo === 'function')) {
       target.makeRelativeTo = PLATFORM.noop;
     }
   }
 });
 
-export let RelativeViewStrategy = (_dec = viewStrategy(), _dec(_class4 = class RelativeViewStrategy {
-  constructor(path) {
+export var RelativeViewStrategy = (_dec = viewStrategy(), _dec(_class4 = function () {
+  function RelativeViewStrategy(path) {
+    
+
     this.path = path;
     this.absolutePath = null;
   }
 
-  loadViewFactory(viewEngine, compileInstruction, loadContext) {
+  RelativeViewStrategy.prototype.loadViewFactory = function loadViewFactory(viewEngine, compileInstruction, loadContext) {
     if (this.absolutePath === null && this.moduleId) {
       this.absolutePath = relativeToFile(this.path, this.moduleId);
     }
 
     compileInstruction.associatedModuleId = this.moduleId;
     return viewEngine.loadViewFactory(this.absolutePath || this.path, compileInstruction, loadContext);
-  }
+  };
 
-  makeRelativeTo(file) {
+  RelativeViewStrategy.prototype.makeRelativeTo = function makeRelativeTo(file) {
     if (this.absolutePath === null) {
       this.absolutePath = relativeToFile(this.path, file);
     }
-  }
-}) || _class4);
+  };
 
-export let ConventionalViewStrategy = (_dec2 = viewStrategy(), _dec2(_class5 = class ConventionalViewStrategy {
-  constructor(viewLocator, origin) {
+  return RelativeViewStrategy;
+}()) || _class4);
+
+export var ConventionalViewStrategy = (_dec2 = viewStrategy(), _dec2(_class5 = function () {
+  function ConventionalViewStrategy(viewLocator, origin) {
+    
+
     this.moduleId = origin.moduleId;
     this.viewUrl = viewLocator.convertOriginToViewUrl(origin);
   }
 
-  loadViewFactory(viewEngine, compileInstruction, loadContext) {
+  ConventionalViewStrategy.prototype.loadViewFactory = function loadViewFactory(viewEngine, compileInstruction, loadContext) {
     compileInstruction.associatedModuleId = this.moduleId;
     return viewEngine.loadViewFactory(this.viewUrl, compileInstruction, loadContext);
-  }
-}) || _class5);
+  };
 
-export let NoViewStrategy = (_dec3 = viewStrategy(), _dec3(_class6 = class NoViewStrategy {
-  loadViewFactory(viewEngine, compileInstruction, loadContext) {
+  return ConventionalViewStrategy;
+}()) || _class5);
+
+export var NoViewStrategy = (_dec3 = viewStrategy(), _dec3(_class6 = function () {
+  function NoViewStrategy() {
+    
+  }
+
+  NoViewStrategy.prototype.loadViewFactory = function loadViewFactory(viewEngine, compileInstruction, loadContext) {
     return Promise.resolve(null);
-  }
-}) || _class6);
+  };
 
-export let TemplateRegistryViewStrategy = (_dec4 = viewStrategy(), _dec4(_class7 = class TemplateRegistryViewStrategy {
-  constructor(moduleId, entry) {
+  return NoViewStrategy;
+}()) || _class6);
+
+export var TemplateRegistryViewStrategy = (_dec4 = viewStrategy(), _dec4(_class7 = function () {
+  function TemplateRegistryViewStrategy(moduleId, entry) {
+    
+
     this.moduleId = moduleId;
     this.entry = entry;
   }
 
-  loadViewFactory(viewEngine, compileInstruction, loadContext) {
-    let entry = this.entry;
+  TemplateRegistryViewStrategy.prototype.loadViewFactory = function loadViewFactory(viewEngine, compileInstruction, loadContext) {
+    var entry = this.entry;
 
     if (entry.factoryIsReady) {
       return Promise.resolve(entry.factory);
@@ -442,19 +513,23 @@ export let TemplateRegistryViewStrategy = (_dec4 = viewStrategy(), _dec4(_class7
 
     compileInstruction.associatedModuleId = this.moduleId;
     return viewEngine.loadViewFactory(entry, compileInstruction, loadContext);
-  }
-}) || _class7);
+  };
 
-export let InlineViewStrategy = (_dec5 = viewStrategy(), _dec5(_class8 = class InlineViewStrategy {
-  constructor(markup, dependencies, dependencyBaseUrl) {
+  return TemplateRegistryViewStrategy;
+}()) || _class7);
+
+export var InlineViewStrategy = (_dec5 = viewStrategy(), _dec5(_class8 = function () {
+  function InlineViewStrategy(markup, dependencies, dependencyBaseUrl) {
+    
+
     this.markup = markup;
     this.dependencies = dependencies || null;
     this.dependencyBaseUrl = dependencyBaseUrl || '';
   }
 
-  loadViewFactory(viewEngine, compileInstruction, loadContext) {
-    let entry = this.entry;
-    let dependencies = this.dependencies;
+  InlineViewStrategy.prototype.loadViewFactory = function loadViewFactory(viewEngine, compileInstruction, loadContext) {
+    var entry = this.entry;
+    var dependencies = this.dependencies;
 
     if (entry && entry.factoryIsReady) {
       return Promise.resolve(entry.factory);
@@ -464,8 +539,8 @@ export let InlineViewStrategy = (_dec5 = viewStrategy(), _dec5(_class8 = class I
     entry.template = DOM.createTemplateFromMarkup(this.markup);
 
     if (dependencies !== null) {
-      for (let i = 0, ii = dependencies.length; i < ii; ++i) {
-        let current = dependencies[i];
+      for (var i = 0, ii = dependencies.length; i < ii; ++i) {
+        var current = dependencies[i];
 
         if (typeof current === 'string' || typeof current === 'function') {
           entry.addDependency(current);
@@ -477,17 +552,23 @@ export let InlineViewStrategy = (_dec5 = viewStrategy(), _dec5(_class8 = class I
 
     compileInstruction.associatedModuleId = this.moduleId;
     return viewEngine.loadViewFactory(entry, compileInstruction, loadContext);
-  }
-}) || _class8);
+  };
 
-export let ViewLocator = (_temp2 = _class9 = class ViewLocator {
-  getViewStrategy(value) {
+  return InlineViewStrategy;
+}()) || _class8);
+
+export var ViewLocator = (_temp2 = _class9 = function () {
+  function ViewLocator() {
+    
+  }
+
+  ViewLocator.prototype.getViewStrategy = function getViewStrategy(value) {
     if (!value) {
       return null;
     }
 
-    if (typeof value === 'object' && 'getViewStrategy' in value) {
-      let origin = Origin.get(value.constructor);
+    if ((typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object' && 'getViewStrategy' in value) {
+      var _origin = Origin.get(value.constructor);
 
       value = value.getViewStrategy();
 
@@ -497,8 +578,8 @@ export let ViewLocator = (_temp2 = _class9 = class ViewLocator {
 
       viewStrategy.assert(value);
 
-      if (origin) {
-        value.makeRelativeTo(origin.moduleId);
+      if (_origin) {
+        value.makeRelativeTo(_origin.moduleId);
       }
 
       return value;
@@ -516,8 +597,8 @@ export let ViewLocator = (_temp2 = _class9 = class ViewLocator {
       value = value.constructor;
     }
 
-    let origin = Origin.get(value);
-    let strategy = metadata.get(ViewLocator.viewStrategyMetadataKey, value);
+    var origin = Origin.get(value);
+    var strategy = metadata.get(ViewLocator.viewStrategyMetadataKey, value);
 
     if (!strategy) {
       if (!origin) {
@@ -530,50 +611,64 @@ export let ViewLocator = (_temp2 = _class9 = class ViewLocator {
     }
 
     return strategy;
-  }
+  };
 
-  createFallbackViewStrategy(origin) {
+  ViewLocator.prototype.createFallbackViewStrategy = function createFallbackViewStrategy(origin) {
     return new ConventionalViewStrategy(this, origin);
-  }
+  };
 
-  convertOriginToViewUrl(origin) {
-    let moduleId = origin.moduleId;
-    let id = moduleId.endsWith('.js') || moduleId.endsWith('.ts') ? moduleId.substring(0, moduleId.length - 3) : moduleId;
+  ViewLocator.prototype.convertOriginToViewUrl = function convertOriginToViewUrl(origin) {
+    var moduleId = origin.moduleId;
+    var id = moduleId.endsWith('.js') || moduleId.endsWith('.ts') ? moduleId.substring(0, moduleId.length - 3) : moduleId;
     return id + '.html';
-  }
-}, _class9.viewStrategyMetadataKey = 'aurelia:view-strategy', _temp2);
+  };
+
+  return ViewLocator;
+}(), _class9.viewStrategyMetadataKey = 'aurelia:view-strategy', _temp2);
 
 function mi(name) {
-  throw new Error(`BindingLanguage must implement ${ name }().`);
+  throw new Error('BindingLanguage must implement ' + name + '().');
 }
 
-export let BindingLanguage = class BindingLanguage {
-  inspectAttribute(resources, elementName, attrName, attrValue) {
+export var BindingLanguage = function () {
+  function BindingLanguage() {
+    
+  }
+
+  BindingLanguage.prototype.inspectAttribute = function inspectAttribute(resources, elementName, attrName, attrValue) {
     mi('inspectAttribute');
-  }
+  };
 
-  createAttributeInstruction(resources, element, info, existingInstruction) {
+  BindingLanguage.prototype.createAttributeInstruction = function createAttributeInstruction(resources, element, info, existingInstruction) {
     mi('createAttributeInstruction');
-  }
+  };
 
-  inspectTextContent(resources, value) {
+  BindingLanguage.prototype.inspectTextContent = function inspectTextContent(resources, value) {
     mi('inspectTextContent');
-  }
-};
+  };
 
-let noNodes = Object.freeze([]);
+  return BindingLanguage;
+}();
 
-export let SlotCustomAttribute = (_dec6 = inject(DOM.Element), _dec6(_class10 = class SlotCustomAttribute {
-  constructor(element) {
+var noNodes = Object.freeze([]);
+
+export var SlotCustomAttribute = (_dec6 = inject(DOM.Element), _dec6(_class10 = function () {
+  function SlotCustomAttribute(element) {
+    
+
     this.element = element;
     this.element.auSlotAttribute = this;
   }
 
-  valueChanged(newValue, oldValue) {}
-}) || _class10);
+  SlotCustomAttribute.prototype.valueChanged = function valueChanged(newValue, oldValue) {};
 
-export let PassThroughSlot = class PassThroughSlot {
-  constructor(anchor, name, destinationName, fallbackFactory) {
+  return SlotCustomAttribute;
+}()) || _class10);
+
+export var PassThroughSlot = function () {
+  function PassThroughSlot(anchor, name, destinationName, fallbackFactory) {
+    
+
     this.anchor = anchor;
     this.anchor.viewSlot = this;
     this.name = name;
@@ -583,31 +678,27 @@ export let PassThroughSlot = class PassThroughSlot {
     this.projections = 0;
     this.contentView = null;
 
-    let attr = new SlotCustomAttribute(this.anchor);
+    var attr = new SlotCustomAttribute(this.anchor);
     attr.value = this.destinationName;
   }
 
-  get needsFallbackRendering() {
-    return this.fallbackFactory && this.projections === 0;
-  }
-
-  renderFallbackContent(view, nodes, projectionSource, index) {
+  PassThroughSlot.prototype.renderFallbackContent = function renderFallbackContent(view, nodes, projectionSource, index) {
     if (this.contentView === null) {
       this.contentView = this.fallbackFactory.create(this.ownerView.container);
       this.contentView.bind(this.ownerView.bindingContext, this.ownerView.overrideContext);
 
-      let slots = Object.create(null);
+      var slots = Object.create(null);
       slots[this.destinationSlot.name] = this.destinationSlot;
 
       ShadowDOM.distributeView(this.contentView, slots, projectionSource, index, this.destinationSlot.name);
     }
-  }
+  };
 
-  passThroughTo(destinationSlot) {
+  PassThroughSlot.prototype.passThroughTo = function passThroughTo(destinationSlot) {
     this.destinationSlot = destinationSlot;
-  }
+  };
 
-  addNode(view, node, projectionSource, index) {
+  PassThroughSlot.prototype.addNode = function addNode(view, node, projectionSource, index) {
     if (this.contentView !== null) {
       this.contentView.removeNodes();
       this.contentView.detached();
@@ -622,61 +713,72 @@ export let PassThroughSlot = class PassThroughSlot {
 
     this.projections++;
     this.destinationSlot.addNode(view, node, projectionSource, index);
-  }
+  };
 
-  removeView(view, projectionSource) {
+  PassThroughSlot.prototype.removeView = function removeView(view, projectionSource) {
     this.projections--;
     this.destinationSlot.removeView(view, projectionSource);
 
     if (this.needsFallbackRendering) {
       this.renderFallbackContent(null, noNodes, projectionSource);
     }
-  }
+  };
 
-  removeAll(projectionSource) {
+  PassThroughSlot.prototype.removeAll = function removeAll(projectionSource) {
     this.projections = 0;
     this.destinationSlot.removeAll(projectionSource);
 
     if (this.needsFallbackRendering) {
       this.renderFallbackContent(null, noNodes, projectionSource);
     }
-  }
+  };
 
-  projectFrom(view, projectionSource) {
+  PassThroughSlot.prototype.projectFrom = function projectFrom(view, projectionSource) {
     this.destinationSlot.projectFrom(view, projectionSource);
-  }
+  };
 
-  created(ownerView) {
+  PassThroughSlot.prototype.created = function created(ownerView) {
     this.ownerView = ownerView;
-  }
+  };
 
-  bind(view) {
+  PassThroughSlot.prototype.bind = function bind(view) {
     if (this.contentView) {
       this.contentView.bind(view.bindingContext, view.overrideContext);
     }
-  }
+  };
 
-  attached() {
+  PassThroughSlot.prototype.attached = function attached() {
     if (this.contentView) {
       this.contentView.attached();
     }
-  }
+  };
 
-  detached() {
+  PassThroughSlot.prototype.detached = function detached() {
     if (this.contentView) {
       this.contentView.detached();
     }
-  }
+  };
 
-  unbind() {
+  PassThroughSlot.prototype.unbind = function unbind() {
     if (this.contentView) {
       this.contentView.unbind();
     }
-  }
-};
+  };
 
-export let ShadowSlot = class ShadowSlot {
-  constructor(anchor, name, fallbackFactory) {
+  _createClass(PassThroughSlot, [{
+    key: 'needsFallbackRendering',
+    get: function get() {
+      return this.fallbackFactory && this.projections === 0;
+    }
+  }]);
+
+  return PassThroughSlot;
+}();
+
+export var ShadowSlot = function () {
+  function ShadowSlot(anchor, name, fallbackFactory) {
+    
+
     this.anchor = anchor;
     this.anchor.isContentProjectionSource = true;
     this.anchor.viewSlot = this;
@@ -689,11 +791,7 @@ export let ShadowSlot = class ShadowSlot {
     this.destinationSlots = null;
   }
 
-  get needsFallbackRendering() {
-    return this.fallbackFactory && this.projections === 0;
-  }
-
-  addNode(view, node, projectionSource, index, destination) {
+  ShadowSlot.prototype.addNode = function addNode(view, node, projectionSource, index, destination) {
     if (this.contentView !== null) {
       this.contentView.removeNodes();
       this.contentView.detached();
@@ -713,31 +811,33 @@ export let ShadowSlot = class ShadowSlot {
       node.auProjectionSource = projectionSource;
       node.auAssignedSlot = this;
 
-      let anchor = this._findAnchor(view, node, projectionSource, index);
-      let parent = anchor.parentNode;
+      var anchor = this._findAnchor(view, node, projectionSource, index);
+      var parent = anchor.parentNode;
 
       parent.insertBefore(node, anchor);
       this.children.push(node);
       this.projections++;
     }
-  }
+  };
 
-  removeView(view, projectionSource) {
+  ShadowSlot.prototype.removeView = function removeView(view, projectionSource) {
     if (this.destinationSlots !== null) {
       ShadowDOM.undistributeView(view, this.destinationSlots, this);
     } else if (this.contentView && this.contentView.hasSlots) {
       ShadowDOM.undistributeView(view, this.contentView.slots, projectionSource);
     } else {
-      let found = this.children.find(x => x.auSlotProjectFrom === projectionSource);
+      var found = this.children.find(function (x) {
+        return x.auSlotProjectFrom === projectionSource;
+      });
       if (found) {
-        let children = found.auProjectionChildren;
+        var _children = found.auProjectionChildren;
 
-        for (let i = 0, ii = children.length; i < ii; ++i) {
-          let child = children[i];
+        for (var i = 0, ii = _children.length; i < ii; ++i) {
+          var _child = _children[i];
 
-          if (child.auOwnerView === view) {
-            children.splice(i, 1);
-            view.fragment.appendChild(child);
+          if (_child.auOwnerView === view) {
+            _children.splice(i, 1);
+            view.fragment.appendChild(_child);
             i--;ii--;
             this.projections--;
           }
@@ -748,21 +848,23 @@ export let ShadowSlot = class ShadowSlot {
         }
       }
     }
-  }
+  };
 
-  removeAll(projectionSource) {
+  ShadowSlot.prototype.removeAll = function removeAll(projectionSource) {
     if (this.destinationSlots !== null) {
       ShadowDOM.undistributeAll(this.destinationSlots, this);
     } else if (this.contentView && this.contentView.hasSlots) {
       ShadowDOM.undistributeAll(this.contentView.slots, projectionSource);
     } else {
-      let found = this.children.find(x => x.auSlotProjectFrom === projectionSource);
+      var found = this.children.find(function (x) {
+        return x.auSlotProjectFrom === projectionSource;
+      });
 
       if (found) {
-        let children = found.auProjectionChildren;
-        for (let i = 0, ii = children.length; i < ii; ++i) {
-          let child = children[i];
-          child.auOwnerView.fragment.appendChild(child);
+        var _children2 = found.auProjectionChildren;
+        for (var i = 0, ii = _children2.length; i < ii; ++i) {
+          var _child2 = _children2[i];
+          _child2.auOwnerView.fragment.appendChild(_child2);
           this.projections--;
         }
 
@@ -773,26 +875,28 @@ export let ShadowSlot = class ShadowSlot {
         }
       }
     }
-  }
+  };
 
-  _findAnchor(view, node, projectionSource, index) {
+  ShadowSlot.prototype._findAnchor = function _findAnchor(view, node, projectionSource, index) {
     if (projectionSource) {
-      let found = this.children.find(x => x.auSlotProjectFrom === projectionSource);
+      var found = this.children.find(function (x) {
+        return x.auSlotProjectFrom === projectionSource;
+      });
       if (found) {
         if (index !== undefined) {
-          let children = found.auProjectionChildren;
-          let viewIndex = -1;
-          let lastView;
+          var _children3 = found.auProjectionChildren;
+          var viewIndex = -1;
+          var lastView = void 0;
 
-          for (let i = 0, ii = children.length; i < ii; ++i) {
-            let current = children[i];
+          for (var i = 0, ii = _children3.length; i < ii; ++i) {
+            var current = _children3[i];
 
             if (current.auOwnerView !== lastView) {
               viewIndex++;
               lastView = current.auOwnerView;
 
               if (viewIndex >= index && lastView !== view) {
-                children.splice(i, 0, node);
+                _children3.splice(i, 0, node);
                 return current;
               }
             }
@@ -805,15 +909,15 @@ export let ShadowSlot = class ShadowSlot {
     }
 
     return this.anchor;
-  }
+  };
 
-  projectTo(slots) {
+  ShadowSlot.prototype.projectTo = function projectTo(slots) {
     this.destinationSlots = slots;
-  }
+  };
 
-  projectFrom(view, projectionSource) {
-    let anchor = DOM.createComment('anchor');
-    let parent = this.anchor.parentNode;
+  ShadowSlot.prototype.projectFrom = function projectFrom(view, projectionSource) {
+    var anchor = DOM.createComment('anchor');
+    var parent = this.anchor.parentNode;
     anchor.auSlotProjectFrom = projectionSource;
     anchor.auOwnerView = view;
     anchor.auProjectionChildren = [];
@@ -825,9 +929,9 @@ export let ShadowSlot = class ShadowSlot {
     }
 
     this.projectFromAnchors.push(anchor);
-  }
+  };
 
-  renderFallbackContent(view, nodes, projectionSource, index) {
+  ShadowSlot.prototype.renderFallbackContent = function renderFallbackContent(view, nodes, projectionSource, index) {
     if (this.contentView === null) {
       this.contentView = this.fallbackFactory.create(this.ownerView.container);
       this.contentView.bind(this.ownerView.bindingContext, this.ownerView.overrideContext);
@@ -835,15 +939,15 @@ export let ShadowSlot = class ShadowSlot {
     }
 
     if (this.contentView.hasSlots) {
-      let slots = this.contentView.slots;
-      let projectFromAnchors = this.projectFromAnchors;
+      var slots = this.contentView.slots;
+      var projectFromAnchors = this.projectFromAnchors;
 
       if (projectFromAnchors !== null) {
-        for (let slotName in slots) {
-          let slot = slots[slotName];
+        for (var slotName in slots) {
+          var slot = slots[slotName];
 
-          for (let i = 0, ii = projectFromAnchors.length; i < ii; ++i) {
-            let anchor = projectFromAnchors[i];
+          for (var i = 0, ii = projectFromAnchors.length; i < ii; ++i) {
+            var anchor = projectFromAnchors[i];
             slot.projectFrom(anchor.auOwnerView, anchor.auSlotProjectFrom);
           }
         }
@@ -852,80 +956,92 @@ export let ShadowSlot = class ShadowSlot {
       this.fallbackSlots = slots;
       ShadowDOM.distributeNodes(view, nodes, slots, projectionSource, index);
     }
-  }
+  };
 
-  created(ownerView) {
+  ShadowSlot.prototype.created = function created(ownerView) {
     this.ownerView = ownerView;
-  }
+  };
 
-  bind(view) {
+  ShadowSlot.prototype.bind = function bind(view) {
     if (this.contentView) {
       this.contentView.bind(view.bindingContext, view.overrideContext);
     }
-  }
+  };
 
-  attached() {
+  ShadowSlot.prototype.attached = function attached() {
     if (this.contentView) {
       this.contentView.attached();
     }
-  }
+  };
 
-  detached() {
+  ShadowSlot.prototype.detached = function detached() {
     if (this.contentView) {
       this.contentView.detached();
     }
-  }
+  };
 
-  unbind() {
+  ShadowSlot.prototype.unbind = function unbind() {
     if (this.contentView) {
       this.contentView.unbind();
     }
+  };
+
+  _createClass(ShadowSlot, [{
+    key: 'needsFallbackRendering',
+    get: function get() {
+      return this.fallbackFactory && this.projections === 0;
+    }
+  }]);
+
+  return ShadowSlot;
+}();
+
+export var ShadowDOM = (_temp3 = _class11 = function () {
+  function ShadowDOM() {
+    
   }
-};
 
-export let ShadowDOM = (_temp3 = _class11 = class ShadowDOM {
-
-  static getSlotName(node) {
+  ShadowDOM.getSlotName = function getSlotName(node) {
     if (node.auSlotAttribute === undefined) {
       return ShadowDOM.defaultSlotKey;
     }
 
     return node.auSlotAttribute.value;
-  }
+  };
 
-  static distributeView(view, slots, projectionSource, index, destinationOverride) {
-    let childNodes = view.fragment.childNodes;
-    let ii = childNodes.length;
-    let nodes = new Array(ii);
+  ShadowDOM.distributeView = function distributeView(view, slots, projectionSource, index, destinationOverride) {
+    var childNodes = view.fragment.childNodes;
+    var ii = childNodes.length;
+    var nodes = new Array(ii);
 
-    for (let i = 0; i < ii; ++i) {
+    for (var i = 0; i < ii; ++i) {
       nodes[i] = childNodes[i];
     }
 
     ShadowDOM.distributeNodes(view, nodes, slots, projectionSource, index, destinationOverride);
-  }
+  };
 
-  static undistributeView(view, slots, projectionSource) {
-    for (let slotName in slots) {
+  ShadowDOM.undistributeView = function undistributeView(view, slots, projectionSource) {
+    for (var slotName in slots) {
       slots[slotName].removeView(view, projectionSource);
     }
-  }
+  };
 
-  static undistributeAll(slots, projectionSource) {
-    for (let slotName in slots) {
+  ShadowDOM.undistributeAll = function undistributeAll(slots, projectionSource) {
+    for (var slotName in slots) {
       slots[slotName].removeAll(projectionSource);
     }
-  }
+  };
 
-  static distributeNodes(view, nodes, slots, projectionSource, index, destinationOverride) {
-    for (let i = 0, ii = nodes.length; i < ii; ++i) {
-      let currentNode = nodes[i];
-      let nodeType = currentNode.nodeType;
+  ShadowDOM.distributeNodes = function distributeNodes(view, nodes, slots, projectionSource, index, destinationOverride) {
+    for (var i = 0, ii = nodes.length; i < ii; ++i) {
+      var currentNode = nodes[i];
+      var nodeType = currentNode.nodeType;
 
       if (currentNode.isContentProjectionSource) {
         currentNode.viewSlot.projectTo(slots);
 
-        for (let slotName in slots) {
+        for (var slotName in slots) {
           slots[slotName].projectFrom(view, currentNode.viewSlot);
         }
 
@@ -936,7 +1052,7 @@ export let ShadowDOM = (_temp3 = _class11 = class ShadowDOM {
           nodes.splice(i, 1);
           ii--;i--;
         } else {
-          let found = slots[destinationOverride || ShadowDOM.getSlotName(currentNode)];
+          var found = slots[destinationOverride || ShadowDOM.getSlotName(currentNode)];
 
           if (found) {
             found.addNode(view, currentNode, projectionSource, index);
@@ -950,25 +1066,27 @@ export let ShadowDOM = (_temp3 = _class11 = class ShadowDOM {
       }
     }
 
-    for (let slotName in slots) {
-      let slot = slots[slotName];
+    for (var _slotName in slots) {
+      var slot = slots[_slotName];
 
       if (slot.needsFallbackRendering) {
         slot.renderFallbackContent(view, nodes, projectionSource, index);
       }
     }
-  }
-}, _class11.defaultSlotKey = '__au-default-slot-key__', _temp3);
+  };
+
+  return ShadowDOM;
+}(), _class11.defaultSlotKey = '__au-default-slot-key__', _temp3);
 
 function register(lookup, name, resource, type) {
   if (!name) {
     return;
   }
 
-  let existing = lookup[name];
+  var existing = lookup[name];
   if (existing) {
     if (existing !== resource) {
-      throw new Error(`Attempted to register ${ type } when one with the same name already exists. Name: ${ name }.`);
+      throw new Error('Attempted to register ' + type + ' when one with the same name already exists. Name: ' + name + '.');
     }
 
     return;
@@ -977,8 +1095,10 @@ function register(lookup, name, resource, type) {
   lookup[name] = resource;
 }
 
-export let ViewResources = class ViewResources {
-  constructor(parent, viewUrl) {
+export var ViewResources = function () {
+  function ViewResources(parent, viewUrl) {
+    
+
     this.bindingLanguage = null;
 
     this.parent = parent || null;
@@ -997,11 +1117,11 @@ export let ViewResources = class ViewResources {
     this.beforeCompile = this.afterCompile = this.beforeCreate = this.afterCreate = this.beforeBind = this.beforeUnbind = false;
   }
 
-  _tryAddHook(obj, name) {
+  ViewResources.prototype._tryAddHook = function _tryAddHook(obj, name) {
     if (typeof obj[name] === 'function') {
-      let func = obj[name].bind(obj);
-      let counter = 1;
-      let callbackName;
+      var func = obj[name].bind(obj);
+      var counter = 1;
+      var callbackName = void 0;
 
       while (this[callbackName = name + counter.toString()] !== undefined) {
         counter++;
@@ -1010,9 +1130,9 @@ export let ViewResources = class ViewResources {
       this[name] = true;
       this[callbackName] = func;
     }
-  }
+  };
 
-  _invokeHook(name, one, two, three, four) {
+  ViewResources.prototype._invokeHook = function _invokeHook(name, one, two, three, four) {
     if (this.hasParent) {
       this.parent._invokeHook(name, one, two, three, four);
     }
@@ -1020,7 +1140,7 @@ export let ViewResources = class ViewResources {
     if (this[name]) {
       this[name + '1'](one, two, three, four);
 
-      let callbackName = name + '2';
+      var callbackName = name + '2';
       if (this[callbackName]) {
         this[callbackName](one, two, three, four);
 
@@ -1028,7 +1148,7 @@ export let ViewResources = class ViewResources {
         if (this[callbackName]) {
           this[callbackName](one, two, three, four);
 
-          let counter = 4;
+          var counter = 4;
 
           while (this[callbackName = name + counter.toString()] !== undefined) {
             this[callbackName](one, two, three, four);
@@ -1037,23 +1157,23 @@ export let ViewResources = class ViewResources {
         }
       }
     }
-  }
+  };
 
-  registerViewEngineHooks(hooks) {
+  ViewResources.prototype.registerViewEngineHooks = function registerViewEngineHooks(hooks) {
     this._tryAddHook(hooks, 'beforeCompile');
     this._tryAddHook(hooks, 'afterCompile');
     this._tryAddHook(hooks, 'beforeCreate');
     this._tryAddHook(hooks, 'afterCreate');
     this._tryAddHook(hooks, 'beforeBind');
     this._tryAddHook(hooks, 'beforeUnbind');
-  }
+  };
 
-  getBindingLanguage(bindingLanguageFallback) {
+  ViewResources.prototype.getBindingLanguage = function getBindingLanguage(bindingLanguageFallback) {
     return this.bindingLanguage || (this.bindingLanguage = bindingLanguageFallback);
-  }
+  };
 
-  patchInParent(newParent) {
-    let originalParent = this.parent;
+  ViewResources.prototype.patchInParent = function patchInParent(newParent) {
+    var originalParent = this.parent;
 
     this.parent = newParent || null;
     this.hasParent = this.parent !== null;
@@ -1062,60 +1182,64 @@ export let ViewResources = class ViewResources {
       newParent.parent = originalParent;
       newParent.hasParent = originalParent !== null;
     }
-  }
+  };
 
-  relativeToView(path) {
+  ViewResources.prototype.relativeToView = function relativeToView(path) {
     return relativeToFile(path, this.viewUrl);
-  }
+  };
 
-  registerElement(tagName, behavior) {
+  ViewResources.prototype.registerElement = function registerElement(tagName, behavior) {
     register(this.elements, tagName, behavior, 'an Element');
-  }
+  };
 
-  getElement(tagName) {
+  ViewResources.prototype.getElement = function getElement(tagName) {
     return this.elements[tagName] || (this.hasParent ? this.parent.getElement(tagName) : null);
-  }
+  };
 
-  mapAttribute(attribute) {
+  ViewResources.prototype.mapAttribute = function mapAttribute(attribute) {
     return this.attributeMap[attribute] || (this.hasParent ? this.parent.mapAttribute(attribute) : null);
-  }
+  };
 
-  registerAttribute(attribute, behavior, knownAttribute) {
+  ViewResources.prototype.registerAttribute = function registerAttribute(attribute, behavior, knownAttribute) {
     this.attributeMap[attribute] = knownAttribute;
     register(this.attributes, attribute, behavior, 'an Attribute');
-  }
+  };
 
-  getAttribute(attribute) {
+  ViewResources.prototype.getAttribute = function getAttribute(attribute) {
     return this.attributes[attribute] || (this.hasParent ? this.parent.getAttribute(attribute) : null);
-  }
+  };
 
-  registerValueConverter(name, valueConverter) {
+  ViewResources.prototype.registerValueConverter = function registerValueConverter(name, valueConverter) {
     register(this.valueConverters, name, valueConverter, 'a ValueConverter');
-  }
+  };
 
-  getValueConverter(name) {
+  ViewResources.prototype.getValueConverter = function getValueConverter(name) {
     return this.valueConverters[name] || (this.hasParent ? this.parent.getValueConverter(name) : null);
-  }
+  };
 
-  registerBindingBehavior(name, bindingBehavior) {
+  ViewResources.prototype.registerBindingBehavior = function registerBindingBehavior(name, bindingBehavior) {
     register(this.bindingBehaviors, name, bindingBehavior, 'a BindingBehavior');
-  }
+  };
 
-  getBindingBehavior(name) {
+  ViewResources.prototype.getBindingBehavior = function getBindingBehavior(name) {
     return this.bindingBehaviors[name] || (this.hasParent ? this.parent.getBindingBehavior(name) : null);
-  }
+  };
 
-  registerValue(name, value) {
+  ViewResources.prototype.registerValue = function registerValue(name, value) {
     register(this.values, name, value, 'a value');
-  }
+  };
 
-  getValue(name) {
+  ViewResources.prototype.getValue = function getValue(name) {
     return this.values[name] || (this.hasParent ? this.parent.getValue(name) : null);
-  }
-};
+  };
 
-export let View = class View {
-  constructor(container, viewFactory, fragment, controllers, bindings, children, slots) {
+  return ViewResources;
+}();
+
+export var View = function () {
+  function View(container, viewFactory, fragment, controllers, bindings, children, slots) {
+    
+
     this.container = container;
     this.viewFactory = viewFactory;
     this.resources = viewFactory.resources;
@@ -1138,32 +1262,32 @@ export let View = class View {
     this._isUserControlled = false;
     this.contentView = null;
 
-    for (let key in slots) {
+    for (var key in slots) {
       this.hasSlots = true;
       break;
     }
   }
 
-  returnToCache() {
+  View.prototype.returnToCache = function returnToCache() {
     this.viewFactory.returnViewToCache(this);
-  }
+  };
 
-  created() {
-    let i;
-    let ii;
-    let controllers = this.controllers;
+  View.prototype.created = function created() {
+    var i = void 0;
+    var ii = void 0;
+    var controllers = this.controllers;
 
     for (i = 0, ii = controllers.length; i < ii; ++i) {
       controllers[i].created(this);
     }
-  }
+  };
 
-  bind(bindingContext, overrideContext, _systemUpdate) {
-    let controllers;
-    let bindings;
-    let children;
-    let i;
-    let ii;
+  View.prototype.bind = function bind(bindingContext, overrideContext, _systemUpdate) {
+    var controllers = void 0;
+    var bindings = void 0;
+    var children = void 0;
+    var i = void 0;
+    var ii = void 0;
 
     if (_systemUpdate && this._isUserControlled) {
       return;
@@ -1206,22 +1330,22 @@ export let View = class View {
     if (this.hasSlots && this.contentView !== null) {
       ShadowDOM.distributeView(this.contentView, this.slots);
     }
-  }
+  };
 
-  addBinding(binding) {
+  View.prototype.addBinding = function addBinding(binding) {
     this.bindings.push(binding);
 
     if (this.isBound) {
       binding.bind(this);
     }
-  }
+  };
 
-  unbind() {
-    let controllers;
-    let bindings;
-    let children;
-    let i;
-    let ii;
+  View.prototype.unbind = function unbind() {
+    var controllers = void 0;
+    var bindings = void 0;
+    var children = void 0;
+    var i = void 0;
+    var ii = void 0;
 
     if (this.isBound) {
       this.isBound = false;
@@ -1249,21 +1373,21 @@ export let View = class View {
       this.bindingContext = null;
       this.overrideContext = null;
     }
-  }
+  };
 
-  insertNodesBefore(refNode) {
+  View.prototype.insertNodesBefore = function insertNodesBefore(refNode) {
     refNode.parentNode.insertBefore(this.fragment, refNode);
-  }
+  };
 
-  appendNodesTo(parent) {
+  View.prototype.appendNodesTo = function appendNodesTo(parent) {
     parent.appendChild(this.fragment);
-  }
+  };
 
-  removeNodes() {
-    let fragment = this.fragment;
-    let current = this.firstChild;
-    let end = this.lastChild;
-    let next;
+  View.prototype.removeNodes = function removeNodes() {
+    var fragment = this.fragment;
+    var current = this.firstChild;
+    var end = this.lastChild;
+    var next = void 0;
 
     while (true) {
       next = current.nextSibling;
@@ -1275,13 +1399,13 @@ export let View = class View {
 
       current = next;
     }
-  }
+  };
 
-  attached() {
-    let controllers;
-    let children;
-    let i;
-    let ii;
+  View.prototype.attached = function attached() {
+    var controllers = void 0;
+    var children = void 0;
+    var i = void 0;
+    var ii = void 0;
 
     if (this.isAttached) {
       return;
@@ -1302,13 +1426,13 @@ export let View = class View {
     for (i = 0, ii = children.length; i < ii; ++i) {
       children[i].attached();
     }
-  }
+  };
 
-  detached() {
-    let controllers;
-    let children;
-    let i;
-    let ii;
+  View.prototype.detached = function detached() {
+    var controllers = void 0;
+    var children = void 0;
+    var i = void 0;
+    var ii = void 0;
 
     if (this.isAttached) {
       this.isAttached = false;
@@ -1327,15 +1451,17 @@ export let View = class View {
         children[i].detached();
       }
     }
-  }
-};
+  };
+
+  return View;
+}();
 
 function getAnimatableElement(view) {
   if (view.animatableElement !== undefined) {
     return view.animatableElement;
   }
 
-  let current = view.firstChild;
+  var current = view.firstChild;
 
   while (current && current.nodeType !== 1) {
     current = current.nextSibling;
@@ -1348,8 +1474,12 @@ function getAnimatableElement(view) {
   return view.animatableElement = null;
 }
 
-export let ViewSlot = class ViewSlot {
-  constructor(anchor, anchorIsContainer, animator = Animator.instance) {
+export var ViewSlot = function () {
+  function ViewSlot(anchor, anchorIsContainer) {
+    var animator = arguments.length <= 2 || arguments[2] === undefined ? Animator.instance : arguments[2];
+
+    
+
     this.anchor = anchor;
     this.anchorIsContainer = anchorIsContainer;
     this.bindingContext = null;
@@ -1363,33 +1493,33 @@ export let ViewSlot = class ViewSlot {
     anchor.isContentProjectionSource = false;
   }
 
-  transformChildNodesIntoView() {
-    let parent = this.anchor;
+  ViewSlot.prototype.transformChildNodesIntoView = function transformChildNodesIntoView() {
+    var parent = this.anchor;
 
     this.children.push({
       fragment: parent,
       firstChild: parent.firstChild,
       lastChild: parent.lastChild,
-      returnToCache() {},
-      removeNodes() {
-        let last;
+      returnToCache: function returnToCache() {},
+      removeNodes: function removeNodes() {
+        var last = void 0;
 
         while (last = parent.lastChild) {
           parent.removeChild(last);
         }
       },
-      created() {},
-      bind() {},
-      unbind() {},
-      attached() {},
-      detached() {}
+      created: function created() {},
+      bind: function bind() {},
+      unbind: function unbind() {},
+      attached: function attached() {},
+      detached: function detached() {}
     });
-  }
+  };
 
-  bind(bindingContext, overrideContext) {
-    let i;
-    let ii;
-    let children;
+  ViewSlot.prototype.bind = function bind(bindingContext, overrideContext) {
+    var i = void 0;
+    var ii = void 0;
+    var children = void 0;
 
     if (this.isBound) {
       if (this.bindingContext === bindingContext) {
@@ -1407,25 +1537,25 @@ export let ViewSlot = class ViewSlot {
     for (i = 0, ii = children.length; i < ii; ++i) {
       children[i].bind(bindingContext, overrideContext, true);
     }
-  }
+  };
 
-  unbind() {
+  ViewSlot.prototype.unbind = function unbind() {
     if (this.isBound) {
-      let i;
-      let ii;
-      let children = this.children;
+      var i = void 0;
+      var ii = void 0;
+      var _children4 = this.children;
 
       this.isBound = false;
       this.bindingContext = null;
       this.overrideContext = null;
 
-      for (i = 0, ii = children.length; i < ii; ++i) {
-        children[i].unbind();
+      for (i = 0, ii = _children4.length; i < ii; ++i) {
+        _children4[i].unbind();
       }
     }
-  }
+  };
 
-  add(view) {
+  ViewSlot.prototype.add = function add(view) {
     if (this.anchorIsContainer) {
       view.appendNodesTo(this.anchor);
     } else {
@@ -1437,18 +1567,18 @@ export let ViewSlot = class ViewSlot {
     if (this.isAttached) {
       view.attached();
 
-      let animatableElement = getAnimatableElement(view);
+      var animatableElement = getAnimatableElement(view);
       if (animatableElement !== null) {
         return this.animator.enter(animatableElement);
       }
     }
 
     return undefined;
-  }
+  };
 
-  insert(index, view) {
-    let children = this.children;
-    let length = children.length;
+  ViewSlot.prototype.insert = function insert(index, view) {
+    var children = this.children;
+    var length = children.length;
 
     if (index === 0 && length === 0 || index >= length) {
       return this.add(view);
@@ -1460,55 +1590,59 @@ export let ViewSlot = class ViewSlot {
     if (this.isAttached) {
       view.attached();
 
-      let animatableElement = getAnimatableElement(view);
+      var animatableElement = getAnimatableElement(view);
       if (animatableElement !== null) {
         return this.animator.enter(animatableElement);
       }
     }
 
     return undefined;
-  }
+  };
 
-  move(sourceIndex, targetIndex) {
+  ViewSlot.prototype.move = function move(sourceIndex, targetIndex) {
     if (sourceIndex === targetIndex) {
       return;
     }
 
-    const children = this.children;
-    const view = children[sourceIndex];
+    var children = this.children;
+    var view = children[sourceIndex];
 
     view.removeNodes();
     view.insertNodesBefore(children[targetIndex].firstChild);
     children.splice(sourceIndex, 1);
     children.splice(targetIndex, 0, view);
-  }
+  };
 
-  remove(view, returnToCache, skipAnimation) {
+  ViewSlot.prototype.remove = function remove(view, returnToCache, skipAnimation) {
     return this.removeAt(this.children.indexOf(view), returnToCache, skipAnimation);
-  }
+  };
 
-  removeMany(viewsToRemove, returnToCache, skipAnimation) {
-    const children = this.children;
-    let ii = viewsToRemove.length;
-    let i;
-    let rmPromises = [];
+  ViewSlot.prototype.removeMany = function removeMany(viewsToRemove, returnToCache, skipAnimation) {
+    var _this4 = this;
 
-    viewsToRemove.forEach(child => {
+    var children = this.children;
+    var ii = viewsToRemove.length;
+    var i = void 0;
+    var rmPromises = [];
+
+    viewsToRemove.forEach(function (child) {
       if (skipAnimation) {
         child.removeNodes();
         return;
       }
 
-      let animatableElement = getAnimatableElement(child);
+      var animatableElement = getAnimatableElement(child);
       if (animatableElement !== null) {
-        rmPromises.push(this.animator.leave(animatableElement).then(() => child.removeNodes()));
+        rmPromises.push(_this4.animator.leave(animatableElement).then(function () {
+          return child.removeNodes();
+        }));
       } else {
         child.removeNodes();
       }
     });
 
-    let removeAction = () => {
-      if (this.isAttached) {
+    var removeAction = function removeAction() {
+      if (_this4.isAttached) {
         for (i = 0; i < ii; ++i) {
           viewsToRemove[i].detached();
         }
@@ -1521,7 +1655,7 @@ export let ViewSlot = class ViewSlot {
       }
 
       for (i = 0; i < ii; ++i) {
-        const index = children.indexOf(viewsToRemove[i]);
+        var index = children.indexOf(viewsToRemove[i]);
         if (index >= 0) {
           children.splice(index, 1);
         }
@@ -1529,21 +1663,25 @@ export let ViewSlot = class ViewSlot {
     };
 
     if (rmPromises.length > 0) {
-      return Promise.all(rmPromises).then(() => removeAction());
+      return Promise.all(rmPromises).then(function () {
+        return removeAction();
+      });
     }
 
     return removeAction();
-  }
+  };
 
-  removeAt(index, returnToCache, skipAnimation) {
-    let view = this.children[index];
+  ViewSlot.prototype.removeAt = function removeAt(index, returnToCache, skipAnimation) {
+    var _this5 = this;
 
-    let removeAction = () => {
-      index = this.children.indexOf(view);
+    var view = this.children[index];
+
+    var removeAction = function removeAction() {
+      index = _this5.children.indexOf(view);
       view.removeNodes();
-      this.children.splice(index, 1);
+      _this5.children.splice(index, 1);
 
-      if (this.isAttached) {
+      if (_this5.isAttached) {
         view.detached();
       }
 
@@ -1555,37 +1693,43 @@ export let ViewSlot = class ViewSlot {
     };
 
     if (!skipAnimation) {
-      let animatableElement = getAnimatableElement(view);
+      var animatableElement = getAnimatableElement(view);
       if (animatableElement !== null) {
-        return this.animator.leave(animatableElement).then(() => removeAction());
+        return this.animator.leave(animatableElement).then(function () {
+          return removeAction();
+        });
       }
     }
 
     return removeAction();
-  }
+  };
 
-  removeAll(returnToCache, skipAnimation) {
-    let children = this.children;
-    let ii = children.length;
-    let i;
-    let rmPromises = [];
+  ViewSlot.prototype.removeAll = function removeAll(returnToCache, skipAnimation) {
+    var _this6 = this;
 
-    children.forEach(child => {
+    var children = this.children;
+    var ii = children.length;
+    var i = void 0;
+    var rmPromises = [];
+
+    children.forEach(function (child) {
       if (skipAnimation) {
         child.removeNodes();
         return;
       }
 
-      let animatableElement = getAnimatableElement(child);
+      var animatableElement = getAnimatableElement(child);
       if (animatableElement !== null) {
-        rmPromises.push(this.animator.leave(animatableElement).then(() => child.removeNodes()));
+        rmPromises.push(_this6.animator.leave(animatableElement).then(function () {
+          return child.removeNodes();
+        }));
       } else {
         child.removeNodes();
       }
     });
 
-    let removeAction = () => {
-      if (this.isAttached) {
+    var removeAction = function removeAction() {
+      if (_this6.isAttached) {
         for (i = 0; i < ii; ++i) {
           children[i].detached();
         }
@@ -1597,21 +1741,23 @@ export let ViewSlot = class ViewSlot {
         }
       }
 
-      this.children = [];
+      _this6.children = [];
     };
 
     if (rmPromises.length > 0) {
-      return Promise.all(rmPromises).then(() => removeAction());
+      return Promise.all(rmPromises).then(function () {
+        return removeAction();
+      });
     }
 
     return removeAction();
-  }
+  };
 
-  attached() {
-    let i;
-    let ii;
-    let children;
-    let child;
+  ViewSlot.prototype.attached = function attached() {
+    var i = void 0;
+    var ii = void 0;
+    var children = void 0;
+    var child = void 0;
 
     if (this.isAttached) {
       return;
@@ -1624,17 +1770,17 @@ export let ViewSlot = class ViewSlot {
       child = children[i];
       child.attached();
 
-      let element = getAnimatableElement(child);
-      if (element) {
-        this.animator.enter(element);
+      var _element = getAnimatableElement(child);
+      if (_element) {
+        this.animator.enter(_element);
       }
     }
-  }
+  };
 
-  detached() {
-    let i;
-    let ii;
-    let children;
+  ViewSlot.prototype.detached = function detached() {
+    var i = void 0;
+    var ii = void 0;
+    var children = void 0;
 
     if (this.isAttached) {
       this.isAttached = false;
@@ -1643,9 +1789,11 @@ export let ViewSlot = class ViewSlot {
         children[i].detached();
       }
     }
-  }
+  };
 
-  projectTo(slots) {
+  ViewSlot.prototype.projectTo = function projectTo(slots) {
+    var _this7 = this;
+
     this.projectToSlots = slots;
     this.add = this._projectionAdd;
     this.insert = this._projectionInsert;
@@ -1654,10 +1802,12 @@ export let ViewSlot = class ViewSlot {
     this.removeAt = this._projectionRemoveAt;
     this.removeMany = this._projectionRemoveMany;
     this.removeAll = this._projectionRemoveAll;
-    this.children.forEach(view => ShadowDOM.distributeView(view, slots, this));
-  }
+    this.children.forEach(function (view) {
+      return ShadowDOM.distributeView(view, slots, _this7);
+    });
+  };
 
-  _projectionAdd(view) {
+  ViewSlot.prototype._projectionAdd = function _projectionAdd(view) {
     ShadowDOM.distributeView(view, this.projectToSlots, this);
 
     this.children.push(view);
@@ -1665,9 +1815,9 @@ export let ViewSlot = class ViewSlot {
     if (this.isAttached) {
       view.attached();
     }
-  }
+  };
 
-  _projectionInsert(index, view) {
+  ViewSlot.prototype._projectionInsert = function _projectionInsert(index, view) {
     if (index === 0 && !this.children.length || index >= this.children.length) {
       this.add(view);
     } else {
@@ -1679,34 +1829,34 @@ export let ViewSlot = class ViewSlot {
         view.attached();
       }
     }
-  }
+  };
 
-  _projectionMove(sourceIndex, targetIndex) {
+  ViewSlot.prototype._projectionMove = function _projectionMove(sourceIndex, targetIndex) {
     if (sourceIndex === targetIndex) {
       return;
     }
 
-    const children = this.children;
-    const view = children[sourceIndex];
+    var children = this.children;
+    var view = children[sourceIndex];
 
     ShadowDOM.undistributeView(view, this.projectToSlots, this);
     ShadowDOM.distributeView(view, this.projectToSlots, this, targetIndex);
 
     children.splice(sourceIndex, 1);
     children.splice(targetIndex, 0, view);
-  }
+  };
 
-  _projectionRemove(view, returnToCache) {
+  ViewSlot.prototype._projectionRemove = function _projectionRemove(view, returnToCache) {
     ShadowDOM.undistributeView(view, this.projectToSlots, this);
     this.children.splice(this.children.indexOf(view), 1);
 
     if (this.isAttached) {
       view.detached();
     }
-  }
+  };
 
-  _projectionRemoveAt(index, returnToCache) {
-    let view = this.children[index];
+  ViewSlot.prototype._projectionRemoveAt = function _projectionRemoveAt(index, returnToCache) {
+    var view = this.children[index];
 
     ShadowDOM.undistributeView(view, this.projectToSlots, this);
     this.children.splice(index, 1);
@@ -1714,35 +1864,47 @@ export let ViewSlot = class ViewSlot {
     if (this.isAttached) {
       view.detached();
     }
-  }
+  };
 
-  _projectionRemoveMany(viewsToRemove, returnToCache) {
-    viewsToRemove.forEach(view => this.remove(view, returnToCache));
-  }
+  ViewSlot.prototype._projectionRemoveMany = function _projectionRemoveMany(viewsToRemove, returnToCache) {
+    var _this8 = this;
 
-  _projectionRemoveAll(returnToCache) {
+    viewsToRemove.forEach(function (view) {
+      return _this8.remove(view, returnToCache);
+    });
+  };
+
+  ViewSlot.prototype._projectionRemoveAll = function _projectionRemoveAll(returnToCache) {
     ShadowDOM.undistributeAll(this.projectToSlots, this);
 
-    let children = this.children;
+    var children = this.children;
 
     if (this.isAttached) {
-      for (let i = 0, ii = children.length; i < ii; ++i) {
+      for (var i = 0, ii = children.length; i < ii; ++i) {
         children[i].detached();
       }
     }
 
     this.children = [];
-  }
-};
+  };
 
-let ProviderResolver = resolver(_class13 = class ProviderResolver {
-  get(container, key) {
-    let id = key.__providerId__;
+  return ViewSlot;
+}();
+
+var ProviderResolver = resolver(_class13 = function () {
+  function ProviderResolver() {
+    
+  }
+
+  ProviderResolver.prototype.get = function get(container, key) {
+    var id = key.__providerId__;
     return id in container ? container[id] : container[id] = container.invoke(key);
-  }
-}) || _class13;
+  };
 
-let providerResolverInstance = new ProviderResolver();
+  return ProviderResolver;
+}()) || _class13;
+
+var providerResolverInstance = new ProviderResolver();
 
 function elementContainerGet(key) {
   if (key === DOM.Element) {
@@ -1754,14 +1916,14 @@ function elementContainerGet(key) {
       return this.boundViewFactory;
     }
 
-    let factory = this.instruction.viewFactory;
-    let partReplacements = this.partReplacements;
+    var factory = this.instruction.viewFactory;
+    var _partReplacements = this.partReplacements;
 
-    if (partReplacements) {
-      factory = partReplacements[factory.part] || factory;
+    if (_partReplacements) {
+      factory = _partReplacements[factory.part] || factory;
     }
 
-    this.boundViewFactory = new BoundViewFactory(this, factory, partReplacements);
+    this.boundViewFactory = new BoundViewFactory(this, factory, _partReplacements);
     return this.boundViewFactory;
   }
 
@@ -1795,9 +1957,9 @@ function elementContainerGet(key) {
 }
 
 function createElementContainer(parent, element, instruction, children, partReplacements, resources) {
-  let container = parent.createChild();
-  let providers;
-  let i;
+  var container = parent.createChild();
+  var providers = void 0;
+  var i = void 0;
 
   container.element = element;
   container.instruction = instruction;
@@ -1819,10 +1981,10 @@ function createElementContainer(parent, element, instruction, children, partRepl
 }
 
 function makeElementIntoAnchor(element, elementInstruction) {
-  let anchor = DOM.createComment('anchor');
+  var anchor = DOM.createComment('anchor');
 
   if (elementInstruction) {
-    let firstChild = element.firstChild;
+    var firstChild = element.firstChild;
 
     if (firstChild && firstChild.tagName === 'AU-CONTENT') {
       anchor.contentElement = firstChild;
@@ -1845,13 +2007,13 @@ function makeElementIntoAnchor(element, elementInstruction) {
 }
 
 function applyInstructions(containers, element, instruction, controllers, bindings, children, shadowSlots, partReplacements, resources) {
-  let behaviorInstructions = instruction.behaviorInstructions;
-  let expressions = instruction.expressions;
-  let elementContainer;
-  let i;
-  let ii;
-  let current;
-  let instance;
+  var behaviorInstructions = instruction.behaviorInstructions;
+  var expressions = instruction.expressions;
+  var elementContainer = void 0;
+  var i = void 0;
+  var ii = void 0;
+  var current = void 0;
+  var instance = void 0;
 
   if (instruction.contentExpression) {
     bindings.push(instruction.contentExpression.createBinding(element.nextSibling));
@@ -1861,8 +2023,8 @@ function applyInstructions(containers, element, instruction, controllers, bindin
   }
 
   if (instruction.shadowSlot) {
-    let commentAnchor = DOM.createComment('slot');
-    let slot;
+    var commentAnchor = DOM.createComment('slot');
+    var slot = void 0;
 
     if (instruction.slotDestination) {
       slot = new PassThroughSlot(commentAnchor, instruction.slotName, instruction.slotDestination, instruction.slotFallbackFactory);
@@ -1896,12 +2058,12 @@ function applyInstructions(containers, element, instruction, controllers, bindin
 }
 
 function styleStringToObject(style, target) {
-  let attributes = style.split(';');
-  let firstIndexOfColon;
-  let i;
-  let current;
-  let key;
-  let value;
+  var attributes = style.split(';');
+  var firstIndexOfColon = void 0;
+  var i = void 0;
+  var current = void 0;
+  var key = void 0;
+  var value = void 0;
 
   target = target || {};
 
@@ -1917,9 +2079,9 @@ function styleStringToObject(style, target) {
 }
 
 function styleObjectToString(obj) {
-  let result = '';
+  var result = '';
 
-  for (let key in obj) {
+  for (var key in obj) {
     result += key + ':' + obj[key] + ';';
   }
 
@@ -1927,29 +2089,29 @@ function styleObjectToString(obj) {
 }
 
 function applySurrogateInstruction(container, element, instruction, controllers, bindings, children) {
-  let behaviorInstructions = instruction.behaviorInstructions;
-  let expressions = instruction.expressions;
-  let providers = instruction.providers;
-  let values = instruction.values;
-  let i;
-  let ii;
-  let current;
-  let instance;
-  let currentAttributeValue;
+  var behaviorInstructions = instruction.behaviorInstructions;
+  var expressions = instruction.expressions;
+  var providers = instruction.providers;
+  var values = instruction.values;
+  var i = void 0;
+  var ii = void 0;
+  var current = void 0;
+  var instance = void 0;
+  var currentAttributeValue = void 0;
 
   i = providers.length;
   while (i--) {
     container._resolvers.set(providers[i], providerResolverInstance);
   }
 
-  for (let key in values) {
+  for (var key in values) {
     currentAttributeValue = element.getAttribute(key);
 
     if (currentAttributeValue) {
       if (key === 'class') {
         element.setAttribute('class', currentAttributeValue + ' ' + values[key]);
       } else if (key === 'style') {
-        let styleObject = styleStringToObject(values[key]);
+        var styleObject = styleStringToObject(values[key]);
         styleStringToObject(currentAttributeValue, styleObject);
         element.setAttribute('style', styleObjectToString(styleObject));
       }
@@ -1976,38 +2138,47 @@ function applySurrogateInstruction(container, element, instruction, controllers,
   }
 }
 
-export let BoundViewFactory = class BoundViewFactory {
-  constructor(parentContainer, viewFactory, partReplacements) {
+export var BoundViewFactory = function () {
+  function BoundViewFactory(parentContainer, viewFactory, partReplacements) {
+    
+
     this.parentContainer = parentContainer;
     this.viewFactory = viewFactory;
     this.factoryCreateInstruction = { partReplacements: partReplacements };
   }
 
-  create() {
-    let view = this.viewFactory.create(this.parentContainer.createChild(), this.factoryCreateInstruction);
+  BoundViewFactory.prototype.create = function create() {
+    var view = this.viewFactory.create(this.parentContainer.createChild(), this.factoryCreateInstruction);
     view._isUserControlled = true;
     return view;
-  }
+  };
 
-  get isCaching() {
-    return this.viewFactory.isCaching;
-  }
-
-  setCacheSize(size, doNotOverrideIfAlreadySet) {
+  BoundViewFactory.prototype.setCacheSize = function setCacheSize(size, doNotOverrideIfAlreadySet) {
     this.viewFactory.setCacheSize(size, doNotOverrideIfAlreadySet);
-  }
+  };
 
-  getCachedView() {
+  BoundViewFactory.prototype.getCachedView = function getCachedView() {
     return this.viewFactory.getCachedView();
-  }
+  };
 
-  returnViewToCache(view) {
+  BoundViewFactory.prototype.returnViewToCache = function returnViewToCache(view) {
     this.viewFactory.returnViewToCache(view);
-  }
-};
+  };
 
-export let ViewFactory = class ViewFactory {
-  constructor(template, instructions, resources) {
+  _createClass(BoundViewFactory, [{
+    key: 'isCaching',
+    get: function get() {
+      return this.viewFactory.isCaching;
+    }
+  }]);
+
+  return BoundViewFactory;
+}();
+
+export var ViewFactory = function () {
+  function ViewFactory(template, instructions, resources) {
+    
+
     this.isCaching = false;
 
     this.template = template;
@@ -2017,7 +2188,7 @@ export let ViewFactory = class ViewFactory {
     this.cache = null;
   }
 
-  setCacheSize(size, doNotOverrideIfAlreadySet) {
+  ViewFactory.prototype.setCacheSize = function setCacheSize(size, doNotOverrideIfAlreadySet) {
     if (size) {
       if (size === '*') {
         size = Number.MAX_VALUE;
@@ -2037,13 +2208,13 @@ export let ViewFactory = class ViewFactory {
     }
 
     this.isCaching = this.cacheSize > 0;
-  }
+  };
 
-  getCachedView() {
+  ViewFactory.prototype.getCachedView = function getCachedView() {
     return this.cache !== null ? this.cache.pop() || null : null;
-  }
+  };
 
-  returnViewToCache(view) {
+  ViewFactory.prototype.returnViewToCache = function returnViewToCache(view) {
     if (view.isAttached) {
       view.detached();
     }
@@ -2056,31 +2227,31 @@ export let ViewFactory = class ViewFactory {
       view.fromCache = true;
       this.cache.push(view);
     }
-  }
+  };
 
-  create(container, createInstruction, element) {
+  ViewFactory.prototype.create = function create(container, createInstruction, element) {
     createInstruction = createInstruction || BehaviorInstruction.normal;
 
-    let cachedView = this.getCachedView();
+    var cachedView = this.getCachedView();
     if (cachedView !== null) {
       return cachedView;
     }
 
-    let fragment = createInstruction.enhance ? this.template : this.template.cloneNode(true);
-    let instructables = fragment.querySelectorAll('.au-target');
-    let instructions = this.instructions;
-    let resources = this.resources;
-    let controllers = [];
-    let bindings = [];
-    let children = [];
-    let shadowSlots = Object.create(null);
-    let containers = { root: container };
-    let partReplacements = createInstruction.partReplacements;
-    let i;
-    let ii;
-    let view;
-    let instructable;
-    let instruction;
+    var fragment = createInstruction.enhance ? this.template : this.template.cloneNode(true);
+    var instructables = fragment.querySelectorAll('.au-target');
+    var instructions = this.instructions;
+    var resources = this.resources;
+    var controllers = [];
+    var bindings = [];
+    var children = [];
+    var shadowSlots = Object.create(null);
+    var containers = { root: container };
+    var partReplacements = createInstruction.partReplacements;
+    var i = void 0;
+    var ii = void 0;
+    var view = void 0;
+    var instructable = void 0;
+    var instruction = void 0;
 
     this.resources._invokeHook('beforeCreate', this, container, fragment, createInstruction);
 
@@ -2104,23 +2275,25 @@ export let ViewFactory = class ViewFactory {
     this.resources._invokeHook('afterCreate', view);
 
     return view;
-  }
-};
+  };
 
-let nextInjectorId = 0;
+  return ViewFactory;
+}();
+
+var nextInjectorId = 0;
 function getNextInjectorId() {
   return ++nextInjectorId;
 }
 
 function configureProperties(instruction, resources) {
-  let type = instruction.type;
-  let attrName = instruction.attrName;
-  let attributes = instruction.attributes;
-  let property;
-  let key;
-  let value;
+  var type = instruction.type;
+  var attrName = instruction.attrName;
+  var attributes = instruction.attributes;
+  var property = void 0;
+  var key = void 0;
+  var value = void 0;
 
-  let knownAttribute = resources.mapAttribute(attrName);
+  var knownAttribute = resources.mapAttribute(attrName);
   if (knownAttribute && attrName in attributes && knownAttribute !== attrName) {
     attributes[knownAttribute] = attributes[attrName];
     delete attributes[attrName];
@@ -2129,7 +2302,7 @@ function configureProperties(instruction, resources) {
   for (key in attributes) {
     value = attributes[key];
 
-    if (value !== null && typeof value === 'object') {
+    if (value !== null && (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object') {
       property = type.attributes[key];
 
       if (property !== undefined) {
@@ -2141,14 +2314,14 @@ function configureProperties(instruction, resources) {
   }
 }
 
-let lastAUTargetID = 0;
+var lastAUTargetID = 0;
 function getNextAUTargetID() {
   return (++lastAUTargetID).toString();
 }
 
 function makeIntoInstructionTarget(element) {
-  let value = element.getAttribute('class');
-  let auTargetID = getNextAUTargetID();
+  var value = element.getAttribute('class');
+  var auTargetID = getNextAUTargetID();
 
   element.setAttribute('class', value ? value += ' au-target' : 'au-target');
   element.setAttribute('au-target-id', auTargetID);
@@ -2157,21 +2330,21 @@ function makeIntoInstructionTarget(element) {
 }
 
 function makeShadowSlot(compiler, resources, node, instructions, parentInjectorId) {
-  let auShadowSlot = DOM.createElement('au-shadow-slot');
+  var auShadowSlot = DOM.createElement('au-shadow-slot');
   DOM.replaceNode(auShadowSlot, node);
 
-  let auTargetID = makeIntoInstructionTarget(auShadowSlot);
-  let instruction = TargetInstruction.shadowSlot(parentInjectorId);
+  var auTargetID = makeIntoInstructionTarget(auShadowSlot);
+  var instruction = TargetInstruction.shadowSlot(parentInjectorId);
 
   instruction.slotName = node.getAttribute('name') || ShadowDOM.defaultSlotKey;
   instruction.slotDestination = node.getAttribute('slot');
 
   if (node.innerHTML.trim()) {
-    let fragment = DOM.createDocumentFragment();
-    let child;
+    var fragment = DOM.createDocumentFragment();
+    var _child3 = void 0;
 
-    while (child = node.firstChild) {
-      fragment.appendChild(child);
+    while (_child3 = node.firstChild) {
+      fragment.appendChild(_child3);
     }
 
     instruction.slotFallbackFactory = compiler.compile(fragment, resources);
@@ -2182,20 +2355,22 @@ function makeShadowSlot(compiler, resources, node, instructions, parentInjectorI
   return auShadowSlot;
 }
 
-export let ViewCompiler = (_dec7 = inject(BindingLanguage, ViewResources), _dec7(_class15 = class ViewCompiler {
-  constructor(bindingLanguage, resources) {
+export var ViewCompiler = (_dec7 = inject(BindingLanguage, ViewResources), _dec7(_class15 = function () {
+  function ViewCompiler(bindingLanguage, resources) {
+    
+
     this.bindingLanguage = bindingLanguage;
     this.resources = resources;
   }
 
-  compile(source, resources, compileInstruction) {
+  ViewCompiler.prototype.compile = function compile(source, resources, compileInstruction) {
     resources = resources || this.resources;
     compileInstruction = compileInstruction || ViewCompileInstruction.normal;
     source = typeof source === 'string' ? DOM.createTemplateFromMarkup(source) : source;
 
-    let content;
-    let part;
-    let cacheSize;
+    var content = void 0;
+    var part = void 0;
+    var cacheSize = void 0;
 
     if (source.content) {
       part = source.getAttribute('part');
@@ -2208,14 +2383,14 @@ export let ViewCompiler = (_dec7 = inject(BindingLanguage, ViewResources), _dec7
     compileInstruction.targetShadowDOM = compileInstruction.targetShadowDOM && FEATURE.shadowDOM;
     resources._invokeHook('beforeCompile', content, resources, compileInstruction);
 
-    let instructions = {};
+    var instructions = {};
     this._compileNode(content, resources, instructions, source, 'root', !compileInstruction.targetShadowDOM);
 
-    let firstChild = content.firstChild;
+    var firstChild = content.firstChild;
     if (firstChild.nodeType === 1) {
-      let targetId = firstChild.getAttribute('au-target-id');
+      var targetId = firstChild.getAttribute('au-target-id');
       if (targetId) {
-        let ins = instructions[targetId];
+        var ins = instructions[targetId];
 
         if (ins.shadowSlot || ins.lifting) {
           content.insertBefore(DOM.createComment('view'), firstChild);
@@ -2223,7 +2398,7 @@ export let ViewCompiler = (_dec7 = inject(BindingLanguage, ViewResources), _dec7
       }
     }
 
-    let factory = new ViewFactory(content, instructions, resources);
+    var factory = new ViewFactory(content, instructions, resources);
 
     factory.surrogateInstruction = compileInstruction.compileSurrogate ? this._compileSurrogate(source, resources) : null;
     factory.part = part;
@@ -2235,17 +2410,17 @@ export let ViewCompiler = (_dec7 = inject(BindingLanguage, ViewResources), _dec7
     resources._invokeHook('afterCompile', factory);
 
     return factory;
-  }
+  };
 
-  _compileNode(node, resources, instructions, parentNode, parentInjectorId, targetLightDOM) {
+  ViewCompiler.prototype._compileNode = function _compileNode(node, resources, instructions, parentNode, parentInjectorId, targetLightDOM) {
     switch (node.nodeType) {
       case 1:
         return this._compileElement(node, resources, instructions, parentNode, parentInjectorId, targetLightDOM);
       case 3:
-        let expression = resources.getBindingLanguage(this.bindingLanguage).inspectTextContent(resources, node.wholeText);
+        var expression = resources.getBindingLanguage(this.bindingLanguage).inspectTextContent(resources, node.wholeText);
         if (expression) {
-          let marker = DOM.createElement('au-marker');
-          let auTargetID = makeIntoInstructionTarget(marker);
+          var marker = DOM.createElement('au-marker');
+          var auTargetID = makeIntoInstructionTarget(marker);
           (node.parentNode || parentNode).insertBefore(marker, node);
           node.textContent = ' ';
           instructions[auTargetID] = TargetInstruction.contentExpression(expression);
@@ -2260,7 +2435,7 @@ export let ViewCompiler = (_dec7 = inject(BindingLanguage, ViewResources), _dec7
         }
         return node.nextSibling;
       case 11:
-        let currentChild = node.firstChild;
+        var currentChild = node.firstChild;
         while (currentChild) {
           currentChild = this._compileNode(currentChild, resources, instructions, node, parentInjectorId, targetLightDOM);
         }
@@ -2270,28 +2445,28 @@ export let ViewCompiler = (_dec7 = inject(BindingLanguage, ViewResources), _dec7
     }
 
     return node.nextSibling;
-  }
+  };
 
-  _compileSurrogate(node, resources) {
-    let tagName = node.tagName.toLowerCase();
-    let attributes = node.attributes;
-    let bindingLanguage = resources.getBindingLanguage(this.bindingLanguage);
-    let knownAttribute;
-    let property;
-    let instruction;
-    let i;
-    let ii;
-    let attr;
-    let attrName;
-    let attrValue;
-    let info;
-    let type;
-    let expressions = [];
-    let expression;
-    let behaviorInstructions = [];
-    let values = {};
-    let hasValues = false;
-    let providers = [];
+  ViewCompiler.prototype._compileSurrogate = function _compileSurrogate(node, resources) {
+    var tagName = node.tagName.toLowerCase();
+    var attributes = node.attributes;
+    var bindingLanguage = resources.getBindingLanguage(this.bindingLanguage);
+    var knownAttribute = void 0;
+    var property = void 0;
+    var instruction = void 0;
+    var i = void 0;
+    var ii = void 0;
+    var attr = void 0;
+    var attrName = void 0;
+    var attrValue = void 0;
+    var info = void 0;
+    var type = void 0;
+    var expressions = [];
+    var expression = void 0;
+    var behaviorInstructions = [];
+    var values = {};
+    var hasValues = false;
+    var providers = [];
 
     for (i = 0, ii = attributes.length; i < ii; ++i) {
       attr = attributes[i];
@@ -2374,32 +2549,32 @@ export let ViewCompiler = (_dec7 = inject(BindingLanguage, ViewResources), _dec7
     }
 
     return null;
-  }
+  };
 
-  _compileElement(node, resources, instructions, parentNode, parentInjectorId, targetLightDOM) {
-    let tagName = node.tagName.toLowerCase();
-    let attributes = node.attributes;
-    let expressions = [];
-    let expression;
-    let behaviorInstructions = [];
-    let providers = [];
-    let bindingLanguage = resources.getBindingLanguage(this.bindingLanguage);
-    let liftingInstruction;
-    let viewFactory;
-    let type;
-    let elementInstruction;
-    let elementProperty;
-    let i;
-    let ii;
-    let attr;
-    let attrName;
-    let attrValue;
-    let instruction;
-    let info;
-    let property;
-    let knownAttribute;
-    let auTargetID;
-    let injectorId;
+  ViewCompiler.prototype._compileElement = function _compileElement(node, resources, instructions, parentNode, parentInjectorId, targetLightDOM) {
+    var tagName = node.tagName.toLowerCase();
+    var attributes = node.attributes;
+    var expressions = [];
+    var expression = void 0;
+    var behaviorInstructions = [];
+    var providers = [];
+    var bindingLanguage = resources.getBindingLanguage(this.bindingLanguage);
+    var liftingInstruction = void 0;
+    var viewFactory = void 0;
+    var type = void 0;
+    var elementInstruction = void 0;
+    var elementProperty = void 0;
+    var i = void 0;
+    var ii = void 0;
+    var attr = void 0;
+    var attrName = void 0;
+    var attrValue = void 0;
+    var instruction = void 0;
+    var info = void 0;
+    var property = void 0;
+    var knownAttribute = void 0;
+    var auTargetID = void 0;
+    var injectorId = void 0;
 
     if (tagName === 'slot') {
       if (targetLightDOM) {
@@ -2530,18 +2705,22 @@ export let ViewCompiler = (_dec7 = inject(BindingLanguage, ViewResources), _dec7
         return node.nextSibling;
       }
 
-      let currentChild = node.firstChild;
+      var currentChild = node.firstChild;
       while (currentChild) {
         currentChild = this._compileNode(currentChild, resources, instructions, node, injectorId || parentInjectorId, targetLightDOM);
       }
     }
 
     return node.nextSibling;
-  }
-}) || _class15);
+  };
 
-export let ResourceModule = class ResourceModule {
-  constructor(moduleId) {
+  return ViewCompiler;
+}()) || _class15);
+
+export var ResourceModule = function () {
+  function ResourceModule(moduleId) {
+    
+
     this.id = moduleId;
     this.moduleInstance = null;
     this.mainResource = null;
@@ -2551,10 +2730,10 @@ export let ResourceModule = class ResourceModule {
     this.onLoaded = null;
   }
 
-  initialize(container) {
-    let current = this.mainResource;
-    let resources = this.resources;
-    let vs = this.viewStrategy;
+  ResourceModule.prototype.initialize = function initialize(container) {
+    var current = this.mainResource;
+    var resources = this.resources;
+    var vs = this.viewStrategy;
 
     if (this.isInitialized) {
       return;
@@ -2567,57 +2746,61 @@ export let ResourceModule = class ResourceModule {
       current.initialize(container);
     }
 
-    for (let i = 0, ii = resources.length; i < ii; ++i) {
+    for (var i = 0, ii = resources.length; i < ii; ++i) {
       current = resources[i];
       current.metadata.viewStrategy = vs;
       current.initialize(container);
     }
-  }
+  };
 
-  register(registry, name) {
-    let main = this.mainResource;
-    let resources = this.resources;
+  ResourceModule.prototype.register = function register(registry, name) {
+    var main = this.mainResource;
+    var resources = this.resources;
 
     if (main !== undefined) {
       main.register(registry, name);
       name = null;
     }
 
-    for (let i = 0, ii = resources.length; i < ii; ++i) {
+    for (var i = 0, ii = resources.length; i < ii; ++i) {
       resources[i].register(registry, name);
       name = null;
     }
-  }
+  };
 
-  load(container, loadContext) {
+  ResourceModule.prototype.load = function load(container, loadContext) {
     if (this.onLoaded !== null) {
       return this.onLoaded;
     }
 
-    let main = this.mainResource;
-    let resources = this.resources;
-    let loads;
+    var main = this.mainResource;
+    var resources = this.resources;
+    var loads = void 0;
 
     if (main !== undefined) {
       loads = new Array(resources.length + 1);
       loads[0] = main.load(container, loadContext);
-      for (let i = 0, ii = resources.length; i < ii; ++i) {
+      for (var i = 0, ii = resources.length; i < ii; ++i) {
         loads[i + 1] = resources[i].load(container, loadContext);
       }
     } else {
       loads = new Array(resources.length);
-      for (let i = 0, ii = resources.length; i < ii; ++i) {
-        loads[i] = resources[i].load(container, loadContext);
+      for (var _i = 0, _ii = resources.length; _i < _ii; ++_i) {
+        loads[_i] = resources[_i].load(container, loadContext);
       }
     }
 
     this.onLoaded = Promise.all(loads);
     return this.onLoaded;
-  }
-};
+  };
 
-export let ResourceDescription = class ResourceDescription {
-  constructor(key, exportedValue, resourceTypeMeta) {
+  return ResourceModule;
+}();
+
+export var ResourceDescription = function () {
+  function ResourceDescription(key, exportedValue, resourceTypeMeta) {
+    
+
     if (!resourceTypeMeta) {
       resourceTypeMeta = metadata.get(metadata.resource, exportedValue);
 
@@ -2644,39 +2827,43 @@ export let ResourceDescription = class ResourceDescription {
     this.value = exportedValue;
   }
 
-  initialize(container) {
+  ResourceDescription.prototype.initialize = function initialize(container) {
     this.metadata.initialize(container, this.value);
-  }
+  };
 
-  register(registry, name) {
+  ResourceDescription.prototype.register = function register(registry, name) {
     this.metadata.register(registry, name);
-  }
+  };
 
-  load(container, loadContext) {
+  ResourceDescription.prototype.load = function load(container, loadContext) {
     return this.metadata.load(container, this.value, loadContext);
-  }
-};
+  };
 
-export let ModuleAnalyzer = class ModuleAnalyzer {
-  constructor() {
+  return ResourceDescription;
+}();
+
+export var ModuleAnalyzer = function () {
+  function ModuleAnalyzer() {
+    
+
     this.cache = Object.create(null);
   }
 
-  getAnalysis(moduleId) {
+  ModuleAnalyzer.prototype.getAnalysis = function getAnalysis(moduleId) {
     return this.cache[moduleId];
-  }
+  };
 
-  analyze(moduleId, moduleInstance, mainResourceKey) {
-    let mainResource;
-    let fallbackValue;
-    let fallbackKey;
-    let resourceTypeMeta;
-    let key;
-    let exportedValue;
-    let resources = [];
-    let conventional;
-    let vs;
-    let resourceModule;
+  ModuleAnalyzer.prototype.analyze = function analyze(moduleId, moduleInstance, mainResourceKey) {
+    var mainResource = void 0;
+    var fallbackValue = void 0;
+    var fallbackKey = void 0;
+    var resourceTypeMeta = void 0;
+    var key = void 0;
+    var exportedValue = void 0;
+    var resources = [];
+    var conventional = void 0;
+    var vs = void 0;
+    var resourceModule = void 0;
 
     resourceModule = this.cache[moduleId];
     if (resourceModule) {
@@ -2753,10 +2940,12 @@ export let ModuleAnalyzer = class ModuleAnalyzer {
     resourceModule.viewStrategy = vs;
 
     return resourceModule;
-  }
-};
+  };
 
-let logger = LogManager.getLogger('templating');
+  return ModuleAnalyzer;
+}();
+
+var logger = LogManager.getLogger('templating');
 
 function ensureRegistryEntry(loader, urlOrRegistryEntry) {
   if (urlOrRegistryEntry instanceof TemplateRegistryEntry) {
@@ -2766,34 +2955,47 @@ function ensureRegistryEntry(loader, urlOrRegistryEntry) {
   return loader.loadTemplate(urlOrRegistryEntry);
 }
 
-let ProxyViewFactory = class ProxyViewFactory {
-  constructor(promise) {
-    promise.then(x => this.viewFactory = x);
+var ProxyViewFactory = function () {
+  function ProxyViewFactory(promise) {
+    var _this9 = this;
+
+    
+
+    promise.then(function (x) {
+      return _this9.viewFactory = x;
+    });
   }
 
-  create(container, bindingContext, createInstruction, element) {
+  ProxyViewFactory.prototype.create = function create(container, bindingContext, createInstruction, element) {
     return this.viewFactory.create(container, bindingContext, createInstruction, element);
-  }
+  };
 
-  get isCaching() {
-    return this.viewFactory.isCaching;
-  }
-
-  setCacheSize(size, doNotOverrideIfAlreadySet) {
+  ProxyViewFactory.prototype.setCacheSize = function setCacheSize(size, doNotOverrideIfAlreadySet) {
     this.viewFactory.setCacheSize(size, doNotOverrideIfAlreadySet);
-  }
+  };
 
-  getCachedView() {
+  ProxyViewFactory.prototype.getCachedView = function getCachedView() {
     return this.viewFactory.getCachedView();
-  }
+  };
 
-  returnViewToCache(view) {
+  ProxyViewFactory.prototype.returnViewToCache = function returnViewToCache(view) {
     this.viewFactory.returnViewToCache(view);
-  }
-};
+  };
 
-export let ViewEngine = (_dec8 = inject(Loader, Container, ViewCompiler, ModuleAnalyzer, ViewResources), _dec8(_class16 = class ViewEngine {
-  constructor(loader, container, viewCompiler, moduleAnalyzer, appResources) {
+  _createClass(ProxyViewFactory, [{
+    key: 'isCaching',
+    get: function get() {
+      return this.viewFactory.isCaching;
+    }
+  }]);
+
+  return ProxyViewFactory;
+}();
+
+export var ViewEngine = (_dec8 = inject(Loader, Container, ViewCompiler, ModuleAnalyzer, ViewResources), _dec8(_class16 = function () {
+  function ViewEngine(loader, container, viewCompiler, moduleAnalyzer, appResources) {
+    
+
     this.loader = loader;
     this.container = container;
     this.viewCompiler = viewCompiler;
@@ -2801,22 +3003,24 @@ export let ViewEngine = (_dec8 = inject(Loader, Container, ViewCompiler, ModuleA
     this.appResources = appResources;
     this._pluginMap = {};
 
-    let auSlotBehavior = new HtmlBehaviorResource();
+    var auSlotBehavior = new HtmlBehaviorResource();
     auSlotBehavior.attributeName = 'au-slot';
     auSlotBehavior.initialize(container, SlotCustomAttribute);
     auSlotBehavior.register(appResources);
   }
 
-  addResourcePlugin(extension, implementation) {
-    let name = extension.replace('.', '') + '-resource-plugin';
+  ViewEngine.prototype.addResourcePlugin = function addResourcePlugin(extension, implementation) {
+    var name = extension.replace('.', '') + '-resource-plugin';
     this._pluginMap[extension] = name;
     this.loader.addPlugin(name, implementation);
-  }
+  };
 
-  loadViewFactory(urlOrRegistryEntry, compileInstruction, loadContext) {
+  ViewEngine.prototype.loadViewFactory = function loadViewFactory(urlOrRegistryEntry, compileInstruction, loadContext) {
+    var _this10 = this;
+
     loadContext = loadContext || new ResourceLoadContext();
 
-    return ensureRegistryEntry(this.loader, urlOrRegistryEntry).then(registryEntry => {
+    return ensureRegistryEntry(this.loader, urlOrRegistryEntry).then(function (registryEntry) {
       if (registryEntry.onReady) {
         if (!loadContext.hasDependency(urlOrRegistryEntry)) {
           loadContext.addDependency(urlOrRegistryEntry);
@@ -2828,22 +3032,22 @@ export let ViewEngine = (_dec8 = inject(Loader, Container, ViewCompiler, ModuleA
 
       loadContext.addDependency(urlOrRegistryEntry);
 
-      registryEntry.onReady = this.loadTemplateResources(registryEntry, compileInstruction, loadContext).then(resources => {
+      registryEntry.onReady = _this10.loadTemplateResources(registryEntry, compileInstruction, loadContext).then(function (resources) {
         registryEntry.resources = resources;
-        let viewFactory = this.viewCompiler.compile(registryEntry.template, resources, compileInstruction);
+        var viewFactory = _this10.viewCompiler.compile(registryEntry.template, resources, compileInstruction);
         registryEntry.factory = viewFactory;
         return viewFactory;
       });
 
       return registryEntry.onReady;
     });
-  }
+  };
 
-  loadTemplateResources(registryEntry, compileInstruction, loadContext) {
-    let resources = new ViewResources(this.appResources, registryEntry.address);
-    let dependencies = registryEntry.dependencies;
-    let importIds;
-    let names;
+  ViewEngine.prototype.loadTemplateResources = function loadTemplateResources(registryEntry, compileInstruction, loadContext) {
+    var resources = new ViewResources(this.appResources, registryEntry.address);
+    var dependencies = registryEntry.dependencies;
+    var importIds = void 0;
+    var names = void 0;
 
     compileInstruction = compileInstruction || ViewCompileInstruction.normal;
 
@@ -2851,44 +3055,54 @@ export let ViewEngine = (_dec8 = inject(Loader, Container, ViewCompiler, ModuleA
       return Promise.resolve(resources);
     }
 
-    importIds = dependencies.map(x => x.src);
-    names = dependencies.map(x => x.name);
-    logger.debug(`importing resources for ${ registryEntry.address }`, importIds);
+    importIds = dependencies.map(function (x) {
+      return x.src;
+    });
+    names = dependencies.map(function (x) {
+      return x.name;
+    });
+    logger.debug('importing resources for ' + registryEntry.address, importIds);
 
     return this.importViewResources(importIds, names, resources, compileInstruction, loadContext);
-  }
+  };
 
-  importViewModelResource(moduleImport, moduleMember) {
-    return this.loader.loadModule(moduleImport).then(viewModelModule => {
-      let normalizedId = Origin.get(viewModelModule).moduleId;
-      let resourceModule = this.moduleAnalyzer.analyze(normalizedId, viewModelModule, moduleMember);
+  ViewEngine.prototype.importViewModelResource = function importViewModelResource(moduleImport, moduleMember) {
+    var _this11 = this;
+
+    return this.loader.loadModule(moduleImport).then(function (viewModelModule) {
+      var normalizedId = Origin.get(viewModelModule).moduleId;
+      var resourceModule = _this11.moduleAnalyzer.analyze(normalizedId, viewModelModule, moduleMember);
 
       if (!resourceModule.mainResource) {
-        throw new Error(`No view model found in module "${ moduleImport }".`);
+        throw new Error('No view model found in module "' + moduleImport + '".');
       }
 
-      resourceModule.initialize(this.container);
+      resourceModule.initialize(_this11.container);
 
       return resourceModule.mainResource;
     });
-  }
+  };
 
-  importViewResources(moduleIds, names, resources, compileInstruction, loadContext) {
+  ViewEngine.prototype.importViewResources = function importViewResources(moduleIds, names, resources, compileInstruction, loadContext) {
+    var _this12 = this;
+
     loadContext = loadContext || new ResourceLoadContext();
     compileInstruction = compileInstruction || ViewCompileInstruction.normal;
 
-    moduleIds = moduleIds.map(x => this._applyLoaderPlugin(x));
+    moduleIds = moduleIds.map(function (x) {
+      return _this12._applyLoaderPlugin(x);
+    });
 
-    return this.loader.loadAllModules(moduleIds).then(imports => {
-      let i;
-      let ii;
-      let analysis;
-      let normalizedId;
-      let current;
-      let associatedModule;
-      let container = this.container;
-      let moduleAnalyzer = this.moduleAnalyzer;
-      let allAnalysis = new Array(imports.length);
+    return this.loader.loadAllModules(moduleIds).then(function (imports) {
+      var i = void 0;
+      var ii = void 0;
+      var analysis = void 0;
+      var normalizedId = void 0;
+      var current = void 0;
+      var associatedModule = void 0;
+      var container = _this12.container;
+      var moduleAnalyzer = _this12.moduleAnalyzer;
+      var allAnalysis = new Array(imports.length);
 
       for (i = 0, ii = imports.length; i < ii; ++i) {
         current = imports[i];
@@ -2913,15 +3127,17 @@ export let ViewEngine = (_dec8 = inject(Loader, Container, ViewCompiler, ModuleA
         allAnalysis[i] = allAnalysis[i].load(container, loadContext);
       }
 
-      return Promise.all(allAnalysis).then(() => resources);
+      return Promise.all(allAnalysis).then(function () {
+        return resources;
+      });
     });
-  }
+  };
 
-  _applyLoaderPlugin(id) {
-    let index = id.lastIndexOf('.');
+  ViewEngine.prototype._applyLoaderPlugin = function _applyLoaderPlugin(id) {
+    var index = id.lastIndexOf('.');
     if (index !== -1) {
-      let ext = id.substring(index);
-      let pluginName = this._pluginMap[ext];
+      var ext = id.substring(index);
+      var pluginName = this._pluginMap[ext];
 
       if (pluginName === undefined) {
         return id;
@@ -2931,11 +3147,15 @@ export let ViewEngine = (_dec8 = inject(Loader, Container, ViewCompiler, ModuleA
     }
 
     return id;
-  }
-}) || _class16);
+  };
 
-export let Controller = class Controller {
-  constructor(behavior, instruction, viewModel, elementEvents) {
+  return ViewEngine;
+}()) || _class16);
+
+export var Controller = function () {
+  function Controller(behavior, instruction, viewModel, elementEvents) {
+    
+
     this.behavior = behavior;
     this.instruction = instruction;
     this.viewModel = viewModel;
@@ -2945,13 +3165,13 @@ export let Controller = class Controller {
     this.scope = null;
     this.elementEvents = elementEvents || null;
 
-    let observerLookup = behavior.observerLocator.getOrCreateObserversLookup(viewModel);
-    let handlesBind = behavior.handlesBind;
-    let attributes = instruction.attributes;
-    let boundProperties = this.boundProperties = [];
-    let properties = behavior.properties;
-    let i;
-    let ii;
+    var observerLookup = behavior.observerLocator.getOrCreateObserversLookup(viewModel);
+    var handlesBind = behavior.handlesBind;
+    var attributes = instruction.attributes;
+    var boundProperties = this.boundProperties = [];
+    var properties = behavior.properties;
+    var i = void 0;
+    var ii = void 0;
 
     behavior._ensurePropertiesDefined(viewModel, observerLookup);
 
@@ -2960,13 +3180,13 @@ export let Controller = class Controller {
     }
   }
 
-  created(owningView) {
+  Controller.prototype.created = function created(owningView) {
     if (this.behavior.handlesCreated) {
       this.viewModel.created(owningView, this.view);
     }
-  }
+  };
 
-  automate(overrideContext, owningView) {
+  Controller.prototype.automate = function automate(overrideContext, owningView) {
     this.view.bindingContext = this.viewModel;
     this.view.overrideContext = overrideContext || createOverrideContext(this.viewModel);
     this.view._isUserControlled = true;
@@ -2976,16 +3196,16 @@ export let Controller = class Controller {
     }
 
     this.bind(this.view);
-  }
+  };
 
-  bind(scope) {
-    let skipSelfSubscriber = this.behavior.handlesBind;
-    let boundProperties = this.boundProperties;
-    let i;
-    let ii;
-    let x;
-    let observer;
-    let selfSubscriber;
+  Controller.prototype.bind = function bind(scope) {
+    var skipSelfSubscriber = this.behavior.handlesBind;
+    var boundProperties = this.boundProperties;
+    var i = void 0;
+    var ii = void 0;
+    var x = void 0;
+    var observer = void 0;
+    var selfSubscriber = void 0;
 
     if (this.isBound) {
       if (this.scope === scope) {
@@ -3015,7 +3235,7 @@ export let Controller = class Controller {
       observer.selfSubscriber = selfSubscriber;
     }
 
-    let overrideContext;
+    var overrideContext = void 0;
     if (this.view !== null) {
       if (skipSelfSubscriber) {
         this.view.viewModelScope = scope;
@@ -3040,13 +3260,13 @@ export let Controller = class Controller {
       }
       this.viewModel.bind(scope.bindingContext, overrideContext);
     }
-  }
+  };
 
-  unbind() {
+  Controller.prototype.unbind = function unbind() {
     if (this.isBound) {
-      let boundProperties = this.boundProperties;
-      let i;
-      let ii;
+      var boundProperties = this.boundProperties;
+      var i = void 0;
+      var ii = void 0;
 
       this.isBound = false;
       this.scope = null;
@@ -3067,9 +3287,9 @@ export let Controller = class Controller {
         boundProperties[i].binding.unbind();
       }
     }
-  }
+  };
 
-  attached() {
+  Controller.prototype.attached = function attached() {
     if (this.isAttached) {
       return;
     }
@@ -3083,9 +3303,9 @@ export let Controller = class Controller {
     if (this.view !== null) {
       this.view.attached();
     }
-  }
+  };
 
-  detached() {
+  Controller.prototype.detached = function detached() {
     if (this.isAttached) {
       this.isAttached = false;
 
@@ -3097,11 +3317,15 @@ export let Controller = class Controller {
         this.viewModel.detached();
       }
     }
-  }
-};
+  };
 
-export let BehaviorPropertyObserver = (_dec9 = subscriberCollection(), _dec9(_class18 = class BehaviorPropertyObserver {
-  constructor(taskQueue, obj, propertyName, selfSubscriber, initialValue) {
+  return Controller;
+}();
+
+export var BehaviorPropertyObserver = (_dec9 = subscriberCollection(), _dec9(_class18 = function () {
+  function BehaviorPropertyObserver(taskQueue, obj, propertyName, selfSubscriber, initialValue) {
+    
+
     this.taskQueue = taskQueue;
     this.obj = obj;
     this.propertyName = propertyName;
@@ -3111,12 +3335,12 @@ export let BehaviorPropertyObserver = (_dec9 = subscriberCollection(), _dec9(_cl
     this.currentValue = this.oldValue = initialValue;
   }
 
-  getValue() {
+  BehaviorPropertyObserver.prototype.getValue = function getValue() {
     return this.currentValue;
-  }
+  };
 
-  setValue(newValue) {
-    let oldValue = this.currentValue;
+  BehaviorPropertyObserver.prototype.setValue = function setValue(newValue) {
+    var oldValue = this.currentValue;
 
     if (oldValue !== newValue) {
       if (this.publishing && this.notqueued) {
@@ -3127,11 +3351,11 @@ export let BehaviorPropertyObserver = (_dec9 = subscriberCollection(), _dec9(_cl
       this.oldValue = oldValue;
       this.currentValue = newValue;
     }
-  }
+  };
 
-  call() {
-    let oldValue = this.oldValue;
-    let newValue = this.currentValue;
+  BehaviorPropertyObserver.prototype.call = function call() {
+    var oldValue = this.oldValue;
+    var newValue = this.currentValue;
 
     this.notqueued = true;
 
@@ -3145,19 +3369,21 @@ export let BehaviorPropertyObserver = (_dec9 = subscriberCollection(), _dec9(_cl
 
     this.callSubscribers(newValue, oldValue);
     this.oldValue = newValue;
-  }
+  };
 
-  subscribe(context, callable) {
+  BehaviorPropertyObserver.prototype.subscribe = function subscribe(context, callable) {
     this.addSubscriber(context, callable);
-  }
+  };
 
-  unsubscribe(context, callable) {
+  BehaviorPropertyObserver.prototype.unsubscribe = function unsubscribe(context, callable) {
     this.removeSubscriber(context, callable);
-  }
-}) || _class18);
+  };
+
+  return BehaviorPropertyObserver;
+}()) || _class18);
 
 function getObserver(behavior, instance, name) {
-  let lookup = instance.__observers__;
+  var lookup = instance.__observers__;
 
   if (lookup === undefined) {
     if (!behavior.isInitialized) {
@@ -3171,8 +3397,10 @@ function getObserver(behavior, instance, name) {
   return lookup[name];
 }
 
-export let BindableProperty = class BindableProperty {
-  constructor(nameOrConfig) {
+export var BindableProperty = function () {
+  function BindableProperty(nameOrConfig) {
+    
+
     if (typeof nameOrConfig === 'string') {
       this.name = nameOrConfig;
     } else {
@@ -3188,7 +3416,7 @@ export let BindableProperty = class BindableProperty {
     this.descriptor = null;
   }
 
-  registerWith(target, behavior, descriptor) {
+  BindableProperty.prototype.registerWith = function registerWith(target, behavior, descriptor) {
     behavior.properties.push(this);
     behavior.attributes[this.attribute] = this;
     this.owner = behavior;
@@ -3199,10 +3427,10 @@ export let BindableProperty = class BindableProperty {
     }
 
     return undefined;
-  }
+  };
 
-  _configureDescriptor(behavior, descriptor) {
-    let name = this.name;
+  BindableProperty.prototype._configureDescriptor = function _configureDescriptor(behavior, descriptor) {
+    var name = this.name;
 
     descriptor.configurable = true;
     descriptor.enumerable = true;
@@ -3232,11 +3460,11 @@ export let BindableProperty = class BindableProperty {
     };
 
     return descriptor;
-  }
+  };
 
-  defineOn(target, behavior) {
-    let name = this.name;
-    let handlerName;
+  BindableProperty.prototype.defineOn = function defineOn(target, behavior) {
+    var name = this.name;
+    var handlerName = void 0;
 
     if (this.changeHandler === null) {
       handlerName = name + 'Changed';
@@ -3248,14 +3476,14 @@ export let BindableProperty = class BindableProperty {
     if (this.descriptor === null) {
       Object.defineProperty(target.prototype, name, this._configureDescriptor(behavior, {}));
     }
-  }
+  };
 
-  createObserver(viewModel) {
-    let selfSubscriber = null;
-    let defaultValue = this.defaultValue;
-    let changeHandlerName = this.changeHandler;
-    let name = this.name;
-    let initialValue;
+  BindableProperty.prototype.createObserver = function createObserver(viewModel) {
+    var selfSubscriber = null;
+    var defaultValue = this.defaultValue;
+    var changeHandlerName = this.changeHandler;
+    var name = this.name;
+    var initialValue = void 0;
 
     if (this.hasOptions) {
       return undefined;
@@ -3263,17 +3491,21 @@ export let BindableProperty = class BindableProperty {
 
     if (changeHandlerName in viewModel) {
       if ('propertyChanged' in viewModel) {
-        selfSubscriber = (newValue, oldValue) => {
+        selfSubscriber = function selfSubscriber(newValue, oldValue) {
           viewModel[changeHandlerName](newValue, oldValue);
           viewModel.propertyChanged(name, newValue, oldValue);
         };
       } else {
-        selfSubscriber = (newValue, oldValue) => viewModel[changeHandlerName](newValue, oldValue);
+        selfSubscriber = function selfSubscriber(newValue, oldValue) {
+          return viewModel[changeHandlerName](newValue, oldValue);
+        };
       }
     } else if ('propertyChanged' in viewModel) {
-      selfSubscriber = (newValue, oldValue) => viewModel.propertyChanged(name, newValue, oldValue);
+      selfSubscriber = function selfSubscriber(newValue, oldValue) {
+        return viewModel.propertyChanged(name, newValue, oldValue);
+      };
     } else if (changeHandlerName !== null) {
-      throw new Error(`Change handler ${ changeHandlerName } was specified but not declared on the class.`);
+      throw new Error('Change handler ' + changeHandlerName + ' was specified but not declared on the class.');
     }
 
     if (defaultValue !== undefined) {
@@ -3281,16 +3513,16 @@ export let BindableProperty = class BindableProperty {
     }
 
     return new BehaviorPropertyObserver(this.owner.taskQueue, viewModel, this.name, selfSubscriber, initialValue);
-  }
+  };
 
-  _initialize(viewModel, observerLookup, attributes, behaviorHandlesBind, boundProperties) {
-    let selfSubscriber;
-    let observer;
-    let attribute;
-    let defaultValue = this.defaultValue;
+  BindableProperty.prototype._initialize = function _initialize(viewModel, observerLookup, attributes, behaviorHandlesBind, boundProperties) {
+    var selfSubscriber = void 0;
+    var observer = void 0;
+    var attribute = void 0;
+    var defaultValue = this.defaultValue;
 
     if (this.isDynamic) {
-      for (let key in attributes) {
+      for (var key in attributes) {
         this._createDynamicProperty(viewModel, observerLookup, behaviorHandlesBind, key, attributes[key], boundProperties);
       }
     } else if (!this.hasOptions) {
@@ -3318,25 +3550,29 @@ export let BindableProperty = class BindableProperty {
 
       observer.publishing = true;
     }
-  }
+  };
 
-  _createDynamicProperty(viewModel, observerLookup, behaviorHandlesBind, name, attribute, boundProperties) {
-    let changeHandlerName = name + 'Changed';
-    let selfSubscriber = null;
-    let observer;
-    let info;
+  BindableProperty.prototype._createDynamicProperty = function _createDynamicProperty(viewModel, observerLookup, behaviorHandlesBind, name, attribute, boundProperties) {
+    var changeHandlerName = name + 'Changed';
+    var selfSubscriber = null;
+    var observer = void 0;
+    var info = void 0;
 
     if (changeHandlerName in viewModel) {
       if ('propertyChanged' in viewModel) {
-        selfSubscriber = (newValue, oldValue) => {
+        selfSubscriber = function selfSubscriber(newValue, oldValue) {
           viewModel[changeHandlerName](newValue, oldValue);
           viewModel.propertyChanged(name, newValue, oldValue);
         };
       } else {
-        selfSubscriber = (newValue, oldValue) => viewModel[changeHandlerName](newValue, oldValue);
+        selfSubscriber = function selfSubscriber(newValue, oldValue) {
+          return viewModel[changeHandlerName](newValue, oldValue);
+        };
       }
     } else if ('propertyChanged' in viewModel) {
-      selfSubscriber = (newValue, oldValue) => viewModel.propertyChanged(name, newValue, oldValue);
+      selfSubscriber = function selfSubscriber(newValue, oldValue) {
+        return viewModel.propertyChanged(name, newValue, oldValue);
+      };
     }
 
     observer = observerLookup[name] = new BehaviorPropertyObserver(this.owner.taskQueue, viewModel, name, selfSubscriber);
@@ -3362,10 +3598,12 @@ export let BindableProperty = class BindableProperty {
 
     observer.publishing = true;
     observer.selfSubscriber = selfSubscriber;
-  }
-};
+  };
 
-let lastProviderId = 0;
+  return BindableProperty;
+}();
+
+var lastProviderId = 0;
 
 function nextProviderId() {
   return ++lastProviderId;
@@ -3376,8 +3614,10 @@ function doProcessContent() {
 }
 function doProcessAttributes() {}
 
-export let HtmlBehaviorResource = class HtmlBehaviorResource {
-  constructor() {
+export var HtmlBehaviorResource = function () {
+  function HtmlBehaviorResource() {
+    
+
     this.elementName = null;
     this.attributeName = null;
     this.attributeDefaultBindingMode = undefined;
@@ -3395,8 +3635,8 @@ export let HtmlBehaviorResource = class HtmlBehaviorResource {
     this.isInitialized = false;
   }
 
-  static convention(name, existing) {
-    let behavior;
+  HtmlBehaviorResource.convention = function convention(name, existing) {
+    var behavior = void 0;
 
     if (name.endsWith('CustomAttribute')) {
       behavior = existing || new HtmlBehaviorResource();
@@ -3409,24 +3649,24 @@ export let HtmlBehaviorResource = class HtmlBehaviorResource {
     }
 
     return behavior;
-  }
+  };
 
-  addChildBinding(behavior) {
+  HtmlBehaviorResource.prototype.addChildBinding = function addChildBinding(behavior) {
     if (this.childBindings === null) {
       this.childBindings = [];
     }
 
     this.childBindings.push(behavior);
-  }
+  };
 
-  initialize(container, target) {
-    let proto = target.prototype;
-    let properties = this.properties;
-    let attributeName = this.attributeName;
-    let attributeDefaultBindingMode = this.attributeDefaultBindingMode;
-    let i;
-    let ii;
-    let current;
+  HtmlBehaviorResource.prototype.initialize = function initialize(container, target) {
+    var proto = target.prototype;
+    var properties = this.properties;
+    var attributeName = this.attributeName;
+    var attributeDefaultBindingMode = this.attributeDefaultBindingMode;
+    var i = void 0;
+    var ii = void 0;
+    var current = void 0;
 
     if (this.isInitialized) {
       return;
@@ -3482,9 +3722,9 @@ export let HtmlBehaviorResource = class HtmlBehaviorResource {
         properties[i].defineOn(target, this);
       }
     }
-  }
+  };
 
-  register(registry, name) {
+  HtmlBehaviorResource.prototype.register = function register(registry, name) {
     if (this.attributeName !== null) {
       registry.registerAttribute(name || this.attributeName, this, this.attributeName);
     }
@@ -3492,10 +3732,12 @@ export let HtmlBehaviorResource = class HtmlBehaviorResource {
     if (this.elementName !== null) {
       registry.registerElement(name || this.elementName, this);
     }
-  }
+  };
 
-  load(container, target, loadContext, viewStrategy, transientView) {
-    let options;
+  HtmlBehaviorResource.prototype.load = function load(container, target, loadContext, viewStrategy, transientView) {
+    var _this13 = this;
+
+    var options = void 0;
 
     if (this.elementName !== null) {
       viewStrategy = container.get(ViewLocator).getViewStrategy(viewStrategy || this.viewStrategy || target);
@@ -3505,9 +3747,9 @@ export let HtmlBehaviorResource = class HtmlBehaviorResource {
         viewStrategy.moduleId = Origin.get(target).moduleId;
       }
 
-      return viewStrategy.loadViewFactory(container.get(ViewEngine), options, loadContext).then(viewFactory => {
-        if (!transientView || !this.viewFactory) {
-          this.viewFactory = viewFactory;
+      return viewStrategy.loadViewFactory(container.get(ViewEngine), options, loadContext).then(function (viewFactory) {
+        if (!transientView || !_this13.viewFactory) {
+          _this13.viewFactory = viewFactory;
         }
 
         return viewFactory;
@@ -3515,15 +3757,15 @@ export let HtmlBehaviorResource = class HtmlBehaviorResource {
     }
 
     return Promise.resolve(this);
-  }
+  };
 
-  compile(compiler, resources, node, instruction, parentNode) {
+  HtmlBehaviorResource.prototype.compile = function compile(compiler, resources, node, instruction, parentNode) {
     if (this.liftsContent) {
       if (!instruction.viewFactory) {
-        let template = DOM.createElement('template');
-        let fragment = DOM.createDocumentFragment();
-        let cacheSize = node.getAttribute('view-cache');
-        let part = node.getAttribute('part');
+        var template = DOM.createElement('template');
+        var fragment = DOM.createDocumentFragment();
+        var cacheSize = node.getAttribute('view-cache');
+        var part = node.getAttribute('part');
 
         node.removeAttribute(instruction.originalAttrName);
         DOM.replaceNode(template, node, parentNode);
@@ -3543,21 +3785,21 @@ export let HtmlBehaviorResource = class HtmlBehaviorResource {
         node = template;
       }
     } else if (this.elementName !== null) {
-      let partReplacements = {};
+      var _partReplacements2 = {};
 
       if (this.processContent(compiler, resources, node, instruction) && node.hasChildNodes()) {
-        let currentChild = node.firstChild;
-        let contentElement = this.usesShadowDOM ? null : DOM.createElement('au-content');
-        let nextSibling;
-        let toReplace;
+        var currentChild = node.firstChild;
+        var contentElement = this.usesShadowDOM ? null : DOM.createElement('au-content');
+        var nextSibling = void 0;
+        var toReplace = void 0;
 
         while (currentChild) {
           nextSibling = currentChild.nextSibling;
 
           if (currentChild.tagName === 'TEMPLATE' && (toReplace = currentChild.getAttribute('replace-part'))) {
-            partReplacements[toReplace] = compiler.compile(currentChild, resources);
+            _partReplacements2[toReplace] = compiler.compile(currentChild, resources);
             DOM.removeNode(currentChild, parentNode);
-            instruction.partReplacements = partReplacements;
+            instruction.partReplacements = _partReplacements2;
           } else if (contentElement !== null) {
             if (currentChild.nodeType === 3 && _isAllWhitespace(currentChild)) {
               DOM.removeNode(currentChild, parentNode);
@@ -3580,11 +3822,11 @@ export let HtmlBehaviorResource = class HtmlBehaviorResource {
     }
 
     return node;
-  }
+  };
 
-  create(container, instruction, element, bindings) {
-    let viewHost;
-    let au = null;
+  HtmlBehaviorResource.prototype.create = function create(container, instruction, element, bindings) {
+    var viewHost = void 0;
+    var au = null;
 
     instruction = instruction || BehaviorInstruction.normal;
     element = element || null;
@@ -3606,10 +3848,10 @@ export let HtmlBehaviorResource = class HtmlBehaviorResource {
       element.au = au = element.au || {};
     }
 
-    let viewModel = instruction.viewModel || container.get(this.target);
-    let controller = new Controller(this, instruction, viewModel, container.elementEvents);
-    let childBindings = this.childBindings;
-    let viewFactory;
+    var viewModel = instruction.viewModel || container.get(this.target);
+    var controller = new Controller(this, instruction, viewModel, container.elementEvents);
+    var childBindings = this.childBindings;
+    var viewFactory = void 0;
 
     if (this.liftsContent) {
       au.controller = controller;
@@ -3626,14 +3868,14 @@ export let HtmlBehaviorResource = class HtmlBehaviorResource {
 
         if (controller.view) {
           if (!this.usesShadowDOM && (element.childNodes.length === 1 || element.contentElement)) {
-            let contentElement = element.childNodes[0] || element.contentElement;
+            var contentElement = element.childNodes[0] || element.contentElement;
             controller.view.contentView = { fragment: contentElement };
             contentElement.parentNode && DOM.removeNode(contentElement);
           }
 
           if (instruction.anchorIsContainer) {
             if (childBindings !== null) {
-              for (let i = 0, ii = childBindings.length; i < ii; ++i) {
+              for (var i = 0, ii = childBindings.length; i < ii; ++i) {
                 controller.view.addBinding(childBindings[i].create(element, viewModel, controller));
               }
             }
@@ -3643,26 +3885,26 @@ export let HtmlBehaviorResource = class HtmlBehaviorResource {
             controller.view.insertNodesBefore(viewHost);
           }
         } else if (childBindings !== null) {
-          for (let i = 0, ii = childBindings.length; i < ii; ++i) {
-            bindings.push(childBindings[i].create(element, viewModel, controller));
+          for (var _i2 = 0, _ii2 = childBindings.length; _i2 < _ii2; ++_i2) {
+            bindings.push(childBindings[_i2].create(element, viewModel, controller));
           }
         }
       } else if (controller.view) {
         controller.view.controller = controller;
 
         if (childBindings !== null) {
-          for (let i = 0, ii = childBindings.length; i < ii; ++i) {
-            controller.view.addBinding(childBindings[i].create(instruction.host, viewModel, controller));
+          for (var _i3 = 0, _ii3 = childBindings.length; _i3 < _ii3; ++_i3) {
+            controller.view.addBinding(childBindings[_i3].create(instruction.host, viewModel, controller));
           }
         }
       } else if (childBindings !== null) {
-        for (let i = 0, ii = childBindings.length; i < ii; ++i) {
-          bindings.push(childBindings[i].create(instruction.host, viewModel, controller));
+        for (var _i4 = 0, _ii4 = childBindings.length; _i4 < _ii4; ++_i4) {
+          bindings.push(childBindings[_i4].create(instruction.host, viewModel, controller));
         }
       }
     } else if (childBindings !== null) {
-      for (let i = 0, ii = childBindings.length; i < ii; ++i) {
-        bindings.push(childBindings[i].create(element, viewModel, controller));
+      for (var _i5 = 0, _ii5 = childBindings.length; _i5 < _ii5; ++_i5) {
+        bindings.push(childBindings[_i5].create(element, viewModel, controller));
       }
     }
 
@@ -3675,13 +3917,13 @@ export let HtmlBehaviorResource = class HtmlBehaviorResource {
     }
 
     return controller;
-  }
+  };
 
-  _ensurePropertiesDefined(instance, lookup) {
-    let properties;
-    let i;
-    let ii;
-    let observer;
+  HtmlBehaviorResource.prototype._ensurePropertiesDefined = function _ensurePropertiesDefined(instance, lookup) {
+    var properties = void 0;
+    var i = void 0;
+    var ii = void 0;
+    var observer = void 0;
 
     if ('__propertiesDefined__' in lookup) {
       return;
@@ -3697,13 +3939,15 @@ export let HtmlBehaviorResource = class HtmlBehaviorResource {
         lookup[observer.propertyName] = observer;
       }
     }
-  }
-};
+  };
+
+  return HtmlBehaviorResource;
+}();
 
 function createChildObserverDecorator(selectorOrConfig, all) {
   return function (target, key, descriptor) {
-    let actualTarget = typeof key === 'string' ? target.constructor : target;
-    let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, actualTarget);
+    var actualTarget = typeof key === 'string' ? target.constructor : target;
+    var r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, actualTarget);
 
     if (typeof selectorOrConfig === 'string') {
       selectorOrConfig = {
@@ -3729,24 +3973,27 @@ export function child(selectorOrConfig) {
   return createChildObserverDecorator(selectorOrConfig, false);
 }
 
-let ChildObserver = class ChildObserver {
-  constructor(config) {
+var ChildObserver = function () {
+  function ChildObserver(config) {
+    
+
     this.name = config.name;
     this.changeHandler = config.changeHandler || this.name + 'Changed';
     this.selector = config.selector;
     this.all = config.all;
   }
 
-  create(viewHost, viewModel, controller) {
+  ChildObserver.prototype.create = function create(viewHost, viewModel, controller) {
     return new ChildObserverBinder(this.selector, viewHost, this.name, viewModel, controller, this.changeHandler, this.all);
-  }
-};
+  };
 
+  return ChildObserver;
+}();
 
-const noMutations = [];
+var noMutations = [];
 
 function trackMutation(groupedMutations, binder, record) {
-  let mutations = groupedMutations.get(binder);
+  var mutations = groupedMutations.get(binder);
 
   if (!mutations) {
     mutations = [];
@@ -3757,20 +4004,20 @@ function trackMutation(groupedMutations, binder, record) {
 }
 
 function onChildChange(mutations, observer) {
-  let binders = observer.binders;
-  let bindersLength = binders.length;
-  let groupedMutations = new Map();
+  var binders = observer.binders;
+  var bindersLength = binders.length;
+  var groupedMutations = new Map();
 
-  for (let i = 0, ii = mutations.length; i < ii; ++i) {
-    let record = mutations[i];
-    let added = record.addedNodes;
-    let removed = record.removedNodes;
+  for (var i = 0, ii = mutations.length; i < ii; ++i) {
+    var record = mutations[i];
+    var added = record.addedNodes;
+    var removed = record.removedNodes;
 
-    for (let j = 0, jj = removed.length; j < jj; ++j) {
-      let node = removed[j];
+    for (var j = 0, jj = removed.length; j < jj; ++j) {
+      var node = removed[j];
       if (node.nodeType === 1) {
-        for (let k = 0; k < bindersLength; ++k) {
-          let binder = binders[k];
+        for (var k = 0; k < bindersLength; ++k) {
+          var binder = binders[k];
           if (binder.onRemove(node)) {
             trackMutation(groupedMutations, binder, record);
           }
@@ -3778,28 +4025,30 @@ function onChildChange(mutations, observer) {
       }
     }
 
-    for (let j = 0, jj = added.length; j < jj; ++j) {
-      let node = added[j];
-      if (node.nodeType === 1) {
-        for (let k = 0; k < bindersLength; ++k) {
-          let binder = binders[k];
-          if (binder.onAdd(node)) {
-            trackMutation(groupedMutations, binder, record);
+    for (var _j = 0, _jj = added.length; _j < _jj; ++_j) {
+      var _node = added[_j];
+      if (_node.nodeType === 1) {
+        for (var _k = 0; _k < bindersLength; ++_k) {
+          var _binder = binders[_k];
+          if (_binder.onAdd(_node)) {
+            trackMutation(groupedMutations, _binder, record);
           }
         }
       }
     }
   }
 
-  groupedMutations.forEach((value, key) => {
+  groupedMutations.forEach(function (value, key) {
     if (key.changeHandler !== null) {
       key.viewModel[key.changeHandler](value);
     }
   });
 }
 
-let ChildObserverBinder = class ChildObserverBinder {
-  constructor(selector, viewHost, property, viewModel, controller, changeHandler, all) {
+var ChildObserverBinder = function () {
+  function ChildObserverBinder(selector, viewHost, property, viewModel, controller, changeHandler, all) {
+    
+
     this.selector = selector;
     this.viewHost = viewHost;
     this.property = property;
@@ -3816,19 +4065,19 @@ let ChildObserverBinder = class ChildObserverBinder {
     }
   }
 
-  matches(element) {
+  ChildObserverBinder.prototype.matches = function matches(element) {
     if (element.matches(this.selector)) {
       if (this.contentView === null) {
         return true;
       }
 
-      let contentView = this.contentView;
-      let assignedSlot = element.auAssignedSlot;
+      var contentView = this.contentView;
+      var assignedSlot = element.auAssignedSlot;
 
       if (assignedSlot && assignedSlot.projectFromAnchors) {
-        let anchors = assignedSlot.projectFromAnchors;
+        var anchors = assignedSlot.projectFromAnchors;
 
-        for (let i = 0, ii = anchors.length; i < ii; ++i) {
+        for (var i = 0, ii = anchors.length; i < ii; ++i) {
           if (anchors[i].auOwnerView === contentView) {
             return true;
           }
@@ -3841,17 +4090,17 @@ let ChildObserverBinder = class ChildObserverBinder {
     }
 
     return false;
-  }
+  };
 
-  bind(source) {
-    let viewHost = this.viewHost;
-    let viewModel = this.viewModel;
-    let observer = viewHost.__childObserver__;
+  ChildObserverBinder.prototype.bind = function bind(source) {
+    var viewHost = this.viewHost;
+    var viewModel = this.viewModel;
+    var observer = viewHost.__childObserver__;
 
     if (!observer) {
       observer = viewHost.__childObserver__ = DOM.createMutationObserver(onChildChange);
 
-      let options = {
+      var options = {
         childList: true,
         subtree: !this.usesShadowDOM
       };
@@ -3863,10 +4112,10 @@ let ChildObserverBinder = class ChildObserverBinder {
     observer.binders.push(this);
 
     if (this.usesShadowDOM) {
-      let current = viewHost.firstElementChild;
+      var current = viewHost.firstElementChild;
 
       if (this.all) {
-        let items = viewModel[this.property];
+        var items = viewModel[this.property];
         if (!items) {
           items = viewModel[this.property] = [];
         } else {
@@ -3887,7 +4136,7 @@ let ChildObserverBinder = class ChildObserverBinder {
       } else {
         while (current) {
           if (this.matches(current)) {
-            let value = current.au && current.au.controller ? current.au.controller.viewModel : current;
+            var value = current.au && current.au.controller ? current.au.controller.viewModel : current;
             this.viewModel[this.property] = value;
 
             if (this.changeHandler !== null) {
@@ -3901,15 +4150,15 @@ let ChildObserverBinder = class ChildObserverBinder {
         }
       }
     }
-  }
+  };
 
-  onRemove(element) {
+  ChildObserverBinder.prototype.onRemove = function onRemove(element) {
     if (this.matches(element)) {
-      let value = element.au && element.au.controller ? element.au.controller.viewModel : element;
+      var value = element.au && element.au.controller ? element.au.controller.viewModel : element;
 
       if (this.all) {
-        let items = this.viewModel[this.property];
-        let index = items.indexOf(value);
+        var items = this.viewModel[this.property];
+        var index = items.indexOf(value);
 
         if (index !== -1) {
           items.splice(index, 1);
@@ -3922,16 +4171,16 @@ let ChildObserverBinder = class ChildObserverBinder {
     }
 
     return false;
-  }
+  };
 
-  onAdd(element) {
+  ChildObserverBinder.prototype.onAdd = function onAdd(element) {
     if (this.matches(element)) {
-      let value = element.au && element.au.controller ? element.au.controller.viewModel : element;
+      var value = element.au && element.au.controller ? element.au.controller.viewModel : element;
 
       if (this.all) {
-        let items = this.viewModel[this.property];
-        let index = 0;
-        let prev = element.previousElementSibling;
+        var items = this.viewModel[this.property];
+        var index = 0;
+        var prev = element.previousElementSibling;
 
         while (prev) {
           if (this.matches(prev)) {
@@ -3953,16 +4202,17 @@ let ChildObserverBinder = class ChildObserverBinder {
     }
 
     return false;
-  }
+  };
 
-  unbind() {
+  ChildObserverBinder.prototype.unbind = function unbind() {
     if (this.viewHost.__childObserver__) {
       this.viewHost.__childObserver__.disconnect();
       this.viewHost.__childObserver__ = null;
     }
-  }
-};
+  };
 
+  return ChildObserverBinder;
+}();
 
 function tryActivateViewModel(context) {
   if (context.skipActivation || typeof context.viewModel.activate !== 'function') {
@@ -3972,15 +4222,17 @@ function tryActivateViewModel(context) {
   return context.viewModel.activate(context.model) || Promise.resolve();
 }
 
-export let CompositionEngine = (_dec10 = inject(ViewEngine, ViewLocator), _dec10(_class19 = class CompositionEngine {
-  constructor(viewEngine, viewLocator) {
+export var CompositionEngine = (_dec10 = inject(ViewEngine, ViewLocator), _dec10(_class19 = function () {
+  function CompositionEngine(viewEngine, viewLocator) {
+    
+
     this.viewEngine = viewEngine;
     this.viewLocator = viewLocator;
   }
 
-  _createControllerAndSwap(context) {
+  CompositionEngine.prototype._createControllerAndSwap = function _createControllerAndSwap(context) {
     function swap(controller) {
-      return Promise.resolve(context.viewSlot.removeAll(true)).then(() => {
+      return Promise.resolve(context.viewSlot.removeAll(true)).then(function () {
         if (context.currentController) {
           context.currentController.unbind();
         }
@@ -3995,46 +4247,52 @@ export let CompositionEngine = (_dec10 = inject(ViewEngine, ViewLocator), _dec10
       });
     }
 
-    return this.createController(context).then(controller => {
+    return this.createController(context).then(function (controller) {
       controller.automate(context.overrideContext, context.owningView);
 
       if (context.compositionTransactionOwnershipToken) {
-        return context.compositionTransactionOwnershipToken.waitForCompositionComplete().then(() => swap(controller));
+        return context.compositionTransactionOwnershipToken.waitForCompositionComplete().then(function () {
+          return swap(controller);
+        });
       }
 
       return swap(controller);
     });
-  }
+  };
 
-  createController(context) {
-    let childContainer;
-    let viewModel;
-    let viewModelResource;
-    let m;
+  CompositionEngine.prototype.createController = function createController(context) {
+    var _this14 = this;
 
-    return this.ensureViewModel(context).then(tryActivateViewModel).then(() => {
+    var childContainer = void 0;
+    var viewModel = void 0;
+    var viewModelResource = void 0;
+    var m = void 0;
+
+    return this.ensureViewModel(context).then(tryActivateViewModel).then(function () {
       childContainer = context.childContainer;
       viewModel = context.viewModel;
       viewModelResource = context.viewModelResource;
       m = viewModelResource.metadata;
 
-      let viewStrategy = this.viewLocator.getViewStrategy(context.view || viewModel);
+      var viewStrategy = _this14.viewLocator.getViewStrategy(context.view || viewModel);
 
       if (context.viewResources) {
         viewStrategy.makeRelativeTo(context.viewResources.viewUrl);
       }
 
       return m.load(childContainer, viewModelResource.value, null, viewStrategy, true);
-    }).then(viewFactory => m.create(childContainer, BehaviorInstruction.dynamic(context.host, viewModel, viewFactory)));
-  }
+    }).then(function (viewFactory) {
+      return m.create(childContainer, BehaviorInstruction.dynamic(context.host, viewModel, viewFactory));
+    });
+  };
 
-  ensureViewModel(context) {
-    let childContainer = context.childContainer = context.childContainer || context.container.createChild();
+  CompositionEngine.prototype.ensureViewModel = function ensureViewModel(context) {
+    var childContainer = context.childContainer = context.childContainer || context.container.createChild();
 
     if (typeof context.viewModel === 'string') {
       context.viewModel = context.viewResources ? context.viewResources.relativeToView(context.viewModel) : context.viewModel;
 
-      return this.viewEngine.importViewModelResource(context.viewModel).then(viewModelResource => {
+      return this.viewEngine.importViewModelResource(context.viewModel).then(function (viewModelResource) {
         childContainer.autoRegister(viewModelResource.value);
 
         if (context.host) {
@@ -4047,20 +4305,20 @@ export let CompositionEngine = (_dec10 = inject(ViewEngine, ViewLocator), _dec10
       });
     }
 
-    let m = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, context.viewModel.constructor);
+    var m = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, context.viewModel.constructor);
     m.elementName = m.elementName || 'dynamic-element';
     m.initialize(context.container || childContainer, context.viewModel.constructor);
     context.viewModelResource = { metadata: m, value: context.viewModel.constructor };
     childContainer.viewModel = context.viewModel;
     return Promise.resolve(context);
-  }
+  };
 
-  compose(context) {
+  CompositionEngine.prototype.compose = function compose(context) {
     context.childContainer = context.childContainer || context.container.createChild();
     context.view = this.viewLocator.getViewStrategy(context.view);
 
-    let transaction = context.childContainer.get(CompositionTransaction);
-    let compositionTransactionOwnershipToken = transaction.tryCapture();
+    var transaction = context.childContainer.get(CompositionTransaction);
+    var compositionTransactionOwnershipToken = transaction.tryCapture();
 
     if (compositionTransactionOwnershipToken) {
       context.compositionTransactionOwnershipToken = compositionTransactionOwnershipToken;
@@ -4075,12 +4333,12 @@ export let CompositionEngine = (_dec10 = inject(ViewEngine, ViewLocator), _dec10
         context.view.makeRelativeTo(context.viewResources.viewUrl);
       }
 
-      return context.view.loadViewFactory(this.viewEngine, new ViewCompileInstruction()).then(viewFactory => {
-        let result = viewFactory.create(context.childContainer);
+      return context.view.loadViewFactory(this.viewEngine, new ViewCompileInstruction()).then(function (viewFactory) {
+        var result = viewFactory.create(context.childContainer);
         result.bind(context.bindingContext, context.overrideContext);
 
-        let work = () => {
-          return Promise.resolve(context.viewSlot.removeAll(true)).then(() => {
+        var work = function work() {
+          return Promise.resolve(context.viewSlot.removeAll(true)).then(function () {
             context.viewSlot.add(result);
 
             if (context.compositionTransactionNotifier) {
@@ -4108,25 +4366,33 @@ export let CompositionEngine = (_dec10 = inject(ViewEngine, ViewLocator), _dec10
     }
 
     return Promise.resolve(null);
+  };
+
+  return CompositionEngine;
+}()) || _class19);
+
+export var ElementConfigResource = function () {
+  function ElementConfigResource() {
+    
   }
-}) || _class19);
 
-export let ElementConfigResource = class ElementConfigResource {
-  initialize(container, target) {}
+  ElementConfigResource.prototype.initialize = function initialize(container, target) {};
 
-  register(registry, name) {}
+  ElementConfigResource.prototype.register = function register(registry, name) {};
 
-  load(container, target) {
-    let config = new target();
-    let eventManager = container.get(EventManager);
+  ElementConfigResource.prototype.load = function load(container, target) {
+    var config = new target();
+    var eventManager = container.get(EventManager);
     eventManager.registerElementConfig(config);
-  }
-};
+  };
+
+  return ElementConfigResource;
+}();
 
 function validateBehaviorName(name, type) {
   if (/[A-Z]/.test(name)) {
-    let newName = _hyphenate(name);
-    LogManager.getLogger('templating').warn(`'${ name }' is not a valid ${ type } name and has been converted to '${ newName }'. Upper-case letters are not allowed because the DOM is not case-sensitive.`);
+    var newName = _hyphenate(name);
+    LogManager.getLogger('templating').warn('\'' + name + '\' is not a valid ' + type + ' name and has been converted to \'' + newName + '\'. Upper-case letters are not allowed because the DOM is not case-sensitive.');
     return newName;
   }
   return name;
@@ -4143,7 +4409,7 @@ export function behavior(override) {
     if (override instanceof HtmlBehaviorResource) {
       metadata.define(metadata.resource, override, target);
     } else {
-      let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, target);
+      var r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, target);
       Object.assign(r, override);
     }
   };
@@ -4151,22 +4417,22 @@ export function behavior(override) {
 
 export function customElement(name) {
   return function (target) {
-    let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, target);
+    var r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, target);
     r.elementName = validateBehaviorName(name, 'custom element');
   };
 }
 
 export function customAttribute(name, defaultBindingMode) {
   return function (target) {
-    let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, target);
+    var r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, target);
     r.attributeName = validateBehaviorName(name, 'custom attribute');
     r.attributeDefaultBindingMode = defaultBindingMode;
   };
 }
 
 export function templateController(target) {
-  let deco = function (t) {
-    let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
+  var deco = function deco(t) {
+    var r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
     r.liftsContent = true;
   };
 
@@ -4174,10 +4440,10 @@ export function templateController(target) {
 }
 
 export function bindable(nameOrConfigOrTarget, key, descriptor) {
-  let deco = function (target, key2, descriptor2) {
-    let actualTarget = key2 ? target.constructor : target;
-    let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, actualTarget);
-    let prop;
+  var deco = function deco(target, key2, descriptor2) {
+    var actualTarget = key2 ? target.constructor : target;
+    var r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, actualTarget);
+    var prop = void 0;
 
     if (key2) {
       nameOrConfigOrTarget = nameOrConfigOrTarget || {};
@@ -4193,7 +4459,7 @@ export function bindable(nameOrConfigOrTarget, key, descriptor) {
   }
 
   if (key) {
-    let target = nameOrConfigOrTarget;
+    var target = nameOrConfigOrTarget;
     nameOrConfigOrTarget = null;
     return deco(target, key, descriptor);
   }
@@ -4202,21 +4468,21 @@ export function bindable(nameOrConfigOrTarget, key, descriptor) {
 }
 
 export function dynamicOptions(target) {
-  let deco = function (t) {
-    let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
+  var deco = function deco(t) {
+    var r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
     r.hasDynamicOptions = true;
   };
 
   return target ? deco(target) : deco;
 }
 
-const defaultShadowDOMOptions = { mode: 'open' };
+var defaultShadowDOMOptions = { mode: 'open' };
 
 export function useShadowDOM(targetOrOptions) {
-  let options = typeof targetOrOptions === 'function' || !targetOrOptions ? defaultShadowDOMOptions : targetOrOptions;
+  var options = typeof targetOrOptions === 'function' || !targetOrOptions ? defaultShadowDOMOptions : targetOrOptions;
 
-  let deco = function (t) {
-    let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
+  var deco = function deco(t) {
+    var r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
     r.targetShadowDOM = true;
     r.shadowDOMOptions = options;
   };
@@ -4226,7 +4492,7 @@ export function useShadowDOM(targetOrOptions) {
 
 export function processAttributes(processor) {
   return function (t) {
-    let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
+    var r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
     r.processAttributes = processor;
   };
 }
@@ -4237,14 +4503,14 @@ function doNotProcessContent() {
 
 export function processContent(processor) {
   return function (t) {
-    let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
+    var r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
     r.processContent = processor || doNotProcessContent;
   };
 }
 
 export function containerless(target) {
-  let deco = function (t) {
-    let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
+  var deco = function deco(t) {
+    var r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
     r.containerless = true;
   };
 
@@ -4266,7 +4532,7 @@ export function inlineView(markup, dependencies, dependencyBaseUrl) {
 }
 
 export function noView(target) {
-  let deco = function (t) {
+  var deco = function deco(t) {
     metadata.define(ViewLocator.viewStrategyMetadataKey, new NoViewStrategy(), t);
   };
 
@@ -4274,15 +4540,17 @@ export function noView(target) {
 }
 
 export function elementConfig(target) {
-  let deco = function (t) {
+  var deco = function deco(t) {
     metadata.define(metadata.resource, new ElementConfigResource(), t);
   };
 
   return target ? deco(target) : deco;
 }
 
-export let TemplatingEngine = (_dec11 = inject(Container, ModuleAnalyzer, ViewCompiler, CompositionEngine), _dec11(_class20 = class TemplatingEngine {
-  constructor(container, moduleAnalyzer, viewCompiler, compositionEngine) {
+export var TemplatingEngine = (_dec11 = inject(Container, ModuleAnalyzer, ViewCompiler, CompositionEngine), _dec11(_class20 = function () {
+  function TemplatingEngine(container, moduleAnalyzer, viewCompiler, compositionEngine) {
+    
+
     this._container = container;
     this._moduleAnalyzer = moduleAnalyzer;
     this._viewCompiler = viewCompiler;
@@ -4290,31 +4558,33 @@ export let TemplatingEngine = (_dec11 = inject(Container, ModuleAnalyzer, ViewCo
     container.registerInstance(Animator, Animator.instance = new Animator());
   }
 
-  configureAnimator(animator) {
+  TemplatingEngine.prototype.configureAnimator = function configureAnimator(animator) {
     this._container.unregister(Animator);
     this._container.registerInstance(Animator, Animator.instance = animator);
-  }
+  };
 
-  compose(context) {
+  TemplatingEngine.prototype.compose = function compose(context) {
     return this._compositionEngine.compose(context);
-  }
+  };
 
-  enhance(instruction) {
+  TemplatingEngine.prototype.enhance = function enhance(instruction) {
     if (instruction instanceof DOM.Element) {
       instruction = { element: instruction };
     }
 
-    let compilerInstructions = {};
-    let resources = instruction.resources || this._container.get(ViewResources);
+    var compilerInstructions = {};
+    var resources = instruction.resources || this._container.get(ViewResources);
 
     this._viewCompiler._compileNode(instruction.element, resources, compilerInstructions, instruction.element.parentNode, 'root', true);
 
-    let factory = new ViewFactory(instruction.element, compilerInstructions, resources);
-    let container = instruction.container || this._container.createChild();
-    let view = factory.create(container, BehaviorInstruction.enhance());
+    var factory = new ViewFactory(instruction.element, compilerInstructions, resources);
+    var container = instruction.container || this._container.createChild();
+    var view = factory.create(container, BehaviorInstruction.enhance());
 
     view.bind(instruction.bindingContext || {}, instruction.overrideContext);
 
     return view;
-  }
-}) || _class20);
+  };
+
+  return TemplatingEngine;
+}()) || _class20);

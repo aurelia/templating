@@ -57,6 +57,8 @@ export class BindableProperty {
       this.descriptor = descriptor;
       return this._configureDescriptor(behavior, descriptor);
     }
+
+    return undefined;
   }
 
   _configureDescriptor(behavior: HtmlBehaviorResource, descriptor: Object): Object {

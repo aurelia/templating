@@ -1,13 +1,11 @@
 'use strict';
 
 System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-path', 'aurelia-loader', 'aurelia-dependency-injection', 'aurelia-binding', 'aurelia-task-queue'], function (_export, _context) {
+  "use strict";
+
   var LogManager, DOM, PLATFORM, FEATURE, Origin, protocol, metadata, relativeToFile, TemplateRegistryEntry, Loader, inject, Container, resolver, Binding, createOverrideContext, ValueConverterResource, BindingBehaviorResource, subscriberCollection, bindingMode, ObserverLocator, EventManager, TaskQueue, _createClass, _class3, _temp, _dec, _class4, _dec2, _class5, _dec3, _class6, _dec4, _class7, _dec5, _class8, _class9, _temp2, _dec6, _class10, _class11, _temp3, _class13, _dec7, _class15, _dec8, _class16, _dec9, _class18, _dec10, _class19, _dec11, _class20, _typeof, animationEvent, Animator, CompositionTransaction, capitalMatcher, ElementEvents, ResourceLoadContext, ViewCompileInstruction, BehaviorInstruction, TargetInstruction, viewStrategy, RelativeViewStrategy, ConventionalViewStrategy, NoViewStrategy, TemplateRegistryViewStrategy, InlineViewStrategy, ViewLocator, BindingLanguage, noNodes, SlotCustomAttribute, PassThroughSlot, ShadowSlot, ShadowDOM, ViewResources, View, ViewSlot, ProviderResolver, providerResolverInstance, BoundViewFactory, ViewFactory, nextInjectorId, lastAUTargetID, ViewCompiler, ResourceModule, ResourceDescription, ModuleAnalyzer, logger, ProxyViewFactory, ViewEngine, Controller, BehaviorPropertyObserver, BindableProperty, lastProviderId, HtmlBehaviorResource, ChildObserver, noMutations, ChildObserverBinder, CompositionEngine, ElementConfigResource, defaultShadowDOMOptions, TemplatingEngine;
 
-  function _classCallCheck(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
+  
 
   function addHyphenAndLower(char) {
     return '-' + char.toLowerCase();
@@ -577,7 +575,7 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
 
       _export('Animator', Animator = function () {
         function Animator() {
-          _classCallCheck(this, Animator);
+          
         }
 
         Animator.prototype.enter = function enter(element) {
@@ -615,7 +613,7 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
 
       _export('CompositionTransaction', CompositionTransaction = function () {
         function CompositionTransaction() {
-          _classCallCheck(this, CompositionTransaction);
+          
 
           this._ownershipToken = null;
           this._compositionCount = 0;
@@ -658,13 +656,12 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
           var _this = this;
 
           var token = {};
-          var promise = new Promise(function (resolve, reject) {
-            token._resolve = resolve;
-          });
 
           token.waitForCompositionComplete = function () {
             _this._tryCompleteTransaction();
-            return promise;
+            return new Promise(function (resolve, reject) {
+              token._resolve = resolve;
+            });
           };
 
           return token;
@@ -690,7 +687,7 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
 
       _export('ElementEvents', ElementEvents = function () {
         function ElementEvents(element) {
-          _classCallCheck(this, ElementEvents);
+          
 
           this.element = element;
           this.subscriptions = {};
@@ -739,6 +736,8 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
             this._enqueueHandler(handler);
             return handler;
           }
+
+          return undefined;
         };
 
         ElementEvents.prototype.subscribeOnce = function subscribeOnce(eventName, handler) {
@@ -759,6 +758,8 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
 
             if ((typeof _ret === 'undefined' ? 'undefined' : _typeof(_ret)) === "object") return _ret.v;
           }
+
+          return undefined;
         };
 
         ElementEvents.prototype.dispose = function dispose(eventName) {
@@ -790,7 +791,7 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
 
       _export('ResourceLoadContext', ResourceLoadContext = function () {
         function ResourceLoadContext() {
-          _classCallCheck(this, ResourceLoadContext);
+          
 
           this.dependencies = {};
         }
@@ -812,7 +813,7 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
         var targetShadowDOM = arguments.length <= 0 || arguments[0] === undefined ? false : arguments[0];
         var compileSurrogate = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
 
-        _classCallCheck(this, ViewCompileInstruction);
+        
 
         this.targetShadowDOM = targetShadowDOM;
         this.compileSurrogate = compileSurrogate;
@@ -864,7 +865,7 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
         };
 
         function BehaviorInstruction() {
-          _classCallCheck(this, BehaviorInstruction);
+          
 
           this.initiatedByBehavior = false;
           this.enhance = false;
@@ -936,7 +937,7 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
         };
 
         function TargetInstruction() {
-          _classCallCheck(this, TargetInstruction);
+          
 
           this.injectorId = null;
           this.parentInjectorId = null;
@@ -984,7 +985,7 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
 
       _export('RelativeViewStrategy', RelativeViewStrategy = (_dec = viewStrategy(), _dec(_class4 = function () {
         function RelativeViewStrategy(path) {
-          _classCallCheck(this, RelativeViewStrategy);
+          
 
           this.path = path;
           this.absolutePath = null;
@@ -1012,7 +1013,7 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
 
       _export('ConventionalViewStrategy', ConventionalViewStrategy = (_dec2 = viewStrategy(), _dec2(_class5 = function () {
         function ConventionalViewStrategy(viewLocator, origin) {
-          _classCallCheck(this, ConventionalViewStrategy);
+          
 
           this.moduleId = origin.moduleId;
           this.viewUrl = viewLocator.convertOriginToViewUrl(origin);
@@ -1030,7 +1031,7 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
 
       _export('NoViewStrategy', NoViewStrategy = (_dec3 = viewStrategy(), _dec3(_class6 = function () {
         function NoViewStrategy() {
-          _classCallCheck(this, NoViewStrategy);
+          
         }
 
         NoViewStrategy.prototype.loadViewFactory = function loadViewFactory(viewEngine, compileInstruction, loadContext) {
@@ -1044,7 +1045,7 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
 
       _export('TemplateRegistryViewStrategy', TemplateRegistryViewStrategy = (_dec4 = viewStrategy(), _dec4(_class7 = function () {
         function TemplateRegistryViewStrategy(moduleId, entry) {
-          _classCallCheck(this, TemplateRegistryViewStrategy);
+          
 
           this.moduleId = moduleId;
           this.entry = entry;
@@ -1068,7 +1069,7 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
 
       _export('InlineViewStrategy', InlineViewStrategy = (_dec5 = viewStrategy(), _dec5(_class8 = function () {
         function InlineViewStrategy(markup, dependencies, dependencyBaseUrl) {
-          _classCallCheck(this, InlineViewStrategy);
+          
 
           this.markup = markup;
           this.dependencies = dependencies || null;
@@ -1109,7 +1110,7 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
 
       _export('ViewLocator', ViewLocator = (_temp2 = _class9 = function () {
         function ViewLocator() {
-          _classCallCheck(this, ViewLocator);
+          
         }
 
         ViewLocator.prototype.getViewStrategy = function getViewStrategy(value) {
@@ -1180,7 +1181,7 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
 
       _export('BindingLanguage', BindingLanguage = function () {
         function BindingLanguage() {
-          _classCallCheck(this, BindingLanguage);
+          
         }
 
         BindingLanguage.prototype.inspectAttribute = function inspectAttribute(resources, elementName, attrName, attrValue) {
@@ -1204,7 +1205,7 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
 
       _export('SlotCustomAttribute', SlotCustomAttribute = (_dec6 = inject(DOM.Element), _dec6(_class10 = function () {
         function SlotCustomAttribute(element) {
-          _classCallCheck(this, SlotCustomAttribute);
+          
 
           this.element = element;
           this.element.auSlotAttribute = this;
@@ -1219,7 +1220,7 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
 
       _export('PassThroughSlot', PassThroughSlot = function () {
         function PassThroughSlot(anchor, name, destinationName, fallbackFactory) {
-          _classCallCheck(this, PassThroughSlot);
+          
 
           this.anchor = anchor;
           this.anchor.viewSlot = this;
@@ -1331,7 +1332,7 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
 
       _export('ShadowSlot', ShadowSlot = function () {
         function ShadowSlot(anchor, name, fallbackFactory) {
-          _classCallCheck(this, ShadowSlot);
+          
 
           this.anchor = anchor;
           this.anchor.isContentProjectionSource = true;
@@ -1554,7 +1555,7 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
 
       _export('ShadowDOM', ShadowDOM = (_temp3 = _class11 = function () {
         function ShadowDOM() {
-          _classCallCheck(this, ShadowDOM);
+          
         }
 
         ShadowDOM.getSlotName = function getSlotName(node) {
@@ -1638,7 +1639,7 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
 
       _export('ViewResources', ViewResources = function () {
         function ViewResources(parent, viewUrl) {
-          _classCallCheck(this, ViewResources);
+          
 
           this.bindingLanguage = null;
 
@@ -1781,7 +1782,7 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
 
       _export('View', View = function () {
         function View(container, viewFactory, fragment, controllers, bindings, children, slots) {
-          _classCallCheck(this, View);
+          
 
           this.container = container;
           this.viewFactory = viewFactory;
@@ -2005,7 +2006,7 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
         function ViewSlot(anchor, anchorIsContainer) {
           var animator = arguments.length <= 2 || arguments[2] === undefined ? Animator.instance : arguments[2];
 
-          _classCallCheck(this, ViewSlot);
+          
 
           this.anchor = anchor;
           this.anchorIsContainer = anchorIsContainer;
@@ -2099,6 +2100,8 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
               return this.animator.enter(animatableElement);
             }
           }
+
+          return undefined;
         };
 
         ViewSlot.prototype.insert = function insert(index, view) {
@@ -2120,6 +2123,8 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
               return this.animator.enter(animatableElement);
             }
           }
+
+          return undefined;
         };
 
         ViewSlot.prototype.move = function move(sourceIndex, targetIndex) {
@@ -2191,7 +2196,7 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
             });
           }
 
-          removeAction();
+          return removeAction();
         };
 
         ViewSlot.prototype.removeAt = function removeAt(index, returnToCache, skipAnimation) {
@@ -2273,7 +2278,7 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
             });
           }
 
-          removeAction();
+          return removeAction();
         };
 
         ViewSlot.prototype.attached = function attached() {
@@ -2418,7 +2423,7 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
 
       ProviderResolver = resolver(_class13 = function () {
         function ProviderResolver() {
-          _classCallCheck(this, ProviderResolver);
+          
         }
 
         ProviderResolver.prototype.get = function get(container, key) {
@@ -2432,7 +2437,7 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
 
       _export('BoundViewFactory', BoundViewFactory = function () {
         function BoundViewFactory(parentContainer, viewFactory, partReplacements) {
-          _classCallCheck(this, BoundViewFactory);
+          
 
           this.parentContainer = parentContainer;
           this.viewFactory = viewFactory;
@@ -2471,7 +2476,7 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
 
       _export('ViewFactory', ViewFactory = function () {
         function ViewFactory(template, instructions, resources) {
-          _classCallCheck(this, ViewFactory);
+          
 
           this.isCaching = false;
 
@@ -2581,7 +2586,7 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
 
       _export('ViewCompiler', ViewCompiler = (_dec7 = inject(BindingLanguage, ViewResources), _dec7(_class15 = function () {
         function ViewCompiler(bindingLanguage, resources) {
-          _classCallCheck(this, ViewCompiler);
+          
 
           this.bindingLanguage = bindingLanguage;
           this.resources = resources;
@@ -2945,7 +2950,7 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
 
       _export('ResourceModule', ResourceModule = function () {
         function ResourceModule(moduleId) {
-          _classCallCheck(this, ResourceModule);
+          
 
           this.id = moduleId;
           this.moduleInstance = null;
@@ -3027,7 +3032,7 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
 
       _export('ResourceDescription', ResourceDescription = function () {
         function ResourceDescription(key, exportedValue, resourceTypeMeta) {
-          _classCallCheck(this, ResourceDescription);
+          
 
           if (!resourceTypeMeta) {
             resourceTypeMeta = metadata.get(metadata.resource, exportedValue);
@@ -3074,7 +3079,7 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
 
       _export('ModuleAnalyzer', ModuleAnalyzer = function () {
         function ModuleAnalyzer() {
-          _classCallCheck(this, ModuleAnalyzer);
+          
 
           this.cache = Object.create(null);
         }
@@ -3183,7 +3188,7 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
         function ProxyViewFactory(promise) {
           var _this9 = this;
 
-          _classCallCheck(this, ProxyViewFactory);
+          
 
           promise.then(function (x) {
             return _this9.viewFactory = x;
@@ -3218,7 +3223,7 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
 
       _export('ViewEngine', ViewEngine = (_dec8 = inject(Loader, Container, ViewCompiler, ModuleAnalyzer, ViewResources), _dec8(_class16 = function () {
         function ViewEngine(loader, container, viewCompiler, moduleAnalyzer, appResources) {
-          _classCallCheck(this, ViewEngine);
+          
 
           this.loader = loader;
           this.container = container;
@@ -3380,7 +3385,7 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
 
       _export('Controller', Controller = function () {
         function Controller(behavior, instruction, viewModel, elementEvents) {
-          _classCallCheck(this, Controller);
+          
 
           this.behavior = behavior;
           this.instruction = instruction;
@@ -3552,7 +3557,7 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
 
       _export('BehaviorPropertyObserver', BehaviorPropertyObserver = (_dec9 = subscriberCollection(), _dec9(_class18 = function () {
         function BehaviorPropertyObserver(taskQueue, obj, propertyName, selfSubscriber, initialValue) {
-          _classCallCheck(this, BehaviorPropertyObserver);
+          
 
           this.taskQueue = taskQueue;
           this.obj = obj;
@@ -3614,7 +3619,7 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
 
       _export('BindableProperty', BindableProperty = function () {
         function BindableProperty(nameOrConfig) {
-          _classCallCheck(this, BindableProperty);
+          
 
           if (typeof nameOrConfig === 'string') {
             this.name = nameOrConfig;
@@ -3640,6 +3645,8 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
             this.descriptor = descriptor;
             return this._configureDescriptor(behavior, descriptor);
           }
+
+          return undefined;
         };
 
         BindableProperty.prototype._configureDescriptor = function _configureDescriptor(behavior, descriptor) {
@@ -3822,7 +3829,7 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
 
       _export('HtmlBehaviorResource', HtmlBehaviorResource = function () {
         function HtmlBehaviorResource() {
-          _classCallCheck(this, HtmlBehaviorResource);
+          
 
           this.elementName = null;
           this.attributeName = null;
@@ -4166,7 +4173,7 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
 
       ChildObserver = function () {
         function ChildObserver(config) {
-          _classCallCheck(this, ChildObserver);
+          
 
           this.name = config.name;
           this.changeHandler = config.changeHandler || this.name + 'Changed';
@@ -4185,7 +4192,7 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
 
       ChildObserverBinder = function () {
         function ChildObserverBinder(selector, viewHost, property, viewModel, controller, changeHandler, all) {
-          _classCallCheck(this, ChildObserverBinder);
+          
 
           this.selector = selector;
           this.viewHost = viewHost;
@@ -4307,6 +4314,8 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
 
             return false;
           }
+
+          return false;
         };
 
         ChildObserverBinder.prototype.onAdd = function onAdd(element) {
@@ -4352,7 +4361,7 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
 
       _export('CompositionEngine', CompositionEngine = (_dec10 = inject(ViewEngine, ViewLocator), _dec10(_class19 = function () {
         function CompositionEngine(viewEngine, viewLocator) {
-          _classCallCheck(this, CompositionEngine);
+          
 
           this.viewEngine = viewEngine;
           this.viewLocator = viewLocator;
@@ -4492,6 +4501,8 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
 
             return Promise.resolve(null);
           }
+
+          return Promise.resolve(null);
         };
 
         return CompositionEngine;
@@ -4501,7 +4512,7 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
 
       _export('ElementConfigResource', ElementConfigResource = function () {
         function ElementConfigResource() {
-          _classCallCheck(this, ElementConfigResource);
+          
         }
 
         ElementConfigResource.prototype.initialize = function initialize(container, target) {};
@@ -4696,7 +4707,7 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
 
       _export('TemplatingEngine', TemplatingEngine = (_dec11 = inject(Container, ModuleAnalyzer, ViewCompiler, CompositionEngine), _dec11(_class20 = function () {
         function TemplatingEngine(container, moduleAnalyzer, viewCompiler, compositionEngine) {
-          _classCallCheck(this, TemplatingEngine);
+          
 
           this._container = container;
           this._moduleAnalyzer = moduleAnalyzer;

@@ -66,6 +66,8 @@ export class ElementEvents {
       this._enqueueHandler(handler);
       return handler;
     }
+
+    return undefined;
   }
 
   /**
@@ -83,6 +85,8 @@ export class ElementEvents {
       };
       return this.subscribe(eventName, _handler, bubbles);
     }
+
+    return undefined;
   }
 
   /**

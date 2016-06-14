@@ -8,6 +8,7 @@ import {ModuleAnalyzer, ResourceDescription} from './module-analyzer';
 import {ViewFactory} from './view-factory';
 import {ResourceLoadContext, ViewCompileInstruction} from './instructions';
 import {SlotCustomAttribute} from './shadow-dom';
+import {HtmlBehaviorResource} from './html-behavior';
 
 let logger = LogManager.getLogger('templating');
 

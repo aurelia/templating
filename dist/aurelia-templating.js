@@ -182,13 +182,12 @@ export class CompositionTransaction {
 
   _createOwnershipToken(): CompositionTransactionOwnershipToken {
     let token = {};
-    let promise = new Promise((resolve, reject) => {
-      token._resolve = resolve;
-    });
 
     token.waitForCompositionComplete = () => {
       this._tryCompleteTransaction();
-      return promise;
+      return new Promise((resolve, reject) => {
+        token._resolve = resolve;
+      });
     };
 
     return token;
@@ -279,6 +278,8 @@ export class ElementEvents {
       this._enqueueHandler(handler);
       return handler;
     }
+
+    return undefined;
   }
 
   /**
@@ -296,6 +297,8 @@ export class ElementEvents {
       };
       return this.subscribe(eventName, _handler, bubbles);
     }
+
+    return undefined;
   }
 
   /**
@@ -2061,6 +2064,8 @@ export class ViewSlot {
         return this.animator.enter(animatableElement);
       }
     }
+
+    return undefined;
   }
 
   /**
@@ -2088,6 +2093,8 @@ export class ViewSlot {
         return this.animator.enter(animatableElement);
       }
     }
+
+    return undefined;
   }
 
   /**
@@ -2172,7 +2179,7 @@ export class ViewSlot {
       return Promise.all(rmPromises).then(() => removeAction());
     }
 
-    removeAction();
+    return removeAction();
   }
 
   /**
@@ -2257,7 +2264,7 @@ export class ViewSlot {
       return Promise.all(rmPromises).then(() => removeAction());
     }
 
-    removeAction();
+    return removeAction();
   }
 
   /**
@@ -4179,6 +4186,8 @@ export class BindableProperty {
       this.descriptor = descriptor;
       return this._configureDescriptor(behavior, descriptor);
     }
+
+    return undefined;
   }
 
   _configureDescriptor(behavior: HtmlBehaviorResource, descriptor: Object): Object {
@@ -4979,6 +4988,8 @@ class ChildObserverBinder {
 
       return false;
     }
+
+    return false;
   }
 
   onAdd(element) {
@@ -5241,6 +5252,8 @@ export class CompositionEngine {
 
       return Promise.resolve(null);
     }
+
+    return Promise.resolve(null);
   }
 }
 
