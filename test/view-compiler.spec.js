@@ -24,9 +24,11 @@ describe('ViewCompiler', () => {
   describe('compile', () => {
     it('compiles an empty template', () => {
       var template = document.createElement('template'),
-        node = document.createDocumentFragment();
+        node = document.createDocumentFragment(),
+        factory;
       template.appendChild(node);
-      viewCompiler.compile(template, resources, null);
+      factory = viewCompiler.compile(template, resources, null);
+      expect(factory).not.toBe(null);
     });
   });
 
