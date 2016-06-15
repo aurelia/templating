@@ -127,7 +127,7 @@ export class ViewCompiler {
     this._compileNode(content, resources, instructions, source, 'root', !compileInstruction.targetShadowDOM);
 
     let firstChild = content.firstChild;
-    if (firstChild.nodeType === 1) {
+    if (firstChild && firstChild.nodeType === 1) {
       let targetId = firstChild.getAttribute('au-target-id');
       if (targetId) {
         let ins = instructions[targetId];
