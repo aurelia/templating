@@ -50,7 +50,8 @@ paths.files = [
   'composition-engine.js',
   'element-config.js',
   'decorators.js',
-  'templating-engine.js'
+  'templating-engine.js',
+  'view-engine-resource-hooks.js'
 ].map(function(file){
   return paths.root + file;
 });
