@@ -215,7 +215,7 @@ class ChildObserverBinder {
       let value = element.au && element.au.controller ? element.au.controller.viewModel : element;
 
       if (this.all) {
-        let items = this.viewModel[this.property];
+        let items = (this.viewModel[this.property] || (this.viewModel[this.property] = []));
         let index = items.indexOf(value);
 
         if (index !== -1) {
@@ -236,7 +236,7 @@ class ChildObserverBinder {
       let value = element.au && element.au.controller ? element.au.controller.viewModel : element;
 
       if (this.all) {
-        let items = this.viewModel[this.property];
+        let items = (this.viewModel[this.property] || (this.viewModel[this.property] = []));
         let index = 0;
         let prev = element.previousElementSibling;
 
