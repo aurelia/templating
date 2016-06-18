@@ -46,6 +46,20 @@ export class ViewSlot {
   }
 
   /**
+   *   Runs the animator against the first animatable element found within the view's fragment
+   *   @param  view       The view to use when searching for the element
+   *   @param  direction  The animation direction enter|leave
+   *   @returns null or a Promise
+   */
+  animateView(view:View, direction:String = 'enter'):Promise<any> {
+    let animatableElement = getAnimatableElement(view);
+    if (animatableElement !== null && direction in this.animator) {
+      return this.animator[direction](animatableElement);
+    }
+    return animatableElement;
+  }
+
+  /**
   * Takes the child nodes of an existing element that has been converted into a ViewSlot
   * and makes those nodes into a View within the slot.
   */
@@ -136,9 +150,9 @@ export class ViewSlot {
     if (this.isAttached) {
       view.attached();
 
-      let animatableElement = getAnimatableElement(view);
-      if (animatableElement !== null) {
-        return this.animator.enter(animatableElement);
+      let animation = this.animateView(view, 'enter');
+      if (animation !== null) {
+        return animation;
       }
     }
 
@@ -165,9 +179,9 @@ export class ViewSlot {
     if (this.isAttached) {
       view.attached();
 
-      let animatableElement = getAnimatableElement(view);
-      if (animatableElement !== null) {
-        return this.animator.enter(animatableElement);
+      let animation = this.animateView(view, 'enter');
+      if (animation !== null) {
+        return animation;
       }
     }
 
@@ -223,9 +237,9 @@ export class ViewSlot {
         return;
       }
 
-      let animatableElement = getAnimatableElement(child);
-      if (animatableElement !== null) {
-        rmPromises.push(this.animator.leave(animatableElement).then(() => child.removeNodes()));
+      let animation = this.animateView(child, 'leave');
+      if (animation !== null) {
+        rmPromises.push(animation.then(() => child.removeNodes()));
       } else {
         child.removeNodes();
       }
@@ -286,9 +300,9 @@ export class ViewSlot {
     };
 
     if (!skipAnimation) {
-      let animatableElement = getAnimatableElement(view);
-      if (animatableElement !== null) {
-        return this.animator.leave(animatableElement).then(() => removeAction());
+      let animation = this.animateView(view, 'leave');
+      if (animation !== null) {
+        return animation.then(() => removeAction());
       }
     }
 
@@ -313,9 +327,9 @@ export class ViewSlot {
         return;
       }
 
-      let animatableElement = getAnimatableElement(child);
-      if (animatableElement !== null) {
-        rmPromises.push(this.animator.leave(animatableElement).then(() => child.removeNodes()));
+      let animation = this.animateView(child, 'leave');
+      if (animation !== null) {
+        rmPromises.push(animation.then(() => child.removeNodes()));
       } else {
         child.removeNodes();
       }
@@ -364,10 +378,7 @@ export class ViewSlot {
       child = children[i];
       child.attached();
 
-      let element = getAnimatableElement(child);
-      if (element) {
-        this.animator.enter(element);
-      }
+      this.animateView(child, 'enter');
     }
   }
 
