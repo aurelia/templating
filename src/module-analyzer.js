@@ -268,8 +268,7 @@ export class ModuleAnalyzer {
           }
 
           metadata.define(metadata.resource, conventional, exportedValue);
-        } else if (conventional = 
-          ValueConverterResource.convention(key)
+        } else if (conventional = ValueConverterResource.convention(key)
           || BindingBehaviorResource.convention(key)
           || ViewEngineHooksResource.convention(key)) {
           resources.push(new ResourceDescription(key, exportedValue, conventional));
