@@ -344,7 +344,6 @@ export declare class CompositionTransactionOwnershipToken {
     * Used internall to resolve the composition complete promise.
     */
   resolve(): void;
-  _createThenable(): any;
 }
 
 /**
@@ -368,14 +367,7 @@ export declare class CompositionTransaction {
     * @return A completion notifier.
     */
   enlist(): CompositionTransactionNotifier;
-  _tryCompleteTransaction(): any;
 }
-export declare function _hyphenate(name?: any): any;
-
-//https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model/Whitespace_in_the_DOM
-//We need to ignore whitespace so we don't mess up fallback rendering
-//However, we cannot ignore empty text nodes that container interpolations.
-export declare function _isAllWhitespace(node?: any): any;
 
 /**
  * Dispatches subscribets to and publishes events in the DOM.
@@ -387,8 +379,6 @@ export declare function _isAllWhitespace(node?: any): any;
  */
 export declare class ElementEvents {
   constructor(element: Element);
-  _enqueueHandler(handler: EventHandler): void;
-  _dequeueHandler(handler: EventHandler): EventHandler;
   
   /**
      * Dispatches an Event on the context element.
@@ -800,7 +790,6 @@ export declare class ShadowSlot {
   addNode(view?: any, node?: any, projectionSource?: any, index?: any, destination?: any): any;
   removeView(view?: any, projectionSource?: any): any;
   removeAll(projectionSource?: any): any;
-  _findAnchor(view?: any, node?: any, projectionSource?: any, index?: any): any;
   projectTo(slots?: any): any;
   projectFrom(view?: any, projectionSource?: any): any;
   renderFallbackContent(view?: any, nodes?: any, projectionSource?: any, index?: any): any;
@@ -838,8 +827,6 @@ export declare class ViewResources {
     * @param viewUrl The url of the view to which these resources apply.
     */
   constructor(parent?: ViewResources, viewUrl?: string);
-  _tryAddHook(obj?: any, name?: any): any;
-  _invokeHook(name?: any, one?: any, two?: any, three?: any, four?: any): any;
   
   /**
     * Registers view engine hooks for the view.
@@ -1113,13 +1100,6 @@ export declare class ViewSlot {
     */
   detached(): void;
   projectTo(slots: Object): void;
-  _projectionAdd(view?: any): any;
-  _projectionInsert(index?: any, view?: any): any;
-  _projectionMove(sourceIndex?: any, targetIndex?: any): any;
-  _projectionRemove(view?: any, returnToCache?: any): any;
-  _projectionRemoveAt(index?: any, returnToCache?: any): any;
-  _projectionRemoveMany(viewsToRemove?: any, returnToCache?: any): any;
-  _projectionRemoveAll(returnToCache?: any): any;
 }
 
 /**
@@ -1234,9 +1214,6 @@ export declare class ViewCompiler {
     * @return The compiled ViewFactory.
     */
   compile(source: Element | DocumentFragment | string, resources?: ViewResources, compileInstruction?: ViewCompileInstruction): ViewFactory;
-  _compileNode(node?: any, resources?: any, instructions?: any, parentNode?: any, parentInjectorId?: any, targetLightDOM?: any): any;
-  _compileSurrogate(node?: any, resources?: any): any;
-  _compileElement(node?: any, resources?: any, instructions?: any, parentNode?: any, parentInjectorId?: any, targetLightDOM?: any): any;
 }
 
 /**
@@ -1391,7 +1368,6 @@ export declare class ViewEngine {
     * @return A promise for the ViewResources.
     */
   importViewResources(moduleIds: string[], names: string[], resources: ViewResources, compileInstruction?: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewResources>;
-  _applyLoaderPlugin(id?: any): any;
 }
 
 /**
@@ -1523,7 +1499,6 @@ export declare class BindableProperty {
     * @param descriptor The property descriptor for this property.
     */
   registerWith(target: Function, behavior: HtmlBehaviorResource, descriptor?: Object): void;
-  _configureDescriptor(behavior: HtmlBehaviorResource, descriptor: Object): Object;
   
   /**
     * Defines this property on the specified class and behavior.
@@ -1538,8 +1513,6 @@ export declare class BindableProperty {
     * @return The property observer.
     */
   createObserver(viewModel: Object): BehaviorPropertyObserver;
-  _initialize(viewModel?: any, observerLookup?: any, attributes?: any, behaviorHandlesBind?: any, boundProperties?: any): void;
-  _createDynamicProperty(viewModel?: any, observerLookup?: any, behaviorHandlesBind?: any, name?: any, attribute?: any, boundProperties?: any): any;
 }
 
 /**
@@ -1615,7 +1588,6 @@ export declare class HtmlBehaviorResource {
     * @return The Controller of this behavior.
     */
   create(container: Container, instruction?: BehaviorInstruction, element?: Element, bindings?: Binding[]): Controller;
-  _ensurePropertiesDefined(instance: Object, lookup: Object): any;
 }
 
 /**
@@ -1638,7 +1610,6 @@ export declare class CompositionEngine {
     * @param viewEngine The ViewEngine used during composition.
     */
   constructor(viewEngine: ViewEngine, viewLocator: ViewLocator);
-  _createControllerAndSwap(context?: any): any;
   
   /**
     * Creates a controller instance for the component described in the context.
