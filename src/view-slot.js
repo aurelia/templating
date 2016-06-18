@@ -47,16 +47,23 @@ export class ViewSlot {
 
   /**
    *   Runs the animator against the first animatable element found within the view's fragment
-   *   @param  view       The view to use when searching for the element
-   *   @param  direction  The animation direction enter|leave
-   *   @returns null or a Promise
+   *   @param  view       The view to use when searching for the element.
+   *   @param  direction  The animation direction enter|leave.
+   *   @returns An animation complete Promise or undefined if no animation was run.
    */
-  animateView(view:View, direction:String = 'enter'):Promise<any> {
+  animateView(view: View, direction: string = 'enter'): null | Promise<any> {
     let animatableElement = getAnimatableElement(view);
-    if (animatableElement !== null && direction in this.animator) {
-      return this.animator[direction](animatableElement);
+
+    if (animatableElement !== null) {
+      switch (direction) {
+      case 'enter':
+        return this.animator.enter(animatableElement);
+      case 'leave':
+        return this.animator.leave(animatableElement);
+      default:
+        throw new Error('Invalid animation direction: ' + direction);
+      }
     }
-    return animatableElement;
   }
 
   /**
@@ -149,14 +156,8 @@ export class ViewSlot {
 
     if (this.isAttached) {
       view.attached();
-
-      let animation = this.animateView(view, 'enter');
-      if (animation !== null) {
-        return animation;
-      }
+      return this.animateView(view, 'enter');
     }
-
-    return undefined;
   }
 
   /**
@@ -178,14 +179,8 @@ export class ViewSlot {
 
     if (this.isAttached) {
       view.attached();
-
-      let animation = this.animateView(view, 'enter');
-      if (animation !== null) {
-        return animation;
-      }
+      return this.animateView(view, 'enter');
     }
-
-    return undefined;
   }
 
   /**
@@ -238,7 +233,7 @@ export class ViewSlot {
       }
 
       let animation = this.animateView(child, 'leave');
-      if (animation !== null) {
+      if (animation) {
         rmPromises.push(animation.then(() => child.removeNodes()));
       } else {
         child.removeNodes();
@@ -280,7 +275,7 @@ export class ViewSlot {
   * @param skipAnimation Should the removal animation be skipped?
   * @return May return a promise if the view removal triggered an animation.
   */
-  removeAt(index: number, returnToCache?: boolean, skipAnimation?: boolean): void | Promise<View> {
+  removeAt(index: number, returnToCache?: boolean, skipAnimation?: boolean): View | Promise<View> {
     let view = this.children[index];
 
     let removeAction = () => {
@@ -301,7 +296,7 @@ export class ViewSlot {
 
     if (!skipAnimation) {
       let animation = this.animateView(view, 'leave');
-      if (animation !== null) {
+      if (animation) {
         return animation.then(() => removeAction());
       }
     }
@@ -328,7 +323,7 @@ export class ViewSlot {
       }
 
       let animation = this.animateView(child, 'leave');
-      if (animation !== null) {
+      if (animation) {
         rmPromises.push(animation.then(() => child.removeNodes()));
       } else {
         child.removeNodes();
@@ -377,7 +372,6 @@ export class ViewSlot {
     for (i = 0, ii = children.length; i < ii; ++i) {
       child = children[i];
       child.attached();
-
       this.animateView(child, 'enter');
     }
   }
