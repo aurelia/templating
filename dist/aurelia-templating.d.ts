@@ -1016,6 +1016,14 @@ export declare class ViewSlot {
   constructor(anchor: Node, anchorIsContainer: boolean, animator?: Animator);
   
   /**
+     *   Runs the animator against the first animatable element found within the view's fragment
+     *   @param  view       The view to use when searching for the element.
+     *   @param  direction  The animation direction enter|leave.
+     *   @returns An animation complete Promise or undefined if no animation was run.
+     */
+  animateView(view: View, direction?: string): void | Promise<any>;
+  
+  /**
     * Takes the child nodes of an existing element that has been converted into a ViewSlot
     * and makes those nodes into a View within the slot.
     */
@@ -1080,7 +1088,7 @@ export declare class ViewSlot {
     * @param skipAnimation Should the removal animation be skipped?
     * @return May return a promise if the view removal triggered an animation.
     */
-  removeAt(index: number, returnToCache?: boolean, skipAnimation?: boolean): void | Promise<View>;
+  removeAt(index: number, returnToCache?: boolean, skipAnimation?: boolean): View | Promise<View>;
   
   /**
     * Removes all views from the slot.

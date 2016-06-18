@@ -1372,6 +1372,21 @@ export let ViewSlot = class ViewSlot {
     anchor.isContentProjectionSource = false;
   }
 
+  animateView(view, direction = 'enter') {
+    let animatableElement = getAnimatableElement(view);
+
+    if (animatableElement !== null) {
+      switch (direction) {
+        case 'enter':
+          return this.animator.enter(animatableElement);
+        case 'leave':
+          return this.animator.leave(animatableElement);
+        default:
+          throw new Error('Invalid animation direction: ' + direction);
+      }
+    }
+  }
+
   transformChildNodesIntoView() {
     let parent = this.anchor;
 
@@ -1445,14 +1460,8 @@ export let ViewSlot = class ViewSlot {
 
     if (this.isAttached) {
       view.attached();
-
-      let animatableElement = getAnimatableElement(view);
-      if (animatableElement !== null) {
-        return this.animator.enter(animatableElement);
-      }
+      return this.animateView(view, 'enter');
     }
-
-    return undefined;
   }
 
   insert(index, view) {
@@ -1468,14 +1477,8 @@ export let ViewSlot = class ViewSlot {
 
     if (this.isAttached) {
       view.attached();
-
-      let animatableElement = getAnimatableElement(view);
-      if (animatableElement !== null) {
-        return this.animator.enter(animatableElement);
-      }
+      return this.animateView(view, 'enter');
     }
-
-    return undefined;
   }
 
   move(sourceIndex, targetIndex) {
@@ -1508,9 +1511,9 @@ export let ViewSlot = class ViewSlot {
         return;
       }
 
-      let animatableElement = getAnimatableElement(child);
-      if (animatableElement !== null) {
-        rmPromises.push(this.animator.leave(animatableElement).then(() => child.removeNodes()));
+      let animation = this.animateView(child, 'leave');
+      if (animation) {
+        rmPromises.push(animation.then(() => child.removeNodes()));
       } else {
         child.removeNodes();
       }
@@ -1564,9 +1567,9 @@ export let ViewSlot = class ViewSlot {
     };
 
     if (!skipAnimation) {
-      let animatableElement = getAnimatableElement(view);
-      if (animatableElement !== null) {
-        return this.animator.leave(animatableElement).then(() => removeAction());
+      let animation = this.animateView(view, 'leave');
+      if (animation) {
+        return animation.then(() => removeAction());
       }
     }
 
@@ -1585,9 +1588,9 @@ export let ViewSlot = class ViewSlot {
         return;
       }
 
-      let animatableElement = getAnimatableElement(child);
-      if (animatableElement !== null) {
-        rmPromises.push(this.animator.leave(animatableElement).then(() => child.removeNodes()));
+      let animation = this.animateView(child, 'leave');
+      if (animation) {
+        rmPromises.push(animation.then(() => child.removeNodes()));
       } else {
         child.removeNodes();
       }
@@ -1632,11 +1635,7 @@ export let ViewSlot = class ViewSlot {
     for (i = 0, ii = children.length; i < ii; ++i) {
       child = children[i];
       child.attached();
-
-      let element = getAnimatableElement(child);
-      if (element) {
-        this.animator.enter(element);
-      }
+      this.animateView(child, 'enter');
     }
   }
 

@@ -1510,6 +1510,23 @@ export var ViewSlot = function () {
     anchor.isContentProjectionSource = false;
   }
 
+  ViewSlot.prototype.animateView = function animateView(view) {
+    var direction = arguments.length <= 1 || arguments[1] === undefined ? 'enter' : arguments[1];
+
+    var animatableElement = getAnimatableElement(view);
+
+    if (animatableElement !== null) {
+      switch (direction) {
+        case 'enter':
+          return this.animator.enter(animatableElement);
+        case 'leave':
+          return this.animator.leave(animatableElement);
+        default:
+          throw new Error('Invalid animation direction: ' + direction);
+      }
+    }
+  };
+
   ViewSlot.prototype.transformChildNodesIntoView = function transformChildNodesIntoView() {
     var parent = this.anchor;
 
@@ -1583,14 +1600,8 @@ export var ViewSlot = function () {
 
     if (this.isAttached) {
       view.attached();
-
-      var animatableElement = getAnimatableElement(view);
-      if (animatableElement !== null) {
-        return this.animator.enter(animatableElement);
-      }
+      return this.animateView(view, 'enter');
     }
-
-    return undefined;
   };
 
   ViewSlot.prototype.insert = function insert(index, view) {
@@ -1606,14 +1617,8 @@ export var ViewSlot = function () {
 
     if (this.isAttached) {
       view.attached();
-
-      var animatableElement = getAnimatableElement(view);
-      if (animatableElement !== null) {
-        return this.animator.enter(animatableElement);
-      }
+      return this.animateView(view, 'enter');
     }
-
-    return undefined;
   };
 
   ViewSlot.prototype.move = function move(sourceIndex, targetIndex) {
@@ -1648,9 +1653,9 @@ export var ViewSlot = function () {
         return;
       }
 
-      var animatableElement = getAnimatableElement(child);
-      if (animatableElement !== null) {
-        rmPromises.push(_this4.animator.leave(animatableElement).then(function () {
+      var animation = _this4.animateView(child, 'leave');
+      if (animation) {
+        rmPromises.push(animation.then(function () {
           return child.removeNodes();
         }));
       } else {
@@ -1710,9 +1715,9 @@ export var ViewSlot = function () {
     };
 
     if (!skipAnimation) {
-      var animatableElement = getAnimatableElement(view);
-      if (animatableElement !== null) {
-        return this.animator.leave(animatableElement).then(function () {
+      var animation = this.animateView(view, 'leave');
+      if (animation) {
+        return animation.then(function () {
           return removeAction();
         });
       }
@@ -1735,9 +1740,9 @@ export var ViewSlot = function () {
         return;
       }
 
-      var animatableElement = getAnimatableElement(child);
-      if (animatableElement !== null) {
-        rmPromises.push(_this6.animator.leave(animatableElement).then(function () {
+      var animation = _this6.animateView(child, 'leave');
+      if (animation) {
+        rmPromises.push(animation.then(function () {
           return child.removeNodes();
         }));
       } else {
@@ -1786,11 +1791,7 @@ export var ViewSlot = function () {
     for (i = 0, ii = children.length; i < ii; ++i) {
       child = children[i];
       child.attached();
-
-      var _element = getAnimatableElement(child);
-      if (_element) {
-        this.animator.enter(_element);
-      }
+      this.animateView(child, 'enter');
     }
   };
 
