@@ -2991,7 +2991,7 @@ export class ViewCompiler {
     this._compileNode(content, resources, instructions, source, 'root', !compileInstruction.targetShadowDOM);
 
     let firstChild = content.firstChild;
-    if (firstChild.nodeType === 1) {
+    if (firstChild && firstChild.nodeType === 1) {
       let targetId = firstChild.getAttribute('au-target-id');
       if (targetId) {
         let ins = instructions[targetId];
@@ -3589,10 +3589,9 @@ export class ModuleAnalyzer {
           }
 
           metadata.define(metadata.resource, conventional, exportedValue);
-        } else if (conventional = ValueConverterResource.convention(key)) {
-          resources.push(new ResourceDescription(key, exportedValue, conventional));
-          metadata.define(metadata.resource, conventional, exportedValue);
-        } else if (conventional = BindingBehaviorResource.convention(key)) {
+        } else if (conventional = ValueConverterResource.convention(key)
+          || BindingBehaviorResource.convention(key)
+          || ViewEngineHooksResource.convention(key)) {
           resources.push(new ResourceDescription(key, exportedValue, conventional));
           metadata.define(metadata.resource, conventional, exportedValue);
         } else if (!fallbackValue) {
@@ -5000,7 +4999,7 @@ class ChildObserverBinder {
       let value = element.au && element.au.controller ? element.au.controller.viewModel : element;
 
       if (this.all) {
-        let items = this.viewModel[this.property];
+        let items = (this.viewModel[this.property] || (this.viewModel[this.property] = []));
         let index = items.indexOf(value);
 
         if (index !== -1) {
@@ -5021,7 +5020,7 @@ class ChildObserverBinder {
       let value = element.au && element.au.controller ? element.au.controller.viewModel : element;
 
       if (this.all) {
-        let items = this.viewModel[this.property];
+        let items = (this.viewModel[this.property] || (this.viewModel[this.property] = []));
         let index = 0;
         let prev = element.previousElementSibling;
 

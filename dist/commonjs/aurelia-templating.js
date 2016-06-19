@@ -2440,7 +2440,7 @@ var ViewCompiler = exports.ViewCompiler = (_dec7 = (0, _aureliaDependencyInjecti
     this._compileNode(content, resources, instructions, source, 'root', !compileInstruction.targetShadowDOM);
 
     var firstChild = content.firstChild;
-    if (firstChild.nodeType === 1) {
+    if (firstChild && firstChild.nodeType === 1) {
       var targetId = firstChild.getAttribute('au-target-id');
       if (targetId) {
         var ins = instructions[targetId];
@@ -2970,10 +2970,7 @@ var ModuleAnalyzer = exports.ModuleAnalyzer = function () {
           }
 
           _aureliaMetadata.metadata.define(_aureliaMetadata.metadata.resource, conventional, exportedValue);
-        } else if (conventional = _aureliaBinding.ValueConverterResource.convention(key)) {
-          resources.push(new ResourceDescription(key, exportedValue, conventional));
-          _aureliaMetadata.metadata.define(_aureliaMetadata.metadata.resource, conventional, exportedValue);
-        } else if (conventional = _aureliaBinding.BindingBehaviorResource.convention(key)) {
+        } else if (conventional = _aureliaBinding.ValueConverterResource.convention(key) || _aureliaBinding.BindingBehaviorResource.convention(key) || ViewEngineHooksResource.convention(key)) {
           resources.push(new ResourceDescription(key, exportedValue, conventional));
           _aureliaMetadata.metadata.define(_aureliaMetadata.metadata.resource, conventional, exportedValue);
         } else if (!fallbackValue) {
@@ -4211,7 +4208,7 @@ var ChildObserverBinder = function () {
       var value = element.au && element.au.controller ? element.au.controller.viewModel : element;
 
       if (this.all) {
-        var items = this.viewModel[this.property];
+        var items = this.viewModel[this.property] || (this.viewModel[this.property] = []);
         var index = items.indexOf(value);
 
         if (index !== -1) {
@@ -4232,7 +4229,7 @@ var ChildObserverBinder = function () {
       var value = element.au && element.au.controller ? element.au.controller.viewModel : element;
 
       if (this.all) {
-        var items = this.viewModel[this.property];
+        var items = this.viewModel[this.property] || (this.viewModel[this.property] = []);
         var index = 0;
         var prev = element.previousElementSibling;
 
