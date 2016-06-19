@@ -136,7 +136,7 @@ export class View {
       children[i].bind(bindingContext, overrideContext, true);
     }
 
-    if (this.hasSlots && this.contentView !== null) {
+    if (this.hasSlots) {
       ShadowDOM.distributeView(this.contentView, this.slots);
     }
   }
