@@ -931,12 +931,18 @@ export let ShadowDOM = (_temp3 = _class11 = class ShadowDOM {
   }
 
   static distributeView(view, slots, projectionSource, index, destinationOverride) {
-    let childNodes = view.fragment.childNodes;
-    let ii = childNodes.length;
-    let nodes = new Array(ii);
+    let nodes;
 
-    for (let i = 0; i < ii; ++i) {
-      nodes[i] = childNodes[i];
+    if (view === null) {
+      nodes = noNodes;
+    } else {
+      let childNodes = view.fragment.childNodes;
+      let ii = childNodes.length;
+      nodes = new Array(ii);
+
+      for (let i = 0; i < ii; ++i) {
+        nodes[i] = childNodes[i];
+      }
     }
 
     ShadowDOM.distributeNodes(view, nodes, slots, projectionSource, index, destinationOverride);
@@ -1240,7 +1246,7 @@ export let View = class View {
       children[i].bind(bindingContext, overrideContext, true);
     }
 
-    if (this.hasSlots && this.contentView !== null) {
+    if (this.hasSlots) {
       ShadowDOM.distributeView(this.contentView, this.slots);
     }
   }

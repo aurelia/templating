@@ -1,3 +1,13 @@
+<a name="1.0.0-beta.3.0.6"></a>
+# [1.0.0-beta.3.0.6](https://github.com/aurelia/templating/compare/1.0.0-beta.3.0.5...v1.0.0-beta.3.0.6) (2016-06-19)
+
+
+### Bug Fixes
+
+* **shadow-dom:** handle elements with no content ([aecc83a](https://github.com/aurelia/templating/commit/aecc83a)), closes [#388](https://github.com/aurelia/templating/issues/388)
+
+
+
 ### 1.0.0-beta.2.0.1 (2016-05-31)
 
 

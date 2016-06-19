@@ -1059,12 +1059,18 @@ export var ShadowDOM = (_temp3 = _class11 = function () {
   };
 
   ShadowDOM.distributeView = function distributeView(view, slots, projectionSource, index, destinationOverride) {
-    var childNodes = view.fragment.childNodes;
-    var ii = childNodes.length;
-    var nodes = new Array(ii);
+    var nodes = void 0;
 
-    for (var i = 0; i < ii; ++i) {
-      nodes[i] = childNodes[i];
+    if (view === null) {
+      nodes = noNodes;
+    } else {
+      var childNodes = view.fragment.childNodes;
+      var ii = childNodes.length;
+      nodes = new Array(ii);
+
+      for (var i = 0; i < ii; ++i) {
+        nodes[i] = childNodes[i];
+      }
     }
 
     ShadowDOM.distributeNodes(view, nodes, slots, projectionSource, index, destinationOverride);
@@ -1376,7 +1382,7 @@ export var View = function () {
       children[i].bind(bindingContext, overrideContext, true);
     }
 
-    if (this.hasSlots && this.contentView !== null) {
+    if (this.hasSlots) {
       ShadowDOM.distributeView(this.contentView, this.slots);
     }
   };

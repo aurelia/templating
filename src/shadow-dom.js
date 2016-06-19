@@ -347,7 +347,7 @@ export class ShadowDOM {
     } else {
       let childNodes = view.fragment.childNodes;
       let ii = childNodes.length;
-      let nodes = new Array(ii);
+      nodes = new Array(ii);
 
       for (let i = 0; i < ii; ++i) {
         nodes[i] = childNodes[i];
