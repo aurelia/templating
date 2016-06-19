@@ -1,8 +1,8 @@
 var _class3, _temp, _dec, _class4, _dec2, _class5, _dec3, _class6, _dec4, _class7, _dec5, _class8, _class9, _temp2, _dec6, _class10, _class11, _temp3, _class13, _dec7, _class15, _dec8, _class16, _dec9, _class18, _dec10, _class19, _dec11, _class20;
 
 import * as LogManager from 'aurelia-logging';
+import { metadata, Origin, protocol } from 'aurelia-metadata';
 import { DOM, PLATFORM, FEATURE } from 'aurelia-pal';
-import { Origin, protocol, metadata } from 'aurelia-metadata';
 import { relativeToFile } from 'aurelia-path';
 import { TemplateRegistryEntry, Loader } from 'aurelia-loader';
 import { inject, Container, resolver } from 'aurelia-dependency-injection';
@@ -145,6 +145,34 @@ export function _hyphenate(name) {
 
 export function _isAllWhitespace(node) {
   return !(node.auInterpolationTarget || /[^\t\n\r ]/.test(node.textContent));
+}
+
+export let ViewEngineHooksResource = class ViewEngineHooksResource {
+  constructor() {}
+
+  initialize(container, target) {
+    this.instance = container.get(target);
+  }
+
+  register(registry, name) {
+    registry.registerViewEngineHooks(this.instance);
+  }
+
+  load(container, target) {}
+
+  static convention(name) {
+    if (name.endsWith('ViewEngineHooks')) {
+      return new ViewEngineHooksResource();
+    }
+  }
+};
+
+export function viewEngineHooks(target) {
+  let deco = function (t) {
+    metadata.define(metadata.resource, new ViewEngineHooksResource(), t);
+  };
+
+  return target ? deco(target) : deco;
 }
 
 export let ElementEvents = class ElementEvents {

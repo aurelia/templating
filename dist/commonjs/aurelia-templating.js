@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.TemplatingEngine = exports.ElementConfigResource = exports.CompositionEngine = exports.HtmlBehaviorResource = exports.BindableProperty = exports.BehaviorPropertyObserver = exports.Controller = exports.ViewEngine = exports.ModuleAnalyzer = exports.ResourceDescription = exports.ResourceModule = exports.ViewCompiler = exports.ViewFactory = exports.BoundViewFactory = exports.ViewSlot = exports.View = exports.ViewResources = exports.ShadowDOM = exports.ShadowSlot = exports.PassThroughSlot = exports.SlotCustomAttribute = exports.BindingLanguage = exports.ViewLocator = exports.InlineViewStrategy = exports.TemplateRegistryViewStrategy = exports.NoViewStrategy = exports.ConventionalViewStrategy = exports.RelativeViewStrategy = exports.viewStrategy = exports.TargetInstruction = exports.BehaviorInstruction = exports.ViewCompileInstruction = exports.ResourceLoadContext = exports.ElementEvents = exports.CompositionTransaction = exports.CompositionTransactionOwnershipToken = exports.CompositionTransactionNotifier = exports.Animator = exports.animationEvent = undefined;
+exports.TemplatingEngine = exports.ElementConfigResource = exports.CompositionEngine = exports.HtmlBehaviorResource = exports.BindableProperty = exports.BehaviorPropertyObserver = exports.Controller = exports.ViewEngine = exports.ModuleAnalyzer = exports.ResourceDescription = exports.ResourceModule = exports.ViewCompiler = exports.ViewFactory = exports.BoundViewFactory = exports.ViewSlot = exports.View = exports.ViewResources = exports.ShadowDOM = exports.ShadowSlot = exports.PassThroughSlot = exports.SlotCustomAttribute = exports.BindingLanguage = exports.ViewLocator = exports.InlineViewStrategy = exports.TemplateRegistryViewStrategy = exports.NoViewStrategy = exports.ConventionalViewStrategy = exports.RelativeViewStrategy = exports.viewStrategy = exports.TargetInstruction = exports.BehaviorInstruction = exports.ViewCompileInstruction = exports.ResourceLoadContext = exports.ElementEvents = exports.ViewEngineHooksResource = exports.CompositionTransaction = exports.CompositionTransactionOwnershipToken = exports.CompositionTransactionNotifier = exports.Animator = exports.animationEvent = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -13,6 +13,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 exports._hyphenate = _hyphenate;
 exports._isAllWhitespace = _isAllWhitespace;
+exports.viewEngineHooks = viewEngineHooks;
 exports.children = children;
 exports.child = child;
 exports.resource = resource;
@@ -36,9 +37,9 @@ var _aureliaLogging = require('aurelia-logging');
 
 var LogManager = _interopRequireWildcard(_aureliaLogging);
 
-var _aureliaPal = require('aurelia-pal');
-
 var _aureliaMetadata = require('aurelia-metadata');
+
+var _aureliaPal = require('aurelia-pal');
 
 var _aureliaPath = require('aurelia-path');
 
@@ -210,6 +211,38 @@ function _hyphenate(name) {
 
 function _isAllWhitespace(node) {
   return !(node.auInterpolationTarget || /[^\t\n\r ]/.test(node.textContent));
+}
+
+var ViewEngineHooksResource = exports.ViewEngineHooksResource = function () {
+  function ViewEngineHooksResource() {
+    
+  }
+
+  ViewEngineHooksResource.prototype.initialize = function initialize(container, target) {
+    this.instance = container.get(target);
+  };
+
+  ViewEngineHooksResource.prototype.register = function register(registry, name) {
+    registry.registerViewEngineHooks(this.instance);
+  };
+
+  ViewEngineHooksResource.prototype.load = function load(container, target) {};
+
+  ViewEngineHooksResource.convention = function convention(name) {
+    if (name.endsWith('ViewEngineHooks')) {
+      return new ViewEngineHooksResource();
+    }
+  };
+
+  return ViewEngineHooksResource;
+}();
+
+function viewEngineHooks(target) {
+  var deco = function deco(t) {
+    _aureliaMetadata.metadata.define(_aureliaMetadata.metadata.resource, new ViewEngineHooksResource(), t);
+  };
+
+  return target ? deco(target) : deco;
 }
 
 var ElementEvents = exports.ElementEvents = function () {

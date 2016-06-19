@@ -1,12 +1,13 @@
-define(['exports', 'aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-path', 'aurelia-loader', 'aurelia-dependency-injection', 'aurelia-binding', 'aurelia-task-queue'], function (exports, _aureliaLogging, _aureliaPal, _aureliaMetadata, _aureliaPath, _aureliaLoader, _aureliaDependencyInjection, _aureliaBinding, _aureliaTaskQueue) {
+define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aurelia-path', 'aurelia-loader', 'aurelia-dependency-injection', 'aurelia-binding', 'aurelia-task-queue'], function (exports, _aureliaLogging, _aureliaMetadata, _aureliaPal, _aureliaPath, _aureliaLoader, _aureliaDependencyInjection, _aureliaBinding, _aureliaTaskQueue) {
   'use strict';
 
   Object.defineProperty(exports, "__esModule", {
     value: true
   });
-  exports.TemplatingEngine = exports.ElementConfigResource = exports.CompositionEngine = exports.HtmlBehaviorResource = exports.BindableProperty = exports.BehaviorPropertyObserver = exports.Controller = exports.ViewEngine = exports.ModuleAnalyzer = exports.ResourceDescription = exports.ResourceModule = exports.ViewCompiler = exports.ViewFactory = exports.BoundViewFactory = exports.ViewSlot = exports.View = exports.ViewResources = exports.ShadowDOM = exports.ShadowSlot = exports.PassThroughSlot = exports.SlotCustomAttribute = exports.BindingLanguage = exports.ViewLocator = exports.InlineViewStrategy = exports.TemplateRegistryViewStrategy = exports.NoViewStrategy = exports.ConventionalViewStrategy = exports.RelativeViewStrategy = exports.viewStrategy = exports.TargetInstruction = exports.BehaviorInstruction = exports.ViewCompileInstruction = exports.ResourceLoadContext = exports.ElementEvents = exports.CompositionTransaction = exports.CompositionTransactionOwnershipToken = exports.CompositionTransactionNotifier = exports.Animator = exports.animationEvent = undefined;
+  exports.TemplatingEngine = exports.ElementConfigResource = exports.CompositionEngine = exports.HtmlBehaviorResource = exports.BindableProperty = exports.BehaviorPropertyObserver = exports.Controller = exports.ViewEngine = exports.ModuleAnalyzer = exports.ResourceDescription = exports.ResourceModule = exports.ViewCompiler = exports.ViewFactory = exports.BoundViewFactory = exports.ViewSlot = exports.View = exports.ViewResources = exports.ShadowDOM = exports.ShadowSlot = exports.PassThroughSlot = exports.SlotCustomAttribute = exports.BindingLanguage = exports.ViewLocator = exports.InlineViewStrategy = exports.TemplateRegistryViewStrategy = exports.NoViewStrategy = exports.ConventionalViewStrategy = exports.RelativeViewStrategy = exports.viewStrategy = exports.TargetInstruction = exports.BehaviorInstruction = exports.ViewCompileInstruction = exports.ResourceLoadContext = exports.ElementEvents = exports.ViewEngineHooksResource = exports.CompositionTransaction = exports.CompositionTransactionOwnershipToken = exports.CompositionTransactionNotifier = exports.Animator = exports.animationEvent = undefined;
   exports._hyphenate = _hyphenate;
   exports._isAllWhitespace = _isAllWhitespace;
+  exports.viewEngineHooks = viewEngineHooks;
   exports.children = children;
   exports.child = child;
   exports.resource = resource;
@@ -229,6 +230,38 @@ define(['exports', 'aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aureli
 
   function _isAllWhitespace(node) {
     return !(node.auInterpolationTarget || /[^\t\n\r ]/.test(node.textContent));
+  }
+
+  var ViewEngineHooksResource = exports.ViewEngineHooksResource = function () {
+    function ViewEngineHooksResource() {
+      
+    }
+
+    ViewEngineHooksResource.prototype.initialize = function initialize(container, target) {
+      this.instance = container.get(target);
+    };
+
+    ViewEngineHooksResource.prototype.register = function register(registry, name) {
+      registry.registerViewEngineHooks(this.instance);
+    };
+
+    ViewEngineHooksResource.prototype.load = function load(container, target) {};
+
+    ViewEngineHooksResource.convention = function convention(name) {
+      if (name.endsWith('ViewEngineHooks')) {
+        return new ViewEngineHooksResource();
+      }
+    };
+
+    return ViewEngineHooksResource;
+  }();
+
+  function viewEngineHooks(target) {
+    var deco = function deco(t) {
+      _aureliaMetadata.metadata.define(_aureliaMetadata.metadata.resource, new ViewEngineHooksResource(), t);
+    };
+
+    return target ? deco(target) : deco;
   }
 
   var ElementEvents = exports.ElementEvents = function () {

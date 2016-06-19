@@ -1,6 +1,6 @@
 import * as LogManager from 'aurelia-logging';
+import {metadata,Origin,protocol} from 'aurelia-metadata';
 import {DOM,PLATFORM,FEATURE} from 'aurelia-pal';
-import {Origin,protocol,metadata} from 'aurelia-metadata';
 import {relativeToFile} from 'aurelia-path';
 import {TemplateRegistryEntry,Loader} from 'aurelia-loader';
 import {inject,Container,resolver} from 'aurelia-dependency-injection';
@@ -229,6 +229,34 @@ export function _hyphenate(name) {
 export function _isAllWhitespace(node) {
   // Use ECMA-262 Edition 3 String and RegExp features
   return !(node.auInterpolationTarget || (/[^\t\n\r ]/.test(node.textContent)));
+}
+
+export class ViewEngineHooksResource {
+  constructor() {}
+
+  initialize(container, target) {
+    this.instance = container.get(target);
+  }
+
+  register(registry, name) {
+    registry.registerViewEngineHooks(this.instance);
+  }
+
+  load(container, target) {}
+
+  static convention(name) { // eslint-disable-line
+    if (name.endsWith('ViewEngineHooks')) {
+      return new ViewEngineHooksResource();
+    }
+  }
+}
+
+export function viewEngineHooks(target) { // eslint-disable-line
+  let deco = function(t) {
+    metadata.define(metadata.resource, new ViewEngineHooksResource(), t);
+  };
+
+  return target ? deco(target) : deco;
 }
 
 interface EventHandler {

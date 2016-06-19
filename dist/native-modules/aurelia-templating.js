@@ -7,8 +7,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 
 import * as LogManager from 'aurelia-logging';
+import { metadata, Origin, protocol } from 'aurelia-metadata';
 import { DOM, PLATFORM, FEATURE } from 'aurelia-pal';
-import { Origin, protocol, metadata } from 'aurelia-metadata';
 import { relativeToFile } from 'aurelia-path';
 import { TemplateRegistryEntry, Loader } from 'aurelia-loader';
 import { inject, Container, resolver } from 'aurelia-dependency-injection';
@@ -171,6 +171,38 @@ export function _hyphenate(name) {
 
 export function _isAllWhitespace(node) {
   return !(node.auInterpolationTarget || /[^\t\n\r ]/.test(node.textContent));
+}
+
+export var ViewEngineHooksResource = function () {
+  function ViewEngineHooksResource() {
+    
+  }
+
+  ViewEngineHooksResource.prototype.initialize = function initialize(container, target) {
+    this.instance = container.get(target);
+  };
+
+  ViewEngineHooksResource.prototype.register = function register(registry, name) {
+    registry.registerViewEngineHooks(this.instance);
+  };
+
+  ViewEngineHooksResource.prototype.load = function load(container, target) {};
+
+  ViewEngineHooksResource.convention = function convention(name) {
+    if (name.endsWith('ViewEngineHooks')) {
+      return new ViewEngineHooksResource();
+    }
+  };
+
+  return ViewEngineHooksResource;
+}();
+
+export function viewEngineHooks(target) {
+  var deco = function deco(t) {
+    metadata.define(metadata.resource, new ViewEngineHooksResource(), t);
+  };
+
+  return target ? deco(target) : deco;
 }
 
 export var ElementEvents = function () {

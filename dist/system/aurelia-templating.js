@@ -1,9 +1,9 @@
 'use strict';
 
-System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-path', 'aurelia-loader', 'aurelia-dependency-injection', 'aurelia-binding', 'aurelia-task-queue'], function (_export, _context) {
+System.register(['aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aurelia-path', 'aurelia-loader', 'aurelia-dependency-injection', 'aurelia-binding', 'aurelia-task-queue'], function (_export, _context) {
   "use strict";
 
-  var LogManager, DOM, PLATFORM, FEATURE, Origin, protocol, metadata, relativeToFile, TemplateRegistryEntry, Loader, inject, Container, resolver, Binding, createOverrideContext, ValueConverterResource, BindingBehaviorResource, subscriberCollection, bindingMode, ObserverLocator, EventManager, TaskQueue, _createClass, _class3, _temp, _dec, _class4, _dec2, _class5, _dec3, _class6, _dec4, _class7, _dec5, _class8, _class9, _temp2, _dec6, _class10, _class11, _temp3, _class13, _dec7, _class15, _dec8, _class16, _dec9, _class18, _dec10, _class19, _dec11, _class20, _typeof, animationEvent, Animator, CompositionTransactionNotifier, CompositionTransactionOwnershipToken, CompositionTransaction, capitalMatcher, ElementEvents, ResourceLoadContext, ViewCompileInstruction, BehaviorInstruction, TargetInstruction, viewStrategy, RelativeViewStrategy, ConventionalViewStrategy, NoViewStrategy, TemplateRegistryViewStrategy, InlineViewStrategy, ViewLocator, BindingLanguage, noNodes, SlotCustomAttribute, PassThroughSlot, ShadowSlot, ShadowDOM, ViewResources, View, ViewSlot, ProviderResolver, providerResolverInstance, BoundViewFactory, ViewFactory, nextInjectorId, lastAUTargetID, ViewCompiler, ResourceModule, ResourceDescription, ModuleAnalyzer, logger, ProxyViewFactory, ViewEngine, Controller, BehaviorPropertyObserver, BindableProperty, lastProviderId, HtmlBehaviorResource, ChildObserver, noMutations, ChildObserverBinder, CompositionEngine, ElementConfigResource, defaultShadowDOMOptions, TemplatingEngine;
+  var LogManager, metadata, Origin, protocol, DOM, PLATFORM, FEATURE, relativeToFile, TemplateRegistryEntry, Loader, inject, Container, resolver, Binding, createOverrideContext, ValueConverterResource, BindingBehaviorResource, subscriberCollection, bindingMode, ObserverLocator, EventManager, TaskQueue, _createClass, _class3, _temp, _dec, _class4, _dec2, _class5, _dec3, _class6, _dec4, _class7, _dec5, _class8, _class9, _temp2, _dec6, _class10, _class11, _temp3, _class13, _dec7, _class15, _dec8, _class16, _dec9, _class18, _dec10, _class19, _dec11, _class20, _typeof, animationEvent, Animator, CompositionTransactionNotifier, CompositionTransactionOwnershipToken, CompositionTransaction, capitalMatcher, ViewEngineHooksResource, ElementEvents, ResourceLoadContext, ViewCompileInstruction, BehaviorInstruction, TargetInstruction, viewStrategy, RelativeViewStrategy, ConventionalViewStrategy, NoViewStrategy, TemplateRegistryViewStrategy, InlineViewStrategy, ViewLocator, BindingLanguage, noNodes, SlotCustomAttribute, PassThroughSlot, ShadowSlot, ShadowDOM, ViewResources, View, ViewSlot, ProviderResolver, providerResolverInstance, BoundViewFactory, ViewFactory, nextInjectorId, lastAUTargetID, ViewCompiler, ResourceModule, ResourceDescription, ModuleAnalyzer, logger, ProxyViewFactory, ViewEngine, Controller, BehaviorPropertyObserver, BindableProperty, lastProviderId, HtmlBehaviorResource, ChildObserver, noMutations, ChildObserverBinder, CompositionEngine, ElementConfigResource, defaultShadowDOMOptions, TemplatingEngine;
 
   
 
@@ -485,14 +485,14 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
   return {
     setters: [function (_aureliaLogging) {
       LogManager = _aureliaLogging;
+    }, function (_aureliaMetadata) {
+      metadata = _aureliaMetadata.metadata;
+      Origin = _aureliaMetadata.Origin;
+      protocol = _aureliaMetadata.protocol;
     }, function (_aureliaPal) {
       DOM = _aureliaPal.DOM;
       PLATFORM = _aureliaPal.PLATFORM;
       FEATURE = _aureliaPal.FEATURE;
-    }, function (_aureliaMetadata) {
-      Origin = _aureliaMetadata.Origin;
-      protocol = _aureliaMetadata.protocol;
-      metadata = _aureliaMetadata.metadata;
     }, function (_aureliaPath) {
       relativeToFile = _aureliaPath.relativeToFile;
     }, function (_aureliaLoader) {
@@ -705,6 +705,42 @@ System.register(['aurelia-logging', 'aurelia-pal', 'aurelia-metadata', 'aurelia-
       }
 
       _export('_isAllWhitespace', _isAllWhitespace);
+
+      _export('ViewEngineHooksResource', ViewEngineHooksResource = function () {
+        function ViewEngineHooksResource() {
+          
+        }
+
+        ViewEngineHooksResource.prototype.initialize = function initialize(container, target) {
+          this.instance = container.get(target);
+        };
+
+        ViewEngineHooksResource.prototype.register = function register(registry, name) {
+          registry.registerViewEngineHooks(this.instance);
+        };
+
+        ViewEngineHooksResource.prototype.load = function load(container, target) {};
+
+        ViewEngineHooksResource.convention = function convention(name) {
+          if (name.endsWith('ViewEngineHooks')) {
+            return new ViewEngineHooksResource();
+          }
+        };
+
+        return ViewEngineHooksResource;
+      }());
+
+      _export('ViewEngineHooksResource', ViewEngineHooksResource);
+
+      function viewEngineHooks(target) {
+        var deco = function deco(t) {
+          metadata.define(metadata.resource, new ViewEngineHooksResource(), t);
+        };
+
+        return target ? deco(target) : deco;
+      }
+
+      _export('viewEngineHooks', viewEngineHooks);
 
       _export('ElementEvents', ElementEvents = function () {
         function ElementEvents(element) {

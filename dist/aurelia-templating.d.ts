@@ -1,14 +1,14 @@
 import * as LogManager from 'aurelia-logging';
 import {
+  metadata,
+  Origin,
+  protocol
+} from 'aurelia-metadata';
+import {
   DOM,
   PLATFORM,
   FEATURE
 } from 'aurelia-pal';
-import {
-  Origin,
-  protocol,
-  metadata
-} from 'aurelia-metadata';
 import {
   relativeToFile
 } from 'aurelia-path';
@@ -368,6 +368,14 @@ export declare class CompositionTransaction {
     */
   enlist(): CompositionTransactionNotifier;
 }
+export declare class ViewEngineHooksResource {
+  constructor();
+  initialize(container?: any, target?: any): any;
+  register(registry?: any, name?: any): any;
+  load(container?: any, target?: any): any;
+  static convention(name?: any): any;
+}
+export declare function viewEngineHooks(target?: any): any;
 
 /**
  * Dispatches subscribets to and publishes events in the DOM.
