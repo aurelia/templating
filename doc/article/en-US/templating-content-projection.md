@@ -15,7 +15,7 @@
 ---
 ## [Introduction](aurelia-doc://section/1/version/1.0.0)
 
-Most of the standard HTML elements allow for content inside them. Custom Elements would be of limited use if we couldn't put content inside them. Thus, we need a way to take this content and place it inside our custom element's template. The Shadow DOM spec provides the `slot` element for doing this. Let's explore the various strategies available for utilizing content projection.
+Most of the standard HTML elements allow for content inside them. Custom Elements would be of limited use if we couldn't put content inside them. Thus, we need a way to take this content and place it inside our custom element's template. The Shadow DOM spec provides the `slot` processing instruction for doing this. Let's explore the various strategies available for utilizing content projection.
 
 ## [Basic Content Projection](aurelia-doc://section/2/version/1.0.0)
 Let's create a name tag custom element. When the `name-tag` element is used, it will take the name it will display as content in the element.
@@ -309,11 +309,8 @@ That was fun! But we can go deeper. What about slots, that target other slots wi
 
 At the time this document is written, no browser supports Shadow DOM v1 slots. Thus, Aurelia has implemented the specification. We haven't attempted to create a "generic" polyfill designed to be used outside of Aurelia. Our slots implementation is baked into Aurelia's templating compiler and renderer so that it can provide maximum performance and meet the needs of our community. We haven't attempted to implement all the APIs of the spec, but rather to emulate the declarative rendering capabilities of slots. By programming against Aurelia in this way, you don't need to worry about whether or not your browser does or does not support slots natively. Aurelia will take care of it for you.
 
-This implementation works with *template controllers* such as `if` and `repeat` which can dynamically generate content. We've fixed up our `@child` and `@children` decorators to understand the new model as well.
-
-The only known limitations of our implementation are as follows:
+Known limitations of our implementation are as follows:
 
 * You cannot data-bind the slot's `name` attribute.
 * You cannot data-bind the `slot` attribute.
-
-We will investigate lifting these restrictions in the future, but they aren't something you'd want to do in most cases as changes in these attributes would result in a full Shadow DOM re-projection, which wouldn't be the most "slick" thing for your users.
+* You cannot dynamically generate `slot` elements inside a component's view.
