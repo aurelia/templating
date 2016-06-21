@@ -127,6 +127,10 @@
         {
           "title": "Templating: Custom Elements",
           "href": "doc/article/en-US/templating-custom-elements.md"
+        },
+        {
+          "title": "Templating: Content Projection",
+          "href": "doc/article/en-US/templating-content-projection.md"
         }
       ]
     }
