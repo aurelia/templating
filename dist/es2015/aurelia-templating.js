@@ -1,4 +1,4 @@
-var _class3, _temp, _dec, _class4, _dec2, _class5, _dec3, _class6, _dec4, _class7, _dec5, _class8, _class9, _temp2, _dec6, _class10, _class11, _temp3, _class13, _dec7, _class15, _dec8, _class16, _dec9, _class18, _dec10, _class19, _dec11, _class20;
+var _class4, _temp, _dec, _class5, _dec2, _class6, _dec3, _class7, _dec4, _class8, _dec5, _class9, _class10, _temp2, _dec6, _class11, _class12, _temp3, _class14, _dec7, _class16, _dec8, _class17, _dec9, _class19, _dec10, _class20, _dec11, _class21;
 
 import * as LogManager from 'aurelia-logging';
 import { metadata, Origin, protocol } from 'aurelia-metadata';
@@ -339,7 +339,7 @@ export let BehaviorInstruction = class BehaviorInstruction {
 
 BehaviorInstruction.normal = new BehaviorInstruction();
 
-export let TargetInstruction = (_temp = _class3 = class TargetInstruction {
+export let TargetInstruction = (_temp = _class4 = class TargetInstruction {
   static shadowSlot(parentInjectorId) {
     let instruction = new TargetInstruction();
     instruction.parentInjectorId = parentInjectorId;
@@ -407,7 +407,7 @@ export let TargetInstruction = (_temp = _class3 = class TargetInstruction {
 
     this.values = null;
   }
-}, _class3.noExpressions = Object.freeze([]), _temp);
+}, _class4.noExpressions = Object.freeze([]), _temp);
 
 export const viewStrategy = protocol.create('aurelia:view-strategy', {
   validate(target) {
@@ -424,7 +424,7 @@ export const viewStrategy = protocol.create('aurelia:view-strategy', {
   }
 });
 
-export let RelativeViewStrategy = (_dec = viewStrategy(), _dec(_class4 = class RelativeViewStrategy {
+export let RelativeViewStrategy = (_dec = viewStrategy(), _dec(_class5 = class RelativeViewStrategy {
   constructor(path) {
     this.path = path;
     this.absolutePath = null;
@@ -444,9 +444,9 @@ export let RelativeViewStrategy = (_dec = viewStrategy(), _dec(_class4 = class R
       this.absolutePath = relativeToFile(this.path, file);
     }
   }
-}) || _class4);
+}) || _class5);
 
-export let ConventionalViewStrategy = (_dec2 = viewStrategy(), _dec2(_class5 = class ConventionalViewStrategy {
+export let ConventionalViewStrategy = (_dec2 = viewStrategy(), _dec2(_class6 = class ConventionalViewStrategy {
   constructor(viewLocator, origin) {
     this.moduleId = origin.moduleId;
     this.viewUrl = viewLocator.convertOriginToViewUrl(origin);
@@ -456,15 +456,15 @@ export let ConventionalViewStrategy = (_dec2 = viewStrategy(), _dec2(_class5 = c
     compileInstruction.associatedModuleId = this.moduleId;
     return viewEngine.loadViewFactory(this.viewUrl, compileInstruction, loadContext);
   }
-}) || _class5);
+}) || _class6);
 
-export let NoViewStrategy = (_dec3 = viewStrategy(), _dec3(_class6 = class NoViewStrategy {
+export let NoViewStrategy = (_dec3 = viewStrategy(), _dec3(_class7 = class NoViewStrategy {
   loadViewFactory(viewEngine, compileInstruction, loadContext) {
     return Promise.resolve(null);
   }
-}) || _class6);
+}) || _class7);
 
-export let TemplateRegistryViewStrategy = (_dec4 = viewStrategy(), _dec4(_class7 = class TemplateRegistryViewStrategy {
+export let TemplateRegistryViewStrategy = (_dec4 = viewStrategy(), _dec4(_class8 = class TemplateRegistryViewStrategy {
   constructor(moduleId, entry) {
     this.moduleId = moduleId;
     this.entry = entry;
@@ -480,9 +480,9 @@ export let TemplateRegistryViewStrategy = (_dec4 = viewStrategy(), _dec4(_class7
     compileInstruction.associatedModuleId = this.moduleId;
     return viewEngine.loadViewFactory(entry, compileInstruction, loadContext);
   }
-}) || _class7);
+}) || _class8);
 
-export let InlineViewStrategy = (_dec5 = viewStrategy(), _dec5(_class8 = class InlineViewStrategy {
+export let InlineViewStrategy = (_dec5 = viewStrategy(), _dec5(_class9 = class InlineViewStrategy {
   constructor(markup, dependencies, dependencyBaseUrl) {
     this.markup = markup;
     this.dependencies = dependencies || null;
@@ -515,9 +515,9 @@ export let InlineViewStrategy = (_dec5 = viewStrategy(), _dec5(_class8 = class I
     compileInstruction.associatedModuleId = this.moduleId;
     return viewEngine.loadViewFactory(entry, compileInstruction, loadContext);
   }
-}) || _class8);
+}) || _class9);
 
-export let ViewLocator = (_temp2 = _class9 = class ViewLocator {
+export let ViewLocator = (_temp2 = _class10 = class ViewLocator {
   getViewStrategy(value) {
     if (!value) {
       return null;
@@ -578,7 +578,7 @@ export let ViewLocator = (_temp2 = _class9 = class ViewLocator {
     let id = moduleId.endsWith('.js') || moduleId.endsWith('.ts') ? moduleId.substring(0, moduleId.length - 3) : moduleId;
     return id + '.html';
   }
-}, _class9.viewStrategyMetadataKey = 'aurelia:view-strategy', _temp2);
+}, _class10.viewStrategyMetadataKey = 'aurelia:view-strategy', _temp2);
 
 function mi(name) {
   throw new Error(`BindingLanguage must implement ${ name }().`);
@@ -600,14 +600,14 @@ export let BindingLanguage = class BindingLanguage {
 
 let noNodes = Object.freeze([]);
 
-export let SlotCustomAttribute = (_dec6 = inject(DOM.Element), _dec6(_class10 = class SlotCustomAttribute {
+export let SlotCustomAttribute = (_dec6 = inject(DOM.Element), _dec6(_class11 = class SlotCustomAttribute {
   constructor(element) {
     this.element = element;
     this.element.auSlotAttribute = this;
   }
 
   valueChanged(newValue, oldValue) {}
-}) || _class10);
+}) || _class11);
 
 export let PassThroughSlot = class PassThroughSlot {
   constructor(anchor, name, destinationName, fallbackFactory) {
@@ -920,7 +920,7 @@ export let ShadowSlot = class ShadowSlot {
   }
 };
 
-export let ShadowDOM = (_temp3 = _class11 = class ShadowDOM {
+export let ShadowDOM = (_temp3 = _class12 = class ShadowDOM {
 
   static getSlotName(node) {
     if (node.auSlotAttribute === undefined) {
@@ -1001,7 +1001,7 @@ export let ShadowDOM = (_temp3 = _class11 = class ShadowDOM {
       }
     }
   }
-}, _class11.defaultSlotKey = '__au-default-slot-key__', _temp3);
+}, _class12.defaultSlotKey = '__au-default-slot-key__', _temp3);
 
 function register(lookup, name, resource, type) {
   if (!name) {
@@ -1777,12 +1777,12 @@ export let ViewSlot = class ViewSlot {
   }
 };
 
-let ProviderResolver = resolver(_class13 = class ProviderResolver {
+let ProviderResolver = resolver(_class14 = class ProviderResolver {
   get(container, key) {
     let id = key.__providerId__;
     return id in container ? container[id] : container[id] = container.invoke(key);
   }
-}) || _class13;
+}) || _class14;
 
 let providerResolverInstance = new ProviderResolver();
 
@@ -2224,7 +2224,7 @@ function makeShadowSlot(compiler, resources, node, instructions, parentInjectorI
   return auShadowSlot;
 }
 
-export let ViewCompiler = (_dec7 = inject(BindingLanguage, ViewResources), _dec7(_class15 = class ViewCompiler {
+export let ViewCompiler = (_dec7 = inject(BindingLanguage, ViewResources), _dec7(_class16 = class ViewCompiler {
   constructor(bindingLanguage, resources) {
     this.bindingLanguage = bindingLanguage;
     this.resources = resources;
@@ -2580,7 +2580,7 @@ export let ViewCompiler = (_dec7 = inject(BindingLanguage, ViewResources), _dec7
 
     return node.nextSibling;
   }
-}) || _class15);
+}) || _class16);
 
 export let ResourceModule = class ResourceModule {
   constructor(moduleId) {
@@ -2831,7 +2831,7 @@ let ProxyViewFactory = class ProxyViewFactory {
   }
 };
 
-export let ViewEngine = (_dec8 = inject(Loader, Container, ViewCompiler, ModuleAnalyzer, ViewResources), _dec8(_class16 = class ViewEngine {
+export let ViewEngine = (_dec8 = inject(Loader, Container, ViewCompiler, ModuleAnalyzer, ViewResources), _dec8(_class17 = class ViewEngine {
   constructor(loader, container, viewCompiler, moduleAnalyzer, appResources) {
     this.loader = loader;
     this.container = container;
@@ -2971,7 +2971,7 @@ export let ViewEngine = (_dec8 = inject(Loader, Container, ViewCompiler, ModuleA
 
     return id;
   }
-}) || _class16);
+}) || _class17);
 
 export let Controller = class Controller {
   constructor(behavior, instruction, viewModel, elementEvents) {
@@ -3139,7 +3139,7 @@ export let Controller = class Controller {
   }
 };
 
-export let BehaviorPropertyObserver = (_dec9 = subscriberCollection(), _dec9(_class18 = class BehaviorPropertyObserver {
+export let BehaviorPropertyObserver = (_dec9 = subscriberCollection(), _dec9(_class19 = class BehaviorPropertyObserver {
   constructor(taskQueue, obj, propertyName, selfSubscriber, initialValue) {
     this.taskQueue = taskQueue;
     this.obj = obj;
@@ -3193,7 +3193,7 @@ export let BehaviorPropertyObserver = (_dec9 = subscriberCollection(), _dec9(_cl
   unsubscribe(context, callable) {
     this.removeSubscriber(context, callable);
   }
-}) || _class18);
+}) || _class19);
 
 function getObserver(behavior, instance, name) {
   let lookup = instance.__observers__;
@@ -4011,7 +4011,7 @@ function tryActivateViewModel(context) {
   return context.viewModel.activate(context.model) || Promise.resolve();
 }
 
-export let CompositionEngine = (_dec10 = inject(ViewEngine, ViewLocator), _dec10(_class19 = class CompositionEngine {
+export let CompositionEngine = (_dec10 = inject(ViewEngine, ViewLocator), _dec10(_class20 = class CompositionEngine {
   constructor(viewEngine, viewLocator) {
     this.viewEngine = viewEngine;
     this.viewLocator = viewLocator;
@@ -4148,7 +4148,7 @@ export let CompositionEngine = (_dec10 = inject(ViewEngine, ViewLocator), _dec10
 
     return Promise.resolve(null);
   }
-}) || _class19);
+}) || _class20);
 
 export let ElementConfigResource = class ElementConfigResource {
   initialize(container, target) {}
@@ -4320,7 +4320,7 @@ export function elementConfig(target) {
   return target ? deco(target) : deco;
 }
 
-export let TemplatingEngine = (_dec11 = inject(Container, ModuleAnalyzer, ViewCompiler, CompositionEngine), _dec11(_class20 = class TemplatingEngine {
+export let TemplatingEngine = (_dec11 = inject(Container, ModuleAnalyzer, ViewCompiler, CompositionEngine), _dec11(_class21 = class TemplatingEngine {
   constructor(container, moduleAnalyzer, viewCompiler, compositionEngine) {
     this._container = container;
     this._moduleAnalyzer = moduleAnalyzer;
@@ -4356,4 +4356,4 @@ export let TemplatingEngine = (_dec11 = inject(Container, ModuleAnalyzer, ViewCo
 
     return view;
   }
-}) || _class20);
+}) || _class21);

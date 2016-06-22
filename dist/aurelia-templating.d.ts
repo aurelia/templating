@@ -431,6 +431,7 @@ export declare class ElementEvents {
 * A context that flows through the view resource load process.
 */
 export declare class ResourceLoadContext {
+  dependencies: Object;
   
   /**
     * Creates an instance of ResourceLoadContext.
@@ -454,6 +455,9 @@ export declare class ResourceLoadContext {
 * Specifies how a view should be compiled.
 */
 export declare class ViewCompileInstruction {
+  targetShadowDOM: boolean;
+  compileSurrogate: boolean;
+  associatedModuleId: any;
   
   /**
     * The normal configuration for view compilation.
@@ -475,6 +479,20 @@ export declare class ViewCompileInstruction {
 * Indicates how a custom attribute or element should be instantiated in a view.
 */
 export declare class BehaviorInstruction {
+  initiatedByBehavior: boolean;
+  enhance: boolean;
+  partReplacements: any;
+  viewFactory: ViewFactory;
+  originalAttrName: string;
+  skipContentProcessing: boolean;
+  contentFactory: any;
+  viewModel: Object;
+  anchorIsContainer: boolean;
+  host: Element;
+  attributes: Object;
+  type: HtmlBehaviorResource;
+  attrName: string;
+  inheritBindingContext: boolean;
   
   /**
     * A default behavior used in scenarios where explicit configuration isn't available.
@@ -530,6 +548,20 @@ export declare class BehaviorInstruction {
 * Provides all the instructions for how a target element should be enhanced inside of a view.
 */
 export declare class TargetInstruction {
+  injectorId: number;
+  parentInjectorId: number;
+  shadowSlot: boolean;
+  slotName: string;
+  slotFallbackFactory: any;
+  contentExpression: any;
+  expressions: Array<Object>;
+  behaviorInstructions: Array<BehaviorInstruction>;
+  providers: Array<Function>;
+  viewFactory: ViewFactory;
+  anchorIsContainer: boolean;
+  elementInstruction: BehaviorInstruction;
+  lifting: boolean;
+  values: Object;
   
   /**
     * An empty array used to represent a target with no binding expressions.
