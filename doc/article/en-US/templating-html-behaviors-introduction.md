@@ -106,8 +106,8 @@ So far, we've merely talked about creating HTML Behaviors, but creating a behavi
 
       <my-custom-element></my-custom-element>
     </template>
-  </source>
-</code>
+  </source-code>
+</code-listing>
 
 The path you supply in the `from` attribute can take one of two forms: It can be relative to the root of your application or relative to the path of the view you are currently in. A path that does not have a `./` or `../` to start the path will be relative to the root of your application, while a path with `./ or `../` will be relative to your view's path. Note that you can use multiple `..`s to traverse up a directory tree as needed.
 
