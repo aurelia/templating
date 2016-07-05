@@ -321,7 +321,7 @@ Creating an HTML Only Custom Element is as simple as creating an HTML view file 
   </source-code>
 </code-listing>
 
-## [HTML Behavior Lifecycle](aurelia-doc://section/7/version/1.0.0)
+## [HTML Behavior Lifecycle](aurelia-doc://section/8/version/1.0.0)
 
 All HTML Behaviors have a well defined lifecycle. Using this lifecycle, you can tap in and trigger code to run when appropriate. Below is a listing of the standard lifecycle callbacks:
 
@@ -390,7 +390,7 @@ Tapping into a lifecycle event is as simple as implementing any of the above met
   </source-code>
 </code-listing>
 
-## [Conclusion](aurelia-doc://section/8/version/1.0.0)
+## [Conclusion](aurelia-doc://section/9/version/1.0.0)
 
 If you've made it this far, you should have the basics down of creating HTML Behaviors. HTML Behaviors in Aurelia can be a Custom Element or a Custom Attribute. Both of these have ViewModels, while only Custom Elements can have Views. There is no need to use jQuery or `document.querySelector` to get the DOM Element your behavior is associated with, as you can simply have Aurelia inject it in to your ViewModel. You must make sure that an HTML Behavior is accessible to the template you are using it in, either by using the `require` element or by making the behavior a global resource. When doing either of these, you do not provide a file extension in the path for the behavior, unless you are specifying an HTML Only Custom Element.
 
