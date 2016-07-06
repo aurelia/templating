@@ -149,7 +149,13 @@ export function useShadowDOM(targetOrOptions?): any {
 export function processAttributes(processor: Function): any {
   return function(t) {
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
-    r.processAttributes = processor;
+    r.processAttributes = function(compiler, resources, node, attributes, elementInstruction) {
+      try {
+        processor(compiler, resources, node, attributes, elementInstruction);
+      } catch (error) {
+        LogManager.getLogger('templating').error(error);
+      }
+    };
   };
 }
 
@@ -166,7 +172,14 @@ function doNotProcessContent() { return false; }
 export function processContent(processor: boolean | Function): any {
   return function(t) {
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
-    r.processContent = processor || doNotProcessContent;
+    r.processContent = processor ? function(compiler, resources, node, instruction) {
+      try {
+        return processor(compiler, resources, node, instruction);
+      } catch (error) {
+        LogManager.getLogger('templating').error(error);
+        return false;
+      }
+    } : doNotProcessContent;
   };
 }
 
