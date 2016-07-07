@@ -25,6 +25,7 @@ export class ResourceModule {
     this.viewStrategy = null;
     this.isInitialized = false;
     this.onLoaded = null;
+    this.loadContext = null;
   }
 
   /**
@@ -82,7 +83,8 @@ export class ResourceModule {
   */
   load(container: Container, loadContext?: ResourceLoadContext): Promise<void> {
     if (this.onLoaded !== null) {
-      return this.onLoaded;
+      //if it's trying to load the same thing again during the same load, this is a circular dep, so just resolve
+      return this.loadContext === loadContext ? Promise.resolve() : this.onLoaded;
     }
 
     let main = this.mainResource;
@@ -102,6 +104,7 @@ export class ResourceModule {
       }
     }
 
+    this.loadContext = loadContext;
     this.onLoaded = Promise.all(loads);
     return this.onLoaded;
   }
