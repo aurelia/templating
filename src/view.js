@@ -29,6 +29,31 @@ interface ViewNode {
 
 export class View {
   /**
+  * The Dependency Injection Container that was used to create this View instance.
+  */
+  container: Container;
+
+  /**
+  * The ViewFactory that built this View instance.
+  */
+  viewFactory: ViewFactory;
+
+  /**
+  * Contains the DOM Nodes which represent this View. If the view was created via the "enhance" API, this will be an Element, otherwise it will be a DocumentFragment. If not created via "enhance" then the fragment will only contain nodes when the View is detached from the DOM.
+  */
+  fragment: DocumentFragment | Element;
+
+  /**
+  * The primary binding context that this view is data-bound to.
+  */
+  bindingContext: Object;
+
+  /**
+  * The override context which contains properties capable of overriding those found on the binding context.
+  */
+  overrideContext: Object;
+
+  /**
   * Creates a View instance.
   * @param container The container from which the view was created.
   * @param viewFactory The factory that created this view.
