@@ -178,7 +178,7 @@ The file you use to configure Aurelia will have a `configure` method. Aurelia wi
       aurelia.use
         .standardConfiguration()
         .developmentLogging()
-        .globalResources('custom-element`, 'another-directory/custom-attribute');
+        .globalResources('custom-element', 'another-directory/custom-attribute');
 
       aurelia.start().then(() => aurelia.setRoot());
     }
