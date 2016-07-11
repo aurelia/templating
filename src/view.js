@@ -241,7 +241,7 @@ export class View {
     let end = this.lastChild;
     let next;
 
-    while (true) {
+    while (current) {
       next = current.nextSibling;
       fragment.appendChild(current);
 
