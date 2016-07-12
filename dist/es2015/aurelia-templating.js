@@ -1,4 +1,4 @@
-var _class4, _temp, _dec, _class5, _dec2, _class6, _dec3, _class7, _dec4, _class8, _dec5, _class9, _class10, _temp2, _dec6, _class11, _class12, _temp3, _class14, _dec7, _class16, _dec8, _class17, _dec9, _class19, _dec10, _class20, _dec11, _class21;
+var _class4, _temp, _dec, _class5, _dec2, _class6, _dec3, _class7, _dec4, _class8, _dec5, _class9, _class10, _temp2, _dec6, _class11, _class12, _temp3, _class15, _dec7, _class17, _dec8, _class18, _dec9, _class20, _dec10, _class21, _dec11, _class22;
 
 import * as LogManager from 'aurelia-logging';
 import { metadata, Origin, protocol } from 'aurelia-metadata';
@@ -1308,7 +1308,7 @@ export let View = class View {
     let end = this.lastChild;
     let next;
 
-    while (true) {
+    while (current) {
       next = current.nextSibling;
       fragment.appendChild(current);
 
@@ -1777,12 +1777,12 @@ export let ViewSlot = class ViewSlot {
   }
 };
 
-let ProviderResolver = resolver(_class14 = class ProviderResolver {
+let ProviderResolver = resolver(_class15 = class ProviderResolver {
   get(container, key) {
     let id = key.__providerId__;
     return id in container ? container[id] : container[id] = container.invoke(key);
   }
-}) || _class14;
+}) || _class15;
 
 let providerResolverInstance = new ProviderResolver();
 
@@ -2130,10 +2130,15 @@ export let ViewFactory = class ViewFactory {
       applySurrogateInstruction(container, element, this.surrogateInstruction, controllers, bindings, children);
     }
 
+    if (createInstruction.enhance && fragment.hasAttribute('au-target-id')) {
+      instructable = fragment;
+      instruction = instructions[instructable.getAttribute('au-target-id')];
+      applyInstructions(containers, instructable, instruction, controllers, bindings, children, shadowSlots, partReplacements, resources);
+    }
+
     for (i = 0, ii = instructables.length; i < ii; ++i) {
       instructable = instructables[i];
       instruction = instructions[instructable.getAttribute('au-target-id')];
-
       applyInstructions(containers, instructable, instruction, controllers, bindings, children, shadowSlots, partReplacements, resources);
     }
 
@@ -2224,7 +2229,7 @@ function makeShadowSlot(compiler, resources, node, instructions, parentInjectorI
   return auShadowSlot;
 }
 
-export let ViewCompiler = (_dec7 = inject(BindingLanguage, ViewResources), _dec7(_class16 = class ViewCompiler {
+export let ViewCompiler = (_dec7 = inject(BindingLanguage, ViewResources), _dec7(_class17 = class ViewCompiler {
   constructor(bindingLanguage, resources) {
     this.bindingLanguage = bindingLanguage;
     this.resources = resources;
@@ -2580,7 +2585,7 @@ export let ViewCompiler = (_dec7 = inject(BindingLanguage, ViewResources), _dec7
 
     return node.nextSibling;
   }
-}) || _class16);
+}) || _class17);
 
 export let ResourceModule = class ResourceModule {
   constructor(moduleId) {
@@ -2591,6 +2596,7 @@ export let ResourceModule = class ResourceModule {
     this.viewStrategy = null;
     this.isInitialized = false;
     this.onLoaded = null;
+    this.loadContext = null;
   }
 
   initialize(container) {
@@ -2633,7 +2639,7 @@ export let ResourceModule = class ResourceModule {
 
   load(container, loadContext) {
     if (this.onLoaded !== null) {
-      return this.onLoaded;
+      return this.loadContext === loadContext ? Promise.resolve() : this.onLoaded;
     }
 
     let main = this.mainResource;
@@ -2653,6 +2659,7 @@ export let ResourceModule = class ResourceModule {
       }
     }
 
+    this.loadContext = loadContext;
     this.onLoaded = Promise.all(loads);
     return this.onLoaded;
   }
@@ -2831,7 +2838,7 @@ let ProxyViewFactory = class ProxyViewFactory {
   }
 };
 
-export let ViewEngine = (_dec8 = inject(Loader, Container, ViewCompiler, ModuleAnalyzer, ViewResources), _dec8(_class17 = class ViewEngine {
+export let ViewEngine = (_dec8 = inject(Loader, Container, ViewCompiler, ModuleAnalyzer, ViewResources), _dec8(_class18 = class ViewEngine {
   constructor(loader, container, viewCompiler, moduleAnalyzer, appResources) {
     this.loader = loader;
     this.container = container;
@@ -2971,7 +2978,7 @@ export let ViewEngine = (_dec8 = inject(Loader, Container, ViewCompiler, ModuleA
 
     return id;
   }
-}) || _class17);
+}) || _class18);
 
 export let Controller = class Controller {
   constructor(behavior, instruction, viewModel, elementEvents) {
@@ -3139,7 +3146,7 @@ export let Controller = class Controller {
   }
 };
 
-export let BehaviorPropertyObserver = (_dec9 = subscriberCollection(), _dec9(_class19 = class BehaviorPropertyObserver {
+export let BehaviorPropertyObserver = (_dec9 = subscriberCollection(), _dec9(_class20 = class BehaviorPropertyObserver {
   constructor(taskQueue, obj, propertyName, selfSubscriber, initialValue) {
     this.taskQueue = taskQueue;
     this.obj = obj;
@@ -3193,7 +3200,7 @@ export let BehaviorPropertyObserver = (_dec9 = subscriberCollection(), _dec9(_cl
   unsubscribe(context, callable) {
     this.removeSubscriber(context, callable);
   }
-}) || _class19);
+}) || _class20);
 
 function getObserver(behavior, instance, name) {
   let lookup = instance.__observers__;
@@ -4011,7 +4018,7 @@ function tryActivateViewModel(context) {
   return context.viewModel.activate(context.model) || Promise.resolve();
 }
 
-export let CompositionEngine = (_dec10 = inject(ViewEngine, ViewLocator), _dec10(_class20 = class CompositionEngine {
+export let CompositionEngine = (_dec10 = inject(ViewEngine, ViewLocator), _dec10(_class21 = class CompositionEngine {
   constructor(viewEngine, viewLocator) {
     this.viewEngine = viewEngine;
     this.viewLocator = viewLocator;
@@ -4148,7 +4155,7 @@ export let CompositionEngine = (_dec10 = inject(ViewEngine, ViewLocator), _dec10
 
     return Promise.resolve(null);
   }
-}) || _class20);
+}) || _class21);
 
 export let ElementConfigResource = class ElementConfigResource {
   initialize(container, target) {}
@@ -4266,7 +4273,13 @@ export function useShadowDOM(targetOrOptions) {
 export function processAttributes(processor) {
   return function (t) {
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
-    r.processAttributes = processor;
+    r.processAttributes = function (compiler, resources, node, attributes, elementInstruction) {
+      try {
+        processor(compiler, resources, node, attributes, elementInstruction);
+      } catch (error) {
+        LogManager.getLogger('templating').error(error);
+      }
+    };
   };
 }
 
@@ -4277,7 +4290,14 @@ function doNotProcessContent() {
 export function processContent(processor) {
   return function (t) {
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
-    r.processContent = processor || doNotProcessContent;
+    r.processContent = processor ? function (compiler, resources, node, instruction) {
+      try {
+        return processor(compiler, resources, node, instruction);
+      } catch (error) {
+        LogManager.getLogger('templating').error(error);
+        return false;
+      }
+    } : doNotProcessContent;
   };
 }
 
@@ -4320,7 +4340,7 @@ export function elementConfig(target) {
   return target ? deco(target) : deco;
 }
 
-export let TemplatingEngine = (_dec11 = inject(Container, ModuleAnalyzer, ViewCompiler, CompositionEngine), _dec11(_class21 = class TemplatingEngine {
+export let TemplatingEngine = (_dec11 = inject(Container, ModuleAnalyzer, ViewCompiler, CompositionEngine), _dec11(_class22 = class TemplatingEngine {
   constructor(container, moduleAnalyzer, viewCompiler, compositionEngine) {
     this._container = container;
     this._moduleAnalyzer = moduleAnalyzer;
@@ -4356,4 +4376,4 @@ export let TemplatingEngine = (_dec11 = inject(Container, ModuleAnalyzer, ViewCo
 
     return view;
   }
-}) || _class21);
+}) || _class22);

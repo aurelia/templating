@@ -1,3 +1,21 @@
+<a name="1.0.0-rc.1.0.1"></a>
+# [1.0.0-rc.1.0.1](https://github.com/aurelia/templating/compare/1.0.0-rc.1.0.0...v1.0.0-rc.1.0.1) (2016-07-12)
+
+
+### Bug Fixes
+
+* **double-uid:** ([#412](https://github.com/aurelia/templating/issues/412)) ([37d282d](https://github.com/aurelia/templating/commit/37d282d))
+* **module-analyzer:** address circular refs in non-globals ([78cd3d3](https://github.com/aurelia/templating/commit/78cd3d3)), closes [#350](https://github.com/aurelia/templating/issues/350)
+* **view-factory:** handle instructions directly on enhanced element ([b6630a9](https://github.com/aurelia/templating/commit/b6630a9)), closes [#318](https://github.com/aurelia/templating/issues/318)
+
+
+### Features
+
+* **decorators:** log exception in process attributes and process content ([a15773f](https://github.com/aurelia/templating/commit/a15773f)), closes [#330](https://github.com/aurelia/templating/issues/330)
+* **view:** add more typing info ([1221383](https://github.com/aurelia/templating/commit/1221383)), closes [#370](https://github.com/aurelia/templating/issues/370)
+
+
+
 <a name="1.0.0-rc.1.0.0"></a>
 # [1.0.0-rc.1.0.0](https://github.com/aurelia/templating/compare/1.0.0-beta.3.0.6...v1.0.0-rc.1.0.0) (2016-06-22)
 

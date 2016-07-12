@@ -1764,6 +1764,31 @@ interface ViewNode {
 
 export class View {
   /**
+  * The Dependency Injection Container that was used to create this View instance.
+  */
+  container: Container;
+
+  /**
+  * The ViewFactory that built this View instance.
+  */
+  viewFactory: ViewFactory;
+
+  /**
+  * Contains the DOM Nodes which represent this View. If the view was created via the "enhance" API, this will be an Element, otherwise it will be a DocumentFragment. If not created via "enhance" then the fragment will only contain nodes when the View is detached from the DOM.
+  */
+  fragment: DocumentFragment | Element;
+
+  /**
+  * The primary binding context that this view is data-bound to.
+  */
+  bindingContext: Object;
+
+  /**
+  * The override context which contains properties capable of overriding those found on the binding context.
+  */
+  overrideContext: Object;
+
+  /**
   * Creates a View instance.
   * @param container The container from which the view was created.
   * @param viewFactory The factory that created this view.
@@ -1951,7 +1976,7 @@ export class View {
     let end = this.lastChild;
     let next;
 
-    while (true) {
+    while (current) {
       next = current.nextSibling;
       fragment.appendChild(current);
 
@@ -2928,10 +2953,15 @@ export class ViewFactory {
       applySurrogateInstruction(container, element, this.surrogateInstruction, controllers, bindings, children);
     }
 
+    if (createInstruction.enhance && fragment.hasAttribute('au-target-id')) {
+      instructable = fragment;
+      instruction = instructions[instructable.getAttribute('au-target-id')];
+      applyInstructions(containers, instructable, instruction, controllers, bindings, children, shadowSlots, partReplacements, resources);
+    }
+
     for (i = 0, ii = instructables.length; i < ii; ++i) {
       instructable = instructables[i];
       instruction = instructions[instructable.getAttribute('au-target-id')];
-
       applyInstructions(containers, instructable, instruction, controllers, bindings, children, shadowSlots, partReplacements, resources);
     }
 
@@ -3424,6 +3454,7 @@ export class ResourceModule {
     this.viewStrategy = null;
     this.isInitialized = false;
     this.onLoaded = null;
+    this.loadContext = null;
   }
 
   /**
@@ -3481,7 +3512,8 @@ export class ResourceModule {
   */
   load(container: Container, loadContext?: ResourceLoadContext): Promise<void> {
     if (this.onLoaded !== null) {
-      return this.onLoaded;
+      //if it's trying to load the same thing again during the same load, this is a circular dep, so just resolve
+      return this.loadContext === loadContext ? Promise.resolve() : this.onLoaded;
     }
 
     let main = this.mainResource;
@@ -3501,6 +3533,7 @@ export class ResourceModule {
       }
     }
 
+    this.loadContext = loadContext;
     this.onLoaded = Promise.all(loads);
     return this.onLoaded;
   }
@@ -5537,7 +5570,13 @@ export function useShadowDOM(targetOrOptions?): any {
 export function processAttributes(processor: Function): any {
   return function(t) {
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
-    r.processAttributes = processor;
+    r.processAttributes = function(compiler, resources, node, attributes, elementInstruction) {
+      try {
+        processor(compiler, resources, node, attributes, elementInstruction);
+      } catch (error) {
+        LogManager.getLogger('templating').error(error);
+      }
+    };
   };
 }
 
@@ -5554,7 +5593,14 @@ function doNotProcessContent() { return false; }
 export function processContent(processor: boolean | Function): any {
   return function(t) {
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
-    r.processContent = processor || doNotProcessContent;
+    r.processContent = processor ? function(compiler, resources, node, instruction) {
+      try {
+        return processor(compiler, resources, node, instruction);
+      } catch (error) {
+        LogManager.getLogger('templating').error(error);
+        return false;
+      }
+    } : doNotProcessContent;
   };
 }
 

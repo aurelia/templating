@@ -7,7 +7,7 @@ exports.TemplatingEngine = exports.ElementConfigResource = exports.CompositionEn
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _class4, _temp, _dec, _class5, _dec2, _class6, _dec3, _class7, _dec4, _class8, _dec5, _class9, _class10, _temp2, _dec6, _class11, _class12, _temp3, _class14, _dec7, _class16, _dec8, _class17, _dec9, _class19, _dec10, _class20, _dec11, _class21;
+var _class4, _temp, _dec, _class5, _dec2, _class6, _dec3, _class7, _dec4, _class8, _dec5, _class9, _class10, _temp2, _dec6, _class11, _class12, _temp3, _class15, _dec7, _class17, _dec8, _class18, _dec9, _class20, _dec10, _class21, _dec11, _class22;
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
@@ -1480,7 +1480,7 @@ var View = exports.View = function () {
     var end = this.lastChild;
     var next = void 0;
 
-    while (true) {
+    while (current) {
       next = current.nextSibling;
       fragment.appendChild(current);
 
@@ -1983,7 +1983,7 @@ var ViewSlot = exports.ViewSlot = function () {
   return ViewSlot;
 }();
 
-var ProviderResolver = (0, _aureliaDependencyInjection.resolver)(_class14 = function () {
+var ProviderResolver = (0, _aureliaDependencyInjection.resolver)(_class15 = function () {
   function ProviderResolver() {
     
   }
@@ -1994,7 +1994,7 @@ var ProviderResolver = (0, _aureliaDependencyInjection.resolver)(_class14 = func
   };
 
   return ProviderResolver;
-}()) || _class14;
+}()) || _class15;
 
 var providerResolverInstance = new ProviderResolver();
 
@@ -2351,10 +2351,15 @@ var ViewFactory = exports.ViewFactory = function () {
       applySurrogateInstruction(container, element, this.surrogateInstruction, controllers, bindings, children);
     }
 
+    if (createInstruction.enhance && fragment.hasAttribute('au-target-id')) {
+      instructable = fragment;
+      instruction = instructions[instructable.getAttribute('au-target-id')];
+      applyInstructions(containers, instructable, instruction, controllers, bindings, children, shadowSlots, partReplacements, resources);
+    }
+
     for (i = 0, ii = instructables.length; i < ii; ++i) {
       instructable = instructables[i];
       instruction = instructions[instructable.getAttribute('au-target-id')];
-
       applyInstructions(containers, instructable, instruction, controllers, bindings, children, shadowSlots, partReplacements, resources);
     }
 
@@ -2447,7 +2452,7 @@ function makeShadowSlot(compiler, resources, node, instructions, parentInjectorI
   return auShadowSlot;
 }
 
-var ViewCompiler = exports.ViewCompiler = (_dec7 = (0, _aureliaDependencyInjection.inject)(BindingLanguage, ViewResources), _dec7(_class16 = function () {
+var ViewCompiler = exports.ViewCompiler = (_dec7 = (0, _aureliaDependencyInjection.inject)(BindingLanguage, ViewResources), _dec7(_class17 = function () {
   function ViewCompiler(bindingLanguage, resources) {
     
 
@@ -2807,7 +2812,7 @@ var ViewCompiler = exports.ViewCompiler = (_dec7 = (0, _aureliaDependencyInjecti
   };
 
   return ViewCompiler;
-}()) || _class16);
+}()) || _class17);
 
 var ResourceModule = exports.ResourceModule = function () {
   function ResourceModule(moduleId) {
@@ -2820,6 +2825,7 @@ var ResourceModule = exports.ResourceModule = function () {
     this.viewStrategy = null;
     this.isInitialized = false;
     this.onLoaded = null;
+    this.loadContext = null;
   }
 
   ResourceModule.prototype.initialize = function initialize(container) {
@@ -2862,7 +2868,7 @@ var ResourceModule = exports.ResourceModule = function () {
 
   ResourceModule.prototype.load = function load(container, loadContext) {
     if (this.onLoaded !== null) {
-      return this.onLoaded;
+      return this.loadContext === loadContext ? Promise.resolve() : this.onLoaded;
     }
 
     var main = this.mainResource;
@@ -2882,6 +2888,7 @@ var ResourceModule = exports.ResourceModule = function () {
       }
     }
 
+    this.loadContext = loadContext;
     this.onLoaded = Promise.all(loads);
     return this.onLoaded;
   };
@@ -3081,7 +3088,7 @@ var ProxyViewFactory = function () {
   return ProxyViewFactory;
 }();
 
-var ViewEngine = exports.ViewEngine = (_dec8 = (0, _aureliaDependencyInjection.inject)(_aureliaLoader.Loader, _aureliaDependencyInjection.Container, ViewCompiler, ModuleAnalyzer, ViewResources), _dec8(_class17 = function () {
+var ViewEngine = exports.ViewEngine = (_dec8 = (0, _aureliaDependencyInjection.inject)(_aureliaLoader.Loader, _aureliaDependencyInjection.Container, ViewCompiler, ModuleAnalyzer, ViewResources), _dec8(_class18 = function () {
   function ViewEngine(loader, container, viewCompiler, moduleAnalyzer, appResources) {
     
 
@@ -3239,7 +3246,7 @@ var ViewEngine = exports.ViewEngine = (_dec8 = (0, _aureliaDependencyInjection.i
   };
 
   return ViewEngine;
-}()) || _class17);
+}()) || _class18);
 
 var Controller = exports.Controller = function () {
   function Controller(behavior, instruction, viewModel, elementEvents) {
@@ -3411,7 +3418,7 @@ var Controller = exports.Controller = function () {
   return Controller;
 }();
 
-var BehaviorPropertyObserver = exports.BehaviorPropertyObserver = (_dec9 = (0, _aureliaBinding.subscriberCollection)(), _dec9(_class19 = function () {
+var BehaviorPropertyObserver = exports.BehaviorPropertyObserver = (_dec9 = (0, _aureliaBinding.subscriberCollection)(), _dec9(_class20 = function () {
   function BehaviorPropertyObserver(taskQueue, obj, propertyName, selfSubscriber, initialValue) {
     
 
@@ -3469,7 +3476,7 @@ var BehaviorPropertyObserver = exports.BehaviorPropertyObserver = (_dec9 = (0, _
   };
 
   return BehaviorPropertyObserver;
-}()) || _class19);
+}()) || _class20);
 
 
 function getObserver(behavior, instance, name) {
@@ -4312,7 +4319,7 @@ function tryActivateViewModel(context) {
   return context.viewModel.activate(context.model) || Promise.resolve();
 }
 
-var CompositionEngine = exports.CompositionEngine = (_dec10 = (0, _aureliaDependencyInjection.inject)(ViewEngine, ViewLocator), _dec10(_class20 = function () {
+var CompositionEngine = exports.CompositionEngine = (_dec10 = (0, _aureliaDependencyInjection.inject)(ViewEngine, ViewLocator), _dec10(_class21 = function () {
   function CompositionEngine(viewEngine, viewLocator) {
     
 
@@ -4459,7 +4466,7 @@ var CompositionEngine = exports.CompositionEngine = (_dec10 = (0, _aureliaDepend
   };
 
   return CompositionEngine;
-}()) || _class20);
+}()) || _class21);
 
 var ElementConfigResource = exports.ElementConfigResource = function () {
   function ElementConfigResource() {
@@ -4582,7 +4589,13 @@ function useShadowDOM(targetOrOptions) {
 function processAttributes(processor) {
   return function (t) {
     var r = _aureliaMetadata.metadata.getOrCreateOwn(_aureliaMetadata.metadata.resource, HtmlBehaviorResource, t);
-    r.processAttributes = processor;
+    r.processAttributes = function (compiler, resources, node, attributes, elementInstruction) {
+      try {
+        processor(compiler, resources, node, attributes, elementInstruction);
+      } catch (error) {
+        LogManager.getLogger('templating').error(error);
+      }
+    };
   };
 }
 
@@ -4593,7 +4606,14 @@ function doNotProcessContent() {
 function processContent(processor) {
   return function (t) {
     var r = _aureliaMetadata.metadata.getOrCreateOwn(_aureliaMetadata.metadata.resource, HtmlBehaviorResource, t);
-    r.processContent = processor || doNotProcessContent;
+    r.processContent = processor ? function (compiler, resources, node, instruction) {
+      try {
+        return processor(compiler, resources, node, instruction);
+      } catch (error) {
+        LogManager.getLogger('templating').error(error);
+        return false;
+      }
+    } : doNotProcessContent;
   };
 }
 
@@ -4636,7 +4656,7 @@ function elementConfig(target) {
   return target ? deco(target) : deco;
 }
 
-var TemplatingEngine = exports.TemplatingEngine = (_dec11 = (0, _aureliaDependencyInjection.inject)(_aureliaDependencyInjection.Container, ModuleAnalyzer, ViewCompiler, CompositionEngine), _dec11(_class21 = function () {
+var TemplatingEngine = exports.TemplatingEngine = (_dec11 = (0, _aureliaDependencyInjection.inject)(_aureliaDependencyInjection.Container, ModuleAnalyzer, ViewCompiler, CompositionEngine), _dec11(_class22 = function () {
   function TemplatingEngine(container, moduleAnalyzer, viewCompiler, compositionEngine) {
     
 
@@ -4676,4 +4696,4 @@ var TemplatingEngine = exports.TemplatingEngine = (_dec11 = (0, _aureliaDependen
   };
 
   return TemplatingEngine;
-}()) || _class21);
+}()) || _class22);
