@@ -31,7 +31,7 @@ export class ViewLocator {
 
       viewStrategy.assert(value);
 
-      if (origin) {
+      if (origin.moduleId) {
         value.makeRelativeTo(origin.moduleId);
       }
 
@@ -54,12 +54,12 @@ export class ViewLocator {
     let strategy = metadata.get(ViewLocator.viewStrategyMetadataKey, value);
 
     if (!strategy) {
-      if (!origin) {
+      if (!origin.moduleId) {
         throw new Error('Cannot determine default view strategy for object.', value);
       }
 
       strategy = this.createFallbackViewStrategy(origin);
-    } else if (origin) {
+    } else if (origin.moduleId) {
       strategy.moduleId = origin.moduleId;
     }
 
