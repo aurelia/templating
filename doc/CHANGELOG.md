@@ -1,3 +1,189 @@
+<a name="1.0.0-rc.1.0.1"></a>
+# [1.0.0-rc.1.0.1](https://github.com/aurelia/templating/compare/1.0.0-rc.1.0.0...v1.0.0-rc.1.0.1) (2016-07-12)
+
+
+### Bug Fixes
+
+* **double-uid:** ([#412](https://github.com/aurelia/templating/issues/412)) ([37d282d](https://github.com/aurelia/templating/commit/37d282d))
+* **module-analyzer:** address circular refs in non-globals ([78cd3d3](https://github.com/aurelia/templating/commit/78cd3d3)), closes [#350](https://github.com/aurelia/templating/issues/350)
+* **view-factory:** handle instructions directly on enhanced element ([b6630a9](https://github.com/aurelia/templating/commit/b6630a9)), closes [#318](https://github.com/aurelia/templating/issues/318)
+
+
+### Features
+
+* **decorators:** log exception in process attributes and process content ([a15773f](https://github.com/aurelia/templating/commit/a15773f)), closes [#330](https://github.com/aurelia/templating/issues/330)
+* **view:** add more typing info ([1221383](https://github.com/aurelia/templating/commit/1221383)), closes [#370](https://github.com/aurelia/templating/issues/370)
+
+
+
+<a name="1.0.0-rc.1.0.0"></a>
+# [1.0.0-rc.1.0.0](https://github.com/aurelia/templating/compare/1.0.0-beta.3.0.6...v1.0.0-rc.1.0.0) (2016-06-22)
+
+
+
+<a name="1.0.0-beta.3.0.6"></a>
+# [1.0.0-beta.3.0.6](https://github.com/aurelia/templating/compare/1.0.0-beta.3.0.5...v1.0.0-beta.3.0.6) (2016-06-19)
+
+
+### Bug Fixes
+
+* **shadow-dom:** handle elements with no content ([aecc83a](https://github.com/aurelia/templating/commit/aecc83a)), closes [#388](https://github.com/aurelia/templating/issues/388)
+
+
+
+### 1.0.0-beta.2.0.1 (2016-05-31)
+
+
+#### Features
+
+* **view-resources:** enable arbitrary named value resolution ([4f85ecf9](http://github.com/aurelia/templating/commit/4f85ecf97a3176e6f3d61a554e5351562771af38))
+
+
+### 1.0.0-beta.2.0.0 (2016-05-23)
+
+* Shadow DOM v1 Slots Implementation
+* TemplatingEngine test methods removes. They are replaced by the new templating library.
+
+### 1.0.0-beta.1.2.7 (2016-05-12)
+
+
+### 1.0.0-beta.1.2.6 (2016-05-10)
+
+
+### 1.0.0-beta.1.2.5 (2016-05-05)
+
+
+#### Features
+
+* **view-compiler:** add element to processAttributes ([d753e672](http://github.com/aurelia/templating/commit/d753e672b2a0ca6069e9fdfcd1a71458ee9c30e0))
+
+
+### 1.0.0-beta.1.2.4 (2016-05-03)
+
+
+### 1.0.0-beta.1.2.3 (2016-04-29)
+
+
+#### Bug Fixes
+
+* **templating-engine:** allow for overrideContext in enhance ([49c99edf](http://github.com/aurelia/templating/commit/49c99edf254d3102feae8e1cac6f9edb292b109c))
+
+
+#### Features
+
+* **ViewSlot:**
+  * allow removal of many views at once to avoid a race condition ([4b1005b9](http://github.com/aurelia/templating/commit/4b1005b91213a26ff726f9ae29aea7ac09353330))
+  * moving Views across the slot ([02e59ef1](http://github.com/aurelia/templating/commit/02e59ef14051a2a03f9d5d2dbd8a0b6e9cb45c17))
+* **view:** reference creator container ([9431f536](http://github.com/aurelia/templating/commit/9431f536e6d57ce8ef654eea872c8d795ea02fd5))
+
+
+### 1.0.0-beta.1.2.2 (2016-04-13)
+
+
+#### Bug Fixes
+
+* **module-analyzer:** ensure correct cache lookup ([eefd4c69](http://github.com/aurelia/templating/commit/eefd4c69a27d058e607b94e1d1b99582411d021b))
+* **view-resources:** ensure correct cache lookup ([53b51902](http://github.com/aurelia/templating/commit/53b519021e0890f2ec045597ee7ef04f49bf283a))
+
+
+### 1.0.0-beta.1.2.1 (2016-03-29)
+
+
+#### Bug Fixes
+
+* **BindableProperty:** enable specifying oneTime default binding mode ([a557aade](http://github.com/aurelia/templating/commit/a557aade002133144fa2e2106066d26af2037d78), closes [#298](http://github.com/aurelia/templating/issues/298))
+* **View:** preserve bindingContext while unbinding ([ae6feed0](http://github.com/aurelia/templating/commit/ae6feed008ee19dfb0ad9204c562a845c11213ef))
+* **view:** incorrect input to dynamic binding ([2069af08](http://github.com/aurelia/templating/commit/2069af0880057858b7758f67faf4f2f9ccdbc96f))
+
+
+### 1.0.0-beta.1.2.0 (2016-03-22)
+
+
+#### Bug Fixes
+
+* **bindable-property:** fix typo in comment ([dfde78aa](http://github.com/aurelia/templating/commit/dfde78aa1f261f3664bb0a722e099d5f2f64065f), closes [#291](http://github.com/aurelia/templating/issues/291))
+
+
+#### Features
+
+* **ViewSlot:** save override context during binding for later eval ([657ff3dc](http://github.com/aurelia/templating/commit/657ff3dc94415bc1c2330b389de208880fdcc5f5))
+* **view:** add new view pipeline hooks beforeBind and beforeUnbind ([e39e052b](http://github.com/aurelia/templating/commit/e39e052b93c7aa5f17bf47c3fa02703eb8c8c3f3))
+
+
+### 1.0.0-beta.1.1.4 (2016-03-04)
+
+
+#### Bug Fixes
+
+* **composition-engine:** complete composition work on null ([02b8f3d9](http://github.com/aurelia/templating/commit/02b8f3d9bb9446290cfc15d0d0148cfa07bb29c5))
+
+
+### 1.0.0-beta.1.1.3 (2016-03-04)
+
+
+#### Bug Fixes
+
+* **element-config:** fix parameter name typo ([000f0de3](http://github.com/aurelia/templating/commit/000f0de38e6abb70244f94a2c189db485ce7bf1b))
+
+
+### 1.0.0-beta.1.1.2 (2016-03-01)
+
+
+#### Bug Fixes
+
+* **all:** remove core-js ([0e264f85](http://github.com/aurelia/templating/commit/0e264f853f28fdbf4f497e9b14c93d1a120d41f9))
+* **bower:** remove core-js ([942c4b66](http://github.com/aurelia/templating/commit/942c4b66f4c3d62aed0977ebfd4eca18cf64ddb9))
+* **composition-transaction:** simplify ([82f52aaa](http://github.com/aurelia/templating/commit/82f52aaad7ea91d2688d9a257525abf0b4df393b))
+* **decorators:** hyphenate behavior names with warning ([473ca6af](http://github.com/aurelia/templating/commit/473ca6afd2fd5d830acadd873710d62f8799ca34), closes [#279](http://github.com/aurelia/templating/issues/279))
+
+
+#### Features
+
+* **composition:**
+  * enable composition transaction use ([b8e51df0](http://github.com/aurelia/templating/commit/b8e51df0c2d94254172eca53b66031a37664bc91))
+  * introduce composition transaction ([2f2e156f](http://github.com/aurelia/templating/commit/2f2e156fbe1983f9d600345a5afd3a5054e5ba21))
+
+
+### 1.0.0-beta.1.1.1 (2016-02-08)
+
+
+#### Features
+
+* **html-behavior:** add processAttributes for custom elements ([f6c7d71f](http://github.com/aurelia/templating/commit/f6c7d71fcdf42248fb5c7ef78424b20b687d0fda))
+* **view-compiler:** implement as-element ([3ec30ee5](http://github.com/aurelia/templating/commit/3ec30ee59eeef789cc0ad0c4022ad52fc59b2039), closes [#305](http://github.com/aurelia/templating/issues/305))
+* **view-factory:** enable injection and auto-unbind of ElementEvents ([842014fd](http://github.com/aurelia/templating/commit/842014fd6ede2ec88906158d8afff8b4ab84487c))
+
+
+### 1.0.0-beta.1.1.0 (2016-01-29)
+
+
+#### Bug Fixes
+
+* **Controller:** handle scope inheritance in template part with repeat Related to #244 ([9a488c44](http://github.com/aurelia/templating/commit/9a488c44e86872c91b2f86953519c8ef7308a262))
+* **controller:** stop element from inheriting scope ([a3ced53d](http://github.com/aurelia/templating/commit/a3ced53d67749244a6ea61d5193b04330e392bfc))
+
+
+#### Features
+
+* **all:** update jspm meta; core-js; aurelia-deps ([bdff3232](http://github.com/aurelia/templating/commit/bdff323282ebd7228063cb08a961a3258215fcea))
+
+
+### 1.0.0-beta.1.0.3 (2016-01-08)
+
+
+#### Bug Fixes
+
+* **composition:** properly handle the created callback during dynamic composition ([9b61a681](http://github.com/aurelia/templating/commit/9b61a681fe6dd7c240a0db13dd13885d430c79a1))
+
+
+### 1.0.0-beta.1.0.2 (2015-12-16)
+
+
+#### Bug Fixes
+
+* **content-selector:** incorrection projection in nested scenarios ([2e248676](http://github.com/aurelia/templating/commit/2e248676635b6f7c698894e06056f1bd0e11603e), closes [#231](http://github.com/aurelia/templating/issues/231))
+
+
 ## 1.0.0-beta.1.0.1 (2015-12-03)
 
 

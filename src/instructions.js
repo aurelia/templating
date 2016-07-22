@@ -2,6 +2,8 @@
 * A context that flows through the view resource load process.
 */
 export class ResourceLoadContext {
+  dependencies: Object;
+
   /**
   * Creates an instance of ResourceLoadContext.
   */
@@ -30,10 +32,14 @@ export class ResourceLoadContext {
 * Specifies how a view should be compiled.
 */
 export class ViewCompileInstruction {
+  targetShadowDOM: boolean;
+  compileSurrogate: boolean;
+  associatedModuleId: any;
+
   /**
   * The normal configuration for view compilation.
   */
-  static normal = new ViewCompileInstruction();
+  static normal: ViewCompileInstruction;
 
   /**
   * Creates an instance of ViewCompileInstruction.
@@ -46,6 +52,8 @@ export class ViewCompileInstruction {
     this.associatedModuleId = null;
   }
 }
+
+ViewCompileInstruction.normal = new ViewCompileInstruction();
 
 /**
 * Specifies how a view should be created.
@@ -65,10 +73,26 @@ interface ViewCreateInstruction {
 * Indicates how a custom attribute or element should be instantiated in a view.
 */
 export class BehaviorInstruction {
+
+  initiatedByBehavior: boolean;
+  enhance: boolean;
+  partReplacements: any;
+  viewFactory: ViewFactory;
+  originalAttrName: string;
+  skipContentProcessing: boolean;
+  contentFactory: any;
+  viewModel: Object;
+  anchorIsContainer: boolean;
+  host: Element;
+  attributes: Object;
+  type: HtmlBehaviorResource;
+  attrName: string;
+  inheritBindingContext: boolean;
+
   /**
   * A default behavior used in scenarios where explicit configuration isn't available.
   */
-  static normal = new BehaviorInstruction();
+  static normal: BehaviorInstruction;
 
   /**
   * Creates an instruction for element enhancement.
@@ -134,6 +158,7 @@ export class BehaviorInstruction {
     instruction.host = host;
     instruction.viewModel = viewModel;
     instruction.viewFactory = viewFactory;
+    instruction.inheritBindingContext = true;
     return instruction;
   }
 
@@ -154,29 +179,52 @@ export class BehaviorInstruction {
     this.attributes = null;
     this.type = null;
     this.attrName = null;
+    this.inheritBindingContext = false;
   }
 }
+
+BehaviorInstruction.normal = new BehaviorInstruction();
 
 /**
 * Provides all the instructions for how a target element should be enhanced inside of a view.
 */
 export class TargetInstruction {
+
+  injectorId:number;
+  parentInjectorId:number;
+
+  shadowSlot:boolean;
+  slotName:string;
+  slotFallbackFactory:any;
+
+  contentExpression:any;
+
+  expressions:Array<Object>;
+  behaviorInstructions:Array<BehaviorInstruction>;
+  providers:Array<Function>;
+
+  viewFactory:ViewFactory;
+
+  anchorIsContainer:boolean;
+  elementInstruction:BehaviorInstruction;
+  lifting:boolean;
+
+  values:Object;
+
   /**
   * An empty array used to represent a target with no binding expressions.
   */
   static noExpressions = Object.freeze([]);
 
   /**
-  * Creates an instruction that represents a content selector.
-  * @param node The node that represents the selector.
+  * Creates an instruction that represents a shadow dom slot.
   * @param parentInjectorId The id of the parent dependency injection container.
   * @return The created instruction.
   */
-  static contentSelector(node: Node, parentInjectorId: number): TargetInstruction {
+  static shadowSlot(parentInjectorId: number): TargetInstruction {
     let instruction = new TargetInstruction();
     instruction.parentInjectorId = parentInjectorId;
-    instruction.contentSelector = true;
-    instruction.selector = node.getAttribute('select');
+    instruction.shadowSlot = true;
     return instruction;
   }
 
@@ -204,6 +252,7 @@ export class TargetInstruction {
     instruction.behaviorInstructions = [liftingInstruction];
     instruction.viewFactory = liftingInstruction.viewFactory;
     instruction.providers = [liftingInstruction.type.target];
+    instruction.lifting = true;
     return instruction;
   }
 
@@ -253,8 +302,9 @@ export class TargetInstruction {
     this.injectorId = null;
     this.parentInjectorId = null;
 
-    this.contentSelector = false;
-    this.selector = null;
+    this.shadowSlot = false;
+    this.slotName = null;
+    this.slotFallbackFactory = null;
 
     this.contentExpression = null;
 
@@ -266,6 +316,7 @@ export class TargetInstruction {
 
     this.anchorIsContainer = false;
     this.elementInstruction = null;
+    this.lifting = false;
 
     this.values = null;
   }

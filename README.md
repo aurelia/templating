@@ -1,35 +1,13 @@
 # aurelia-templating
 
+[![npm Version](https://img.shields.io/npm/v/aurelia-templating.svg)](https://www.npmjs.com/package/aurelia-templating)
 [![ZenHub](https://raw.githubusercontent.com/ZenHubIO/support/master/zenhub-badge.png)](https://zenhub.io)
 [![Join the chat at https://gitter.im/aurelia/discuss](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/aurelia/discuss?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![CircleCI](https://circleci.com/gh/aurelia/templating.svg?style=shield)](https://circleci.com/gh/aurelia/templating)
 
 This library is part of the [Aurelia](http://www.aurelia.io/) platform and contains an extensible HTML templating engine supporting databinding, custom elements, attached behaviors and more.
 
-> To keep up to date on [Aurelia](http://www.aurelia.io/), please visit and subscribe to [the official blog](http://blog.durandal.io/). If you have questions, we invite you to [join us on Gitter](https://gitter.im/aurelia/discuss). If you would like to have deeper insight into our development process, please install the [ZenHub](https://zenhub.io) Chrome Extension and visit any of our repository's boards. You can get an overview of all Aurelia work by visiting [the framework board](https://github.com/aurelia/framework#boards).
-
-## Polyfills
-
-* Depending on target browser(s), [core-js](https://github.com/zloirock/core-js) is likely required for `Promise` support.
-
-* If targeting IE, [aurelia-html-template-element](https://github.com/aurelia/html-template-element) is required.
-
-## Dependencies
-
-* [aurelia-metadata](https://github.com/aurelia/metadata)
-* [aurelia-task-queue](https://github.com/aurelia/task-queue)
-* [aurelia-binding](https://github.com/aurelia/binding)
-* [aurelia-loader](https://github.com/aurelia/loader)
-* [aurelia-dependency-injection](https://github.com/aurelia/dependency-injection)
-* [aurelia-logging](https://github.com/aurelia/logging)
-* [aurelia-path](https://github.com/aurelia/path)
-
-## Used By
-
-* [aurelia-framework](https://github.com/aurelia/framework)
-* [aurelia-templating-binding](https://github.com/aurelia/templating-binding)
-* [aurelia-templating-resources](https://github.com/aurelia/templating-resources)
-* [aurelia-templating-router](https://github.com/aurelia/templating-router)
-* [aurelia-animator-css](https://github.com/aurelia/animator-css)
+> To keep up to date on [Aurelia](http://www.aurelia.io/), please visit and subscribe to [the official blog](http://blog.durandal.io/) and [our email list](http://durandal.us10.list-manage1.com/subscribe?u=dae7661a3872ee02b519f6f29&id=3de6801ccc). We also invite you to [follow us on twitter](https://twitter.com/aureliaeffect). If you have questions, please [join our community on Gitter](https://gitter.im/aurelia/discuss). If you would like to have deeper insight into our development process, please install the [ZenHub](https://zenhub.io) Chrome or Firefox Extension and visit any of our repository's boards. You can get an overview of all Aurelia work by visiting [the framework board](https://github.com/aurelia/framework#boards).
 
 ## Platform Support
 

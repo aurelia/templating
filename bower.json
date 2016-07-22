@@ -1,6 +1,6 @@
 {
   "name": "aurelia-templating",
-  "version": "1.0.0-beta.1.0.1",
+  "version": "1.0.0-rc.1.0.1",
   "description": "An extensible HTML templating engine supporting databinding, custom elements, attached behaviors and more.",
   "keywords": [
     "aurelia",
@@ -10,6 +10,8 @@
     "databinding"
   ],
   "homepage": "http://aurelia.io",
+  "main": "dist/commonjs/aurelia-templating.js",
+  "moduleType": "node",
   "license": "MIT",
   "authors": [
     "Rob Eisenberg <rob@bluespire.com> (http://robeisenberg.com/)"
@@ -19,14 +21,13 @@
     "url": "http://github.com/aurelia/templating"
   },
   "dependencies": {
-    "aurelia-binding": "^1.0.0-beta.1",
-    "aurelia-dependency-injection": "^1.0.0-beta.1",
-    "aurelia-loader": "^1.0.0-beta.1",
-    "aurelia-logging": "^1.0.0-beta.1",
-    "aurelia-metadata": "^1.0.0-beta.1",
-    "aurelia-pal": "^1.0.0-beta.1",
-    "aurelia-path": "^1.0.0-beta.1",
-    "aurelia-task-queue": "^1.0.0-beta.1",
-    "core-js": "zloirock/core-js"
+    "aurelia-binding": "^1.0.0-rc.1.0.0",
+    "aurelia-dependency-injection": "^1.0.0-rc.1.0.0",
+    "aurelia-loader": "^1.0.0-rc.1.0.0",
+    "aurelia-logging": "^1.0.0-rc.1.0.0",
+    "aurelia-metadata": "^1.0.0-rc.1.0.0",
+    "aurelia-pal": "^1.0.0-rc.1.0.0",
+    "aurelia-path": "^1.0.0-rc.1.0.0",
+    "aurelia-task-queue": "^1.0.0-rc.1.0.0"
   }
 }

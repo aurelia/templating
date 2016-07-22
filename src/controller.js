@@ -1,4 +1,5 @@
 import {createOverrideContext} from 'aurelia-binding';
+import {ElementEvents} from './element-events';
 
 /**
 * Controls a view model (and optionally its view), according to a particular behavior and by following a set of instructions.
@@ -26,14 +27,15 @@ export class Controller {
   * @param instruction The instructions pertaining to the controller's behavior.
   * @param viewModel The developer's view model instance which provides the custom behavior for this controller.
   */
-  constructor(behavior: HtmlBehaviorResource, instruction: BehaviorInstruction, viewModel: Object) {
+  constructor(behavior: HtmlBehaviorResource, instruction: BehaviorInstruction, viewModel: Object, elementEvents?: ElementEvents) {
     this.behavior = behavior;
     this.instruction = instruction;
     this.viewModel = viewModel;
     this.isAttached = false;
     this.view = null;
     this.isBound = false;
-    this.bindingContext = null;
+    this.scope = null;
+    this.elementEvents = elementEvents || null;
 
     let observerLookup = behavior.observerLocator.getOrCreateObserversLookup(viewModel);
     let handlesBind = behavior.handlesBind;
@@ -54,7 +56,7 @@ export class Controller {
   * Invoked when the view which contains this controller is created.
   * @param owningView The view inside which this controller resides.
   */
-  created(owningView): void {
+  created(owningView: View): void {
     if (this.behavior.handlesCreated) {
       this.viewModel.created(owningView, this.view);
     }
@@ -64,11 +66,17 @@ export class Controller {
   * Used to automate the proper binding of this controller and its view. Used by the composition engine for dynamic component creation.
   * This should be considered a semi-private API and is subject to change without notice, even across minor or patch releases.
   * @param overrideContext An override context for binding.
+  * @param owningView The view inside which this controller resides.
   */
-  automate(overrideContext?: Object): void {
+  automate(overrideContext?: Object, owningView?: View): void {
     this.view.bindingContext = this.viewModel;
     this.view.overrideContext = overrideContext || createOverrideContext(this.viewModel);
     this.view._isUserControlled = true;
+
+    if (this.behavior.handlesCreated) {
+      this.viewModel.created(owningView || null, this.view);
+    }
+
     this.bind(this.view);
   }
 
@@ -84,10 +92,9 @@ export class Controller {
     let x;
     let observer;
     let selfSubscriber;
-    let context = scope.bindingContext;
 
     if (this.isBound) {
-      if (this.bindingContext === context) {
+      if (this.scope === scope) {
         return;
       }
 
@@ -95,7 +102,7 @@ export class Controller {
     }
 
     this.isBound = true;
-    this.bindingContext = context;
+    this.scope = scope;
 
     for (i = 0, ii = boundProperties.length; i < ii; ++i) {
       x = boundProperties[i];
@@ -114,14 +121,41 @@ export class Controller {
       observer.selfSubscriber = selfSubscriber;
     }
 
+    let overrideContext;
     if (this.view !== null) {
       if (skipSelfSubscriber) {
         this.view.viewModelScope = scope;
       }
+      // do we need to create an overrideContext or is the scope's overrideContext
+      // valid for this viewModel?
+      if (this.viewModel === scope.overrideContext.bindingContext) {
+        overrideContext = scope.overrideContext;
+      // should we inherit the parent scope? (eg compose / router)
+      } else if (this.instruction.inheritBindingContext) {
+        overrideContext = createOverrideContext(this.viewModel, scope.overrideContext);
+      // create the overrideContext and capture the parent without making it
+      // available to AccessScope. We may need it later for template-part replacements.
+      } else {
+        overrideContext = createOverrideContext(this.viewModel);
+        overrideContext.__parentOverrideContext = scope.overrideContext;
+      }
 
-      this.view.bind(this.viewModel, createOverrideContext(this.viewModel, scope.overrideContext));
+      this.view.bind(this.viewModel, overrideContext);
     } else if (skipSelfSubscriber) {
-      this.viewModel.bind(context, scope.overrideContext);
+      overrideContext = scope.overrideContext;
+      // the factoryCreateInstruction's partReplacements will either be null or an object
+      // containing the replacements. If there are partReplacements we need to preserve the parent
+      // context to allow replacement parts to bind to both the custom element scope and the ambient scope.
+      // Note that factoryCreateInstruction is a property defined on BoundViewFactory. The code below assumes the
+      // behavior stores a the BoundViewFactory on its viewModel under the name of viewFactory. This is implemented
+      // by the replaceable custom attribute.
+      if (scope.overrideContext.__parentOverrideContext !== undefined
+        && this.viewModel.viewFactory && this.viewModel.viewFactory.factoryCreateInstruction.partReplacements) {
+        // clone the overrideContext and connect the ambient context.
+        overrideContext = Object.assign({}, scope.overrideContext);
+        overrideContext.parentOverrideContext = scope.overrideContext.__parentOverrideContext;
+      }
+      this.viewModel.bind(scope.bindingContext, overrideContext);
     }
   }
 
@@ -143,6 +177,10 @@ export class Controller {
 
       if (this.behavior.handlesUnbind) {
         this.viewModel.unbind();
+      }
+
+      if (this.elementEvents !== null) {
+        this.elementEvents.disposeAll();
       }
 
       for (i = 0, ii = boundProperties.length; i < ii; ++i) {

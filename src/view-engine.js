@@ -1,4 +1,3 @@
-import 'core-js';
 import * as LogManager from 'aurelia-logging';
 import {Origin} from 'aurelia-metadata';
 import {Loader, TemplateRegistryEntry} from 'aurelia-loader';
@@ -8,6 +7,8 @@ import {ViewResources} from './view-resources';
 import {ModuleAnalyzer, ResourceDescription} from './module-analyzer';
 import {ViewFactory} from './view-factory';
 import {ResourceLoadContext, ViewCompileInstruction} from './instructions';
+import {SlotCustomAttribute} from './shadow-dom';
+import {HtmlBehaviorResource} from './html-behavior';
 
 let logger = LogManager.getLogger('templating');
 
@@ -65,6 +66,11 @@ export class ViewEngine {
     this.moduleAnalyzer = moduleAnalyzer;
     this.appResources = appResources;
     this._pluginMap = {};
+
+    let auSlotBehavior = new HtmlBehaviorResource();
+    auSlotBehavior.attributeName = 'au-slot';
+    auSlotBehavior.initialize(container, SlotCustomAttribute);
+    auSlotBehavior.register(appResources);
   }
 
   /**

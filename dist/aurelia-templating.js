@@ -1,11 +1,10 @@
-import 'core-js';
 import * as LogManager from 'aurelia-logging';
-import {Origin,protocol,metadata} from 'aurelia-metadata';
+import {metadata,Origin,protocol} from 'aurelia-metadata';
+import {DOM,PLATFORM,FEATURE} from 'aurelia-pal';
 import {relativeToFile} from 'aurelia-path';
 import {TemplateRegistryEntry,Loader} from 'aurelia-loader';
-import {DOM,PLATFORM,FEATURE} from 'aurelia-pal';
-import {Binding,createOverrideContext,ValueConverterResource,BindingBehaviorResource,subscriberCollection,bindingMode,ObserverLocator,EventManager,createScopeForTest} from 'aurelia-binding';
-import {Container,resolver,inject} from 'aurelia-dependency-injection';
+import {inject,Container,resolver} from 'aurelia-dependency-injection';
+import {Binding,createOverrideContext,ValueConverterResource,BindingBehaviorResource,subscriberCollection,bindingMode,ObserverLocator,EventManager} from 'aurelia-binding';
 import {TaskQueue} from 'aurelia-task-queue';
 
 /**
@@ -120,6 +119,100 @@ export class Animator {
   unregisterEffect(effectName: string): void {}
 }
 
+/**
+* A mechanism by which an enlisted async render operation can notify the owning transaction when its work is done.
+*/
+export class CompositionTransactionNotifier {
+  constructor(owner) {
+    this.owner = owner;
+    this.owner._compositionCount++;
+  }
+
+  /**
+  * Notifies the owning transaction that its work is done.
+  */
+  done(): void {
+    this.owner._compositionCount--;
+    this.owner._tryCompleteTransaction();
+  }
+}
+
+/**
+* Referenced by the subsytem which wishes to control a composition transaction.
+*/
+export class CompositionTransactionOwnershipToken {
+  constructor(owner) {
+    this.owner = owner;
+    this.owner._ownershipToken = this;
+    this.thenable = this._createThenable();
+  }
+
+  /**
+  * Allows the transaction owner to wait for the completion of all child compositions.
+  * @return A promise that resolves when all child compositions are done.
+  */
+  waitForCompositionComplete(): Promise<void> {
+    this.owner._tryCompleteTransaction();
+    return this.thenable;
+  }
+
+  /**
+  * Used internall to resolve the composition complete promise.
+  */
+  resolve(): void {
+    this._resolveCallback();
+  }
+
+  _createThenable() {
+    return new Promise((resolve, reject) => {
+      this._resolveCallback = resolve;
+    });
+  }
+}
+
+/**
+* Enables an initiator of a view composition to track any internal async rendering processes for completion.
+*/
+export class CompositionTransaction {
+  /**
+  * Creates an instance of CompositionTransaction.
+  */
+  constructor() {
+    this._ownershipToken = null;
+    this._compositionCount = 0;
+  }
+
+  /**
+  * Attempt to take ownership of the composition transaction.
+  * @return An ownership token if successful, otherwise null.
+  */
+  tryCapture(): CompositionTransactionOwnershipToken {
+    return this._ownershipToken === null
+      ? new CompositionTransactionOwnershipToken(this)
+      : null;
+  }
+
+  /**
+  * Enlist an async render operation into the transaction.
+  * @return A completion notifier.
+  */
+  enlist(): CompositionTransactionNotifier {
+    return new CompositionTransactionNotifier(this);
+  }
+
+  _tryCompleteTransaction() {
+    if (this._compositionCount <= 0) {
+      this._compositionCount = 0;
+
+      if (this._ownershipToken !== null) {
+        let token = this._ownershipToken;
+        this._ownershipToken = null;
+        token.resolve();
+      }
+    }
+  }
+}
+
 const capitalMatcher = /([A-Z])/g;
 
 function addHyphenAndLower(char) {
@@ -130,10 +223,167 @@ export function _hyphenate(name) {
   return (name.charAt(0).toLowerCase() + name.slice(1)).replace(capitalMatcher, addHyphenAndLower);
 }
 
+//https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model/Whitespace_in_the_DOM
+//We need to ignore whitespace so we don't mess up fallback rendering
+//However, we cannot ignore empty text nodes that container interpolations.
+export function _isAllWhitespace(node) {
+  // Use ECMA-262 Edition 3 String and RegExp features
+  return !(node.auInterpolationTarget || (/[^\t\n\r ]/.test(node.textContent)));
+}
+
+export class ViewEngineHooksResource {
+  constructor() {}
+
+  initialize(container, target) {
+    this.instance = container.get(target);
+  }
+
+  register(registry, name) {
+    registry.registerViewEngineHooks(this.instance);
+  }
+
+  load(container, target) {}
+
+  static convention(name) { // eslint-disable-line
+    if (name.endsWith('ViewEngineHooks')) {
+      return new ViewEngineHooksResource();
+    }
+  }
+}
+
+export function viewEngineHooks(target) { // eslint-disable-line
+  let deco = function(t) {
+    metadata.define(metadata.resource, new ViewEngineHooksResource(), t);
+  };
+
+  return target ? deco(target) : deco;
+}
+
+interface EventHandler {
+  eventName: string;
+  bubbles: boolean;
+  dispose: Function;
+  handler: Function;
+}
+
+/**
+ * Dispatches subscribets to and publishes events in the DOM.
+ * @param element
+ */
+export class ElementEvents {
+  constructor(element: Element) {
+    this.element = element;
+    this.subscriptions = {};
+  }
+
+  _enqueueHandler(handler: EventHandler): void {
+    this.subscriptions[handler.eventName] = this.subscriptions[handler.eventName] || [];
+    this.subscriptions[handler.eventName].push(handler);
+  }
+
+  _dequeueHandler(handler: EventHandler): EventHandler {
+    let index;
+    let subscriptions = this.subscriptions[handler.eventName];
+    if (subscriptions) {
+      index = subscriptions.indexOf(handler);
+      if (index > -1) {
+        subscriptions.splice(index, 1);
+      }
+    }
+    return handler;
+  }
+
+  /**
+   * Dispatches an Event on the context element.
+   * @param eventName
+   * @param detail
+   * @param bubbles
+   * @param cancelable
+   */
+  publish(eventName: string, detail?: Object = {}, bubbles?: boolean = true, cancelable?: boolean = true) {
+    let event = DOM.createCustomEvent(eventName, {cancelable, bubbles, detail});
+    this.element.dispatchEvent(event);
+  }
+
+  /**
+   * Adds and Event Listener on the context element.
+   * @param eventName
+   * @param handler
+   * @param bubbles
+   * @return Returns the eventHandler containing a dispose method
+   */
+  subscribe(eventName: string, handler: Function, bubbles?: boolean = true): EventHandler {
+    if (handler && typeof handler === 'function') {
+      handler.eventName = eventName;
+      handler.handler = handler;
+      handler.bubbles = bubbles;
+      handler.dispose = () => {
+        this.element.removeEventListener(eventName, handler, bubbles);
+        this._dequeueHandler(handler);
+      };
+      this.element.addEventListener(eventName, handler, bubbles);
+      this._enqueueHandler(handler);
+      return handler;
+    }
+
+    return undefined;
+  }
+
+  /**
+   * Adds an Event Listener on the context element, that will be disposed on the first trigger.
+   * @param eventName
+   * @param handler
+   * @param bubbles
+   * @return Returns the eventHandler containing a dispose method
+   */
+  subscribeOnce(eventName: String, handler: Function, bubbles?: Boolean = true): EventHandler {
+    if (handler && typeof handler === 'function') {
+      let _handler = (event) => {
+        handler(event);
+        _handler.dispose();
+      };
+      return this.subscribe(eventName, _handler, bubbles);
+    }
+
+    return undefined;
+  }
+
+  /**
+   * Removes all events that are listening to the specified eventName.
+   * @param eventName
+   */
+  dispose(eventName: string): void {
+    if (eventName && typeof eventName === 'string') {
+      let subscriptions = this.subscriptions[eventName];
+      if (subscriptions) {
+        while (subscriptions.length) {
+          let subscription = subscriptions.pop();
+          if (subscription) {
+            subscription.dispose();
+          }
+        }
+      }
+    } else {
+      this.disposeAll();
+    }
+  }
+
+  /**
+   * Removes all event handlers.
+   */
+  disposeAll() {
+    for (let key in this.subscriptions) {
+      this.dispose(key);
+    }
+  }
+}
+
 /**
 * A context that flows through the view resource load process.
 */
 export class ResourceLoadContext {
+  dependencies: Object;
+
   /**
   * Creates an instance of ResourceLoadContext.
   */
@@ -162,10 +412,14 @@ export class ResourceLoadContext {
 * Specifies how a view should be compiled.
 */
 export class ViewCompileInstruction {
+  targetShadowDOM: boolean;
+  compileSurrogate: boolean;
+  associatedModuleId: any;
+
   /**
   * The normal configuration for view compilation.
   */
-  static normal = new ViewCompileInstruction();
+  static normal: ViewCompileInstruction;
 
   /**
   * Creates an instance of ViewCompileInstruction.
@@ -178,6 +432,8 @@ export class ViewCompileInstruction {
     this.associatedModuleId = null;
   }
 }
+
+ViewCompileInstruction.normal = new ViewCompileInstruction();
 
 /**
 * Specifies how a view should be created.
@@ -197,10 +453,26 @@ interface ViewCreateInstruction {
 * Indicates how a custom attribute or element should be instantiated in a view.
 */
 export class BehaviorInstruction {
+
+  initiatedByBehavior: boolean;
+  enhance: boolean;
+  partReplacements: any;
+  viewFactory: ViewFactory;
+  originalAttrName: string;
+  skipContentProcessing: boolean;
+  contentFactory: any;
+  viewModel: Object;
+  anchorIsContainer: boolean;
+  host: Element;
+  attributes: Object;
+  type: HtmlBehaviorResource;
+  attrName: string;
+  inheritBindingContext: boolean;
+
   /**
   * A default behavior used in scenarios where explicit configuration isn't available.
   */
-  static normal = new BehaviorInstruction();
+  static normal: BehaviorInstruction;
 
   /**
   * Creates an instruction for element enhancement.
@@ -266,6 +538,7 @@ export class BehaviorInstruction {
     instruction.host = host;
     instruction.viewModel = viewModel;
     instruction.viewFactory = viewFactory;
+    instruction.inheritBindingContext = true;
     return instruction;
   }
 
@@ -286,29 +559,52 @@ export class BehaviorInstruction {
     this.attributes = null;
     this.type = null;
     this.attrName = null;
+    this.inheritBindingContext = false;
   }
 }
+
+BehaviorInstruction.normal = new BehaviorInstruction();
 
 /**
 * Provides all the instructions for how a target element should be enhanced inside of a view.
 */
 export class TargetInstruction {
+
+  injectorId:number;
+  parentInjectorId:number;
+
+  shadowSlot:boolean;
+  slotName:string;
+  slotFallbackFactory:any;
+
+  contentExpression:any;
+
+  expressions:Array<Object>;
+  behaviorInstructions:Array<BehaviorInstruction>;
+  providers:Array<Function>;
+
+  viewFactory:ViewFactory;
+
+  anchorIsContainer:boolean;
+  elementInstruction:BehaviorInstruction;
+  lifting:boolean;
+
+  values:Object;
+
   /**
   * An empty array used to represent a target with no binding expressions.
   */
   static noExpressions = Object.freeze([]);
 
   /**
-  * Creates an instruction that represents a content selector.
-  * @param node The node that represents the selector.
+  * Creates an instruction that represents a shadow dom slot.
   * @param parentInjectorId The id of the parent dependency injection container.
   * @return The created instruction.
   */
-  static contentSelector(node: Node, parentInjectorId: number): TargetInstruction {
+  static shadowSlot(parentInjectorId: number): TargetInstruction {
     let instruction = new TargetInstruction();
     instruction.parentInjectorId = parentInjectorId;
-    instruction.contentSelector = true;
-    instruction.selector = node.getAttribute('select');
+    instruction.shadowSlot = true;
     return instruction;
   }
 
@@ -336,6 +632,7 @@ export class TargetInstruction {
     instruction.behaviorInstructions = [liftingInstruction];
     instruction.viewFactory = liftingInstruction.viewFactory;
     instruction.providers = [liftingInstruction.type.target];
+    instruction.lifting = true;
     return instruction;
   }
 
@@ -385,8 +682,9 @@ export class TargetInstruction {
     this.injectorId = null;
     this.parentInjectorId = null;
 
-    this.contentSelector = false;
-    this.selector = null;
+    this.shadowSlot = false;
+    this.slotName = null;
+    this.slotFallbackFactory = null;
 
     this.contentExpression = null;
 
@@ -398,6 +696,7 @@ export class TargetInstruction {
 
     this.anchorIsContainer = false;
     this.elementInstruction = null;
+    this.lifting = false;
 
     this.values = null;
   }
@@ -662,7 +961,7 @@ export class ViewLocator {
 
     if (!strategy) {
       if (!origin) {
-        throw new Error('Cannot determinte default view strategy for object.', value);
+        throw new Error('Cannot determine default view strategy for object.', value);
       }
 
       strategy = this.createFallbackViewStrategy(origin);
@@ -696,6 +995,10 @@ export class ViewLocator {
   }
 }
 
+function mi(name) {
+  throw new Error(`BindingLanguage must implement ${name}().`);
+}
+
 /**
 * An abstract base class for implementations of a binding language.
 */
@@ -703,12 +1006,13 @@ export class BindingLanguage {
   /**
   * Inspects an attribute for bindings.
   * @param resources The ViewResources for the view being compiled.
+  * @param elementName The element name to inspect.
   * @param attrName The attribute name to inspect.
-  * @param attrValue The attribute value to inspce.
+  * @param attrValue The attribute value to inspect.
   * @return An info object with the results of the inspection.
   */
-  inspectAttribute(resources: ViewResources, attrName: string, attrValue: string): Object {
-    throw new Error('A BindingLanguage must implement inspectAttribute(...)');
+  inspectAttribute(resources: ViewResources, elementName: string, attrName: string, attrValue: string): Object {
+    mi('inspectAttribute');
   }
 
   /**
@@ -720,7 +1024,7 @@ export class BindingLanguage {
   * @return The instruction instance.
   */
   createAttributeInstruction(resources: ViewResources, element: Element, info: Object, existingInstruction?: Object): BehaviorInstruction {
-    throw new Error('A BindingLanguage must implement createAttributeInstruction(...)');
+    mi('createAttributeInstruction');
   }
 
   /**
@@ -729,8 +1033,425 @@ export class BindingLanguage {
   * @param value The value of the text to parse.
   * @return A binding expression.
   */
-  parseText(resources: ViewResources, value: string): Object {
-    throw new Error('A BindingLanguage must implement parseText(...)');
+  inspectTextContent(resources: ViewResources, value: string): Object {
+    mi('inspectTextContent');
+  }
+}
+
+let noNodes = Object.freeze([]);
+
+@inject(DOM.Element)
+export class SlotCustomAttribute {
+  constructor(element) {
+    this.element = element;
+    this.element.auSlotAttribute = this;
+  }
+
+  valueChanged(newValue, oldValue) {
+    //console.log('au-slot', newValue);
+  }
+}
+
+export class PassThroughSlot {
+  constructor(anchor, name, destinationName, fallbackFactory) {
+    this.anchor = anchor;
+    this.anchor.viewSlot = this;
+    this.name = name;
+    this.destinationName = destinationName;
+    this.fallbackFactory = fallbackFactory;
+    this.destinationSlot = null;
+    this.projections = 0;
+    this.contentView = null;
+
+    let attr = new SlotCustomAttribute(this.anchor);
+    attr.value = this.destinationName;
+  }
+
+  get needsFallbackRendering() {
+    return this.fallbackFactory && this.projections === 0;
+  }
+
+  renderFallbackContent(view, nodes, projectionSource, index) {
+    if (this.contentView === null) {
+      this.contentView = this.fallbackFactory.create(this.ownerView.container);
+      this.contentView.bind(this.ownerView.bindingContext, this.ownerView.overrideContext);
+
+      let slots = Object.create(null);
+      slots[this.destinationSlot.name] = this.destinationSlot;
+
+      ShadowDOM.distributeView(this.contentView, slots, projectionSource, index, this.destinationSlot.name);
+    }
+  }
+
+  passThroughTo(destinationSlot) {
+    this.destinationSlot = destinationSlot;
+  }
+
+  addNode(view, node, projectionSource, index) {
+    if (this.contentView !== null) {
+      this.contentView.removeNodes();
+      this.contentView.detached();
+      this.contentView.unbind();
+      this.contentView = null;
+    }
+
+    if (node.viewSlot instanceof PassThroughSlot) {
+      node.viewSlot.passThroughTo(this);
+      return;
+    }
+
+    this.projections++;
+    this.destinationSlot.addNode(view, node, projectionSource, index);
+  }
+
+  removeView(view, projectionSource) {
+    this.projections--;
+    this.destinationSlot.removeView(view, projectionSource);
+
+    if (this.needsFallbackRendering) {
+      this.renderFallbackContent(null, noNodes, projectionSource);
+    }
+  }
+
+  removeAll(projectionSource) {
+    this.projections = 0;
+    this.destinationSlot.removeAll(projectionSource);
+
+    if (this.needsFallbackRendering) {
+      this.renderFallbackContent(null, noNodes, projectionSource);
+    }
+  }
+
+  projectFrom(view, projectionSource) {
+    this.destinationSlot.projectFrom(view, projectionSource);
+  }
+
+  created(ownerView) {
+    this.ownerView = ownerView;
+  }
+
+  bind(view) {
+    if (this.contentView) {
+      this.contentView.bind(view.bindingContext, view.overrideContext);
+    }
+  }
+
+  attached() {
+    if (this.contentView) {
+      this.contentView.attached();
+    }
+  }
+
+  detached() {
+    if (this.contentView) {
+      this.contentView.detached();
+    }
+  }
+
+  unbind() {
+    if (this.contentView) {
+      this.contentView.unbind();
+    }
+  }
+}
+
+export class ShadowSlot {
+  constructor(anchor, name, fallbackFactory) {
+    this.anchor = anchor;
+    this.anchor.isContentProjectionSource = true;
+    this.anchor.viewSlot = this;
+    this.name = name;
+    this.fallbackFactory = fallbackFactory;
+    this.contentView = null;
+    this.projections = 0;
+    this.children = [];
+    this.projectFromAnchors = null;
+    this.destinationSlots = null;
+  }
+
+  get needsFallbackRendering() {
+    return this.fallbackFactory && this.projections === 0;
+  }
+
+  addNode(view, node, projectionSource, index, destination) {
+    if (this.contentView !== null) {
+      this.contentView.removeNodes();
+      this.contentView.detached();
+      this.contentView.unbind();
+      this.contentView = null;
+    }
+
+    if (node.viewSlot instanceof PassThroughSlot) {
+      node.viewSlot.passThroughTo(this);
+      return;
+    }
+
+    if (this.destinationSlots !== null) {
+      ShadowDOM.distributeNodes(view, [node], this.destinationSlots, this, index);
+    } else {
+      node.auOwnerView = view;
+      node.auProjectionSource = projectionSource;
+      node.auAssignedSlot = this;
+
+      let anchor = this._findAnchor(view, node, projectionSource, index);
+      let parent = anchor.parentNode;
+
+      parent.insertBefore(node, anchor);
+      this.children.push(node);
+      this.projections++;
+    }
+  }
+
+  removeView(view, projectionSource) {
+    if (this.destinationSlots !== null) {
+      ShadowDOM.undistributeView(view, this.destinationSlots, this);
+    } else if (this.contentView && this.contentView.hasSlots) {
+      ShadowDOM.undistributeView(view, this.contentView.slots, projectionSource);
+    } else {
+      let found = this.children.find(x => x.auSlotProjectFrom === projectionSource);
+      if (found) {
+        let children = found.auProjectionChildren;
+
+        for (let i = 0, ii = children.length; i < ii; ++i) {
+          let child = children[i];
+
+          if (child.auOwnerView === view) {
+            children.splice(i, 1);
+            view.fragment.appendChild(child);
+            i--; ii--;
+            this.projections--;
+          }
+        }
+
+        if (this.needsFallbackRendering) {
+          this.renderFallbackContent(view, noNodes, projectionSource);
+        }
+      }
+    }
+  }
+
+  removeAll(projectionSource) {
+    if (this.destinationSlots !== null) {
+      ShadowDOM.undistributeAll(this.destinationSlots, this);
+    } else if (this.contentView && this.contentView.hasSlots) {
+      ShadowDOM.undistributeAll(this.contentView.slots, projectionSource);
+    } else {
+      let found = this.children.find(x => x.auSlotProjectFrom === projectionSource);
+
+      if (found) {
+        let children = found.auProjectionChildren;
+        for (let i = 0, ii = children.length; i < ii; ++i) {
+          let child = children[i];
+          child.auOwnerView.fragment.appendChild(child);
+          this.projections--;
+        }
+
+        found.auProjectionChildren = [];
+
+        if (this.needsFallbackRendering) {
+          this.renderFallbackContent(null, noNodes, projectionSource);
+        }
+      }
+    }
+  }
+
+  _findAnchor(view, node, projectionSource, index) {
+    if (projectionSource) {
+      //find the anchor associated with the projected view slot
+      let found = this.children.find(x => x.auSlotProjectFrom === projectionSource);
+      if (found) {
+        if (index !== undefined) {
+          let children = found.auProjectionChildren;
+          let viewIndex = -1;
+          let lastView;
+
+          for (let i = 0, ii = children.length; i < ii; ++i) {
+            let current = children[i];
+
+            if (current.auOwnerView !== lastView) {
+              viewIndex++;
+              lastView = current.auOwnerView;
+
+              if (viewIndex >= index && lastView !== view) {
+                children.splice(i, 0, node);
+                return current;
+              }
+            }
+          }
+        }
+
+        found.auProjectionChildren.push(node);
+        return found;
+      }
+    }
+
+    return this.anchor;
+  }
+
+  projectTo(slots) {
+    this.destinationSlots = slots;
+  }
+
+  projectFrom(view, projectionSource) {
+    let anchor = DOM.createComment('anchor');
+    let parent = this.anchor.parentNode;
+    anchor.auSlotProjectFrom = projectionSource;
+    anchor.auOwnerView = view;
+    anchor.auProjectionChildren = [];
+    parent.insertBefore(anchor, this.anchor);
+    this.children.push(anchor);
+
+    if (this.projectFromAnchors === null) {
+      this.projectFromAnchors = [];
+    }
+
+    this.projectFromAnchors.push(anchor);
+  }
+
+  renderFallbackContent(view, nodes, projectionSource, index) {
+    if (this.contentView === null) {
+      this.contentView = this.fallbackFactory.create(this.ownerView.container);
+      this.contentView.bind(this.ownerView.bindingContext, this.ownerView.overrideContext);
+      this.contentView.insertNodesBefore(this.anchor);
+    }
+
+    if (this.contentView.hasSlots) {
+      let slots = this.contentView.slots;
+      let projectFromAnchors = this.projectFromAnchors;
+
+      if (projectFromAnchors !== null) {
+        for (let slotName in slots) {
+          let slot = slots[slotName];
+
+          for (let i = 0, ii = projectFromAnchors.length; i < ii; ++i) {
+            let anchor = projectFromAnchors[i];
+            slot.projectFrom(anchor.auOwnerView, anchor.auSlotProjectFrom);
+          }
+        }
+      }
+
+      this.fallbackSlots = slots;
+      ShadowDOM.distributeNodes(view, nodes, slots, projectionSource, index);
+    }
+  }
+
+  created(ownerView) {
+    this.ownerView = ownerView;
+  }
+
+  bind(view) {
+    if (this.contentView) {
+      this.contentView.bind(view.bindingContext, view.overrideContext);
+    }
+  }
+
+  attached() {
+    if (this.contentView) {
+      this.contentView.attached();
+    }
+  }
+
+  detached() {
+    if (this.contentView) {
+      this.contentView.detached();
+    }
+  }
+
+  unbind() {
+    if (this.contentView) {
+      this.contentView.unbind();
+    }
+  }
+}
+
+export class ShadowDOM {
+  static defaultSlotKey = '__au-default-slot-key__';
+
+  static getSlotName(node) {
+    if (node.auSlotAttribute === undefined) {
+      return ShadowDOM.defaultSlotKey;
+    }
+
+    return node.auSlotAttribute.value;
+  }
+
+  static distributeView(view, slots, projectionSource, index, destinationOverride) {
+    let nodes;
+
+    if (view === null) {
+      nodes = noNodes;
+    } else {
+      let childNodes = view.fragment.childNodes;
+      let ii = childNodes.length;
+      nodes = new Array(ii);
+
+      for (let i = 0; i < ii; ++i) {
+        nodes[i] = childNodes[i];
+      }
+    }
+
+    ShadowDOM.distributeNodes(
+      view,
+      nodes,
+      slots,
+      projectionSource,
+      index,
+      destinationOverride
+    );
+  }
+
+  static undistributeView(view, slots, projectionSource) {
+    for (let slotName in slots) {
+      slots[slotName].removeView(view, projectionSource);
+    }
+  }
+
+  static undistributeAll(slots, projectionSource) {
+    for (let slotName in slots) {
+      slots[slotName].removeAll(projectionSource);
+    }
+  }
+
+  static distributeNodes(view, nodes, slots, projectionSource, index, destinationOverride) {
+    for (let i = 0, ii = nodes.length; i < ii; ++i) {
+      let currentNode = nodes[i];
+      let nodeType = currentNode.nodeType;
+
+      if (currentNode.isContentProjectionSource) {
+        currentNode.viewSlot.projectTo(slots);
+
+        for (let slotName in slots) {
+          slots[slotName].projectFrom(view, currentNode.viewSlot);
+        }
+
+        nodes.splice(i, 1);
+        ii--; i--;
+      } else if (nodeType === 1 || nodeType === 3 || currentNode.viewSlot instanceof PassThroughSlot) { //project only elements and text
+        if (nodeType === 3 && _isAllWhitespace(currentNode)) {
+          nodes.splice(i, 1);
+          ii--; i--;
+        } else {
+          let found = slots[destinationOverride || ShadowDOM.getSlotName(currentNode)];
+
+          if (found) {
+            found.addNode(view, currentNode, projectionSource, index);
+            nodes.splice(i, 1);
+            ii--; i--;
+          }
+        }
+      } else {
+        nodes.splice(i, 1);
+        ii--; i--;
+      }
+    }
+
+    for (let slotName in slots) {
+      let slot = slots[slotName];
+
+      if (slot.needsFallbackRendering) {
+        slot.renderFallbackContent(view, nodes, projectionSource, index);
+      }
+    }
   }
 }
 
@@ -780,6 +1501,18 @@ interface ViewEngineHooks {
   * @param view The view that was created by the factory.
   */
   afterCreate?: (view: View) => void;
+
+  /**
+  * Invoked after the bindingContext and overrideContext are configured on the view but before the view is bound.
+  * @param view The view that was created by the factory.
+  */
+  beforeBind?: (view: View) => void;
+
+  /**
+  * Invoked before the view is unbind. The bindingContext and overrideContext are still available on the view.
+  * @param view The view that was created by the factory.
+  */
+  beforeUnbind?: (view: View) => void;
 }
 
 /**
@@ -804,111 +1537,51 @@ export class ViewResources {
       valueConverters: this.getValueConverter.bind(this),
       bindingBehaviors: this.getBindingBehavior.bind(this)
     };
-    this.attributes = {};
-    this.elements = {};
-    this.valueConverters = {};
-    this.bindingBehaviors = {};
-    this.attributeMap = {};
-    this.hook1 = null;
-    this.hook2 = null;
-    this.hook3 = null;
-    this.additionalHooks = null;
+    this.attributes = Object.create(null);
+    this.elements = Object.create(null);
+    this.valueConverters = Object.create(null);
+    this.bindingBehaviors = Object.create(null);
+    this.attributeMap = Object.create(null);
+    this.values = Object.create(null);
+    this.beforeCompile = this.afterCompile = this.beforeCreate = this.afterCreate = this.beforeBind = this.beforeUnbind = false;
   }
 
-  _onBeforeCompile(content: DocumentFragment, resources: ViewResources, instruction: ViewCompileInstruction): void {
-    if (this.hasParent) {
-      this.parent._onBeforeCompile(content, resources, instruction);
-    }
+  _tryAddHook(obj, name) {
+    if (typeof obj[name] === 'function') {
+      let func = obj[name].bind(obj);
+      let counter = 1;
+      let callbackName;
 
-    if (this.hook1 !== null) {
-      this.hook1.beforeCompile(content, resources, instruction);
-
-      if (this.hook2 !== null) {
-        this.hook2.beforeCompile(content, resources, instruction);
-
-        if (this.hook3 !== null) {
-          this.hook3.beforeCompile(content, resources, instruction);
-
-          if (this.additionalHooks !== null) {
-            let hooks = this.additionalHooks;
-            for (let i = 0, length = hooks.length; i < length; ++i) {
-              hooks[i].beforeCompile(content, resources, instruction);
-            }
-          }
-        }
+      while (this[callbackName = name + counter.toString()] !== undefined) {
+        counter++;
       }
+
+      this[name] = true;
+      this[callbackName] = func;
     }
   }
 
-  _onAfterCompile(viewFactory: ViewFactory): void {
+  _invokeHook(name, one, two, three, four) {
     if (this.hasParent) {
-      this.parent._onAfterCompile(viewFactory);
+      this.parent._invokeHook(name, one, two, three, four);
     }
 
-    if (this.hook1 !== null) {
-      this.hook1.afterCompile(viewFactory);
+    if (this[name]) {
+      this[name + '1'](one, two, three, four);
 
-      if (this.hook2 !== null) {
-        this.hook2.afterCompile(viewFactory);
+      let callbackName = name + '2';
+      if (this[callbackName]) {
+        this[callbackName](one, two, three, four);
 
-        if (this.hook3 !== null) {
-          this.hook3.afterCompile(viewFactory);
+        callbackName = name + '3';
+        if (this[callbackName]) {
+          this[callbackName](one, two, three, four);
 
-          if (this.additionalHooks !== null) {
-            let hooks = this.additionalHooks;
-            for (let i = 0, length = hooks.length; i < length; ++i) {
-              hooks[i].afterCompile(viewFactory);
-            }
-          }
-        }
-      }
-    }
-  }
+          let counter = 4;
 
-  _onBeforeCreate(viewFactory: ViewFactory, container: Container, content: DocumentFragment, instruction: ViewCreateInstruction, bindingContext?:Object): void {
-    if (this.hasParent) {
-      this.parent._onBeforeCreate(viewFactory, container, content, instruction, bindingContext);
-    }
-
-    if (this.hook1 !== null) {
-      this.hook1.beforeCreate(viewFactory, container, content, instruction, bindingContext);
-
-      if (this.hook2 !== null) {
-        this.hook2.beforeCreate(viewFactory, container, content, instruction, bindingContext);
-
-        if (this.hook3 !== null) {
-          this.hook3.beforeCreate(viewFactory, container, content, instruction, bindingContext);
-
-          if (this.additionalHooks !== null) {
-            let hooks = this.additionalHooks;
-            for (let i = 0, length = hooks.length; i < length; ++i) {
-              hooks[i].beforeCreate(viewFactory, container, content, instruction, bindingContext);
-            }
-          }
-        }
-      }
-    }
-  }
-
-  _onAfterCreate(view: View): void {
-    if (this.hasParent) {
-      this.parent._onAfterCreate(view);
-    }
-
-    if (this.hook1 !== null) {
-      this.hook1.afterCreate(view);
-
-      if (this.hook2 !== null) {
-        this.hook2.afterCreate(view);
-
-        if (this.hook3 !== null) {
-          this.hook3.afterCreate(view);
-
-          if (this.additionalHooks !== null) {
-            let hooks = this.additionalHooks;
-            for (let i = 0, length = hooks.length; i < length; ++i) {
-              hooks[i].afterCreate(view);
-            }
+          while (this[callbackName = name + counter.toString()] !== undefined) {
+            this[callbackName](one, two, three, four);
+            counter++;
           }
         }
       }
@@ -920,21 +1593,12 @@ export class ViewResources {
   * @param hooks The hooks to register.
   */
   registerViewEngineHooks(hooks:ViewEngineHooks): void {
-    if (hooks.beforeCompile === undefined) hooks.beforeCompile = PLATFORM.noop;
-    if (hooks.afterCompile === undefined) hooks.afterCompile = PLATFORM.noop;
-    if (hooks.beforeCreate === undefined) hooks.beforeCreate = PLATFORM.noop;
-    if (hooks.afterCreate === undefined) hooks.afterCreate = PLATFORM.noop;
-
-    if (this.hook1 === null) this.hook1 = hooks;
-    else if (this.hook2 === null) this.hook2 = hooks;
-    else if (this.hook3 === null) this.hook3 = hooks;
-    else {
-      if (this.additionalHooks === null) {
-        this.additionalHooks = [];
-      }
-
-      this.additionalHooks.push(hooks);
-    }
+    this._tryAddHook(hooks, 'beforeCompile');
+    this._tryAddHook(hooks, 'afterCompile');
+    this._tryAddHook(hooks, 'beforeCreate');
+    this._tryAddHook(hooks, 'afterCreate');
+    this._tryAddHook(hooks, 'beforeBind');
+    this._tryAddHook(hooks, 'beforeUnbind');
   }
 
   /**
@@ -1053,8 +1717,27 @@ export class ViewResources {
   getBindingBehavior(name: string): Object {
     return this.bindingBehaviors[name] || (this.hasParent ? this.parent.getBindingBehavior(name) : null);
   }
+
+  /**
+  * Registers a value.
+  * @param name The name of the value.
+  * @param value The value.
+  */
+  registerValue(name: string, value: any): void {
+    register(this.values, name, value, 'a value');
+  }
+
+  /**
+  * Gets a value.
+  * @param name The name of the value.
+  * @return The value.
+  */
+  getValue(name: string): any {
+    return this.values[name] || (this.hasParent ? this.parent.getValue(name) : null);
+  }
 }
 
+/* eslint no-unused-vars: 0, no-constant-condition: 0 */
 /**
 * Represents a node in the view hierarchy.
 */
@@ -1081,31 +1764,66 @@ interface ViewNode {
 
 export class View {
   /**
+  * The Dependency Injection Container that was used to create this View instance.
+  */
+  container: Container;
+
+  /**
+  * The ViewFactory that built this View instance.
+  */
+  viewFactory: ViewFactory;
+
+  /**
+  * Contains the DOM Nodes which represent this View. If the view was created via the "enhance" API, this will be an Element, otherwise it will be a DocumentFragment. If not created via "enhance" then the fragment will only contain nodes when the View is detached from the DOM.
+  */
+  fragment: DocumentFragment | Element;
+
+  /**
+  * The primary binding context that this view is data-bound to.
+  */
+  bindingContext: Object;
+
+  /**
+  * The override context which contains properties capable of overriding those found on the binding context.
+  */
+  overrideContext: Object;
+
+  /**
   * Creates a View instance.
+  * @param container The container from which the view was created.
   * @param viewFactory The factory that created this view.
   * @param fragment The DOM fragement representing the view.
   * @param controllers The controllers inside this view.
   * @param bindings The bindings inside this view.
   * @param children The children of this view.
   */
-  constructor(viewFactory: ViewFactory, fragment: DocumentFragment, controllers: Controller[], bindings: Binding[], children: ViewNode[], contentSelectors: Array<Object>) {
+  constructor(container: Container, viewFactory: ViewFactory, fragment: DocumentFragment, controllers: Controller[], bindings: Binding[], children: ViewNode[], slots: Object) {
+    this.container = container;
     this.viewFactory = viewFactory;
+    this.resources = viewFactory.resources;
     this.fragment = fragment;
+    this.firstChild = fragment.firstChild;
+    this.lastChild = fragment.lastChild;
     this.controllers = controllers;
     this.bindings = bindings;
     this.children = children;
-    this.contentSelectors = contentSelectors;
-    this.firstChild = fragment.firstChild;
-    this.lastChild = fragment.lastChild;
+    this.slots = slots;
+    this.hasSlots = false;
     this.fromCache = false;
     this.isBound = false;
     this.isAttached = false;
-    this.fromCache = false;
     this.bindingContext = null;
     this.overrideContext = null;
     this.controller = null;
     this.viewModelScope = null;
+    this.animatableElement = undefined;
     this._isUserControlled = false;
+    this.contentView = null;
+
+    for (let key in slots) {
+      this.hasSlots = true;
+      break;
+    }
   }
 
   /**
@@ -1156,6 +1874,8 @@ export class View {
     this.bindingContext = bindingContext;
     this.overrideContext = overrideContext || createOverrideContext(bindingContext);
 
+    this.resources._invokeHook('beforeBind', this);
+
     bindings = this.bindings;
     for (i = 0, ii = bindings.length; i < ii; ++i) {
       bindings[i].bind(this);
@@ -1175,6 +1895,10 @@ export class View {
     for (i = 0, ii = children.length; i < ii; ++i) {
       children[i].bind(bindingContext, overrideContext, true);
     }
+
+    if (this.hasSlots) {
+      ShadowDOM.distributeView(this.contentView, this.slots);
+    }
   }
 
   /**
@@ -1185,7 +1909,7 @@ export class View {
     this.bindings.push(binding);
 
     if (this.isBound) {
-      binding.bind(this.bindingContext);
+      binding.bind(this);
     }
   }
 
@@ -1201,8 +1925,7 @@ export class View {
 
     if (this.isBound) {
       this.isBound = false;
-      this.bindingContext = null;
-      this.overrideContext = null;
+      this.resources._invokeHook('beforeUnbind', this);
 
       if (this.controller !== null) {
         this.controller.unbind();
@@ -1222,6 +1945,9 @@ export class View {
       for (i = 0, ii = children.length; i < ii; ++i) {
         children[i].unbind();
       }
+
+      this.bindingContext = null;
+      this.overrideContext = null;
     }
   }
 
@@ -1230,8 +1956,7 @@ export class View {
   * @param refNode The node to insert this view's nodes before.
   */
   insertNodesBefore(refNode: Node): void {
-    let parent = refNode.parentNode;
-    parent.insertBefore(this.fragment, refNode);
+    refNode.parentNode.insertBefore(this.fragment, refNode);
   }
 
   /**
@@ -1246,20 +1971,19 @@ export class View {
   * Removes this view's nodes from the DOM.
   */
   removeNodes(): void {
-    let start = this.firstChild;
-    let end = this.lastChild;
     let fragment = this.fragment;
+    let current = this.firstChild;
+    let end = this.lastChild;
     let next;
-    let current = start;
-    let loop = true;
 
-    while (loop) {
-      if (current === end) {
-        loop = false;
-      }
-
+    while (current) {
       next = current.nextSibling;
       fragment.appendChild(current);
+
+      if (current === end) {
+        break;
+      }
+
       current = next;
     }
   }
@@ -1323,129 +2047,22 @@ export class View {
   }
 }
 
-let placeholder = [];
-
-function findInsertionPoint(groups, index) {
-  let insertionPoint;
-
-  while (!insertionPoint && index >= 0) {
-    insertionPoint = groups[index][0];
-    index--;
-  }
-
-  return insertionPoint;
-}
-
-export class _ContentSelector {
-  static applySelectors(view, contentSelectors, callback) {
-    let currentChild = view.fragment.firstChild;
-    let contentMap = new Map();
-    let nextSibling;
-    let i;
-    let ii;
-    let contentSelector;
-
-    while (currentChild) {
-      nextSibling = currentChild.nextSibling;
-
-      if (currentChild.viewSlot) {
-        let viewSlotSelectors = contentSelectors.map(x => x.copyForViewSlot());
-        currentChild.viewSlot._installContentSelectors(viewSlotSelectors);
-      } else {
-        for (i = 0, ii = contentSelectors.length; i < ii; i++) {
-          contentSelector = contentSelectors[i];
-          if (contentSelector.matches(currentChild)) {
-            let elements = contentMap.get(contentSelector);
-            if (!elements) {
-              elements = [];
-              contentMap.set(contentSelector, elements);
-            }
-
-            elements.push(currentChild);
-            break;
-          }
-        }
-      }
-
-      currentChild = nextSibling;
-    }
-
-    for (i = 0, ii = contentSelectors.length; i < ii; ++i) {
-      contentSelector = contentSelectors[i];
-      callback(contentSelector, contentMap.get(contentSelector) || placeholder);
-    }
-  }
-
-  constructor(anchor, selector) {
-    this.anchor = anchor;
-    this.selector = selector;
-    this.all = !this.selector;
-    this.groups = [];
-  }
-
-  copyForViewSlot() {
-    return new _ContentSelector(this.anchor, this.selector);
-  }
-
-  matches(node) {
-    return this.all || (node.nodeType === 1 && node.matches(this.selector));
-  }
-
-  add(group) {
-    let anchor = this.anchor;
-    let parent = anchor.parentNode;
-    let i;
-    let ii;
-
-    for (i = 0, ii = group.length; i < ii; ++i) {
-      parent.insertBefore(group[i], anchor);
-    }
-
-    this.groups.push(group);
-  }
-
-  insert(index, group) {
-    if (group.length) {
-      let anchor = findInsertionPoint(this.groups, index) || this.anchor;
-      let parent = anchor.parentNode;
-      let i;
-      let ii;
-
-      for (i = 0, ii = group.length; i < ii; ++i) {
-        parent.insertBefore(group[i], anchor);
-      }
-    }
-
-    this.groups.splice(index, 0, group);
-  }
-
-  removeAt(index, fragment) {
-    let group = this.groups[index];
-    let i;
-    let ii;
-
-    for (i = 0, ii = group.length; i < ii; ++i) {
-      fragment.appendChild(group[i]);
-    }
-
-    this.groups.splice(index, 1);
-  }
-}
-
 function getAnimatableElement(view) {
-  let firstChild = view.firstChild;
-
-  if (firstChild !== null && firstChild !== undefined && firstChild.nodeType === 8) {
-    let element = DOM.nextElementSibling(firstChild);
-
-    if (element !== null && element !== undefined &&
-      element.nodeType === 1 &&
-      element.classList.contains('au-animate')) {
-      return element;
-    }
+  if (view.animatableElement !== undefined) {
+    return view.animatableElement;
   }
 
-  return null;
+  let current = view.firstChild;
+
+  while (current && current.nodeType !== 1) {
+    current = current.nextSibling;
+  }
+
+  if (current && current.nodeType === 1) {
+    return (view.animatableElement = current.classList.contains('au-animate') ? current : null);
+  }
+
+  return (view.animatableElement = null);
 }
 
 /**
@@ -1461,14 +2078,37 @@ export class ViewSlot {
   */
   constructor(anchor: Node, anchorIsContainer: boolean, animator?: Animator = Animator.instance) {
     this.anchor = anchor;
-    this.viewAddMethod = anchorIsContainer ? 'appendNodesTo' : 'insertNodesBefore';
+    this.anchorIsContainer = anchorIsContainer;
     this.bindingContext = null;
+    this.overrideContext = null;
     this.animator = animator;
     this.children = [];
     this.isBound = false;
     this.isAttached = false;
     this.contentSelectors = null;
     anchor.viewSlot = this;
+    anchor.isContentProjectionSource = false;
+  }
+
+  /**
+   *   Runs the animator against the first animatable element found within the view's fragment
+   *   @param  view       The view to use when searching for the element.
+   *   @param  direction  The animation direction enter|leave.
+   *   @returns An animation complete Promise or undefined if no animation was run.
+   */
+  animateView(view: View, direction: string = 'enter'): void | Promise<any> {
+    let animatableElement = getAnimatableElement(view);
+
+    if (animatableElement !== null) {
+      switch (direction) {
+      case 'enter':
+        return this.animator.enter(animatableElement);
+      case 'leave':
+        return this.animator.leave(animatableElement);
+      default:
+        throw new Error('Invalid animation direction: ' + direction);
+      }
+    }
   }
 
   /**
@@ -1518,6 +2158,7 @@ export class ViewSlot {
 
     this.isBound = true;
     this.bindingContext = bindingContext = bindingContext || this.bindingContext;
+    this.overrideContext = overrideContext = overrideContext || this.overrideContext;
 
     children = this.children;
     for (i = 0, ii = children.length; i < ii; ++i) {
@@ -1536,6 +2177,7 @@ export class ViewSlot {
 
       this.isBound = false;
       this.bindingContext = null;
+      this.overrideContext = null;
 
       for (i = 0, ii = children.length; i < ii; ++i) {
         children[i].unbind();
@@ -1549,16 +2191,17 @@ export class ViewSlot {
   * @return May return a promise if the view addition triggered an animation.
   */
   add(view: View): void | Promise<any> {
-    view[this.viewAddMethod](this.anchor);
+    if (this.anchorIsContainer) {
+      view.appendNodesTo(this.anchor);
+    } else {
+      view.insertNodesBefore(this.anchor);
+    }
+
     this.children.push(view);
 
     if (this.isAttached) {
       view.attached();
-
-      let animatableElement = getAnimatableElement(view);
-      if (animatableElement !== null) {
-        return this.animator.enter(animatableElement);
-      }
+      return this.animateView(view, 'enter');
     }
   }
 
@@ -1581,12 +2224,27 @@ export class ViewSlot {
 
     if (this.isAttached) {
       view.attached();
-
-      let animatableElement = getAnimatableElement(view);
-      if (animatableElement !== null) {
-        return this.animator.enter(animatableElement);
-      }
+      return this.animateView(view, 'enter');
     }
+  }
+
+  /**
+   * Moves a view across the slot.
+   * @param sourceIndex The index the view is currently at.
+   * @param targetIndex The index to insert the view at.
+   */
+  move(sourceIndex, targetIndex) {
+    if (sourceIndex === targetIndex) {
+      return;
+    }
+
+    const children = this.children;
+    const view = children[sourceIndex];
+
+    view.removeNodes();
+    view.insertNodesBefore(children[targetIndex].firstChild);
+    children.splice(sourceIndex, 1);
+    children.splice(targetIndex, 0, view);
   }
 
   /**
@@ -1601,13 +2259,68 @@ export class ViewSlot {
   }
 
   /**
+  * Removes many views from the slot.
+  * @param viewsToRemove The array of views to remove.
+  * @param returnToCache Should the views be returned to the view cache?
+  * @param skipAnimation Should the removal animation be skipped?
+  * @return May return a promise if the view removal triggered an animation.
+  */
+  removeMany(viewsToRemove: View[], returnToCache?: boolean, skipAnimation?: boolean): void | Promise<View> {
+    const children = this.children;
+    let ii = viewsToRemove.length;
+    let i;
+    let rmPromises = [];
+
+    viewsToRemove.forEach(child => {
+      if (skipAnimation) {
+        child.removeNodes();
+        return;
+      }
+
+      let animation = this.animateView(child, 'leave');
+      if (animation) {
+        rmPromises.push(animation.then(() => child.removeNodes()));
+      } else {
+        child.removeNodes();
+      }
+    });
+
+    let removeAction = () => {
+      if (this.isAttached) {
+        for (i = 0; i < ii; ++i) {
+          viewsToRemove[i].detached();
+        }
+      }
+
+      if (returnToCache) {
+        for (i = 0; i < ii; ++i) {
+          viewsToRemove[i].returnToCache();
+        }
+      }
+
+      for (i = 0; i < ii; ++i) {
+        const index = children.indexOf(viewsToRemove[i]);
+        if (index >= 0) {
+          children.splice(index, 1);
+        }
+      }
+    };
+
+    if (rmPromises.length > 0) {
+      return Promise.all(rmPromises).then(() => removeAction());
+    }
+
+    return removeAction();
+  }
+
+  /**
   * Removes a view an a specified index from the slot.
   * @param index The index to remove the view at.
   * @param returnToCache Should the view be returned to the view cache?
   * @param skipAnimation Should the removal animation be skipped?
   * @return May return a promise if the view removal triggered an animation.
   */
-  removeAt(index: number, returnToCache?: boolean, skipAnimation?: boolean): void | Promise<View> {
+  removeAt(index: number, returnToCache?: boolean, skipAnimation?: boolean): View | Promise<View> {
     let view = this.children[index];
 
     let removeAction = () => {
@@ -1627,9 +2340,9 @@ export class ViewSlot {
     };
 
     if (!skipAnimation) {
-      let animatableElement = getAnimatableElement(view);
-      if (animatableElement !== null) {
-        return this.animator.leave(animatableElement).then(() => removeAction());
+      let animation = this.animateView(view, 'leave');
+      if (animation) {
+        return animation.then(() => removeAction());
       }
     }
 
@@ -1654,9 +2367,9 @@ export class ViewSlot {
         return;
       }
 
-      let animatableElement = getAnimatableElement(child);
-      if (animatableElement !== null) {
-        rmPromises.push(this.animator.leave(animatableElement).then(() => child.removeNodes()));
+      let animation = this.animateView(child, 'leave');
+      if (animation) {
+        rmPromises.push(animation.then(() => child.removeNodes()));
       } else {
         child.removeNodes();
       }
@@ -1682,7 +2395,7 @@ export class ViewSlot {
       return Promise.all(rmPromises).then(() => removeAction());
     }
 
-    removeAction();
+    return removeAction();
   }
 
   /**
@@ -1704,15 +2417,7 @@ export class ViewSlot {
     for (i = 0, ii = children.length; i < ii; ++i) {
       child = children[i];
       child.attached();
-
-      let element = child.firstChild ? DOM.nextElementSibling(child.firstChild) : null;
-      if (child.firstChild &&
-        child.firstChild.nodeType === 8 &&
-         element &&
-         element.nodeType === 1 &&
-         element.classList.contains('au-animate')) {
-        this.animator.enter(element);
-      }
+      this.animateView(child, 'enter');
     }
   }
 
@@ -1733,21 +2438,20 @@ export class ViewSlot {
     }
   }
 
-  _installContentSelectors(contentSelectors: _ContentSelector[]): void {
-    this.contentSelectors = contentSelectors;
-    this.add = this._contentSelectorAdd;
-    this.insert = this._contentSelectorInsert;
-    this.remove = this._contentSelectorRemove;
-    this.removeAt = this._contentSelectorRemoveAt;
-    this.removeAll = this._contentSelectorRemoveAll;
+  projectTo(slots: Object): void {
+    this.projectToSlots = slots;
+    this.add = this._projectionAdd;
+    this.insert = this._projectionInsert;
+    this.move = this._projectionMove;
+    this.remove = this._projectionRemove;
+    this.removeAt = this._projectionRemoveAt;
+    this.removeMany = this._projectionRemoveMany;
+    this.removeAll = this._projectionRemoveAll;
+    this.children.forEach(view => ShadowDOM.distributeView(view, slots, this));
   }
 
-  _contentSelectorAdd(view) {
-    _ContentSelector.applySelectors(
-      view,
-      this.contentSelectors,
-      (contentSelector, group) => contentSelector.add(group)
-      );
+  _projectionAdd(view) {
+    ShadowDOM.distributeView(view, this.projectToSlots, this);
 
     this.children.push(view);
 
@@ -1756,15 +2460,11 @@ export class ViewSlot {
     }
   }
 
-  _contentSelectorInsert(index, view) {
+  _projectionInsert(index, view) {
     if ((index === 0 && !this.children.length) || index >= this.children.length) {
       this.add(view);
     } else {
-      _ContentSelector.applySelectors(
-        view,
-        this.contentSelectors,
-        (contentSelector, group) => contentSelector.insert(index, group)
-      );
+      ShadowDOM.distributeView(view, this.projectToSlots, this, index);
 
       this.children.splice(index, 0, view);
 
@@ -1774,61 +2474,52 @@ export class ViewSlot {
     }
   }
 
-  _contentSelectorRemove(view) {
-    let index = this.children.indexOf(view);
-    let contentSelectors = this.contentSelectors;
-    let i;
-    let ii;
-
-    for (i = 0, ii = contentSelectors.length; i < ii; ++i) {
-      contentSelectors[i].removeAt(index, view.fragment);
+  _projectionMove(sourceIndex, targetIndex) {
+    if (sourceIndex === targetIndex) {
+      return;
     }
 
-    this.children.splice(index, 1);
+    const children = this.children;
+    const view = children[sourceIndex];
+
+    ShadowDOM.undistributeView(view, this.projectToSlots, this);
+    ShadowDOM.distributeView(view, this.projectToSlots, this, targetIndex);
+
+    children.splice(sourceIndex, 1);
+    children.splice(targetIndex, 0, view);
+  }
+
+  _projectionRemove(view, returnToCache) {
+    ShadowDOM.undistributeView(view, this.projectToSlots, this);
+    this.children.splice(this.children.indexOf(view), 1);
 
     if (this.isAttached) {
       view.detached();
     }
   }
 
-  _contentSelectorRemoveAt(index) {
+  _projectionRemoveAt(index, returnToCache) {
     let view = this.children[index];
-    let contentSelectors = this.contentSelectors;
-    let i;
-    let ii;
 
-    for (i = 0, ii = contentSelectors.length; i < ii; ++i) {
-      contentSelectors[i].removeAt(index, view.fragment);
-    }
-
+    ShadowDOM.undistributeView(view, this.projectToSlots, this);
     this.children.splice(index, 1);
 
     if (this.isAttached) {
       view.detached();
     }
-
-    return view;
   }
 
-  _contentSelectorRemoveAll() {
+  _projectionRemoveMany(viewsToRemove, returnToCache?) {
+    viewsToRemove.forEach(view => this.remove(view, returnToCache));
+  }
+
+  _projectionRemoveAll(returnToCache) {
+    ShadowDOM.undistributeAll(this.projectToSlots, this);
+
     let children = this.children;
-    let contentSelectors = this.contentSelectors;
-    let ii = children.length;
-    let jj = contentSelectors.length;
-    let i;
-    let j;
-    let view;
-
-    for (i = 0; i < ii; ++i) {
-      view = children[i];
-
-      for (j = 0; j < jj; ++j) {
-        contentSelectors[j].removeAt(0, view.fragment);
-      }
-    }
 
     if (this.isAttached) {
-      for (i = 0; i < ii; ++i) {
+      for (let i = 0, ii = children.length; i < ii; ++i) {
         children[i].detached();
       }
     }
@@ -1871,10 +2562,19 @@ function elementContainerGet(key) {
   if (key === ViewSlot) {
     if (this.viewSlot === undefined) {
       this.viewSlot = new ViewSlot(this.element, this.instruction.anchorIsContainer);
+      this.element.isContentProjectionSource = this.instruction.lifting;
       this.children.push(this.viewSlot);
     }
 
     return this.viewSlot;
+  }
+
+  if (key === ElementEvents) {
+    return this.elementEvents || (this.elementEvents = new ElementEvents(this.element));
+  }
+
+  if (key === CompositionTransaction) {
+    return this.compositionTransaction || (this.compositionTransaction = this.parent.get(key));
   }
 
   if (key === ViewResources) {
@@ -1916,6 +2616,12 @@ function makeElementIntoAnchor(element, elementInstruction) {
   let anchor = DOM.createComment('anchor');
 
   if (elementInstruction) {
+    let firstChild = element.firstChild;
+
+    if (firstChild && firstChild.tagName === 'AU-CONTENT') {
+      anchor.contentElement = firstChild;
+    }
+
     anchor.hasAttribute = function(name) { return element.hasAttribute(name); };
     anchor.getAttribute = function(name) { return element.getAttribute(name); };
     anchor.setAttribute = function(name, value) { element.setAttribute(name, value); };
@@ -1926,7 +2632,7 @@ function makeElementIntoAnchor(element, elementInstruction) {
   return anchor;
 }
 
-function applyInstructions(containers, element, instruction, controllers, bindings, children, contentSelectors, partReplacements, resources) {
+function applyInstructions(containers, element, instruction, controllers, bindings, children, shadowSlots, partReplacements, resources) {
   let behaviorInstructions = instruction.behaviorInstructions;
   let expressions = instruction.expressions;
   let elementContainer;
@@ -1937,14 +2643,24 @@ function applyInstructions(containers, element, instruction, controllers, bindin
 
   if (instruction.contentExpression) {
     bindings.push(instruction.contentExpression.createBinding(element.nextSibling));
+    element.nextSibling.auInterpolationTarget = true;
     element.parentNode.removeChild(element);
     return;
   }
 
-  if (instruction.contentSelector) {
-    let commentAnchor = DOM.createComment('anchor');
+  if (instruction.shadowSlot) {
+    let commentAnchor = DOM.createComment('slot');
+    let slot;
+
+    if (instruction.slotDestination) {
+      slot = new PassThroughSlot(commentAnchor, instruction.slotName, instruction.slotDestination, instruction.slotFallbackFactory);
+    } else {
+      slot = new ShadowSlot(commentAnchor, instruction.slotName, instruction.slotFallbackFactory);
+    }
+
     DOM.replaceNode(commentAnchor, element);
-    contentSelectors.push(new _ContentSelector(commentAnchor, instruction.selector));
+    shadowSlots[instruction.slotName] = slot;
+    controllers.push(slot);
     return;
   }
 
@@ -1966,11 +2682,6 @@ function applyInstructions(containers, element, instruction, controllers, bindin
     for (i = 0, ii = behaviorInstructions.length; i < ii; ++i) {
       current = behaviorInstructions[i];
       instance = current.type.create(elementContainer, current, element, bindings);
-
-      if (instance.contentView) {
-        children.push(instance.contentView);
-      }
-
       controllers.push(instance);
     }
   }
@@ -2082,7 +2793,7 @@ export class BoundViewFactory {
   constructor(parentContainer: Container, viewFactory: ViewFactory, partReplacements?: Object) {
     this.parentContainer = parentContainer;
     this.viewFactory = viewFactory;
-    this.factoryCreateInstruction = { partReplacements: partReplacements };
+    this.factoryCreateInstruction = { partReplacements: partReplacements }; //This is referenced internally in the controller's bind method.
   }
 
   /**
@@ -2214,7 +2925,6 @@ export class ViewFactory {
   */
   create(container: Container, createInstruction?: ViewCreateInstruction, element?: Element): View {
     createInstruction = createInstruction || BehaviorInstruction.normal;
-    element = element || null;
 
     let cachedView = this.getCachedView();
     if (cachedView !== null) {
@@ -2228,7 +2938,7 @@ export class ViewFactory {
     let controllers = [];
     let bindings = [];
     let children = [];
-    let contentSelectors = [];
+    let shadowSlots = Object.create(null);
     let containers = { root: container };
     let partReplacements = createInstruction.partReplacements;
     let i;
@@ -2237,27 +2947,32 @@ export class ViewFactory {
     let instructable;
     let instruction;
 
-    this.resources._onBeforeCreate(this, container, fragment, createInstruction);
+    this.resources._invokeHook('beforeCreate', this, container, fragment, createInstruction);
 
-    if (element !== null && this.surrogateInstruction !== null) {
+    if (element && this.surrogateInstruction !== null) {
       applySurrogateInstruction(container, element, this.surrogateInstruction, controllers, bindings, children);
+    }
+
+    if (createInstruction.enhance && fragment.hasAttribute('au-target-id')) {
+      instructable = fragment;
+      instruction = instructions[instructable.getAttribute('au-target-id')];
+      applyInstructions(containers, instructable, instruction, controllers, bindings, children, shadowSlots, partReplacements, resources);
     }
 
     for (i = 0, ii = instructables.length; i < ii; ++i) {
       instructable = instructables[i];
       instruction = instructions[instructable.getAttribute('au-target-id')];
-
-      applyInstructions(containers, instructable, instruction, controllers, bindings, children, contentSelectors, partReplacements, resources);
+      applyInstructions(containers, instructable, instruction, controllers, bindings, children, shadowSlots, partReplacements, resources);
     }
 
-    view = new View(this, fragment, controllers, bindings, children, contentSelectors);
+    view = new View(container, this, fragment, controllers, bindings, children, shadowSlots);
 
     //if iniated by an element behavior, let the behavior trigger this callback once it's done creating the element
     if (!createInstruction.initiatedByBehavior) {
       view.created();
     }
 
-    this.resources._onAfterCreate(view);
+    this.resources._invokeHook('afterCreate', view);
 
     return view;
   }
@@ -2312,6 +3027,32 @@ function makeIntoInstructionTarget(element) {
   return auTargetID;
 }
 
+function makeShadowSlot(compiler, resources, node, instructions, parentInjectorId) {
+  let auShadowSlot = DOM.createElement('au-shadow-slot');
+  DOM.replaceNode(auShadowSlot, node);
+
+  let auTargetID = makeIntoInstructionTarget(auShadowSlot);
+  let instruction = TargetInstruction.shadowSlot(parentInjectorId);
+
+  instruction.slotName = node.getAttribute('name') || ShadowDOM.defaultSlotKey;
+  instruction.slotDestination = node.getAttribute('slot');
+
+  if (node.innerHTML.trim()) {
+    let fragment = DOM.createDocumentFragment();
+    let child;
+
+    while (child = node.firstChild) {
+      fragment.appendChild(child);
+    }
+
+    instruction.slotFallbackFactory = compiler.compile(fragment, resources);
+  }
+
+  instructions[auTargetID] = instruction;
+
+  return auShadowSlot;
+}
+
 /**
 * Compiles html templates, dom fragments and strings into ViewFactory instances, capable of instantiating Views.
 */
@@ -2352,12 +3093,22 @@ export class ViewCompiler {
     }
 
     compileInstruction.targetShadowDOM = compileInstruction.targetShadowDOM && FEATURE.shadowDOM;
-    resources._onBeforeCompile(content, resources, compileInstruction);
+    resources._invokeHook('beforeCompile', content, resources, compileInstruction);
 
     let instructions = {};
     this._compileNode(content, resources, instructions, source, 'root', !compileInstruction.targetShadowDOM);
-    content.insertBefore(DOM.createComment('<view>'), content.firstChild);
-    content.appendChild(DOM.createComment('</view>'));
+
+    let firstChild = content.firstChild;
+    if (firstChild && firstChild.nodeType === 1) {
+      let targetId = firstChild.getAttribute('au-target-id');
+      if (targetId) {
+        let ins = instructions[targetId];
+
+        if (ins.shadowSlot || ins.lifting) {
+          content.insertBefore(DOM.createComment('view'), firstChild);
+        }
+      }
+    }
 
     let factory = new ViewFactory(content, instructions, resources);
 
@@ -2368,7 +3119,7 @@ export class ViewCompiler {
       factory.setCacheSize(cacheSize);
     }
 
-    resources._onAfterCompile(factory);
+    resources._invokeHook('afterCompile', factory);
 
     return factory;
   }
@@ -2379,7 +3130,7 @@ export class ViewCompiler {
       return this._compileElement(node, resources, instructions, parentNode, parentInjectorId, targetLightDOM);
     case 3: //text node
       //use wholeText to retrieve the textContent of all adjacent text nodes.
-      let expression = resources.getBindingLanguage(this.bindingLanguage).parseText(resources, node.wholeText);
+      let expression = resources.getBindingLanguage(this.bindingLanguage).inspectTextContent(resources, node.wholeText);
       if (expression) {
         let marker = DOM.createElement('au-marker');
         let auTargetID = makeIntoInstructionTarget(marker);
@@ -2411,6 +3162,7 @@ export class ViewCompiler {
   }
 
   _compileSurrogate(node, resources) {
+    let tagName = node.tagName.toLowerCase();
     let attributes = node.attributes;
     let bindingLanguage = resources.getBindingLanguage(this.bindingLanguage);
     let knownAttribute;
@@ -2435,7 +3187,7 @@ export class ViewCompiler {
       attrName = attr.name;
       attrValue = attr.value;
 
-      info = bindingLanguage.inspectAttribute(resources, attrName, attrValue);
+      info = bindingLanguage.inspectAttribute(resources, tagName, attrName, attrValue);
       type = resources.getAttribute(info.attrName);
 
       if (type) { //do we have an attached behavior?
@@ -2538,19 +3290,19 @@ export class ViewCompiler {
     let auTargetID;
     let injectorId;
 
-    if (tagName === 'content') {
+    if (tagName === 'slot') {
       if (targetLightDOM) {
-        auTargetID = makeIntoInstructionTarget(node);
-        instructions[auTargetID] = TargetInstruction.contentSelector(node, parentInjectorId);
+        node = makeShadowSlot(this, resources, node, instructions, parentInjectorId);
       }
       return node.nextSibling;
     } else if (tagName === 'template') {
       viewFactory = this.compile(node, resources);
       viewFactory.part = node.getAttribute('part');
     } else {
-      type = resources.getElement(tagName);
+      type = resources.getElement(node.getAttribute('as-element') || tagName);
       if (type) {
         elementInstruction = BehaviorInstruction.element(node, type);
+        type.processAttributes(this, resources, node, attributes, elementInstruction);
         behaviorInstructions.push(elementInstruction);
       }
     }
@@ -2559,7 +3311,12 @@ export class ViewCompiler {
       attr = attributes[i];
       attrName = attr.name;
       attrValue = attr.value;
-      info = bindingLanguage.inspectAttribute(resources, attrName, attrValue);
+      info = bindingLanguage.inspectAttribute(resources, tagName, attrName, attrValue);
+
+      if (targetLightDOM && info.attrName === 'slot') {
+        info.attrName = attrName = 'au-slot';
+      }
+
       type = resources.getAttribute(info.attrName);
       elementProperty = null;
 
@@ -2697,6 +3454,7 @@ export class ResourceModule {
     this.viewStrategy = null;
     this.isInitialized = false;
     this.onLoaded = null;
+    this.loadContext = null;
   }
 
   /**
@@ -2727,7 +3485,7 @@ export class ResourceModule {
   }
 
   /**
-  * Registrers the resources in the module with the view resources.
+  * Registers the resources in the module with the view resources.
   * @param registry The registry of view resources to regiser within.
   * @param name The name to use in registering the default resource.
   */
@@ -2754,7 +3512,8 @@ export class ResourceModule {
   */
   load(container: Container, loadContext?: ResourceLoadContext): Promise<void> {
     if (this.onLoaded !== null) {
-      return this.onLoaded;
+      //if it's trying to load the same thing again during the same load, this is a circular dep, so just resolve
+      return this.loadContext === loadContext ? Promise.resolve() : this.onLoaded;
     }
 
     let main = this.mainResource;
@@ -2774,6 +3533,7 @@ export class ResourceModule {
       }
     }
 
+    this.loadContext = loadContext;
     this.onLoaded = Promise.all(loads);
     return this.onLoaded;
   }
@@ -2855,7 +3615,7 @@ export class ModuleAnalyzer {
   * Creates an instance of ModuleAnalyzer.
   */
   constructor() {
-    this.cache = {};
+    this.cache = Object.create(null);
   }
 
   /**
@@ -2940,10 +3700,9 @@ export class ModuleAnalyzer {
           }
 
           metadata.define(metadata.resource, conventional, exportedValue);
-        } else if (conventional = ValueConverterResource.convention(key)) {
-          resources.push(new ResourceDescription(key, exportedValue, conventional));
-          metadata.define(metadata.resource, conventional, exportedValue);
-        } else if (conventional = BindingBehaviorResource.convention(key)) {
+        } else if (conventional = ValueConverterResource.convention(key)
+          || BindingBehaviorResource.convention(key)
+          || ViewEngineHooksResource.convention(key)) {
           resources.push(new ResourceDescription(key, exportedValue, conventional));
           metadata.define(metadata.resource, conventional, exportedValue);
         } else if (!fallbackValue) {
@@ -3022,6 +3781,11 @@ export class ViewEngine {
     this.moduleAnalyzer = moduleAnalyzer;
     this.appResources = appResources;
     this._pluginMap = {};
+
+    let auSlotBehavior = new HtmlBehaviorResource();
+    auSlotBehavior.attributeName = 'au-slot';
+    auSlotBehavior.initialize(container, SlotCustomAttribute);
+    auSlotBehavior.register(appResources);
   }
 
   /**
@@ -3215,14 +3979,15 @@ export class Controller {
   * @param instruction The instructions pertaining to the controller's behavior.
   * @param viewModel The developer's view model instance which provides the custom behavior for this controller.
   */
-  constructor(behavior: HtmlBehaviorResource, instruction: BehaviorInstruction, viewModel: Object) {
+  constructor(behavior: HtmlBehaviorResource, instruction: BehaviorInstruction, viewModel: Object, elementEvents?: ElementEvents) {
     this.behavior = behavior;
     this.instruction = instruction;
     this.viewModel = viewModel;
     this.isAttached = false;
     this.view = null;
     this.isBound = false;
-    this.bindingContext = null;
+    this.scope = null;
+    this.elementEvents = elementEvents || null;
 
     let observerLookup = behavior.observerLocator.getOrCreateObserversLookup(viewModel);
     let handlesBind = behavior.handlesBind;
@@ -3243,7 +4008,7 @@ export class Controller {
   * Invoked when the view which contains this controller is created.
   * @param owningView The view inside which this controller resides.
   */
-  created(owningView): void {
+  created(owningView: View): void {
     if (this.behavior.handlesCreated) {
       this.viewModel.created(owningView, this.view);
     }
@@ -3253,11 +4018,17 @@ export class Controller {
   * Used to automate the proper binding of this controller and its view. Used by the composition engine for dynamic component creation.
   * This should be considered a semi-private API and is subject to change without notice, even across minor or patch releases.
   * @param overrideContext An override context for binding.
+  * @param owningView The view inside which this controller resides.
   */
-  automate(overrideContext?: Object): void {
+  automate(overrideContext?: Object, owningView?: View): void {
     this.view.bindingContext = this.viewModel;
     this.view.overrideContext = overrideContext || createOverrideContext(this.viewModel);
     this.view._isUserControlled = true;
+
+    if (this.behavior.handlesCreated) {
+      this.viewModel.created(owningView || null, this.view);
+    }
+
     this.bind(this.view);
   }
 
@@ -3273,10 +4044,9 @@ export class Controller {
     let x;
     let observer;
     let selfSubscriber;
-    let context = scope.bindingContext;
 
     if (this.isBound) {
-      if (this.bindingContext === context) {
+      if (this.scope === scope) {
         return;
       }
 
@@ -3284,7 +4054,7 @@ export class Controller {
     }
 
     this.isBound = true;
-    this.bindingContext = context;
+    this.scope = scope;
 
     for (i = 0, ii = boundProperties.length; i < ii; ++i) {
       x = boundProperties[i];
@@ -3303,14 +4073,41 @@ export class Controller {
       observer.selfSubscriber = selfSubscriber;
     }
 
+    let overrideContext;
     if (this.view !== null) {
       if (skipSelfSubscriber) {
         this.view.viewModelScope = scope;
       }
+      // do we need to create an overrideContext or is the scope's overrideContext
+      // valid for this viewModel?
+      if (this.viewModel === scope.overrideContext.bindingContext) {
+        overrideContext = scope.overrideContext;
+      // should we inherit the parent scope? (eg compose / router)
+      } else if (this.instruction.inheritBindingContext) {
+        overrideContext = createOverrideContext(this.viewModel, scope.overrideContext);
+      // create the overrideContext and capture the parent without making it
+      // available to AccessScope. We may need it later for template-part replacements.
+      } else {
+        overrideContext = createOverrideContext(this.viewModel);
+        overrideContext.__parentOverrideContext = scope.overrideContext;
+      }
 
-      this.view.bind(this.viewModel, createOverrideContext(this.viewModel, scope.overrideContext));
+      this.view.bind(this.viewModel, overrideContext);
     } else if (skipSelfSubscriber) {
-      this.viewModel.bind(context, scope.overrideContext);
+      overrideContext = scope.overrideContext;
+      // the factoryCreateInstruction's partReplacements will either be null or an object
+      // containing the replacements. If there are partReplacements we need to preserve the parent
+      // context to allow replacement parts to bind to both the custom element scope and the ambient scope.
+      // Note that factoryCreateInstruction is a property defined on BoundViewFactory. The code below assumes the
+      // behavior stores a the BoundViewFactory on its viewModel under the name of viewFactory. This is implemented
+      // by the replaceable custom attribute.
+      if (scope.overrideContext.__parentOverrideContext !== undefined
+        && this.viewModel.viewFactory && this.viewModel.viewFactory.factoryCreateInstruction.partReplacements) {
+        // clone the overrideContext and connect the ambient context.
+        overrideContext = Object.assign({}, scope.overrideContext);
+        overrideContext.parentOverrideContext = scope.overrideContext.__parentOverrideContext;
+      }
+      this.viewModel.bind(scope.bindingContext, overrideContext);
     }
   }
 
@@ -3332,6 +4129,10 @@ export class Controller {
 
       if (this.behavior.handlesUnbind) {
         this.viewModel.unbind();
+      }
+
+      if (this.elementEvents !== null) {
+        this.elementEvents.disposeAll();
       }
 
       for (i = 0, ii = boundProperties.length; i < ii; ++i) {
@@ -3496,7 +4297,9 @@ export class BindableProperty {
     }
 
     this.attribute = this.attribute || _hyphenate(this.name);
-    this.defaultBindingMode = this.defaultBindingMode || bindingMode.oneWay;
+    if (this.defaultBindingMode === null || this.defaultBindingMode === undefined) {
+      this.defaultBindingMode = bindingMode.oneWay;
+    }
     this.changeHandler = this.changeHandler || null;
     this.owner = null;
     this.descriptor = null;
@@ -3517,6 +4320,8 @@ export class BindableProperty {
       this.descriptor = descriptor;
       return this._configureDescriptor(behavior, descriptor);
     }
+
+    return undefined;
   }
 
   _configureDescriptor(behavior: HtmlBehaviorResource, descriptor: Object): Object {
@@ -3601,7 +4406,7 @@ export class BindableProperty {
     } else if ('propertyChanged' in viewModel) {
       selfSubscriber = (newValue, oldValue) => viewModel.propertyChanged(name, newValue, oldValue);
     } else if (changeHandlerName !== null) {
-      throw new Error(`Change handler ${changeHandlerName} was specified but not delcared on the class.`);
+      throw new Error(`Change handler ${changeHandlerName} was specified but not declared on the class.`);
     }
 
     if (defaultValue !== undefined) {
@@ -3698,16 +4503,14 @@ export class BindableProperty {
   }
 }
 
-const contentSelectorViewCreateInstruction = { enhance: false };
 let lastProviderId = 0;
 
 function nextProviderId() {
   return ++lastProviderId;
 }
 
-function doProcessContent() {
-  return true;
-}
+function doProcessContent() { return true; }
+function doProcessAttributes() {}
 
 /**
 * Identifies a class as a resource that implements custom element or custom
@@ -3723,6 +4526,8 @@ export class HtmlBehaviorResource {
     this.attributeDefaultBindingMode = undefined;
     this.liftsContent = false;
     this.targetShadowDOM = false;
+    this.shadowDOMOptions = null;
+    this.processAttributes = doProcessAttributes;
     this.processContent = doProcessContent;
     this.usesShadowDOM = false;
     this.childBindings = null;
@@ -3922,48 +4727,37 @@ export class HtmlBehaviorResource {
         node = template;
       }
     } else if (this.elementName !== null) { //custom element
-      let partReplacements = instruction.partReplacements = {};
+      let partReplacements = {};
 
       if (this.processContent(compiler, resources, node, instruction) && node.hasChildNodes()) {
-        if (this.usesShadowDOM) {
-          let currentChild = node.firstChild;
-          let nextSibling;
-          let toReplace;
+        let currentChild = node.firstChild;
+        let contentElement = this.usesShadowDOM ? null : DOM.createElement('au-content');
+        let nextSibling;
+        let toReplace;
 
-          while (currentChild) {
-            nextSibling = currentChild.nextSibling;
+        while (currentChild) {
+          nextSibling = currentChild.nextSibling;
 
-            if (currentChild.tagName === 'TEMPLATE' && (toReplace = currentChild.getAttribute('replace-part'))) {
-              partReplacements[toReplace] = compiler.compile(currentChild, resources);
-              DOM.removeNode(currentChild, parentNode);
-            }
-
-            currentChild = nextSibling;
-          }
-
-          instruction.skipContentProcessing = false;
-        } else {
-          let fragment = DOM.createDocumentFragment();
-          let currentChild = node.firstChild;
-          let nextSibling;
-          let toReplace;
-
-          while (currentChild) {
-            nextSibling = currentChild.nextSibling;
-
-            if (currentChild.tagName === 'TEMPLATE' && (toReplace = currentChild.getAttribute('replace-part'))) {
-              partReplacements[toReplace] = compiler.compile(currentChild, resources);
+          if (currentChild.tagName === 'TEMPLATE' && (toReplace = currentChild.getAttribute('replace-part'))) {
+            partReplacements[toReplace] = compiler.compile(currentChild, resources);
+            DOM.removeNode(currentChild, parentNode);
+            instruction.partReplacements = partReplacements;
+          } else if (contentElement !== null) {
+            if (currentChild.nodeType === 3 && _isAllWhitespace(currentChild)) {
               DOM.removeNode(currentChild, parentNode);
             } else {
-              fragment.appendChild(currentChild);
+              contentElement.appendChild(currentChild);
             }
-
-            currentChild = nextSibling;
           }
 
-          instruction.contentFactory = compiler.compile(fragment, resources);
-          instruction.skipContentProcessing = true;
+          currentChild = nextSibling;
         }
+
+        if (contentElement !== null && contentElement.hasChildNodes()) {
+          node.appendChild(contentElement);
+        }
+
+        instruction.skipContentProcessing = false;
       } else {
         instruction.skipContentProcessing = true;
       }
@@ -3981,7 +4775,7 @@ export class HtmlBehaviorResource {
   * @return The Controller of this behavior.
   */
   create(container: Container, instruction?: BehaviorInstruction, element?: Element, bindings?: Binding[]): Controller {
-    let host;
+    let viewHost;
     let au = null;
 
     instruction = instruction || BehaviorInstruction.normal;
@@ -3990,13 +4784,12 @@ export class HtmlBehaviorResource {
 
     if (this.elementName !== null && element) {
       if (this.usesShadowDOM) {
-        host = element.createShadowRoot();
-        container.registerInstance(DOM.boundary, host);
+        viewHost = element.attachShadow(this.shadowDOMOptions);
+        container.registerInstance(DOM.boundary, viewHost);
       } else {
-        host = element;
-
+        viewHost = element;
         if (this.targetShadowDOM) {
-          container.registerInstance(DOM.boundary, host);
+          container.registerInstance(DOM.boundary, viewHost);
         }
       }
     }
@@ -4006,7 +4799,7 @@ export class HtmlBehaviorResource {
     }
 
     let viewModel = instruction.viewModel || container.get(this.target);
-    let controller = new Controller(this, instruction, viewModel);
+    let controller = new Controller(this, instruction, viewModel, container.elementEvents);
     let childBindings = this.childBindings;
     let viewFactory;
 
@@ -4026,34 +4819,26 @@ export class HtmlBehaviorResource {
         au.controller = controller;
 
         if (controller.view) {
-          if (!this.usesShadowDOM) {
-            if (instruction.contentFactory) {
-              let contentView = instruction.contentFactory.create(container, contentSelectorViewCreateInstruction);
-
-              _ContentSelector.applySelectors(
-                contentView,
-                controller.view.contentSelectors,
-                (contentSelector, group) => contentSelector.add(group)
-              );
-
-              controller.contentView = contentView;
-            }
+          if (!this.usesShadowDOM && (element.childNodes.length === 1 || element.contentElement)) { //containerless passes content view special contentElement property
+            let contentElement = element.childNodes[0] || element.contentElement;
+            controller.view.contentView = { fragment: contentElement }; //store the content before appending the view
+            contentElement.parentNode && DOM.removeNode(contentElement); //containerless content element has no parent
           }
 
           if (instruction.anchorIsContainer) {
             if (childBindings !== null) {
               for (let i = 0, ii = childBindings.length; i < ii; ++i) {
-                controller.view.addBinding(childBindings[i].create(element, viewModel));
+                controller.view.addBinding(childBindings[i].create(element, viewModel, controller));
               }
             }
 
-            controller.view.appendNodesTo(host);
+            controller.view.appendNodesTo(viewHost);
           } else {
-            controller.view.insertNodesBefore(host);
+            controller.view.insertNodesBefore(viewHost);
           }
         } else if (childBindings !== null) {
           for (let i = 0, ii = childBindings.length; i < ii; ++i) {
-            bindings.push(childBindings[i].create(element, viewModel));
+            bindings.push(childBindings[i].create(element, viewModel, controller));
           }
         }
       } else if (controller.view) {
@@ -4062,19 +4847,19 @@ export class HtmlBehaviorResource {
 
         if (childBindings !== null) {
           for (let i = 0, ii = childBindings.length; i < ii; ++i) {
-            controller.view.addBinding(childBindings[i].create(instruction.host, viewModel));
+            controller.view.addBinding(childBindings[i].create(instruction.host, viewModel, controller));
           }
         }
       } else if (childBindings !== null) {
         //dynamic element without view
         for (let i = 0, ii = childBindings.length; i < ii; ++i) {
-          bindings.push(childBindings[i].create(instruction.host, viewModel));
+          bindings.push(childBindings[i].create(instruction.host, viewModel, controller));
         }
       }
     } else if (childBindings !== null) {
       //custom attribute
       for (let i = 0, ii = childBindings.length; i < ii; ++i) {
-        bindings.push(childBindings[i].create(element, viewModel));
+        bindings.push(childBindings[i].create(element, viewModel, controller));
       }
     }
 
@@ -4134,14 +4919,14 @@ function createChildObserverDecorator(selectorOrConfig, all) {
 }
 
 /**
-* Creates a behavior property that references an array of immediate content child elememnts that matches the provided selector.
+* Creates a behavior property that references an array of immediate content child elements that matches the provided selector.
 */
 export function children(selectorOrConfig: string | Object): any {
   return createChildObserverDecorator(selectorOrConfig, true);
 }
 
 /**
-* Creates a behavior property that references an immediate content child elememnt that matches the provided selector.
+* Creates a behavior property that references an immediate content child element that matches the provided selector.
 */
 export function child(selectorOrConfig: string | Object): any {
   return createChildObserverDecorator(selectorOrConfig, false);
@@ -4155,8 +4940,8 @@ class ChildObserver {
     this.all = config.all;
   }
 
-  create(target, viewModel) {
-    return new ChildObserverBinder(this.selector, target, this.name, viewModel, this.changeHandler, this.all);
+  create(viewHost, viewModel, controller) {
+    return new ChildObserverBinder(this.selector, viewHost, this.name, viewModel, controller, this.changeHandler, this.all);
   }
 }
 
@@ -4216,73 +5001,116 @@ function onChildChange(mutations, observer) {
 }
 
 class ChildObserverBinder {
-  constructor(selector, target, property, viewModel, changeHandler, all) {
+  constructor(selector, viewHost, property, viewModel, controller, changeHandler, all) {
     this.selector = selector;
-    this.target = target;
+    this.viewHost = viewHost;
     this.property = property;
     this.viewModel = viewModel;
+    this.controller = controller;
     this.changeHandler = changeHandler in viewModel ? changeHandler : null;
+    this.usesShadowDOM = controller.behavior.usesShadowDOM;
     this.all = all;
+
+    if (!this.usesShadowDOM && controller.view && controller.view.contentView) {
+      this.contentView = controller.view.contentView;
+    } else {
+      this.contentView = null;
+    }
+  }
+
+  matches(element) {
+    if (element.matches(this.selector)) {
+      if (this.contentView === null) {
+        return true;
+      }
+
+      let contentView = this.contentView;
+      let assignedSlot = element.auAssignedSlot;
+
+      if (assignedSlot && assignedSlot.projectFromAnchors) {
+        let anchors = assignedSlot.projectFromAnchors;
+
+        for (let i = 0, ii = anchors.length; i < ii; ++i) {
+          if (anchors[i].auOwnerView === contentView) {
+            return true;
+          }
+        }
+
+        return false;
+      }
+
+      return element.auOwnerView === contentView;
+    }
+
+    return false;
   }
 
   bind(source) {
-    let target = this.target;
+    let viewHost = this.viewHost;
     let viewModel = this.viewModel;
-    let selector = this.selector;
-    let current = target.firstElementChild;
-    let observer = target.__childObserver__;
+    let observer = viewHost.__childObserver__;
 
     if (!observer) {
-      observer = target.__childObserver__ = DOM.createMutationObserver(onChildChange);
-      observer.observe(target, {childList: true});
+      observer = viewHost.__childObserver__ = DOM.createMutationObserver(onChildChange);
+
+      let options = {
+        childList: true,
+        subtree: !this.usesShadowDOM
+      };
+
+      observer.observe(viewHost, options);
       observer.binders = [];
     }
 
     observer.binders.push(this);
 
-    if (this.all) {
-      let items = viewModel[this.property];
-      if (!items) {
-        items = viewModel[this.property] = [];
-      } else {
-        items.length = 0;
-      }
+    if (this.usesShadowDOM) { //if using shadow dom, the content is already present, so sync the items
+      let current = viewHost.firstElementChild;
 
-      while (current) {
-        if (current.matches(selector)) {
-          items.push(current.au && current.au.controller ? current.au.controller.viewModel : current);
+      if (this.all) {
+        let items = viewModel[this.property];
+        if (!items) {
+          items = viewModel[this.property] = [];
+        } else {
+          items.length = 0;
         }
 
-        current = current.nextElementSibling;
-      }
-
-      if (this.changeHandler !== null) {
-        this.viewModel[this.changeHandler](noMutations);
-      }
-    } else {
-      while (current) {
-        if (current.matches(selector)) {
-          let value = current.au && current.au.controller ? current.au.controller.viewModel : current;
-          this.viewModel[this.property] = value;
-
-          if (this.changeHandler !== null) {
-            this.viewModel[this.changeHandler](value);
+        while (current) {
+          if (this.matches(current)) {
+            items.push(current.au && current.au.controller ? current.au.controller.viewModel : current);
           }
 
-          break;
+          current = current.nextElementSibling;
         }
 
-        current = current.nextElementSibling;
+        if (this.changeHandler !== null) {
+          this.viewModel[this.changeHandler](noMutations);
+        }
+      } else {
+        while (current) {
+          if (this.matches(current)) {
+            let value = current.au && current.au.controller ? current.au.controller.viewModel : current;
+            this.viewModel[this.property] = value;
+
+            if (this.changeHandler !== null) {
+              this.viewModel[this.changeHandler](value);
+            }
+
+            break;
+          }
+
+          current = current.nextElementSibling;
+        }
       }
     }
   }
 
   onRemove(element) {
-    if (element.matches(this.selector)) {
+    if (this.matches(element)) {
       let value = element.au && element.au.controller ? element.au.controller.viewModel : element;
 
       if (this.all) {
-        let items = this.viewModel[this.property];
+        let items = (this.viewModel[this.property] || (this.viewModel[this.property] = []));
         let index = items.indexOf(value);
 
         if (index !== -1) {
@@ -4294,21 +5122,21 @@ class ChildObserverBinder {
 
       return false;
     }
+
+    return false;
   }
 
   onAdd(element) {
-    let selector = this.selector;
-
-    if (element.matches(selector)) {
+    if (this.matches(element)) {
       let value = element.au && element.au.controller ? element.au.controller.viewModel : element;
 
       if (this.all) {
-        let items = this.viewModel[this.property];
+        let items = (this.viewModel[this.property] || (this.viewModel[this.property] = []));
         let index = 0;
         let prev = element.previousElementSibling;
 
         while (prev) {
-          if (prev.matches(selector)) {
+          if (this.matches(prev)) {
             index++;
           }
 
@@ -4330,9 +5158,9 @@ class ChildObserverBinder {
   }
 
   unbind() {
-    if (this.target.__childObserver__) {
-      this.target.__childObserver__.disconnect();
-      this.target.__childObserver__ = null;
+    if (this.viewHost.__childObserver__) {
+      this.viewHost.__childObserver__.disconnect();
+      this.viewHost.__childObserver__ = null;
     }
   }
 }
@@ -4350,9 +5178,21 @@ interface CompositionContext {
   */
   childContainer?: Container;
   /**
-  * The view model for the component.
+  * The context in which the view model is executed in.
   */
-  viewModel?: string | Object;
+  bindingContext: any;
+  /**
+  * A secondary binding context that can override the standard context.
+  */
+  overrideContext?: any;
+  /**
+  * The view model url or instance for the component.
+  */
+  viewModel?: any;
+  /**
+  * Data to be passed to the "activate" hook on the view model.
+  */
+  model?: any;
   /**
   * The HtmlBehaviorResource for the component.
   */
@@ -4361,6 +5201,10 @@ interface CompositionContext {
   * The view resources for the view in which the component should be created.
   */
   viewResources: ViewResources;
+  /**
+  * The view inside which this composition is happening.
+  */
+  owningView?: View;
   /**
   * The view url or view strategy to override the default view location convention.
   */
@@ -4398,25 +5242,31 @@ export class CompositionEngine {
   }
 
   _createControllerAndSwap(context) {
-    let removeResponse = context.viewSlot.removeAll(true);
-    let afterRemove = () => {
-      return this.createController(context).then(controller => {
+    function swap(controller) {
+      return Promise.resolve(context.viewSlot.removeAll(true)).then(() => {
         if (context.currentController) {
           context.currentController.unbind();
         }
 
-        controller.automate();
         context.viewSlot.add(controller.view);
+
+        if (context.compositionTransactionNotifier) {
+          context.compositionTransactionNotifier.done();
+        }
 
         return controller;
       });
-    };
-
-    if (removeResponse instanceof Promise) {
-      return removeResponse.then(afterRemove);
     }
 
-    return afterRemove();
+    return this.createController(context).then(controller => {
+      controller.automate(context.overrideContext, context.owningView);
+
+      if (context.compositionTransactionOwnershipToken) {
+        return context.compositionTransactionOwnershipToken.waitForCompositionComplete().then(() => swap(controller));
+      }
+
+      return swap(controller);
+    });
   }
 
   /**
@@ -4489,6 +5339,15 @@ export class CompositionEngine {
     context.childContainer = context.childContainer || context.container.createChild();
     context.view = this.viewLocator.getViewStrategy(context.view);
 
+    let transaction = context.childContainer.get(CompositionTransaction);
+    let compositionTransactionOwnershipToken = transaction.tryCapture();
+
+    if (compositionTransactionOwnershipToken) {
+      context.compositionTransactionOwnershipToken = compositionTransactionOwnershipToken;
+    } else {
+      context.compositionTransactionNotifier = transaction.enlist();
+    }
+
     if (context.viewModel) {
       return this._createControllerAndSwap(context);
     } else if (context.view) {
@@ -4497,26 +5356,38 @@ export class CompositionEngine {
       }
 
       return context.view.loadViewFactory(this.viewEngine, new ViewCompileInstruction()).then(viewFactory => {
-        let removeResponse = context.viewSlot.removeAll(true);
-
-        if (removeResponse instanceof Promise) {
-          return removeResponse.then(() => {
-            let result = viewFactory.create(context.childContainer);
-            result.bind(context.bindingContext, context.overrideContext);
-            context.viewSlot.add(result);
-            return result;
-          });
-        }
-
         let result = viewFactory.create(context.childContainer);
         result.bind(context.bindingContext, context.overrideContext);
-        context.viewSlot.add(result);
-        return result;
+
+        let work = () => {
+          return Promise.resolve(context.viewSlot.removeAll(true)).then(() => {
+            context.viewSlot.add(result);
+
+            if (context.compositionTransactionNotifier) {
+              context.compositionTransactionNotifier.done();
+            }
+
+            return result;
+          });
+        };
+
+        if (context.compositionTransactionOwnershipToken) {
+          return context.compositionTransactionOwnershipToken.waitForCompositionComplete().then(work);
+        }
+
+        return work();
       });
     } else if (context.viewSlot) {
       context.viewSlot.removeAll();
+
+      if (context.compositionTransactionNotifier) {
+        context.compositionTransactionNotifier.done();
+      }
+
       return Promise.resolve(null);
     }
+
+    return Promise.resolve(null);
   }
 }
 
@@ -4550,7 +5421,7 @@ export class ElementConfigResource {
   * @param target The class to which this resource metadata is attached.
   */
   load(container: Container, target: Function): void {
-    let config = new Target();
+    let config = new target();
     let eventManager = container.get(EventManager);
     eventManager.registerElementConfig(config);
   }
@@ -4558,8 +5429,11 @@ export class ElementConfigResource {
 
 function validateBehaviorName(name, type) {
   if (/[A-Z]/.test(name)) {
-    throw new Error(`'${name}' is not a valid ${type} name.  Upper-case letters are not allowed because the DOM is not case-sensitive.`);
+    let newName = _hyphenate(name);
+    LogManager.getLogger('templating').warn(`'${name}' is not a valid ${type} name and has been converted to '${newName}'. Upper-case letters are not allowed because the DOM is not case-sensitive.`);
+    return newName;
   }
+  return name;
 }
 
 /**
@@ -4592,10 +5466,9 @@ export function behavior(override: HtmlBehaviorResource | Object): any {
 * @param name The name of the custom element.
 */
 export function customElement(name: string): any {
-  validateBehaviorName(name, 'custom element');
   return function(target) {
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, target);
-    r.elementName = name;
+    r.elementName = validateBehaviorName(name, 'custom element');
   };
 }
 
@@ -4605,10 +5478,9 @@ export function customElement(name: string): any {
 * @param defaultBindingMode The default binding mode to use when the attribute is bound wtih .bind.
 */
 export function customAttribute(name: string, defaultBindingMode?: number): any {
-  validateBehaviorName(name, 'custom attribute');
   return function(target) {
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, target);
-    r.attributeName = name;
+    r.attributeName = validateBehaviorName(name, 'custom attribute');
     r.attributeDefaultBindingMode = defaultBindingMode;
   };
 }
@@ -4672,22 +5544,43 @@ export function dynamicOptions(target?): any {
   return target ? deco(target) : deco;
 }
 
+const defaultShadowDOMOptions = { mode: 'open' };
 /**
 * Decorator: Indicates that the custom element should render its view in Shadow
-* DOM. This decorator may change slighly when Aurelia updates to Shadow DOM v1.
+* DOM. This decorator may change slightly when Aurelia updates to Shadow DOM v1.
 */
-export function useShadowDOM(target?): any {
+export function useShadowDOM(targetOrOptions?): any {
+  let options = typeof targetOrOptions === 'function' || !targetOrOptions
+    ? defaultShadowDOMOptions
+    : targetOrOptions;
+
   let deco = function(t) {
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
     r.targetShadowDOM = true;
+    r.shadowDOMOptions = options;
   };
 
-  return target ? deco(target) : deco;
+  return typeof targetOrOptions === 'function' ? deco(targetOrOptions) : deco;
 }
 
-function doNotProcessContent() {
-  return false;
+/**
+* Decorator: Enables custom processing of the attributes on an element before the framework inspects them.
+* @param processor Pass a function which can provide custom processing of the content.
+*/
+export function processAttributes(processor: Function): any {
+  return function(t) {
+    let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
+    r.processAttributes = function(compiler, resources, node, attributes, elementInstruction) {
+      try {
+        processor(compiler, resources, node, attributes, elementInstruction);
+      } catch (error) {
+        LogManager.getLogger('templating').error(error);
+      }
+    };
+  };
 }
+
+function doNotProcessContent() { return false; }
 
 /**
 * Decorator: Enables custom processing of the content that is places inside the
@@ -4700,7 +5593,14 @@ function doNotProcessContent() {
 export function processContent(processor: boolean | Function): any {
   return function(t) {
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
-    r.processContent = processor || doNotProcessContent;
+    r.processContent = processor ? function(compiler, resources, node, instruction) {
+      try {
+        return processor(compiler, resources, node, instruction);
+      } catch (error) {
+        LogManager.getLogger('templating').error(error);
+        return false;
+      }
+    } : doNotProcessContent;
   };
 }
 
@@ -4789,6 +5689,10 @@ interface EnhanceInstruction {
   * A binding context for the enhancement.
   */
   bindingContext?: Object;
+  /**
+  * A secondary binding context that can override the standard context.
+  */
+  overrideContext?: any;
 }
 
 /**
@@ -4800,7 +5704,7 @@ export class TemplatingEngine {
   * Creates an instance of TemplatingEngine.
   * @param container The root DI container.
   * @param moduleAnalyzer The module analyzer for discovering view resources.
-  * @param viewCompiler The view compiler...for compiling views ;)
+  * @param viewCompiler The view compiler for compiling views.
   * @param compositionEngine The composition engine used during dynamic component composition.
   */
   constructor(container: Container, moduleAnalyzer: ModuleAnalyzer, viewCompiler: ViewCompiler, compositionEngine: CompositionEngine) {
@@ -4824,7 +5728,7 @@ export class TemplatingEngine {
    * Dynamically composes components and views.
    * @param context The composition context to use.
    * @return A promise for the resulting Controller or View. Consumers of this API
-   * are responsible for enforcing the Controller/View lifecyle.
+   * are responsible for enforcing the Controller/View lifecycle.
    */
   compose(context: CompositionContext): Promise<View | Controller> {
     return this._compositionEngine.compose(context);
@@ -4834,7 +5738,7 @@ export class TemplatingEngine {
    * Enhances existing DOM with behaviors and bindings.
    * @param instruction The element to enhance or a set of instructions for the enhancement process.
    * @return A View representing the enhanced UI. Consumers of this API
-   * are responsible for enforcing the View lifecyle.
+   * are responsible for enforcing the View lifecycle.
    */
   enhance(instruction: Element | EnhanceInstruction): View {
     if (instruction instanceof DOM.Element) {
@@ -4850,40 +5754,8 @@ export class TemplatingEngine {
     let container = instruction.container || this._container.createChild();
     let view = factory.create(container, BehaviorInstruction.enhance());
 
-    view.bind(instruction.bindingContext || {});
+    view.bind(instruction.bindingContext || {}, instruction.overrideContext);
 
     return view;
-  }
-
-  /**
-   * Creates a behavior's controller for use in unit testing.
-   * @param viewModelType The constructor of the behavior view model to test.
-   * @param attributesFromHTML A key/value lookup of attributes representing what would be in HTML (values can be literals or binding expressions).
-   * @return The Controller of the behavior.
-   */
-  createControllerForUnitTest(viewModelType: Function, attributesFromHTML?: Object): Controller {
-    let exportName = viewModelType.name;
-    let resourceModule = this._moduleAnalyzer.analyze('test-module', { [exportName]: viewModelType }, exportName);
-    let description = resourceModule.mainResource;
-
-    description.initialize(this._container);
-
-    let viewModel = this._container.get(viewModelType);
-    let instruction = BehaviorInstruction.unitTest(description, attributesFromHTML);
-
-    return new Controller(description.metadata, instruction, viewModel);
-  }
-
-  /**
-   * Creates a behavior's view model for use in unit testing.
-   * @param viewModelType The constructor of the behavior view model to test.
-   * @param attributesFromHTML A key/value lookup of attributes representing what would be in HTML (values can be literals or binding expressions).
-   * @param bindingContext
-   * @return The view model instance.
-   */
-  createViewModelForUnitTest(viewModelType: Function, attributesFromHTML?: Object, bindingContext?: any): Object {
-    let controller = this.createControllerForUnitTest(viewModelType, attributesFromHTML);
-    controller.bind(createScopeForTest(bindingContext));
-    return controller.viewModel;
   }
 }

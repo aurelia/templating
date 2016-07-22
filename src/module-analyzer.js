@@ -1,8 +1,8 @@
 import {metadata} from 'aurelia-metadata';
 import {Container} from 'aurelia-dependency-injection';
 import {TemplateRegistryEntry} from 'aurelia-loader';
-import {ValueConverterResource} from 'aurelia-binding';
-import {BindingBehaviorResource} from 'aurelia-binding';
+import {ValueConverterResource, BindingBehaviorResource} from 'aurelia-binding';
+import {ViewEngineHooksResource} from './view-engine-hooks-resource';
 import {HtmlBehaviorResource} from './html-behavior';
 import {viewStrategy, TemplateRegistryViewStrategy} from './view-strategy';
 import {ViewResources} from './view-resources';
@@ -25,6 +25,7 @@ export class ResourceModule {
     this.viewStrategy = null;
     this.isInitialized = false;
     this.onLoaded = null;
+    this.loadContext = null;
   }
 
   /**
@@ -55,7 +56,7 @@ export class ResourceModule {
   }
 
   /**
-  * Registrers the resources in the module with the view resources.
+  * Registers the resources in the module with the view resources.
   * @param registry The registry of view resources to regiser within.
   * @param name The name to use in registering the default resource.
   */
@@ -82,7 +83,8 @@ export class ResourceModule {
   */
   load(container: Container, loadContext?: ResourceLoadContext): Promise<void> {
     if (this.onLoaded !== null) {
-      return this.onLoaded;
+      //if it's trying to load the same thing again during the same load, this is a circular dep, so just resolve
+      return this.loadContext === loadContext ? Promise.resolve() : this.onLoaded;
     }
 
     let main = this.mainResource;
@@ -102,6 +104,7 @@ export class ResourceModule {
       }
     }
 
+    this.loadContext = loadContext;
     this.onLoaded = Promise.all(loads);
     return this.onLoaded;
   }
@@ -183,7 +186,7 @@ export class ModuleAnalyzer {
   * Creates an instance of ModuleAnalyzer.
   */
   constructor() {
-    this.cache = {};
+    this.cache = Object.create(null);
   }
 
   /**
@@ -268,10 +271,9 @@ export class ModuleAnalyzer {
           }
 
           metadata.define(metadata.resource, conventional, exportedValue);
-        } else if (conventional = ValueConverterResource.convention(key)) {
-          resources.push(new ResourceDescription(key, exportedValue, conventional));
-          metadata.define(metadata.resource, conventional, exportedValue);
-        } else if (conventional = BindingBehaviorResource.convention(key)) {
+        } else if (conventional = ValueConverterResource.convention(key)
+          || BindingBehaviorResource.convention(key)
+          || ViewEngineHooksResource.convention(key)) {
           resources.push(new ResourceDescription(key, exportedValue, conventional));
           metadata.define(metadata.resource, conventional, exportedValue);
         } else if (!fallbackValue) {

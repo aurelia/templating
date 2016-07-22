@@ -1,14 +1,18 @@
-import 'core-js';
+import * as LogManager from 'aurelia-logging';
 import {metadata} from 'aurelia-metadata';
 import {BindableProperty} from './bindable-property';
 import {ElementConfigResource} from './element-config';
 import {ViewLocator, RelativeViewStrategy, NoViewStrategy, InlineViewStrategy} from './view-strategy';
 import {HtmlBehaviorResource} from './html-behavior';
+import {_hyphenate} from './util';
 
 function validateBehaviorName(name, type) {
   if (/[A-Z]/.test(name)) {
-    throw new Error(`'${name}' is not a valid ${type} name.  Upper-case letters are not allowed because the DOM is not case-sensitive.`);
+    let newName = _hyphenate(name);
+    LogManager.getLogger('templating').warn(`'${name}' is not a valid ${type} name and has been converted to '${newName}'. Upper-case letters are not allowed because the DOM is not case-sensitive.`);
+    return newName;
   }
+  return name;
 }
 
 /**
@@ -41,10 +45,9 @@ export function behavior(override: HtmlBehaviorResource | Object): any {
 * @param name The name of the custom element.
 */
 export function customElement(name: string): any {
-  validateBehaviorName(name, 'custom element');
   return function(target) {
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, target);
-    r.elementName = name;
+    r.elementName = validateBehaviorName(name, 'custom element');
   };
 }
 
@@ -54,10 +57,9 @@ export function customElement(name: string): any {
 * @param defaultBindingMode The default binding mode to use when the attribute is bound wtih .bind.
 */
 export function customAttribute(name: string, defaultBindingMode?: number): any {
-  validateBehaviorName(name, 'custom attribute');
   return function(target) {
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, target);
-    r.attributeName = name;
+    r.attributeName = validateBehaviorName(name, 'custom attribute');
     r.attributeDefaultBindingMode = defaultBindingMode;
   };
 }
@@ -121,22 +123,43 @@ export function dynamicOptions(target?): any {
   return target ? deco(target) : deco;
 }
 
+const defaultShadowDOMOptions = { mode: 'open' };
 /**
 * Decorator: Indicates that the custom element should render its view in Shadow
-* DOM. This decorator may change slighly when Aurelia updates to Shadow DOM v1.
+* DOM. This decorator may change slightly when Aurelia updates to Shadow DOM v1.
 */
-export function useShadowDOM(target?): any {
+export function useShadowDOM(targetOrOptions?): any {
+  let options = typeof targetOrOptions === 'function' || !targetOrOptions
+    ? defaultShadowDOMOptions
+    : targetOrOptions;
+
   let deco = function(t) {
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
     r.targetShadowDOM = true;
+    r.shadowDOMOptions = options;
   };
 
-  return target ? deco(target) : deco;
+  return typeof targetOrOptions === 'function' ? deco(targetOrOptions) : deco;
 }
 
-function doNotProcessContent() {
-  return false;
+/**
+* Decorator: Enables custom processing of the attributes on an element before the framework inspects them.
+* @param processor Pass a function which can provide custom processing of the content.
+*/
+export function processAttributes(processor: Function): any {
+  return function(t) {
+    let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
+    r.processAttributes = function(compiler, resources, node, attributes, elementInstruction) {
+      try {
+        processor(compiler, resources, node, attributes, elementInstruction);
+      } catch (error) {
+        LogManager.getLogger('templating').error(error);
+      }
+    };
+  };
 }
+
+function doNotProcessContent() { return false; }
 
 /**
 * Decorator: Enables custom processing of the content that is places inside the
@@ -149,7 +172,14 @@ function doNotProcessContent() {
 export function processContent(processor: boolean | Function): any {
   return function(t) {
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
-    r.processContent = processor || doNotProcessContent;
+    r.processContent = processor ? function(compiler, resources, node, instruction) {
+      try {
+        return processor(compiler, resources, node, instruction);
+      } catch (error) {
+        LogManager.getLogger('templating').error(error);
+        return false;
+      }
+    } : doNotProcessContent;
   };
 }
 

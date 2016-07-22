@@ -4,6 +4,7 @@ import {BindingLanguage} from './binding-language';
 import {ViewCompileInstruction, BehaviorInstruction, TargetInstruction} from './instructions';
 import {inject} from 'aurelia-dependency-injection';
 import {DOM, FEATURE} from 'aurelia-pal';
+import {ShadowDOM} from './shadow-dom';
 
 let nextInjectorId = 0;
 function getNextInjectorId() {
@@ -54,6 +55,32 @@ function makeIntoInstructionTarget(element) {
   return auTargetID;
 }
 
+function makeShadowSlot(compiler, resources, node, instructions, parentInjectorId) {
+  let auShadowSlot = DOM.createElement('au-shadow-slot');
+  DOM.replaceNode(auShadowSlot, node);
+
+  let auTargetID = makeIntoInstructionTarget(auShadowSlot);
+  let instruction = TargetInstruction.shadowSlot(parentInjectorId);
+
+  instruction.slotName = node.getAttribute('name') || ShadowDOM.defaultSlotKey;
+  instruction.slotDestination = node.getAttribute('slot');
+
+  if (node.innerHTML.trim()) {
+    let fragment = DOM.createDocumentFragment();
+    let child;
+
+    while (child = node.firstChild) {
+      fragment.appendChild(child);
+    }
+
+    instruction.slotFallbackFactory = compiler.compile(fragment, resources);
+  }
+
+  instructions[auTargetID] = instruction;
+
+  return auShadowSlot;
+}
+
 /**
 * Compiles html templates, dom fragments and strings into ViewFactory instances, capable of instantiating Views.
 */
@@ -94,12 +121,22 @@ export class ViewCompiler {
     }
 
     compileInstruction.targetShadowDOM = compileInstruction.targetShadowDOM && FEATURE.shadowDOM;
-    resources._onBeforeCompile(content, resources, compileInstruction);
+    resources._invokeHook('beforeCompile', content, resources, compileInstruction);
 
     let instructions = {};
     this._compileNode(content, resources, instructions, source, 'root', !compileInstruction.targetShadowDOM);
-    content.insertBefore(DOM.createComment('<view>'), content.firstChild);
-    content.appendChild(DOM.createComment('</view>'));
+
+    let firstChild = content.firstChild;
+    if (firstChild && firstChild.nodeType === 1) {
+      let targetId = firstChild.getAttribute('au-target-id');
+      if (targetId) {
+        let ins = instructions[targetId];
+
+        if (ins.shadowSlot || ins.lifting) {
+          content.insertBefore(DOM.createComment('view'), firstChild);
+        }
+      }
+    }
 
     let factory = new ViewFactory(content, instructions, resources);
 
@@ -110,7 +147,7 @@ export class ViewCompiler {
       factory.setCacheSize(cacheSize);
     }
 
-    resources._onAfterCompile(factory);
+    resources._invokeHook('afterCompile', factory);
 
     return factory;
   }
@@ -121,7 +158,7 @@ export class ViewCompiler {
       return this._compileElement(node, resources, instructions, parentNode, parentInjectorId, targetLightDOM);
     case 3: //text node
       //use wholeText to retrieve the textContent of all adjacent text nodes.
-      let expression = resources.getBindingLanguage(this.bindingLanguage).parseText(resources, node.wholeText);
+      let expression = resources.getBindingLanguage(this.bindingLanguage).inspectTextContent(resources, node.wholeText);
       if (expression) {
         let marker = DOM.createElement('au-marker');
         let auTargetID = makeIntoInstructionTarget(marker);
@@ -153,6 +190,7 @@ export class ViewCompiler {
   }
 
   _compileSurrogate(node, resources) {
+    let tagName = node.tagName.toLowerCase();
     let attributes = node.attributes;
     let bindingLanguage = resources.getBindingLanguage(this.bindingLanguage);
     let knownAttribute;
@@ -177,7 +215,7 @@ export class ViewCompiler {
       attrName = attr.name;
       attrValue = attr.value;
 
-      info = bindingLanguage.inspectAttribute(resources, attrName, attrValue);
+      info = bindingLanguage.inspectAttribute(resources, tagName, attrName, attrValue);
       type = resources.getAttribute(info.attrName);
 
       if (type) { //do we have an attached behavior?
@@ -280,19 +318,19 @@ export class ViewCompiler {
     let auTargetID;
     let injectorId;
 
-    if (tagName === 'content') {
+    if (tagName === 'slot') {
       if (targetLightDOM) {
-        auTargetID = makeIntoInstructionTarget(node);
-        instructions[auTargetID] = TargetInstruction.contentSelector(node, parentInjectorId);
+        node = makeShadowSlot(this, resources, node, instructions, parentInjectorId);
       }
       return node.nextSibling;
     } else if (tagName === 'template') {
       viewFactory = this.compile(node, resources);
       viewFactory.part = node.getAttribute('part');
     } else {
-      type = resources.getElement(tagName);
+      type = resources.getElement(node.getAttribute('as-element') || tagName);
       if (type) {
         elementInstruction = BehaviorInstruction.element(node, type);
+        type.processAttributes(this, resources, node, attributes, elementInstruction);
         behaviorInstructions.push(elementInstruction);
       }
     }
@@ -301,7 +339,12 @@ export class ViewCompiler {
       attr = attributes[i];
       attrName = attr.name;
       attrValue = attr.value;
-      info = bindingLanguage.inspectAttribute(resources, attrName, attrValue);
+      info = bindingLanguage.inspectAttribute(resources, tagName, attrName, attrValue);
+
+      if (targetLightDOM && info.attrName === 'slot') {
+        info.attrName = attrName = 'au-slot';
+      }
+
       type = resources.getAttribute(info.attrName);
       elementProperty = null;
 

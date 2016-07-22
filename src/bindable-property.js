@@ -1,4 +1,3 @@
-import 'core-js';
 import {_hyphenate} from './util';
 import {BehaviorPropertyObserver} from './behavior-property-observer';
 import {bindingMode} from 'aurelia-binding';
@@ -35,7 +34,9 @@ export class BindableProperty {
     }
 
     this.attribute = this.attribute || _hyphenate(this.name);
-    this.defaultBindingMode = this.defaultBindingMode || bindingMode.oneWay;
+    if (this.defaultBindingMode === null || this.defaultBindingMode === undefined) {
+      this.defaultBindingMode = bindingMode.oneWay;
+    }
     this.changeHandler = this.changeHandler || null;
     this.owner = null;
     this.descriptor = null;
@@ -56,6 +57,8 @@ export class BindableProperty {
       this.descriptor = descriptor;
       return this._configureDescriptor(behavior, descriptor);
     }
+
+    return undefined;
   }
 
   _configureDescriptor(behavior: HtmlBehaviorResource, descriptor: Object): Object {
@@ -140,7 +143,7 @@ export class BindableProperty {
     } else if ('propertyChanged' in viewModel) {
       selfSubscriber = (newValue, oldValue) => viewModel.propertyChanged(name, newValue, oldValue);
     } else if (changeHandlerName !== null) {
-      throw new Error(`Change handler ${changeHandlerName} was specified but not delcared on the class.`);
+      throw new Error(`Change handler ${changeHandlerName} was specified but not declared on the class.`);
     }
 
     if (defaultValue !== undefined) {

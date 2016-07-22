@@ -1,4 +1,7 @@
+/* eslint no-unused-vars: 0, no-constant-condition: 0 */
 import {Binding, createOverrideContext} from 'aurelia-binding';
+import {Container} from 'aurelia-dependency-injection';
+import {ShadowDOM} from './shadow-dom';
 
 /**
 * Represents a node in the view hierarchy.
@@ -26,31 +29,66 @@ interface ViewNode {
 
 export class View {
   /**
+  * The Dependency Injection Container that was used to create this View instance.
+  */
+  container: Container;
+
+  /**
+  * The ViewFactory that built this View instance.
+  */
+  viewFactory: ViewFactory;
+
+  /**
+  * Contains the DOM Nodes which represent this View. If the view was created via the "enhance" API, this will be an Element, otherwise it will be a DocumentFragment. If not created via "enhance" then the fragment will only contain nodes when the View is detached from the DOM.
+  */
+  fragment: DocumentFragment | Element;
+
+  /**
+  * The primary binding context that this view is data-bound to.
+  */
+  bindingContext: Object;
+
+  /**
+  * The override context which contains properties capable of overriding those found on the binding context.
+  */
+  overrideContext: Object;
+
+  /**
   * Creates a View instance.
+  * @param container The container from which the view was created.
   * @param viewFactory The factory that created this view.
   * @param fragment The DOM fragement representing the view.
   * @param controllers The controllers inside this view.
   * @param bindings The bindings inside this view.
   * @param children The children of this view.
   */
-  constructor(viewFactory: ViewFactory, fragment: DocumentFragment, controllers: Controller[], bindings: Binding[], children: ViewNode[], contentSelectors: Array<Object>) {
+  constructor(container: Container, viewFactory: ViewFactory, fragment: DocumentFragment, controllers: Controller[], bindings: Binding[], children: ViewNode[], slots: Object) {
+    this.container = container;
     this.viewFactory = viewFactory;
+    this.resources = viewFactory.resources;
     this.fragment = fragment;
+    this.firstChild = fragment.firstChild;
+    this.lastChild = fragment.lastChild;
     this.controllers = controllers;
     this.bindings = bindings;
     this.children = children;
-    this.contentSelectors = contentSelectors;
-    this.firstChild = fragment.firstChild;
-    this.lastChild = fragment.lastChild;
+    this.slots = slots;
+    this.hasSlots = false;
     this.fromCache = false;
     this.isBound = false;
     this.isAttached = false;
-    this.fromCache = false;
     this.bindingContext = null;
     this.overrideContext = null;
     this.controller = null;
     this.viewModelScope = null;
+    this.animatableElement = undefined;
     this._isUserControlled = false;
+    this.contentView = null;
+
+    for (let key in slots) {
+      this.hasSlots = true;
+      break;
+    }
   }
 
   /**
@@ -101,6 +139,8 @@ export class View {
     this.bindingContext = bindingContext;
     this.overrideContext = overrideContext || createOverrideContext(bindingContext);
 
+    this.resources._invokeHook('beforeBind', this);
+
     bindings = this.bindings;
     for (i = 0, ii = bindings.length; i < ii; ++i) {
       bindings[i].bind(this);
@@ -120,6 +160,10 @@ export class View {
     for (i = 0, ii = children.length; i < ii; ++i) {
       children[i].bind(bindingContext, overrideContext, true);
     }
+
+    if (this.hasSlots) {
+      ShadowDOM.distributeView(this.contentView, this.slots);
+    }
   }
 
   /**
@@ -130,7 +174,7 @@ export class View {
     this.bindings.push(binding);
 
     if (this.isBound) {
-      binding.bind(this.bindingContext);
+      binding.bind(this);
     }
   }
 
@@ -146,8 +190,7 @@ export class View {
 
     if (this.isBound) {
       this.isBound = false;
-      this.bindingContext = null;
-      this.overrideContext = null;
+      this.resources._invokeHook('beforeUnbind', this);
 
       if (this.controller !== null) {
         this.controller.unbind();
@@ -167,6 +210,9 @@ export class View {
       for (i = 0, ii = children.length; i < ii; ++i) {
         children[i].unbind();
       }
+
+      this.bindingContext = null;
+      this.overrideContext = null;
     }
   }
 
@@ -175,8 +221,7 @@ export class View {
   * @param refNode The node to insert this view's nodes before.
   */
   insertNodesBefore(refNode: Node): void {
-    let parent = refNode.parentNode;
-    parent.insertBefore(this.fragment, refNode);
+    refNode.parentNode.insertBefore(this.fragment, refNode);
   }
 
   /**
@@ -191,20 +236,19 @@ export class View {
   * Removes this view's nodes from the DOM.
   */
   removeNodes(): void {
-    let start = this.firstChild;
-    let end = this.lastChild;
     let fragment = this.fragment;
+    let current = this.firstChild;
+    let end = this.lastChild;
     let next;
-    let current = start;
-    let loop = true;
 
-    while (loop) {
-      if (current === end) {
-        loop = false;
-      }
-
+    while (current) {
       next = current.nextSibling;
       fragment.appendChild(current);
+
+      if (current === end) {
+        break;
+      }
+
       current = next;
     }
   }

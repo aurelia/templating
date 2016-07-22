@@ -5,24 +5,21 @@ import {Container} from 'aurelia-dependency-injection';
 import {ViewLocator} from './view-locator';
 import {ViewEngine} from './view-engine';
 import {ViewCompiler} from './view-compiler';
-import {_ContentSelector} from './content-selector';
-import {_hyphenate} from './util';
+import {_hyphenate, _isAllWhitespace} from './util';
 import {BindableProperty} from './bindable-property';
 import {Controller} from './controller';
 import {ViewResources} from './view-resources';
 import {ResourceLoadContext, ViewCompileInstruction, BehaviorInstruction} from './instructions';
 import {FEATURE, DOM} from 'aurelia-pal';
 
-const contentSelectorViewCreateInstruction = { enhance: false };
 let lastProviderId = 0;
 
 function nextProviderId() {
   return ++lastProviderId;
 }
 
-function doProcessContent() {
-  return true;
-}
+function doProcessContent() { return true; }
+function doProcessAttributes() {}
 
 /**
 * Identifies a class as a resource that implements custom element or custom
@@ -38,6 +35,8 @@ export class HtmlBehaviorResource {
     this.attributeDefaultBindingMode = undefined;
     this.liftsContent = false;
     this.targetShadowDOM = false;
+    this.shadowDOMOptions = null;
+    this.processAttributes = doProcessAttributes;
     this.processContent = doProcessContent;
     this.usesShadowDOM = false;
     this.childBindings = null;
@@ -237,48 +236,37 @@ export class HtmlBehaviorResource {
         node = template;
       }
     } else if (this.elementName !== null) { //custom element
-      let partReplacements = instruction.partReplacements = {};
+      let partReplacements = {};
 
       if (this.processContent(compiler, resources, node, instruction) && node.hasChildNodes()) {
-        if (this.usesShadowDOM) {
-          let currentChild = node.firstChild;
-          let nextSibling;
-          let toReplace;
+        let currentChild = node.firstChild;
+        let contentElement = this.usesShadowDOM ? null : DOM.createElement('au-content');
+        let nextSibling;
+        let toReplace;
 
-          while (currentChild) {
-            nextSibling = currentChild.nextSibling;
+        while (currentChild) {
+          nextSibling = currentChild.nextSibling;
 
-            if (currentChild.tagName === 'TEMPLATE' && (toReplace = currentChild.getAttribute('replace-part'))) {
-              partReplacements[toReplace] = compiler.compile(currentChild, resources);
-              DOM.removeNode(currentChild, parentNode);
-            }
-
-            currentChild = nextSibling;
-          }
-
-          instruction.skipContentProcessing = false;
-        } else {
-          let fragment = DOM.createDocumentFragment();
-          let currentChild = node.firstChild;
-          let nextSibling;
-          let toReplace;
-
-          while (currentChild) {
-            nextSibling = currentChild.nextSibling;
-
-            if (currentChild.tagName === 'TEMPLATE' && (toReplace = currentChild.getAttribute('replace-part'))) {
-              partReplacements[toReplace] = compiler.compile(currentChild, resources);
+          if (currentChild.tagName === 'TEMPLATE' && (toReplace = currentChild.getAttribute('replace-part'))) {
+            partReplacements[toReplace] = compiler.compile(currentChild, resources);
+            DOM.removeNode(currentChild, parentNode);
+            instruction.partReplacements = partReplacements;
+          } else if (contentElement !== null) {
+            if (currentChild.nodeType === 3 && _isAllWhitespace(currentChild)) {
               DOM.removeNode(currentChild, parentNode);
             } else {
-              fragment.appendChild(currentChild);
+              contentElement.appendChild(currentChild);
             }
-
-            currentChild = nextSibling;
           }
 
-          instruction.contentFactory = compiler.compile(fragment, resources);
-          instruction.skipContentProcessing = true;
+          currentChild = nextSibling;
         }
+
+        if (contentElement !== null && contentElement.hasChildNodes()) {
+          node.appendChild(contentElement);
+        }
+
+        instruction.skipContentProcessing = false;
       } else {
         instruction.skipContentProcessing = true;
       }
@@ -296,7 +284,7 @@ export class HtmlBehaviorResource {
   * @return The Controller of this behavior.
   */
   create(container: Container, instruction?: BehaviorInstruction, element?: Element, bindings?: Binding[]): Controller {
-    let host;
+    let viewHost;
     let au = null;
 
     instruction = instruction || BehaviorInstruction.normal;
@@ -305,13 +293,12 @@ export class HtmlBehaviorResource {
 
     if (this.elementName !== null && element) {
       if (this.usesShadowDOM) {
-        host = element.createShadowRoot();
-        container.registerInstance(DOM.boundary, host);
+        viewHost = element.attachShadow(this.shadowDOMOptions);
+        container.registerInstance(DOM.boundary, viewHost);
       } else {
-        host = element;
-
+        viewHost = element;
         if (this.targetShadowDOM) {
-          container.registerInstance(DOM.boundary, host);
+          container.registerInstance(DOM.boundary, viewHost);
         }
       }
     }
@@ -321,7 +308,7 @@ export class HtmlBehaviorResource {
     }
 
     let viewModel = instruction.viewModel || container.get(this.target);
-    let controller = new Controller(this, instruction, viewModel);
+    let controller = new Controller(this, instruction, viewModel, container.elementEvents);
     let childBindings = this.childBindings;
     let viewFactory;
 
@@ -341,34 +328,26 @@ export class HtmlBehaviorResource {
         au.controller = controller;
 
         if (controller.view) {
-          if (!this.usesShadowDOM) {
-            if (instruction.contentFactory) {
-              let contentView = instruction.contentFactory.create(container, contentSelectorViewCreateInstruction);
-
-              _ContentSelector.applySelectors(
-                contentView,
-                controller.view.contentSelectors,
-                (contentSelector, group) => contentSelector.add(group)
-              );
-
-              controller.contentView = contentView;
-            }
+          if (!this.usesShadowDOM && (element.childNodes.length === 1 || element.contentElement)) { //containerless passes content view special contentElement property
+            let contentElement = element.childNodes[0] || element.contentElement;
+            controller.view.contentView = { fragment: contentElement }; //store the content before appending the view
+            contentElement.parentNode && DOM.removeNode(contentElement); //containerless content element has no parent
           }
 
           if (instruction.anchorIsContainer) {
             if (childBindings !== null) {
               for (let i = 0, ii = childBindings.length; i < ii; ++i) {
-                controller.view.addBinding(childBindings[i].create(element, viewModel));
+                controller.view.addBinding(childBindings[i].create(element, viewModel, controller));
               }
             }
 
-            controller.view.appendNodesTo(host);
+            controller.view.appendNodesTo(viewHost);
           } else {
-            controller.view.insertNodesBefore(host);
+            controller.view.insertNodesBefore(viewHost);
           }
         } else if (childBindings !== null) {
           for (let i = 0, ii = childBindings.length; i < ii; ++i) {
-            bindings.push(childBindings[i].create(element, viewModel));
+            bindings.push(childBindings[i].create(element, viewModel, controller));
           }
         }
       } else if (controller.view) {
@@ -377,19 +356,19 @@ export class HtmlBehaviorResource {
 
         if (childBindings !== null) {
           for (let i = 0, ii = childBindings.length; i < ii; ++i) {
-            controller.view.addBinding(childBindings[i].create(instruction.host, viewModel));
+            controller.view.addBinding(childBindings[i].create(instruction.host, viewModel, controller));
           }
         }
       } else if (childBindings !== null) {
         //dynamic element without view
         for (let i = 0, ii = childBindings.length; i < ii; ++i) {
-          bindings.push(childBindings[i].create(instruction.host, viewModel));
+          bindings.push(childBindings[i].create(instruction.host, viewModel, controller));
         }
       }
     } else if (childBindings !== null) {
       //custom attribute
       for (let i = 0, ii = childBindings.length; i < ii; ++i) {
-        bindings.push(childBindings[i].create(element, viewModel));
+        bindings.push(childBindings[i].create(element, viewModel, controller));
       }
     }
 

@@ -24,14 +24,14 @@ function createChildObserverDecorator(selectorOrConfig, all) {
 }
 
 /**
-* Creates a behavior property that references an array of immediate content child elememnts that matches the provided selector.
+* Creates a behavior property that references an array of immediate content child elements that matches the provided selector.
 */
 export function children(selectorOrConfig: string | Object): any {
   return createChildObserverDecorator(selectorOrConfig, true);
 }
 
 /**
-* Creates a behavior property that references an immediate content child elememnt that matches the provided selector.
+* Creates a behavior property that references an immediate content child element that matches the provided selector.
 */
 export function child(selectorOrConfig: string | Object): any {
   return createChildObserverDecorator(selectorOrConfig, false);
@@ -45,8 +45,8 @@ class ChildObserver {
     this.all = config.all;
   }
 
-  create(target, viewModel) {
-    return new ChildObserverBinder(this.selector, target, this.name, viewModel, this.changeHandler, this.all);
+  create(viewHost, viewModel, controller) {
+    return new ChildObserverBinder(this.selector, viewHost, this.name, viewModel, controller, this.changeHandler, this.all);
   }
 }
 
@@ -106,73 +106,116 @@ function onChildChange(mutations, observer) {
 }
 
 class ChildObserverBinder {
-  constructor(selector, target, property, viewModel, changeHandler, all) {
+  constructor(selector, viewHost, property, viewModel, controller, changeHandler, all) {
     this.selector = selector;
-    this.target = target;
+    this.viewHost = viewHost;
     this.property = property;
     this.viewModel = viewModel;
+    this.controller = controller;
     this.changeHandler = changeHandler in viewModel ? changeHandler : null;
+    this.usesShadowDOM = controller.behavior.usesShadowDOM;
     this.all = all;
+
+    if (!this.usesShadowDOM && controller.view && controller.view.contentView) {
+      this.contentView = controller.view.contentView;
+    } else {
+      this.contentView = null;
+    }
+  }
+
+  matches(element) {
+    if (element.matches(this.selector)) {
+      if (this.contentView === null) {
+        return true;
+      }
+
+      let contentView = this.contentView;
+      let assignedSlot = element.auAssignedSlot;
+
+      if (assignedSlot && assignedSlot.projectFromAnchors) {
+        let anchors = assignedSlot.projectFromAnchors;
+
+        for (let i = 0, ii = anchors.length; i < ii; ++i) {
+          if (anchors[i].auOwnerView === contentView) {
+            return true;
+          }
+        }
+
+        return false;
+      }
+
+      return element.auOwnerView === contentView;
+    }
+
+    return false;
   }
 
   bind(source) {
-    let target = this.target;
+    let viewHost = this.viewHost;
     let viewModel = this.viewModel;
-    let selector = this.selector;
-    let current = target.firstElementChild;
-    let observer = target.__childObserver__;
+    let observer = viewHost.__childObserver__;
 
     if (!observer) {
-      observer = target.__childObserver__ = DOM.createMutationObserver(onChildChange);
-      observer.observe(target, {childList: true});
+      observer = viewHost.__childObserver__ = DOM.createMutationObserver(onChildChange);
+
+      let options = {
+        childList: true,
+        subtree: !this.usesShadowDOM
+      };
+
+      observer.observe(viewHost, options);
       observer.binders = [];
     }
 
     observer.binders.push(this);
 
-    if (this.all) {
-      let items = viewModel[this.property];
-      if (!items) {
-        items = viewModel[this.property] = [];
-      } else {
-        items.length = 0;
-      }
+    if (this.usesShadowDOM) { //if using shadow dom, the content is already present, so sync the items
+      let current = viewHost.firstElementChild;
 
-      while (current) {
-        if (current.matches(selector)) {
-          items.push(current.au && current.au.controller ? current.au.controller.viewModel : current);
+      if (this.all) {
+        let items = viewModel[this.property];
+        if (!items) {
+          items = viewModel[this.property] = [];
+        } else {
+          items.length = 0;
         }
 
-        current = current.nextElementSibling;
-      }
-
-      if (this.changeHandler !== null) {
-        this.viewModel[this.changeHandler](noMutations);
-      }
-    } else {
-      while (current) {
-        if (current.matches(selector)) {
-          let value = current.au && current.au.controller ? current.au.controller.viewModel : current;
-          this.viewModel[this.property] = value;
-
-          if (this.changeHandler !== null) {
-            this.viewModel[this.changeHandler](value);
+        while (current) {
+          if (this.matches(current)) {
+            items.push(current.au && current.au.controller ? current.au.controller.viewModel : current);
           }
 
-          break;
+          current = current.nextElementSibling;
         }
 
-        current = current.nextElementSibling;
+        if (this.changeHandler !== null) {
+          this.viewModel[this.changeHandler](noMutations);
+        }
+      } else {
+        while (current) {
+          if (this.matches(current)) {
+            let value = current.au && current.au.controller ? current.au.controller.viewModel : current;
+            this.viewModel[this.property] = value;
+
+            if (this.changeHandler !== null) {
+              this.viewModel[this.changeHandler](value);
+            }
+
+            break;
+          }
+
+          current = current.nextElementSibling;
+        }
       }
     }
   }
 
   onRemove(element) {
-    if (element.matches(this.selector)) {
+    if (this.matches(element)) {
       let value = element.au && element.au.controller ? element.au.controller.viewModel : element;
 
       if (this.all) {
-        let items = this.viewModel[this.property];
+        let items = (this.viewModel[this.property] || (this.viewModel[this.property] = []));
         let index = items.indexOf(value);
 
         if (index !== -1) {
@@ -184,21 +227,21 @@ class ChildObserverBinder {
 
       return false;
     }
+
+    return false;
   }
 
   onAdd(element) {
-    let selector = this.selector;
-
-    if (element.matches(selector)) {
+    if (this.matches(element)) {
       let value = element.au && element.au.controller ? element.au.controller.viewModel : element;
 
       if (this.all) {
-        let items = this.viewModel[this.property];
+        let items = (this.viewModel[this.property] || (this.viewModel[this.property] = []));
         let index = 0;
         let prev = element.previousElementSibling;
 
         while (prev) {
-          if (prev.matches(selector)) {
+          if (this.matches(prev)) {
             index++;
           }
 
@@ -220,9 +263,9 @@ class ChildObserverBinder {
   }
 
   unbind() {
-    if (this.target.__childObserver__) {
-      this.target.__childObserver__.disconnect();
-      this.target.__childObserver__ = null;
+    if (this.viewHost.__childObserver__) {
+      this.viewHost.__childObserver__.disconnect();
+      this.viewHost.__childObserver__ = null;
     }
   }
 }

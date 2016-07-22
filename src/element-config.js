@@ -30,7 +30,7 @@ export class ElementConfigResource {
   * @param target The class to which this resource metadata is attached.
   */
   load(container: Container, target: Function): void {
-    let config = new Target();
+    let config = new target();
     let eventManager = container.get(EventManager);
     eventManager.registerElementConfig(config);
   }

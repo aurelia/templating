@@ -1,22 +1,23 @@
-import {_ContentSelector} from './content-selector';
 import {Animator} from './animator';
 import {View} from './view';
-import {DOM} from 'aurelia-pal';
+import {ShadowDOM} from './shadow-dom';
 
 function getAnimatableElement(view) {
-  let firstChild = view.firstChild;
-
-  if (firstChild !== null && firstChild !== undefined && firstChild.nodeType === 8) {
-    let element = DOM.nextElementSibling(firstChild);
-
-    if (element !== null && element !== undefined &&
-      element.nodeType === 1 &&
-      element.classList.contains('au-animate')) {
-      return element;
-    }
+  if (view.animatableElement !== undefined) {
+    return view.animatableElement;
   }
 
-  return null;
+  let current = view.firstChild;
+
+  while (current && current.nodeType !== 1) {
+    current = current.nextSibling;
+  }
+
+  if (current && current.nodeType === 1) {
+    return (view.animatableElement = current.classList.contains('au-animate') ? current : null);
+  }
+
+  return (view.animatableElement = null);
 }
 
 /**
@@ -32,14 +33,37 @@ export class ViewSlot {
   */
   constructor(anchor: Node, anchorIsContainer: boolean, animator?: Animator = Animator.instance) {
     this.anchor = anchor;
-    this.viewAddMethod = anchorIsContainer ? 'appendNodesTo' : 'insertNodesBefore';
+    this.anchorIsContainer = anchorIsContainer;
     this.bindingContext = null;
+    this.overrideContext = null;
     this.animator = animator;
     this.children = [];
     this.isBound = false;
     this.isAttached = false;
     this.contentSelectors = null;
     anchor.viewSlot = this;
+    anchor.isContentProjectionSource = false;
+  }
+
+  /**
+   *   Runs the animator against the first animatable element found within the view's fragment
+   *   @param  view       The view to use when searching for the element.
+   *   @param  direction  The animation direction enter|leave.
+   *   @returns An animation complete Promise or undefined if no animation was run.
+   */
+  animateView(view: View, direction: string = 'enter'): void | Promise<any> {
+    let animatableElement = getAnimatableElement(view);
+
+    if (animatableElement !== null) {
+      switch (direction) {
+      case 'enter':
+        return this.animator.enter(animatableElement);
+      case 'leave':
+        return this.animator.leave(animatableElement);
+      default:
+        throw new Error('Invalid animation direction: ' + direction);
+      }
+    }
   }
 
   /**
@@ -89,6 +113,7 @@ export class ViewSlot {
 
     this.isBound = true;
     this.bindingContext = bindingContext = bindingContext || this.bindingContext;
+    this.overrideContext = overrideContext = overrideContext || this.overrideContext;
 
     children = this.children;
     for (i = 0, ii = children.length; i < ii; ++i) {
@@ -107,6 +132,7 @@ export class ViewSlot {
 
       this.isBound = false;
       this.bindingContext = null;
+      this.overrideContext = null;
 
       for (i = 0, ii = children.length; i < ii; ++i) {
         children[i].unbind();
@@ -120,16 +146,17 @@ export class ViewSlot {
   * @return May return a promise if the view addition triggered an animation.
   */
   add(view: View): void | Promise<any> {
-    view[this.viewAddMethod](this.anchor);
+    if (this.anchorIsContainer) {
+      view.appendNodesTo(this.anchor);
+    } else {
+      view.insertNodesBefore(this.anchor);
+    }
+
     this.children.push(view);
 
     if (this.isAttached) {
       view.attached();
-
-      let animatableElement = getAnimatableElement(view);
-      if (animatableElement !== null) {
-        return this.animator.enter(animatableElement);
-      }
+      return this.animateView(view, 'enter');
     }
   }
 
@@ -152,12 +179,27 @@ export class ViewSlot {
 
     if (this.isAttached) {
       view.attached();
-
-      let animatableElement = getAnimatableElement(view);
-      if (animatableElement !== null) {
-        return this.animator.enter(animatableElement);
-      }
+      return this.animateView(view, 'enter');
     }
+  }
+
+  /**
+   * Moves a view across the slot.
+   * @param sourceIndex The index the view is currently at.
+   * @param targetIndex The index to insert the view at.
+   */
+  move(sourceIndex, targetIndex) {
+    if (sourceIndex === targetIndex) {
+      return;
+    }
+
+    const children = this.children;
+    const view = children[sourceIndex];
+
+    view.removeNodes();
+    view.insertNodesBefore(children[targetIndex].firstChild);
+    children.splice(sourceIndex, 1);
+    children.splice(targetIndex, 0, view);
   }
 
   /**
@@ -172,13 +214,68 @@ export class ViewSlot {
   }
 
   /**
+  * Removes many views from the slot.
+  * @param viewsToRemove The array of views to remove.
+  * @param returnToCache Should the views be returned to the view cache?
+  * @param skipAnimation Should the removal animation be skipped?
+  * @return May return a promise if the view removal triggered an animation.
+  */
+  removeMany(viewsToRemove: View[], returnToCache?: boolean, skipAnimation?: boolean): void | Promise<View> {
+    const children = this.children;
+    let ii = viewsToRemove.length;
+    let i;
+    let rmPromises = [];
+
+    viewsToRemove.forEach(child => {
+      if (skipAnimation) {
+        child.removeNodes();
+        return;
+      }
+
+      let animation = this.animateView(child, 'leave');
+      if (animation) {
+        rmPromises.push(animation.then(() => child.removeNodes()));
+      } else {
+        child.removeNodes();
+      }
+    });
+
+    let removeAction = () => {
+      if (this.isAttached) {
+        for (i = 0; i < ii; ++i) {
+          viewsToRemove[i].detached();
+        }
+      }
+
+      if (returnToCache) {
+        for (i = 0; i < ii; ++i) {
+          viewsToRemove[i].returnToCache();
+        }
+      }
+
+      for (i = 0; i < ii; ++i) {
+        const index = children.indexOf(viewsToRemove[i]);
+        if (index >= 0) {
+          children.splice(index, 1);
+        }
+      }
+    };
+
+    if (rmPromises.length > 0) {
+      return Promise.all(rmPromises).then(() => removeAction());
+    }
+
+    return removeAction();
+  }
+
+  /**
   * Removes a view an a specified index from the slot.
   * @param index The index to remove the view at.
   * @param returnToCache Should the view be returned to the view cache?
   * @param skipAnimation Should the removal animation be skipped?
   * @return May return a promise if the view removal triggered an animation.
   */
-  removeAt(index: number, returnToCache?: boolean, skipAnimation?: boolean): void | Promise<View> {
+  removeAt(index: number, returnToCache?: boolean, skipAnimation?: boolean): View | Promise<View> {
     let view = this.children[index];
 
     let removeAction = () => {
@@ -198,9 +295,9 @@ export class ViewSlot {
     };
 
     if (!skipAnimation) {
-      let animatableElement = getAnimatableElement(view);
-      if (animatableElement !== null) {
-        return this.animator.leave(animatableElement).then(() => removeAction());
+      let animation = this.animateView(view, 'leave');
+      if (animation) {
+        return animation.then(() => removeAction());
       }
     }
 
@@ -225,9 +322,9 @@ export class ViewSlot {
         return;
       }
 
-      let animatableElement = getAnimatableElement(child);
-      if (animatableElement !== null) {
-        rmPromises.push(this.animator.leave(animatableElement).then(() => child.removeNodes()));
+      let animation = this.animateView(child, 'leave');
+      if (animation) {
+        rmPromises.push(animation.then(() => child.removeNodes()));
       } else {
         child.removeNodes();
       }
@@ -253,7 +350,7 @@ export class ViewSlot {
       return Promise.all(rmPromises).then(() => removeAction());
     }
 
-    removeAction();
+    return removeAction();
   }
 
   /**
@@ -275,15 +372,7 @@ export class ViewSlot {
     for (i = 0, ii = children.length; i < ii; ++i) {
       child = children[i];
       child.attached();
-
-      let element = child.firstChild ? DOM.nextElementSibling(child.firstChild) : null;
-      if (child.firstChild &&
-        child.firstChild.nodeType === 8 &&
-         element &&
-         element.nodeType === 1 &&
-         element.classList.contains('au-animate')) {
-        this.animator.enter(element);
-      }
+      this.animateView(child, 'enter');
     }
   }
 
@@ -304,21 +393,20 @@ export class ViewSlot {
     }
   }
 
-  _installContentSelectors(contentSelectors: _ContentSelector[]): void {
-    this.contentSelectors = contentSelectors;
-    this.add = this._contentSelectorAdd;
-    this.insert = this._contentSelectorInsert;
-    this.remove = this._contentSelectorRemove;
-    this.removeAt = this._contentSelectorRemoveAt;
-    this.removeAll = this._contentSelectorRemoveAll;
+  projectTo(slots: Object): void {
+    this.projectToSlots = slots;
+    this.add = this._projectionAdd;
+    this.insert = this._projectionInsert;
+    this.move = this._projectionMove;
+    this.remove = this._projectionRemove;
+    this.removeAt = this._projectionRemoveAt;
+    this.removeMany = this._projectionRemoveMany;
+    this.removeAll = this._projectionRemoveAll;
+    this.children.forEach(view => ShadowDOM.distributeView(view, slots, this));
   }
 
-  _contentSelectorAdd(view) {
-    _ContentSelector.applySelectors(
-      view,
-      this.contentSelectors,
-      (contentSelector, group) => contentSelector.add(group)
-      );
+  _projectionAdd(view) {
+    ShadowDOM.distributeView(view, this.projectToSlots, this);
 
     this.children.push(view);
 
@@ -327,15 +415,11 @@ export class ViewSlot {
     }
   }
 
-  _contentSelectorInsert(index, view) {
+  _projectionInsert(index, view) {
     if ((index === 0 && !this.children.length) || index >= this.children.length) {
       this.add(view);
     } else {
-      _ContentSelector.applySelectors(
-        view,
-        this.contentSelectors,
-        (contentSelector, group) => contentSelector.insert(index, group)
-      );
+      ShadowDOM.distributeView(view, this.projectToSlots, this, index);
 
       this.children.splice(index, 0, view);
 
@@ -345,61 +429,52 @@ export class ViewSlot {
     }
   }
 
-  _contentSelectorRemove(view) {
-    let index = this.children.indexOf(view);
-    let contentSelectors = this.contentSelectors;
-    let i;
-    let ii;
-
-    for (i = 0, ii = contentSelectors.length; i < ii; ++i) {
-      contentSelectors[i].removeAt(index, view.fragment);
+  _projectionMove(sourceIndex, targetIndex) {
+    if (sourceIndex === targetIndex) {
+      return;
     }
 
-    this.children.splice(index, 1);
+    const children = this.children;
+    const view = children[sourceIndex];
+
+    ShadowDOM.undistributeView(view, this.projectToSlots, this);
+    ShadowDOM.distributeView(view, this.projectToSlots, this, targetIndex);
+
+    children.splice(sourceIndex, 1);
+    children.splice(targetIndex, 0, view);
+  }
+
+  _projectionRemove(view, returnToCache) {
+    ShadowDOM.undistributeView(view, this.projectToSlots, this);
+    this.children.splice(this.children.indexOf(view), 1);
 
     if (this.isAttached) {
       view.detached();
     }
   }
 
-  _contentSelectorRemoveAt(index) {
+  _projectionRemoveAt(index, returnToCache) {
     let view = this.children[index];
-    let contentSelectors = this.contentSelectors;
-    let i;
-    let ii;
 
-    for (i = 0, ii = contentSelectors.length; i < ii; ++i) {
-      contentSelectors[i].removeAt(index, view.fragment);
-    }
-
+    ShadowDOM.undistributeView(view, this.projectToSlots, this);
     this.children.splice(index, 1);
 
     if (this.isAttached) {
       view.detached();
     }
-
-    return view;
   }
 
-  _contentSelectorRemoveAll() {
+  _projectionRemoveMany(viewsToRemove, returnToCache?) {
+    viewsToRemove.forEach(view => this.remove(view, returnToCache));
+  }
+
+  _projectionRemoveAll(returnToCache) {
+    ShadowDOM.undistributeAll(this.projectToSlots, this);
+
     let children = this.children;
-    let contentSelectors = this.contentSelectors;
-    let ii = children.length;
-    let jj = contentSelectors.length;
-    let i;
-    let j;
-    let view;
-
-    for (i = 0; i < ii; ++i) {
-      view = children[i];
-
-      for (j = 0; j < jj; ++j) {
-        contentSelectors[j].removeAt(0, view.fragment);
-      }
-    }
 
     if (this.isAttached) {
-      for (i = 0; i < ii; ++i) {
+      for (let i = 0, ii = children.length; i < ii; ++i) {
         children[i].detached();
       }
     }
