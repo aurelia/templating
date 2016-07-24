@@ -117,6 +117,10 @@
     "documentation": {
       "articles": [
         {
+          "title": "Templating: Basics",
+          "href": "doc/article/en-US/templating-basics.md"
+        },
+        {
           "title": "Templating: HTML Behaviors Introduction",
           "href": "doc/article/en-US/templating-html-behaviors-introduction.md"
         },
