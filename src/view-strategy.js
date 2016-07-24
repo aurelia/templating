@@ -14,9 +14,10 @@ interface ViewStrategy {
   * @param viewEngine The view engine to use during the load process.
   * @param compileInstruction Additional instructions to use during compilation of the view.
   * @param loadContext The loading context used for loading all resources and dependencies.
+  * @param target A class from which to extract metadata of additional resources to load.
   * @return A promise for the view factory that is produced by this strategy.
   */
-  loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewFactory>;
+  loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext, target?: any): Promise<ViewFactory>;
 }
 
 /**
@@ -56,15 +57,16 @@ export class RelativeViewStrategy {
   * @param viewEngine The view engine to use during the load process.
   * @param compileInstruction Additional instructions to use during compilation of the view.
   * @param loadContext The loading context used for loading all resources and dependencies.
+  * @param target A class from which to extract metadata of additional resources to load.
   * @return A promise for the view factory that is produced by this strategy.
   */
-  loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewFactory> {
+  loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext, target?: any): Promise<ViewFactory> {
     if (this.absolutePath === null && this.moduleId) {
       this.absolutePath = relativeToFile(this.path, this.moduleId);
     }
 
     compileInstruction.associatedModuleId = this.moduleId;
-    return viewEngine.loadViewFactory(this.absolutePath || this.path, compileInstruction, loadContext);
+    return viewEngine.loadViewFactory(this.absolutePath || this.path, compileInstruction, loadContext, target);
   }
 
   /**
@@ -98,11 +100,12 @@ export class ConventionalViewStrategy {
   * @param viewEngine The view engine to use during the load process.
   * @param compileInstruction Additional instructions to use during compilation of the view.
   * @param loadContext The loading context used for loading all resources and dependencies.
+  * @param target A class from which to extract metadata of additional resources to load.
   * @return A promise for the view factory that is produced by this strategy.
   */
-  loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewFactory> {
+  loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext, target?: any): Promise<ViewFactory> {
     compileInstruction.associatedModuleId = this.moduleId;
-    return viewEngine.loadViewFactory(this.viewUrl, compileInstruction, loadContext);
+    return viewEngine.loadViewFactory(this.viewUrl, compileInstruction, loadContext, target);
   }
 }
 
@@ -117,6 +120,7 @@ export class NoViewStrategy {
   * @param viewEngine The view engine to use during the load process.
   * @param compileInstruction Additional instructions to use during compilation of the view.
   * @param loadContext The loading context used for loading all resources and dependencies.
+  * @param target A class from which to extract metadata of additional resources to load.
   * @return A promise for the view factory that is produced by this strategy.
   */
   loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewFactory> {
@@ -144,9 +148,10 @@ export class TemplateRegistryViewStrategy {
   * @param viewEngine The view engine to use during the load process.
   * @param compileInstruction Additional instructions to use during compilation of the view.
   * @param loadContext The loading context used for loading all resources and dependencies.
+  * @param target A class from which to extract metadata of additional resources to load.
   * @return A promise for the view factory that is produced by this strategy.
   */
-  loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewFactory> {
+  loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext, target?: any): Promise<ViewFactory> {
     let entry = this.entry;
 
     if (entry.factoryIsReady) {
@@ -154,7 +159,7 @@ export class TemplateRegistryViewStrategy {
     }
 
     compileInstruction.associatedModuleId = this.moduleId;
-    return viewEngine.loadViewFactory(entry, compileInstruction, loadContext);
+    return viewEngine.loadViewFactory(entry, compileInstruction, loadContext, target);
   }
 }
 
@@ -180,9 +185,10 @@ export class InlineViewStrategy {
   * @param viewEngine The view engine to use during the load process.
   * @param compileInstruction Additional instructions to use during compilation of the view.
   * @param loadContext The loading context used for loading all resources and dependencies.
+  * @param target A class from which to extract metadata of additional resources to load.
   * @return A promise for the view factory that is produced by this strategy.
   */
-  loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewFactory> {
+  loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext, target?: any): Promise<ViewFactory> {
     let entry = this.entry;
     let dependencies = this.dependencies;
 
@@ -206,6 +212,6 @@ export class InlineViewStrategy {
     }
 
     compileInstruction.associatedModuleId = this.moduleId;
-    return viewEngine.loadViewFactory(entry, compileInstruction, loadContext);
+    return viewEngine.loadViewFactory(entry, compileInstruction, loadContext, target);
   }
 }

@@ -1,6 +1,6 @@
 import * as LogManager from 'aurelia-logging';
-import {Origin} from 'aurelia-metadata';
-import {Loader, TemplateRegistryEntry} from 'aurelia-loader';
+import {Origin, metadata} from 'aurelia-metadata';
+import {Loader, TemplateRegistryEntry, TemplateDependency} from 'aurelia-loader';
 import {Container, inject} from 'aurelia-dependency-injection';
 import {ViewCompiler} from './view-compiler';
 import {ViewResources} from './view-resources';
@@ -9,6 +9,7 @@ import {ViewFactory} from './view-factory';
 import {ResourceLoadContext, ViewCompileInstruction} from './instructions';
 import {SlotCustomAttribute} from './shadow-dom';
 import {HtmlBehaviorResource} from './html-behavior';
+import {relativeToFile} from 'aurelia-path';
 
 let logger = LogManager.getLogger('templating');
 
@@ -52,6 +53,11 @@ class ProxyViewFactory {
 @inject(Loader, Container, ViewCompiler, ModuleAnalyzer, ViewResources)
 export class ViewEngine {
   /**
+  * The metadata key for storing requires declared in a ViewModel.
+  */
+  static viewModelRequireMetadataKey = 'aurelia:view-model-require';
+
+  /**
   * Creates an instance of ViewEngine.
   * @param loader The module loader.
   * @param container The root DI container for the app.
@@ -89,12 +95,26 @@ export class ViewEngine {
   * @param urlOrRegistryEntry A url or template registry entry to generate the view factory for.
   * @param compileInstruction Instructions detailing how the factory should be compiled.
   * @param loadContext The load context if this factory load is happening within the context of a larger load operation.
+  * @param target A class from which to extract metadata of additional resources to load.
   * @return A promise for the compiled view factory.
   */
-  loadViewFactory(urlOrRegistryEntry: string|TemplateRegistryEntry, compileInstruction?: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewFactory> {
+  loadViewFactory(urlOrRegistryEntry: string|TemplateRegistryEntry, compileInstruction?: ViewCompileInstruction, loadContext?: ResourceLoadContext, target?: any): Promise<ViewFactory> {
     loadContext = loadContext || new ResourceLoadContext();
 
     return ensureRegistryEntry(this.loader, urlOrRegistryEntry).then(registryEntry => {
+      if (target) {
+        let viewModelRequires = metadata.get(ViewEngine.viewModelRequireMetadataKey, target);
+        if (viewModelRequires) {
+          for (let i = 0, ii = viewModelRequires.length; i < ii; ++i) {
+            let req = viewModelRequires[i];
+            let finalSrc = typeof req === 'function' ? Origin.get(req).moduleId : relativeToFile(req.src || req, registryEntry.address);
+            if (!registryEntry.dependencies.some((entry) => entry.src === finalSrc)) {
+              registryEntry.deependencies.push(new TemplateDependency(finalSrc, req.as));
+            }
+          }
+        }
+      }
+
       if (registryEntry.onReady) {
         if (!loadContext.hasDependency(urlOrRegistryEntry)) {
           loadContext.addDependency(urlOrRegistryEntry);
@@ -106,7 +126,7 @@ export class ViewEngine {
 
       loadContext.addDependency(urlOrRegistryEntry);
 
-      registryEntry.onReady = this.loadTemplateResources(registryEntry, compileInstruction, loadContext).then(resources => {
+      registryEntry.onReady = this.loadTemplateResources(registryEntry, compileInstruction, loadContext, target).then(resources => {
         registryEntry.resources = resources;
         let viewFactory = this.viewCompiler.compile(registryEntry.template, resources, compileInstruction);
         registryEntry.factory = viewFactory;

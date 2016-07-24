@@ -1,5 +1,6 @@
 import * as LogManager from 'aurelia-logging';
 import {metadata} from 'aurelia-metadata';
+import {ViewEngine} from './view-engine';
 import {BindableProperty} from './bindable-property';
 import {ElementConfigResource} from './element-config';
 import {ViewLocator, RelativeViewStrategy, NoViewStrategy, InlineViewStrategy} from './view-strategy';
@@ -246,4 +247,15 @@ export function elementConfig(target?): any {
   };
 
   return target ? deco(target) : deco;
+}
+
+/**
+* Decorator: Provides the ability to add resources to the related View
+* Same as: <require from="..."></require>
+* @param resource Either: strings with moduleIds, Objects with 'src' and optionally 'as' properties or one of the classes of the module to be included.
+*/
+export function viewResources(...resource) { // eslint-disable-line
+  return function(target) {
+    metadata.define(ViewEngine.viewModelRequireMetadataKey, resources, target);
+  };
 }
