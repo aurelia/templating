@@ -1186,7 +1186,7 @@ System.register(['aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aurelia-
 
             viewStrategy.assert(value);
 
-            if (_origin) {
+            if (_origin.moduleId) {
               value.makeRelativeTo(_origin.moduleId);
             }
 
@@ -1209,12 +1209,12 @@ System.register(['aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aurelia-
           var strategy = metadata.get(ViewLocator.viewStrategyMetadataKey, value);
 
           if (!strategy) {
-            if (!origin) {
+            if (!origin.moduleId) {
               throw new Error('Cannot determine default view strategy for object.', value);
             }
 
             strategy = this.createFallbackViewStrategy(origin);
-          } else if (origin) {
+          } else if (origin.moduleId) {
             strategy.moduleId = origin.moduleId;
           }
 

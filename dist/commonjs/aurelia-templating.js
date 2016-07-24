@@ -661,7 +661,7 @@ var ViewLocator = exports.ViewLocator = (_temp2 = _class10 = function () {
 
       viewStrategy.assert(value);
 
-      if (_origin) {
+      if (_origin.moduleId) {
         value.makeRelativeTo(_origin.moduleId);
       }
 
@@ -684,12 +684,12 @@ var ViewLocator = exports.ViewLocator = (_temp2 = _class10 = function () {
     var strategy = _aureliaMetadata.metadata.get(ViewLocator.viewStrategyMetadataKey, value);
 
     if (!strategy) {
-      if (!origin) {
+      if (!origin.moduleId) {
         throw new Error('Cannot determine default view strategy for object.', value);
       }
 
       strategy = this.createFallbackViewStrategy(origin);
-    } else if (origin) {
+    } else if (origin.moduleId) {
       strategy.moduleId = origin.moduleId;
     }
 
