@@ -160,24 +160,6 @@ Notice that the way we set up the binding was by using `value.bind` and `checked
 
 You can lean more about data-binding in the Binding section of our docs.
 
-### Style Binding
-
-Although we can bind `value` fields, we can also bind other properties as well- including style properties!
-
-<code-listing heading="bind-style.html">
-  <source-code lang="HTML">
-    <template>
-      <select value.bind="colorSelected">
-        <option value="red">red</option>
-        <option value="blue">blue</option>
-      </select>
-      <p css.bind="{ color: colorSelected }">This pen is ${colorSelected}</p>
-    </template>
-  </source-code>
-</code-listing>
-
-In the example above, we use a JavaScript Object with the value from our view-model. The keys in the object correspond to CSS properties on the element, for example: `height: 10px; display: inline-block;` would be `{ height: '10px', display: 'inline-block' }`. We can also bind the `css` property directly to a css string. However, using the object approach is safer for avoiding parse errors in earlier versions of Internet Explorer, where the browser simply deletes the CSS string if it finds it to be invalid.
-
 ### Binding Focus
 
 We can also use two-way data binding to communicate whether or not an element has focus:
