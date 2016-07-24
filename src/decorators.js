@@ -229,9 +229,18 @@ export function inlineView(markup:string, dependencies?:Array<string|Function|Ob
 /**
 * Decorator: Indicates that the component has no view.
 */
-export function noView(target?): any {
+export function noView(targetOrDependencies?:Function|Array<any>, dependencyBaseUrl?:string): any {
+  let target;
+  let dependencies;
+  if (typeof targetOrDependencies === 'function') {
+    target = targetOrDependencies;
+  } else {
+    dependencies = targetOrDependencies;
+    target = undefined;
+  }
+  
   let deco = function(t) {
-    metadata.define(ViewLocator.viewStrategyMetadataKey, new NoViewStrategy(), t);
+    metadata.define(ViewLocator.viewStrategyMetadataKey, new NoViewStrategy(dependencies, dependencyBaseUrl), t);
   };
 
   return target ? deco(target) : deco;

@@ -116,6 +116,16 @@ export class ConventionalViewStrategy {
 @viewStrategy()
 export class NoViewStrategy {
   /**
+  * Creates an instance of NoViewStrategy.
+  * @param dependencies A list of view resource dependencies of this view.
+  * @param dependencyBaseUrl The base url for the view dependencies.
+  */
+  constructor(dependencies?: Array<string|Function|Object>, dependencyBaseUrl?: string) {
+    this.dependencies = dependencies || null;
+    this.dependencyBaseUrl = dependencyBaseUrl || '';
+  }
+
+  /**
   * Loads a view factory.
   * @param viewEngine The view engine to use during the load process.
   * @param compileInstruction Additional instructions to use during compilation of the view.
@@ -123,8 +133,36 @@ export class NoViewStrategy {
   * @param target A class from which to extract metadata of additional resources to load.
   * @return A promise for the view factory that is produced by this strategy.
   */
-  loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewFactory> {
-    return Promise.resolve(null);
+  loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext, target?: any): Promise<ViewFactory> {
+    let entry = this.entry;
+    let dependencies = this.dependencies;
+
+    if (entry && entry.factoryIsReady) {
+      return Promise.resolve(null);
+    }
+
+    this.entry = entry = new TemplateRegistryEntry(this.moduleId || this.dependencyBaseUrl);
+    // since we're not invoking the TemplateRegistryEntry template setter
+    // we need to create the dependencies Array manually and set it as loaded: 
+    entry.dependencies = [];
+    entry.templateIsLoaded = true;
+
+    if (dependencies !== null) {
+      for (let i = 0, ii = dependencies.length; i < ii; ++i) {
+        let current = dependencies[i];
+
+        if (typeof current === 'string' || typeof current === 'function') {
+          entry.addDependency(current);
+        } else {
+          entry.addDependency(current.from, current.as);
+        }
+      }
+    }
+
+    compileInstruction.associatedModuleId = this.moduleId;
+    
+    // loadViewFactory will resolve as 'null' because entry template is not set:
+    return viewEngine.loadViewFactory(entry, compileInstruction, loadContext, target);
   }
 }
 

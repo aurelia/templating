@@ -102,22 +102,14 @@ export class ViewEngine {
     loadContext = loadContext || new ResourceLoadContext();
 
     return ensureRegistryEntry(this.loader, urlOrRegistryEntry).then(registryEntry => {
-      if (target) {
-        let viewModelRequires = metadata.get(ViewEngine.viewModelRequireMetadataKey, target);
-        if (viewModelRequires) {
-          for (let i = 0, ii = viewModelRequires.length; i < ii; ++i) {
-            let req = viewModelRequires[i];
-            let finalSrc = typeof req === 'function' ? Origin.get(req).moduleId : relativeToFile(req.src || req, registryEntry.address);
-            if (!registryEntry.dependencies.some((entry) => entry.src === finalSrc)) {
-              registryEntry.deependencies.push(new TemplateDependency(finalSrc, req.as));
-            }
-          }
-        }
-      }
-
       if (registryEntry.onReady) {
         if (!loadContext.hasDependency(urlOrRegistryEntry)) {
           loadContext.addDependency(urlOrRegistryEntry);
+          return registryEntry.onReady;
+        }
+
+        if (registryEntry.template === null) {
+          // handle NoViewStrategy:
           return registryEntry.onReady;
         }
 
@@ -128,9 +120,14 @@ export class ViewEngine {
 
       registryEntry.onReady = this.loadTemplateResources(registryEntry, compileInstruction, loadContext, target).then(resources => {
         registryEntry.resources = resources;
+
+        if (registryEntry.template === null) {
+          // handle NoViewStrategy:
+          return registryEntry.factory = null;
+        }
+
         let viewFactory = this.viewCompiler.compile(registryEntry.template, resources, compileInstruction);
-        registryEntry.factory = viewFactory;
-        return viewFactory;
+        return registryEntry.factory = viewFactory;
       });
 
       return registryEntry.onReady;
@@ -142,9 +139,10 @@ export class ViewEngine {
   * @param registryEntry The template registry entry to load the resources for.
   * @param compileInstruction The compile instruction associated with the load.
   * @param loadContext The load context if this is happening within the context of a larger load operation.
+  * @param target A class from which to extract metadata of additional resources to load.
   * @return A promise of ViewResources for the registry entry.
   */
-  loadTemplateResources(registryEntry: TemplateRegistryEntry, compileInstruction?: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewResources> {
+  loadTemplateResources(registryEntry: TemplateRegistryEntry, compileInstruction?: ViewCompileInstruction, loadContext?: ResourceLoadContext, target?: any): Promise<ViewResources> {
     let resources = new ViewResources(this.appResources, registryEntry.address);
     let dependencies = registryEntry.dependencies;
     let importIds;
@@ -159,6 +157,23 @@ export class ViewEngine {
     importIds = dependencies.map(x => x.src);
     names = dependencies.map(x => x.name);
     logger.debug(`importing resources for ${registryEntry.address}`, importIds);
+
+    if (target) {
+      let viewModelRequires = metadata.get(ViewEngine.viewModelRequireMetadataKey, target);
+      if (viewModelRequires) {
+        let templateImportCount = importIds.length;
+        for (let i = 0, ii = viewModelRequires.length; i < ii; ++i) {
+          let req = viewModelRequires[i];
+          let importId = typeof req === 'function' ? Origin.get(req).moduleId : relativeToFile(req.src || req, registryEntry.address);
+
+          if (importIds.indexOf(importId) === -1) {
+            importIds.push(importId);
+            names.push(req.as);
+          }
+        }
+        logger.debug(`importing ViewModel resources for ${compileInstruction.associatedModuleId}`, importIds.slice(templateImportCount));
+      }
+    }
 
     return this.importViewResources(importIds, names, resources, compileInstruction, loadContext);
   }
