@@ -26,6 +26,7 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
   exports.inlineView = inlineView;
   exports.noView = noView;
   exports.elementConfig = elementConfig;
+  exports.viewResources = viewResources;
 
   var LogManager = _interopRequireWildcard(_aureliaLogging);
 
@@ -64,7 +65,7 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
     };
   }();
 
-  var _class4, _temp, _dec, _class5, _dec2, _class6, _dec3, _class7, _dec4, _class8, _dec5, _class9, _class10, _temp2, _dec6, _class11, _class12, _temp3, _class15, _dec7, _class17, _dec8, _class18, _dec9, _class20, _dec10, _class21, _dec11, _class22;
+  var _class4, _temp, _dec, _class5, _dec2, _class6, _dec3, _class7, _dec4, _class8, _dec5, _class9, _class10, _temp2, _dec6, _class11, _class12, _temp3, _class15, _dec7, _class17, _dec8, _class18, _class19, _temp4, _dec9, _class21, _dec10, _class22, _dec11, _class23;
 
   var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) {
     return typeof obj;
@@ -557,13 +558,13 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
       this.absolutePath = null;
     }
 
-    RelativeViewStrategy.prototype.loadViewFactory = function loadViewFactory(viewEngine, compileInstruction, loadContext) {
+    RelativeViewStrategy.prototype.loadViewFactory = function loadViewFactory(viewEngine, compileInstruction, loadContext, target) {
       if (this.absolutePath === null && this.moduleId) {
         this.absolutePath = (0, _aureliaPath.relativeToFile)(this.path, this.moduleId);
       }
 
       compileInstruction.associatedModuleId = this.moduleId;
-      return viewEngine.loadViewFactory(this.absolutePath || this.path, compileInstruction, loadContext);
+      return viewEngine.loadViewFactory(this.absolutePath || this.path, compileInstruction, loadContext, target);
     };
 
     RelativeViewStrategy.prototype.makeRelativeTo = function makeRelativeTo(file) {
@@ -582,20 +583,49 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
       this.viewUrl = viewLocator.convertOriginToViewUrl(origin);
     }
 
-    ConventionalViewStrategy.prototype.loadViewFactory = function loadViewFactory(viewEngine, compileInstruction, loadContext) {
+    ConventionalViewStrategy.prototype.loadViewFactory = function loadViewFactory(viewEngine, compileInstruction, loadContext, target) {
       compileInstruction.associatedModuleId = this.moduleId;
-      return viewEngine.loadViewFactory(this.viewUrl, compileInstruction, loadContext);
+      return viewEngine.loadViewFactory(this.viewUrl, compileInstruction, loadContext, target);
     };
 
     return ConventionalViewStrategy;
   }()) || _class6);
   var NoViewStrategy = exports.NoViewStrategy = (_dec3 = viewStrategy(), _dec3(_class7 = function () {
-    function NoViewStrategy() {
+    function NoViewStrategy(dependencies, dependencyBaseUrl) {
       
+
+      this.dependencies = dependencies || null;
+      this.dependencyBaseUrl = dependencyBaseUrl || '';
     }
 
-    NoViewStrategy.prototype.loadViewFactory = function loadViewFactory(viewEngine, compileInstruction, loadContext) {
-      return Promise.resolve(null);
+    NoViewStrategy.prototype.loadViewFactory = function loadViewFactory(viewEngine, compileInstruction, loadContext, target) {
+      var entry = this.entry;
+      var dependencies = this.dependencies;
+
+      if (entry && entry.factoryIsReady) {
+        return Promise.resolve(null);
+      }
+
+      this.entry = entry = new _aureliaLoader.TemplateRegistryEntry(this.moduleId || this.dependencyBaseUrl);
+
+      entry.dependencies = [];
+      entry.templateIsLoaded = true;
+
+      if (dependencies !== null) {
+        for (var i = 0, ii = dependencies.length; i < ii; ++i) {
+          var current = dependencies[i];
+
+          if (typeof current === 'string' || typeof current === 'function') {
+            entry.addDependency(current);
+          } else {
+            entry.addDependency(current.from, current.as);
+          }
+        }
+      }
+
+      compileInstruction.associatedModuleId = this.moduleId;
+
+      return viewEngine.loadViewFactory(entry, compileInstruction, loadContext, target);
     };
 
     return NoViewStrategy;
@@ -608,7 +638,7 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
       this.entry = entry;
     }
 
-    TemplateRegistryViewStrategy.prototype.loadViewFactory = function loadViewFactory(viewEngine, compileInstruction, loadContext) {
+    TemplateRegistryViewStrategy.prototype.loadViewFactory = function loadViewFactory(viewEngine, compileInstruction, loadContext, target) {
       var entry = this.entry;
 
       if (entry.factoryIsReady) {
@@ -616,7 +646,7 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
       }
 
       compileInstruction.associatedModuleId = this.moduleId;
-      return viewEngine.loadViewFactory(entry, compileInstruction, loadContext);
+      return viewEngine.loadViewFactory(entry, compileInstruction, loadContext, target);
     };
 
     return TemplateRegistryViewStrategy;
@@ -630,7 +660,7 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
       this.dependencyBaseUrl = dependencyBaseUrl || '';
     }
 
-    InlineViewStrategy.prototype.loadViewFactory = function loadViewFactory(viewEngine, compileInstruction, loadContext) {
+    InlineViewStrategy.prototype.loadViewFactory = function loadViewFactory(viewEngine, compileInstruction, loadContext, target) {
       var entry = this.entry;
       var dependencies = this.dependencies;
 
@@ -654,7 +684,7 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
       }
 
       compileInstruction.associatedModuleId = this.moduleId;
-      return viewEngine.loadViewFactory(entry, compileInstruction, loadContext);
+      return viewEngine.loadViewFactory(entry, compileInstruction, loadContext, target);
     };
 
     return InlineViewStrategy;
@@ -3107,7 +3137,7 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
     return ProxyViewFactory;
   }();
 
-  var ViewEngine = exports.ViewEngine = (_dec8 = (0, _aureliaDependencyInjection.inject)(_aureliaLoader.Loader, _aureliaDependencyInjection.Container, ViewCompiler, ModuleAnalyzer, ViewResources), _dec8(_class18 = function () {
+  var ViewEngine = exports.ViewEngine = (_dec8 = (0, _aureliaDependencyInjection.inject)(_aureliaLoader.Loader, _aureliaDependencyInjection.Container, ViewCompiler, ModuleAnalyzer, ViewResources), _dec8(_class18 = (_temp4 = _class19 = function () {
     function ViewEngine(loader, container, viewCompiler, moduleAnalyzer, appResources) {
       
 
@@ -3130,7 +3160,7 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
       this.loader.addPlugin(name, implementation);
     };
 
-    ViewEngine.prototype.loadViewFactory = function loadViewFactory(urlOrRegistryEntry, compileInstruction, loadContext) {
+    ViewEngine.prototype.loadViewFactory = function loadViewFactory(urlOrRegistryEntry, compileInstruction, loadContext, target) {
       var _this10 = this;
 
       loadContext = loadContext || new ResourceLoadContext();
@@ -3142,23 +3172,31 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
             return registryEntry.onReady;
           }
 
+          if (registryEntry.template === null) {
+            return registryEntry.onReady;
+          }
+
           return Promise.resolve(new ProxyViewFactory(registryEntry.onReady));
         }
 
         loadContext.addDependency(urlOrRegistryEntry);
 
-        registryEntry.onReady = _this10.loadTemplateResources(registryEntry, compileInstruction, loadContext).then(function (resources) {
+        registryEntry.onReady = _this10.loadTemplateResources(registryEntry, compileInstruction, loadContext, target).then(function (resources) {
           registryEntry.resources = resources;
+
+          if (registryEntry.template === null) {
+            return registryEntry.factory = null;
+          }
+
           var viewFactory = _this10.viewCompiler.compile(registryEntry.template, resources, compileInstruction);
-          registryEntry.factory = viewFactory;
-          return viewFactory;
+          return registryEntry.factory = viewFactory;
         });
 
         return registryEntry.onReady;
       });
     };
 
-    ViewEngine.prototype.loadTemplateResources = function loadTemplateResources(registryEntry, compileInstruction, loadContext) {
+    ViewEngine.prototype.loadTemplateResources = function loadTemplateResources(registryEntry, compileInstruction, loadContext, target) {
       var resources = new ViewResources(this.appResources, registryEntry.address);
       var dependencies = registryEntry.dependencies;
       var importIds = void 0;
@@ -3177,6 +3215,23 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
         return x.name;
       });
       logger.debug('importing resources for ' + registryEntry.address, importIds);
+
+      if (target) {
+        var viewModelRequires = _aureliaMetadata.metadata.get(ViewEngine.viewModelRequireMetadataKey, target);
+        if (viewModelRequires) {
+          var templateImportCount = importIds.length;
+          for (var i = 0, ii = viewModelRequires.length; i < ii; ++i) {
+            var req = viewModelRequires[i];
+            var importId = typeof req === 'function' ? _aureliaMetadata.Origin.get(req).moduleId : (0, _aureliaPath.relativeToFile)(req.src || req, registryEntry.address);
+
+            if (importIds.indexOf(importId) === -1) {
+              importIds.push(importId);
+              names.push(req.as);
+            }
+          }
+          logger.debug('importing ViewModel resources for ' + compileInstruction.associatedModuleId, importIds.slice(templateImportCount));
+        }
+      }
 
       return this.importViewResources(importIds, names, resources, compileInstruction, loadContext);
     };
@@ -3265,7 +3320,7 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
     };
 
     return ViewEngine;
-  }()) || _class18);
+  }(), _class19.viewModelRequireMetadataKey = 'aurelia:view-model-require', _temp4)) || _class18);
 
   var Controller = exports.Controller = function () {
     function Controller(behavior, instruction, viewModel, elementEvents) {
@@ -3437,7 +3492,7 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
     return Controller;
   }();
 
-  var BehaviorPropertyObserver = exports.BehaviorPropertyObserver = (_dec9 = (0, _aureliaBinding.subscriberCollection)(), _dec9(_class20 = function () {
+  var BehaviorPropertyObserver = exports.BehaviorPropertyObserver = (_dec9 = (0, _aureliaBinding.subscriberCollection)(), _dec9(_class21 = function () {
     function BehaviorPropertyObserver(taskQueue, obj, propertyName, selfSubscriber, initialValue) {
       
 
@@ -3495,7 +3550,7 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
     };
 
     return BehaviorPropertyObserver;
-  }()) || _class20);
+  }()) || _class21);
 
 
   function getObserver(behavior, instance, name) {
@@ -3863,7 +3918,7 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
           viewStrategy.moduleId = _aureliaMetadata.Origin.get(target).moduleId;
         }
 
-        return viewStrategy.loadViewFactory(container.get(ViewEngine), options, loadContext).then(function (viewFactory) {
+        return viewStrategy.loadViewFactory(container.get(ViewEngine), options, loadContext, target).then(function (viewFactory) {
           if (!transientView || !_this13.viewFactory) {
             _this13.viewFactory = viewFactory;
           }
@@ -4338,7 +4393,7 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
     return context.viewModel.activate(context.model) || Promise.resolve();
   }
 
-  var CompositionEngine = exports.CompositionEngine = (_dec10 = (0, _aureliaDependencyInjection.inject)(ViewEngine, ViewLocator), _dec10(_class21 = function () {
+  var CompositionEngine = exports.CompositionEngine = (_dec10 = (0, _aureliaDependencyInjection.inject)(ViewEngine, ViewLocator), _dec10(_class22 = function () {
     function CompositionEngine(viewEngine, viewLocator) {
       
 
@@ -4485,7 +4540,7 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
     };
 
     return CompositionEngine;
-  }()) || _class21);
+  }()) || _class22);
 
   var ElementConfigResource = exports.ElementConfigResource = function () {
     function ElementConfigResource() {
@@ -4575,9 +4630,9 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
     }
 
     if (key) {
-      var target = nameOrConfigOrTarget;
+      var _target = nameOrConfigOrTarget;
       nameOrConfigOrTarget = null;
-      return deco(target, key, descriptor);
+      return deco(_target, key, descriptor);
     }
 
     return deco;
@@ -4659,9 +4714,18 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
     return useViewStrategy(new InlineViewStrategy(markup, dependencies, dependencyBaseUrl));
   }
 
-  function noView(target) {
+  function noView(targetOrDependencies, dependencyBaseUrl) {
+    var target = void 0;
+    var dependencies = void 0;
+    if (typeof targetOrDependencies === 'function') {
+      target = targetOrDependencies;
+    } else {
+      dependencies = targetOrDependencies;
+      target = undefined;
+    }
+
     var deco = function deco(t) {
-      _aureliaMetadata.metadata.define(ViewLocator.viewStrategyMetadataKey, new NoViewStrategy(), t);
+      _aureliaMetadata.metadata.define(ViewLocator.viewStrategyMetadataKey, new NoViewStrategy(dependencies, dependencyBaseUrl), t);
     };
 
     return target ? deco(target) : deco;
@@ -4675,7 +4739,13 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
     return target ? deco(target) : deco;
   }
 
-  var TemplatingEngine = exports.TemplatingEngine = (_dec11 = (0, _aureliaDependencyInjection.inject)(_aureliaDependencyInjection.Container, ModuleAnalyzer, ViewCompiler, CompositionEngine), _dec11(_class22 = function () {
+  function viewResources() {
+    return function (target) {
+      _aureliaMetadata.metadata.define(ViewEngine.viewModelRequireMetadataKey, resources, target);
+    };
+  }
+
+  var TemplatingEngine = exports.TemplatingEngine = (_dec11 = (0, _aureliaDependencyInjection.inject)(_aureliaDependencyInjection.Container, ModuleAnalyzer, ViewCompiler, CompositionEngine), _dec11(_class23 = function () {
     function TemplatingEngine(container, moduleAnalyzer, viewCompiler, compositionEngine) {
       
 
@@ -4715,5 +4785,5 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
     };
 
     return TemplatingEngine;
-  }()) || _class22);
+  }()) || _class23);
 });

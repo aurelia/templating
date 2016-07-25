@@ -1,3 +1,19 @@
+<a name="1.0.0-rc.1.0.3"></a>
+# [1.0.0-rc.1.0.3](https://github.com/aurelia/templating/compare/1.0.0-rc.1.0.2...v1.0.0-rc.1.0.3) (2016-07-25)
+
+
+### Bug Fixes
+
+* **html-behavior:** pass target to the underlying viewStrategy ([4764f4a](https://github.com/aurelia/templating/commit/4764f4a))
+
+
+### Features
+
+* **NoViewStrategy:** allow NoViewStrategy to have dependencies ([3be08fc](https://github.com/aurelia/templating/commit/3be08fc))
+* **view-engine:** add a decorator for declaring requires on the ViewModel ([17472d4](https://github.com/aurelia/templating/commit/17472d4))
+
+
+
 <a name="1.0.0-rc.1.0.2"></a>
 # [1.0.0-rc.1.0.2](https://github.com/aurelia/templating/compare/1.0.0-rc.1.0.1...v1.0.0-rc.1.0.2) (2016-07-24)
 
