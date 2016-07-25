@@ -189,7 +189,7 @@ export class HtmlBehaviorResource {
         viewStrategy.moduleId = Origin.get(target).moduleId;
       }
 
-      return viewStrategy.loadViewFactory(container.get(ViewEngine), options, loadContext).then(viewFactory => {
+      return viewStrategy.loadViewFactory(container.get(ViewEngine), options, loadContext, target).then(viewFactory => {
         if (!transientView || !this.viewFactory) {
           this.viewFactory = viewFactory;
         }

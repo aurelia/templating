@@ -1,5 +1,6 @@
 import * as LogManager from 'aurelia-logging';
 import {metadata} from 'aurelia-metadata';
+import {ViewEngine} from './view-engine';
 import {BindableProperty} from './bindable-property';
 import {ElementConfigResource} from './element-config';
 import {ViewLocator, RelativeViewStrategy, NoViewStrategy, InlineViewStrategy} from './view-strategy';
@@ -228,9 +229,18 @@ export function inlineView(markup:string, dependencies?:Array<string|Function|Ob
 /**
 * Decorator: Indicates that the component has no view.
 */
-export function noView(target?): any {
+export function noView(targetOrDependencies?:Function|Array<any>, dependencyBaseUrl?:string): any {
+  let target;
+  let dependencies;
+  if (typeof targetOrDependencies === 'function') {
+    target = targetOrDependencies;
+  } else {
+    dependencies = targetOrDependencies;
+    target = undefined;
+  }
+  
   let deco = function(t) {
-    metadata.define(ViewLocator.viewStrategyMetadataKey, new NoViewStrategy(), t);
+    metadata.define(ViewLocator.viewStrategyMetadataKey, new NoViewStrategy(dependencies, dependencyBaseUrl), t);
   };
 
   return target ? deco(target) : deco;
@@ -246,4 +256,15 @@ export function elementConfig(target?): any {
   };
 
   return target ? deco(target) : deco;
+}
+
+/**
+* Decorator: Provides the ability to add resources to the related View
+* Same as: <require from="..."></require>
+* @param resource Either: strings with moduleIds, Objects with 'src' and optionally 'as' properties or one of the classes of the module to be included.
+*/
+export function viewResources(...resource) { // eslint-disable-line
+  return function(target) {
+    metadata.define(ViewEngine.viewModelRequireMetadataKey, resources, target);
+  };
 }
