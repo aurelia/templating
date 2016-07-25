@@ -1,6 +1,6 @@
 import * as LogManager from 'aurelia-logging';
 import {Origin, metadata} from 'aurelia-metadata';
-import {Loader, TemplateRegistryEntry, TemplateDependency} from 'aurelia-loader';
+import {Loader, TemplateRegistryEntry} from 'aurelia-loader';
 import {Container, inject} from 'aurelia-dependency-injection';
 import {ViewCompiler} from './view-compiler';
 import {ViewResources} from './view-resources';

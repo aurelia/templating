@@ -143,7 +143,7 @@ export class NoViewStrategy {
 
     this.entry = entry = new TemplateRegistryEntry(this.moduleId || this.dependencyBaseUrl);
     // since we're not invoking the TemplateRegistryEntry template setter
-    // we need to create the dependencies Array manually and set it as loaded: 
+    // we need to create the dependencies Array manually and set it as loaded:
     entry.dependencies = [];
     entry.templateIsLoaded = true;
 
@@ -160,7 +160,7 @@ export class NoViewStrategy {
     }
 
     compileInstruction.associatedModuleId = this.moduleId;
-    
+
     // loadViewFactory will resolve as 'null' because entry template is not set:
     return viewEngine.loadViewFactory(entry, compileInstruction, loadContext, target);
   }

@@ -238,7 +238,7 @@ export function noView(targetOrDependencies?:Function|Array<any>, dependencyBase
     dependencies = targetOrDependencies;
     target = undefined;
   }
-  
+
   let deco = function(t) {
     metadata.define(ViewLocator.viewStrategyMetadataKey, new NoViewStrategy(dependencies, dependencyBaseUrl), t);
   };
