@@ -25,6 +25,7 @@ var paths = {
 };
 
 paths.files = [
+  'interfaces.js',
   'animation-event.js',
   'animator.js',
   'composition-transaction.js',
