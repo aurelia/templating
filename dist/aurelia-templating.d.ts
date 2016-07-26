@@ -67,9 +67,10 @@ export declare interface ViewStrategy {
     * @param viewEngine The view engine to use during the load process.
     * @param compileInstruction Additional instructions to use during compilation of the view.
     * @param loadContext The loading context used for loading all resources and dependencies.
+    * @param target A class from which to extract metadata of additional resources to load.
     * @return A promise for the view factory that is produced by this strategy.
     */
-  loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewFactory>;
+  loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext, target?: any): Promise<ViewFactory>;
 }
 
 /**
@@ -642,9 +643,10 @@ export declare class RelativeViewStrategy {
     * @param viewEngine The view engine to use during the load process.
     * @param compileInstruction Additional instructions to use during compilation of the view.
     * @param loadContext The loading context used for loading all resources and dependencies.
+    * @param target A class from which to extract metadata of additional resources to load.
     * @return A promise for the view factory that is produced by this strategy.
     */
-  loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewFactory>;
+  loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext, target?: any): Promise<ViewFactory>;
   
   /**
     * Makes the view loaded by this strategy relative to the provided file path.
@@ -670,9 +672,10 @@ export declare class ConventionalViewStrategy {
     * @param viewEngine The view engine to use during the load process.
     * @param compileInstruction Additional instructions to use during compilation of the view.
     * @param loadContext The loading context used for loading all resources and dependencies.
+    * @param target A class from which to extract metadata of additional resources to load.
     * @return A promise for the view factory that is produced by this strategy.
     */
-  loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewFactory>;
+  loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext, target?: any): Promise<ViewFactory>;
 }
 
 /**
@@ -682,13 +685,21 @@ export declare class ConventionalViewStrategy {
 export declare class NoViewStrategy {
   
   /**
+    * Creates an instance of NoViewStrategy.
+    * @param dependencies A list of view resource dependencies of this view.
+    * @param dependencyBaseUrl The base url for the view dependencies.
+    */
+  constructor(dependencies?: Array<string | Function | Object>, dependencyBaseUrl?: string);
+  
+  /**
     * Loads a view factory.
     * @param viewEngine The view engine to use during the load process.
     * @param compileInstruction Additional instructions to use during compilation of the view.
     * @param loadContext The loading context used for loading all resources and dependencies.
+    * @param target A class from which to extract metadata of additional resources to load.
     * @return A promise for the view factory that is produced by this strategy.
     */
-  loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewFactory>;
+  loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext, target?: any): Promise<ViewFactory>;
 }
 
 /**
@@ -708,9 +719,10 @@ export declare class TemplateRegistryViewStrategy {
     * @param viewEngine The view engine to use during the load process.
     * @param compileInstruction Additional instructions to use during compilation of the view.
     * @param loadContext The loading context used for loading all resources and dependencies.
+    * @param target A class from which to extract metadata of additional resources to load.
     * @return A promise for the view factory that is produced by this strategy.
     */
-  loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewFactory>;
+  loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext, target?: any): Promise<ViewFactory>;
 }
 
 /**
@@ -731,9 +743,10 @@ export declare class InlineViewStrategy {
     * @param viewEngine The view engine to use during the load process.
     * @param compileInstruction Additional instructions to use during compilation of the view.
     * @param loadContext The loading context used for loading all resources and dependencies.
+    * @param target A class from which to extract metadata of additional resources to load.
     * @return A promise for the view factory that is produced by this strategy.
     */
-  loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewFactory>;
+  loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext, target?: any): Promise<ViewFactory>;
 }
 
 /**
@@ -1390,6 +1403,11 @@ export declare class ModuleAnalyzer {
 export declare class ViewEngine {
   
   /**
+    * The metadata key for storing requires declared in a ViewModel.
+    */
+  static viewModelRequireMetadataKey: any;
+  
+  /**
     * Creates an instance of ViewEngine.
     * @param loader The module loader.
     * @param container The root DI container for the app.
@@ -1411,18 +1429,20 @@ export declare class ViewEngine {
     * @param urlOrRegistryEntry A url or template registry entry to generate the view factory for.
     * @param compileInstruction Instructions detailing how the factory should be compiled.
     * @param loadContext The load context if this factory load is happening within the context of a larger load operation.
+    * @param target A class from which to extract metadata of additional resources to load.
     * @return A promise for the compiled view factory.
     */
-  loadViewFactory(urlOrRegistryEntry: string | TemplateRegistryEntry, compileInstruction?: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewFactory>;
+  loadViewFactory(urlOrRegistryEntry: string | TemplateRegistryEntry, compileInstruction?: ViewCompileInstruction, loadContext?: ResourceLoadContext, target?: any): Promise<ViewFactory>;
   
   /**
     * Loads all the resources specified by the registry entry.
     * @param registryEntry The template registry entry to load the resources for.
     * @param compileInstruction The compile instruction associated with the load.
     * @param loadContext The load context if this is happening within the context of a larger load operation.
+    * @param target A class from which to extract metadata of additional resources to load.
     * @return A promise of ViewResources for the registry entry.
     */
-  loadTemplateResources(registryEntry: TemplateRegistryEntry, compileInstruction?: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewResources>;
+  loadTemplateResources(registryEntry: TemplateRegistryEntry, compileInstruction?: ViewCompileInstruction, loadContext?: ResourceLoadContext, target?: any): Promise<ViewResources>;
   
   /**
     * Loads a view model as a resource.
@@ -1836,13 +1856,20 @@ export declare function inlineView(markup: string, dependencies?: Array<string |
 /**
 * Decorator: Indicates that the component has no view.
 */
-export declare function noView(target?: any): any;
+export declare function noView(targetOrDependencies?: Function | Array<any>, dependencyBaseUrl?: string): any;
 
 /**
 * Decorator: Indicates that the decorated class provides element configuration
 * to the EventManager for one or more Web Components.
 */
 export declare function elementConfig(target?: any): any;
+
+/**
+* Decorator: Provides the ability to add resources to the related View
+* Same as: <require from="..."></require>
+* @param resource Either: strings with moduleIds, Objects with 'src' and optionally 'as' properties or one of the classes of the module to be included.
+*/
+export declare function viewResources(...resource: any[]): any;
 
 /**
 * A facade of the templating engine capabilties which provides a more user friendly API for common use cases.

@@ -237,7 +237,7 @@ By default, bindable properties only allow `one-way` data binding. This means th
 
 Binding with Custom Attributes is a bit more nuanced than Custom Elements in that Custom Attributes support three types of binding: single value, options binding, and dynamic options binding. In this document, we will only look at single value binding. Please check out the Custom Attribute documentation for examples of how to implement and use all three types of bindings.
 
-The `@bindable` decorator isn't used when doing single value binding with a Custom Attribute because all attributes have a value be default. This is ensured by Aurelia. Instead, we implement a `valueChanged` callback function that Aurelia calls to alert us that the bound value of the Custom Attribute has changed. Aurelia will set the value to the `value` property of the Custom Attribute's ViewModel, and will pass two parameters to the `valueChanged` callback: the new value and the old value. Let's look at an example.
+The `@bindable` decorator isn't used when doing single value binding with a Custom Attribute because all attributes have a `value` property by default. This is ensured by Aurelia. Instead, we implement a `valueChanged` callback function that Aurelia calls to alert us that the bound value of the Custom Attribute has changed. Aurelia will set the value to the `value` property of the Custom Attribute's ViewModel, and will pass two parameters to the `valueChanged` callback: the new value and the old value. Let's look at an example.
 
 <code-listing heading="square${context.language.fileExtension}">
   <source-code lang="ES 2015">
