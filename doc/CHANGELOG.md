@@ -1,3 +1,13 @@
+<a name="1.0.0"></a>
+# [1.0.0](https://github.com/aurelia/templating/compare/1.0.0-rc.1.0.3...v1.0.0) (2016-07-27)
+
+
+### Features
+
+* **interfaces.js:** add Component lifecycle interfaces ([3da0b9f](https://github.com/aurelia/templating/commit/3da0b9f))
+
+
+
 <a name="1.0.0-rc.1.0.3"></a>
 # [1.0.0-rc.1.0.3](https://github.com/aurelia/templating/compare/1.0.0-rc.1.0.2...v1.0.0-rc.1.0.3) (2016-07-25)
 
