@@ -11,6 +11,28 @@ System.register(['aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aurelia-
     return '-' + char.toLowerCase();
   }
 
+  function _hyphenate(name) {
+    return (name.charAt(0).toLowerCase() + name.slice(1)).replace(capitalMatcher, addHyphenAndLower);
+  }
+
+  _export('_hyphenate', _hyphenate);
+
+  function _isAllWhitespace(node) {
+    return !(node.auInterpolationTarget || /[^\t\n\r ]/.test(node.textContent));
+  }
+
+  _export('_isAllWhitespace', _isAllWhitespace);
+
+  function viewEngineHooks(target) {
+    var deco = function deco(t) {
+      metadata.define(metadata.resource, new ViewEngineHooksResource(), t);
+    };
+
+    return target ? deco(target) : deco;
+  }
+
+  _export('viewEngineHooks', viewEngineHooks);
+
   function mi(name) {
     throw new Error('BindingLanguage must implement ' + name + '().');
   }
@@ -408,6 +430,18 @@ System.register(['aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aurelia-
     };
   }
 
+  function children(selectorOrConfig) {
+    return createChildObserverDecorator(selectorOrConfig, true);
+  }
+
+  _export('children', children);
+
+  function child(selectorOrConfig) {
+    return createChildObserverDecorator(selectorOrConfig, false);
+  }
+
+  _export('child', child);
+
   function trackMutation(groupedMutations, binder, record) {
     var mutations = groupedMutations.get(binder);
 
@@ -478,9 +512,214 @@ System.register(['aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aurelia-
     return name;
   }
 
+  function resource(instance) {
+    return function (target) {
+      metadata.define(metadata.resource, instance, target);
+    };
+  }
+
+  _export('resource', resource);
+
+  function behavior(override) {
+    return function (target) {
+      if (override instanceof HtmlBehaviorResource) {
+        metadata.define(metadata.resource, override, target);
+      } else {
+        var r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, target);
+        Object.assign(r, override);
+      }
+    };
+  }
+
+  _export('behavior', behavior);
+
+  function customElement(name) {
+    return function (target) {
+      var r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, target);
+      r.elementName = validateBehaviorName(name, 'custom element');
+    };
+  }
+
+  _export('customElement', customElement);
+
+  function customAttribute(name, defaultBindingMode) {
+    return function (target) {
+      var r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, target);
+      r.attributeName = validateBehaviorName(name, 'custom attribute');
+      r.attributeDefaultBindingMode = defaultBindingMode;
+    };
+  }
+
+  _export('customAttribute', customAttribute);
+
+  function templateController(target) {
+    var deco = function deco(t) {
+      var r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
+      r.liftsContent = true;
+    };
+
+    return target ? deco(target) : deco;
+  }
+
+  _export('templateController', templateController);
+
+  function bindable(nameOrConfigOrTarget, key, descriptor) {
+    var deco = function deco(target, key2, descriptor2) {
+      var actualTarget = key2 ? target.constructor : target;
+      var r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, actualTarget);
+      var prop = void 0;
+
+      if (key2) {
+        nameOrConfigOrTarget = nameOrConfigOrTarget || {};
+        nameOrConfigOrTarget.name = key2;
+      }
+
+      prop = new BindableProperty(nameOrConfigOrTarget);
+      return prop.registerWith(actualTarget, r, descriptor2);
+    };
+
+    if (!nameOrConfigOrTarget) {
+      return deco;
+    }
+
+    if (key) {
+      var _target = nameOrConfigOrTarget;
+      nameOrConfigOrTarget = null;
+      return deco(_target, key, descriptor);
+    }
+
+    return deco;
+  }
+
+  _export('bindable', bindable);
+
+  function dynamicOptions(target) {
+    var deco = function deco(t) {
+      var r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
+      r.hasDynamicOptions = true;
+    };
+
+    return target ? deco(target) : deco;
+  }
+
+  _export('dynamicOptions', dynamicOptions);
+
+  function useShadowDOM(targetOrOptions) {
+    var options = typeof targetOrOptions === 'function' || !targetOrOptions ? defaultShadowDOMOptions : targetOrOptions;
+
+    var deco = function deco(t) {
+      var r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
+      r.targetShadowDOM = true;
+      r.shadowDOMOptions = options;
+    };
+
+    return typeof targetOrOptions === 'function' ? deco(targetOrOptions) : deco;
+  }
+
+  _export('useShadowDOM', useShadowDOM);
+
+  function processAttributes(processor) {
+    return function (t) {
+      var r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
+      r.processAttributes = function (compiler, resources, node, attributes, elementInstruction) {
+        try {
+          processor(compiler, resources, node, attributes, elementInstruction);
+        } catch (error) {
+          LogManager.getLogger('templating').error(error);
+        }
+      };
+    };
+  }
+
+  _export('processAttributes', processAttributes);
+
   function doNotProcessContent() {
     return false;
   }
+
+  function processContent(processor) {
+    return function (t) {
+      var r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
+      r.processContent = processor ? function (compiler, resources, node, instruction) {
+        try {
+          return processor(compiler, resources, node, instruction);
+        } catch (error) {
+          LogManager.getLogger('templating').error(error);
+          return false;
+        }
+      } : doNotProcessContent;
+    };
+  }
+
+  _export('processContent', processContent);
+
+  function containerless(target) {
+    var deco = function deco(t) {
+      var r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
+      r.containerless = true;
+    };
+
+    return target ? deco(target) : deco;
+  }
+
+  _export('containerless', containerless);
+
+  function useViewStrategy(strategy) {
+    return function (target) {
+      metadata.define(ViewLocator.viewStrategyMetadataKey, strategy, target);
+    };
+  }
+
+  _export('useViewStrategy', useViewStrategy);
+
+  function useView(path) {
+    return useViewStrategy(new RelativeViewStrategy(path));
+  }
+
+  _export('useView', useView);
+
+  function inlineView(markup, dependencies, dependencyBaseUrl) {
+    return useViewStrategy(new InlineViewStrategy(markup, dependencies, dependencyBaseUrl));
+  }
+
+  _export('inlineView', inlineView);
+
+  function noView(targetOrDependencies, dependencyBaseUrl) {
+    var target = void 0;
+    var dependencies = void 0;
+    if (typeof targetOrDependencies === 'function') {
+      target = targetOrDependencies;
+    } else {
+      dependencies = targetOrDependencies;
+      target = undefined;
+    }
+
+    var deco = function deco(t) {
+      metadata.define(ViewLocator.viewStrategyMetadataKey, new NoViewStrategy(dependencies, dependencyBaseUrl), t);
+    };
+
+    return target ? deco(target) : deco;
+  }
+
+  _export('noView', noView);
+
+  function elementConfig(target) {
+    var deco = function deco(t) {
+      metadata.define(metadata.resource, new ElementConfigResource(), t);
+    };
+
+    return target ? deco(target) : deco;
+  }
+
+  _export('elementConfig', elementConfig);
+
+  function viewResources() {
+    return function (target) {
+      metadata.define(ViewEngine.viewModelRequireMetadataKey, resources, target);
+    };
+  }
+
+  _export('viewResources', viewResources);
 
   return {
     setters: [function (_aureliaLogging) {
@@ -694,17 +933,6 @@ System.register(['aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aurelia-
       _export('CompositionTransaction', CompositionTransaction);
 
       capitalMatcher = /([A-Z])/g;
-      function _hyphenate(name) {
-        return (name.charAt(0).toLowerCase() + name.slice(1)).replace(capitalMatcher, addHyphenAndLower);
-      }
-
-      _export('_hyphenate', _hyphenate);
-
-      function _isAllWhitespace(node) {
-        return !(node.auInterpolationTarget || /[^\t\n\r ]/.test(node.textContent));
-      }
-
-      _export('_isAllWhitespace', _isAllWhitespace);
 
       _export('ViewEngineHooksResource', ViewEngineHooksResource = function () {
         function ViewEngineHooksResource() {
@@ -731,16 +959,6 @@ System.register(['aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aurelia-
       }());
 
       _export('ViewEngineHooksResource', ViewEngineHooksResource);
-
-      function viewEngineHooks(target) {
-        var deco = function deco(t) {
-          metadata.define(metadata.resource, new ViewEngineHooksResource(), t);
-        };
-
-        return target ? deco(target) : deco;
-      }
-
-      _export('viewEngineHooks', viewEngineHooks);
 
       _export('ElementEvents', ElementEvents = function () {
         function ElementEvents(element) {
@@ -4281,18 +4499,6 @@ System.register(['aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aurelia-
 
       _export('HtmlBehaviorResource', HtmlBehaviorResource);
 
-      function children(selectorOrConfig) {
-        return createChildObserverDecorator(selectorOrConfig, true);
-      }
-
-      _export('children', children);
-
-      function child(selectorOrConfig) {
-        return createChildObserverDecorator(selectorOrConfig, false);
-      }
-
-      _export('child', child);
-
       ChildObserver = function () {
         function ChildObserver(config) {
           
@@ -4652,210 +4858,7 @@ System.register(['aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aurelia-
 
       _export('ElementConfigResource', ElementConfigResource);
 
-      function resource(instance) {
-        return function (target) {
-          metadata.define(metadata.resource, instance, target);
-        };
-      }
-
-      _export('resource', resource);
-
-      function behavior(override) {
-        return function (target) {
-          if (override instanceof HtmlBehaviorResource) {
-            metadata.define(metadata.resource, override, target);
-          } else {
-            var r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, target);
-            Object.assign(r, override);
-          }
-        };
-      }
-
-      _export('behavior', behavior);
-
-      function customElement(name) {
-        return function (target) {
-          var r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, target);
-          r.elementName = validateBehaviorName(name, 'custom element');
-        };
-      }
-
-      _export('customElement', customElement);
-
-      function customAttribute(name, defaultBindingMode) {
-        return function (target) {
-          var r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, target);
-          r.attributeName = validateBehaviorName(name, 'custom attribute');
-          r.attributeDefaultBindingMode = defaultBindingMode;
-        };
-      }
-
-      _export('customAttribute', customAttribute);
-
-      function templateController(target) {
-        var deco = function deco(t) {
-          var r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
-          r.liftsContent = true;
-        };
-
-        return target ? deco(target) : deco;
-      }
-
-      _export('templateController', templateController);
-
-      function bindable(nameOrConfigOrTarget, key, descriptor) {
-        var deco = function deco(target, key2, descriptor2) {
-          var actualTarget = key2 ? target.constructor : target;
-          var r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, actualTarget);
-          var prop = void 0;
-
-          if (key2) {
-            nameOrConfigOrTarget = nameOrConfigOrTarget || {};
-            nameOrConfigOrTarget.name = key2;
-          }
-
-          prop = new BindableProperty(nameOrConfigOrTarget);
-          return prop.registerWith(actualTarget, r, descriptor2);
-        };
-
-        if (!nameOrConfigOrTarget) {
-          return deco;
-        }
-
-        if (key) {
-          var _target = nameOrConfigOrTarget;
-          nameOrConfigOrTarget = null;
-          return deco(_target, key, descriptor);
-        }
-
-        return deco;
-      }
-
-      _export('bindable', bindable);
-
-      function dynamicOptions(target) {
-        var deco = function deco(t) {
-          var r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
-          r.hasDynamicOptions = true;
-        };
-
-        return target ? deco(target) : deco;
-      }
-
-      _export('dynamicOptions', dynamicOptions);
-
       defaultShadowDOMOptions = { mode: 'open' };
-      function useShadowDOM(targetOrOptions) {
-        var options = typeof targetOrOptions === 'function' || !targetOrOptions ? defaultShadowDOMOptions : targetOrOptions;
-
-        var deco = function deco(t) {
-          var r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
-          r.targetShadowDOM = true;
-          r.shadowDOMOptions = options;
-        };
-
-        return typeof targetOrOptions === 'function' ? deco(targetOrOptions) : deco;
-      }
-
-      _export('useShadowDOM', useShadowDOM);
-
-      function processAttributes(processor) {
-        return function (t) {
-          var r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
-          r.processAttributes = function (compiler, resources, node, attributes, elementInstruction) {
-            try {
-              processor(compiler, resources, node, attributes, elementInstruction);
-            } catch (error) {
-              LogManager.getLogger('templating').error(error);
-            }
-          };
-        };
-      }
-      _export('processAttributes', processAttributes);
-
-      function processContent(processor) {
-        return function (t) {
-          var r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
-          r.processContent = processor ? function (compiler, resources, node, instruction) {
-            try {
-              return processor(compiler, resources, node, instruction);
-            } catch (error) {
-              LogManager.getLogger('templating').error(error);
-              return false;
-            }
-          } : doNotProcessContent;
-        };
-      }
-
-      _export('processContent', processContent);
-
-      function containerless(target) {
-        var deco = function deco(t) {
-          var r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
-          r.containerless = true;
-        };
-
-        return target ? deco(target) : deco;
-      }
-
-      _export('containerless', containerless);
-
-      function useViewStrategy(strategy) {
-        return function (target) {
-          metadata.define(ViewLocator.viewStrategyMetadataKey, strategy, target);
-        };
-      }
-
-      _export('useViewStrategy', useViewStrategy);
-
-      function useView(path) {
-        return useViewStrategy(new RelativeViewStrategy(path));
-      }
-
-      _export('useView', useView);
-
-      function inlineView(markup, dependencies, dependencyBaseUrl) {
-        return useViewStrategy(new InlineViewStrategy(markup, dependencies, dependencyBaseUrl));
-      }
-
-      _export('inlineView', inlineView);
-
-      function noView(targetOrDependencies, dependencyBaseUrl) {
-        var target = void 0;
-        var dependencies = void 0;
-        if (typeof targetOrDependencies === 'function') {
-          target = targetOrDependencies;
-        } else {
-          dependencies = targetOrDependencies;
-          target = undefined;
-        }
-
-        var deco = function deco(t) {
-          metadata.define(ViewLocator.viewStrategyMetadataKey, new NoViewStrategy(dependencies, dependencyBaseUrl), t);
-        };
-
-        return target ? deco(target) : deco;
-      }
-
-      _export('noView', noView);
-
-      function elementConfig(target) {
-        var deco = function deco(t) {
-          metadata.define(metadata.resource, new ElementConfigResource(), t);
-        };
-
-        return target ? deco(target) : deco;
-      }
-
-      _export('elementConfig', elementConfig);
-
-      function viewResources() {
-        return function (target) {
-          metadata.define(ViewEngine.viewModelRequireMetadataKey, resources, target);
-        };
-      }
-
-      _export('viewResources', viewResources);
 
       _export('TemplatingEngine', TemplatingEngine = (_dec11 = inject(Container, ModuleAnalyzer, ViewCompiler, CompositionEngine), _dec11(_class23 = function () {
         function TemplatingEngine(container, moduleAnalyzer, viewCompiler, compositionEngine) {

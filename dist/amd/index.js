@@ -5,7 +5,7 @@ define(['exports', './aurelia-templating'], function (exports, _aureliaTemplatin
     value: true
   });
   Object.keys(_aureliaTemplating).forEach(function (key) {
-    if (key === "default") return;
+    if (key === "default" || key === "__esModule") return;
     Object.defineProperty(exports, key, {
       enumerable: true,
       get: function () {
