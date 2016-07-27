@@ -25,7 +25,6 @@ var paths = {
 };
 
 paths.files = [
-  'interfaces.js',
   'animation-event.js',
   'animator.js',
   'composition-transaction.js',
@@ -39,6 +38,7 @@ paths.files = [
   'shadow-dom.js',
   'view-resources.js',
   'view.js',
+  'interfaces.js',
   'view-slot.js',
   'view-factory.js',
   'view-compiler.js',
