@@ -67,7 +67,7 @@ One of the key features of Aurelia's templating system is helping to reduce cont
 code and your template markup. String interpolation using the `\${}` operator is a new feature in ES2015 that makes it
  simple to insert values into a string. Thus, Aurelia uses this standard syntax in your templates.
 
-When this template is run, Aurelia will insert the value of the `name` property into the template where `$\{name}`
+When this template is run, Aurelia will insert the value of the `name` property into the template where `\${name}`
 appears. Pretty simple, right? But what if we want logic in our string interpolation. Can we add our own expressions?
  Absolutely!
 
