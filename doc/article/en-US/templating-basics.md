@@ -497,7 +497,7 @@ One of the more useful iterables is the Map, because you can decompose your key 
   </source-code>
 </code-listing>
 
-One thing to notice in the example above is the dereference operator in `[greeting, friend]` - which breaks apart the map's key-value pair into `greeting`, the key, and `friend`, the value. Note that because all of our values are objects with the `name` property set, we can get our friend's name with `${friend.name}`, just as if we were getting it from JavaScript!
+One thing to notice in the example above is the dereference operator in `[greeting, friend]` - which breaks apart the map's key-value pair into `greeting`, the key, and `friend`, the value. Note that because all of our values are objects with the `name` property set, we can get our friend's name with `\${friend.name}`, just as if we were getting it from JavaScript!
 
 ### Objects
 
