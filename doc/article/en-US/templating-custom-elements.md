@@ -93,14 +93,21 @@ The following example shows an Aurelia view utilzing two-way databinding to an e
 Custom elements are not allowed to be self-closing. This means that `<secret-message />` will not work. When using a custom element, you must provide a closing tag as shown in `app.html` below.
 
  <code-listing heading="secret-message${context.language.fileExtension}">
-  <source-code lang="ES 2015/2016">
+  <source-code lang="ES 2016">
     export class SecretMessageCustomElement {
       secretMessage = 'Be sure to drink your Ovaltine!';
     }
   </source-code>
   <source-code lang="Typescript">
     export class SecretMessageCustomElement {
-      secretMessage:string = 'Be sure to drink your Ovaltine!';
+      secretMessage: string = 'Be sure to drink your Ovaltine!';
+    }
+  </source-code>
+  <source-code lang="ES 2015">
+    export class SecretMessageCustomElement {
+      constructor() {
+        this.secretMessage = 'Be sure to drink your Ovaltine!';
+      }
     }
   </source-code>
 </code-listing>
@@ -134,7 +141,7 @@ Before we move on, let's discuss just how easy it is to create a custom element 
 Any properties or functions of the VM class may be used for binding within the custom element's view; however, a custom element must specify the properties that will be bindable as attributes on the custom element. This is done by decorating each bindable property with the `bindable` decorator. The default binding mode for bindable properties is one-way. This means that a property value can be bound *in* to your custom element, but any changes the custom element makes to the property value will not be propogated *out* of the custom element. This default may be overridden, if needed, by passing a settings object to the `bindable` decorator with a property named `defaultBindingMode` set. This property should be set to one of the three `bindingMode` options: `oneTime`, `oneWay`, or `twoWay`. Both `bindable` and `bindingMode` may be imported from the `aurelia-framework` module. Let's look at an example custom element with a bindable property that defaults to two-way binding.
 
  <code-listing heading="secret-message${context.language.fileExtension}">
-  <source-code lang="ES 2015/2016">
+  <source-code lang="ES 2016">
     import {bindable, bindingMode} from 'aurelia-framework';
 
     export class SecretMessageCustomElement {
@@ -142,11 +149,11 @@ Any properties or functions of the VM class may be used for binding within the c
       @bindable allowDestruction = false;
 
       constructor() {
-        setInterval(() => this.deleteMessage(), 10000 );
+        setInterval(() => this.deleteMessage(), 10000);
       }
 
       deleteMessage() {
-        if(this.allowDestruction === true ) {
+        if(this.allowDestruction === true) {
           this.message = '';
         }
       }
@@ -160,16 +167,35 @@ Any properties or functions of the VM class may be used for binding within the c
       @bindable allowDestruction: boolean = false;
 
       constructor() {
-        setInterval(() => this.deleteMessage(), 10000 );
+        setInterval(() => this.deleteMessage(), 10000);
       }
 
       deleteMessage() {
-        if(this.allowDestruction === true ) {
+        if(this.allowDestruction === true) {
           this.message = '';
         }
       }
     }
   </source-code>
+  <source-code lang="ES 2015">
+    import {bindable, bindingMode, decorators} from 'aurelia-framework';
+
+    export const SecretMessageCustomElement = decorators(
+      @bindable({ name: 'message', defaultBindingMode: bindingMode.twoWay }),
+      @bindable('allowDestruction')
+    ).on(class {
+      constructor() {
+        this.allowDestruction = false;
+        setInterval(() => this.deleteMessage(), 10000);
+      }
+
+      deleteMessage() {
+        if(this.allowDestruction === true) {
+          this.message = '';
+        }
+      }
+    })
+</source-code>
 </code-listing>
 
 <code-listing heading="secret-message.html">
