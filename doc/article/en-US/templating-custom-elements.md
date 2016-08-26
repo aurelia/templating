@@ -181,11 +181,12 @@ Any properties or functions of the VM class may be used for binding within the c
     import {bindable, bindingMode, decorators} from 'aurelia-framework';
 
     export const SecretMessageCustomElement = decorators(
-      @bindable({ name: 'message', defaultBindingMode: bindingMode.twoWay }),
-      @bindable('allowDestruction')
+      bindable({ name: 'message', defaultBindingMode: bindingMode.twoWay }),
+      bindable('allowDestruction')
     ).on(class {
       constructor() {
         this.allowDestruction = false;
+        
         setInterval(() => this.deleteMessage(), 10000);
       }
 
