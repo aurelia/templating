@@ -67,7 +67,7 @@ One of the key features of Aurelia's templating system is helping to reduce cont
 code and your template markup. String interpolation using the `\${}` operator is a new feature in ES2015 that makes it
  simple to insert values into a string. Thus, Aurelia uses this standard syntax in your templates.
 
-When this template is run, Aurelia will insert the value of the `name` property into the template where `$\{name}`
+When this template is run, Aurelia will insert the value of the `name` property into the template where `\${name}`
 appears. Pretty simple, right? But what if we want logic in our string interpolation. Can we add our own expressions?
  Absolutely!
 
@@ -497,7 +497,7 @@ One of the more useful iterables is the Map, because you can decompose your key 
   </source-code>
 </code-listing>
 
-One thing to notice in the example above is the dereference operator in `[greeting, friend]` - which breaks apart the map's key-value pair into `greeting`, the key, and `friend`, the value. Note that because all of our values are objects with the `name` property set, we can get our friend's name with `${friend.name}`, just as if we were getting it from JavaScript!
+One thing to notice in the example above is the dereference operator in `[greeting, friend]` - which breaks apart the map's key-value pair into `greeting`, the key, and `friend`, the value. Note that because all of our values are objects with the `name` property set, we can get our friend's name with `\${friend.name}`, just as if we were getting it from JavaScript!
 
 ### Objects
 
