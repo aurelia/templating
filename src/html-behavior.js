@@ -308,7 +308,7 @@ export class HtmlBehaviorResource {
     }
 
     let viewModel = instruction.viewModel || container.get(this.target);
-    let controller = new Controller(this, instruction, viewModel, container.elementEvents);
+    let controller = new Controller(this, instruction, viewModel, container);
     let childBindings = this.childBindings;
     let viewFactory;
 

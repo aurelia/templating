@@ -3724,7 +3724,7 @@ System.register(['aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aurelia-
       _export('ViewEngine', ViewEngine);
 
       _export('Controller', Controller = function () {
-        function Controller(behavior, instruction, viewModel, elementEvents) {
+        function Controller(behavior, instruction, viewModel, container) {
           
 
           this.behavior = behavior;
@@ -3734,7 +3734,8 @@ System.register(['aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aurelia-
           this.view = null;
           this.isBound = false;
           this.scope = null;
-          this.elementEvents = elementEvents || null;
+          this.container = container;
+          this.elementEvents = container.elementEvents || null;
 
           var observerLookup = behavior.observerLocator.getOrCreateObserversLookup(viewModel);
           var handlesBind = behavior.handlesBind;
@@ -4402,7 +4403,7 @@ System.register(['aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aurelia-
           }
 
           var viewModel = instruction.viewModel || container.get(this.target);
-          var controller = new Controller(this, instruction, viewModel, container.elementEvents);
+          var controller = new Controller(this, instruction, viewModel, container);
           var childBindings = this.childBindings;
           var viewFactory = void 0;
 

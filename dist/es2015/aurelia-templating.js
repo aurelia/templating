@@ -3037,7 +3037,7 @@ export let ViewEngine = (_dec8 = inject(Loader, Container, ViewCompiler, ModuleA
 }, _class19.viewModelRequireMetadataKey = 'aurelia:view-model-require', _temp4)) || _class18);
 
 export let Controller = class Controller {
-  constructor(behavior, instruction, viewModel, elementEvents) {
+  constructor(behavior, instruction, viewModel, container) {
     this.behavior = behavior;
     this.instruction = instruction;
     this.viewModel = viewModel;
@@ -3045,7 +3045,8 @@ export let Controller = class Controller {
     this.view = null;
     this.isBound = false;
     this.scope = null;
-    this.elementEvents = elementEvents || null;
+    this.container = container;
+    this.elementEvents = container.elementEvents || null;
 
     let observerLookup = behavior.observerLocator.getOrCreateObserversLookup(viewModel);
     let handlesBind = behavior.handlesBind;
@@ -3709,7 +3710,7 @@ export let HtmlBehaviorResource = class HtmlBehaviorResource {
     }
 
     let viewModel = instruction.viewModel || container.get(this.target);
-    let controller = new Controller(this, instruction, viewModel, container.elementEvents);
+    let controller = new Controller(this, instruction, viewModel, container);
     let childBindings = this.childBindings;
     let viewFactory;
 
