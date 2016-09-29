@@ -1,3 +1,13 @@
+<a name="1.1.1"></a>
+## [1.1.1](https://github.com/aurelia/templating/compare/1.1.0...v1.1.1) (2016-09-29)
+
+
+### Bug Fixes
+
+* **BehaviorPropertyObserver:** publish immediately when TaskQueue already flushing ([06be105](https://github.com/aurelia/templating/commit/06be105)), closes [aurelia/binding#496](https://github.com/aurelia/binding/issues/496) [aurelia/binding#479](https://github.com/aurelia/binding/issues/479) [#363](https://github.com/aurelia/templating/issues/363)
+
+
+
 <a name="1.1.0"></a>
 # [1.1.0](https://github.com/aurelia/templating/compare/1.0.1...v1.1.0) (2016-09-07)
 

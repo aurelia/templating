@@ -3458,13 +3458,17 @@ export var BehaviorPropertyObserver = (_dec9 = subscriberCollection(), _dec9(_cl
     var oldValue = this.currentValue;
 
     if (oldValue !== newValue) {
-      if (this.publishing && this.notqueued) {
-        this.notqueued = false;
-        this.taskQueue.queueMicroTask(this);
-      }
-
       this.oldValue = oldValue;
       this.currentValue = newValue;
+
+      if (this.publishing && this.notqueued) {
+        if (this.taskQueue.flushing) {
+          this.call();
+        } else {
+          this.notqueued = false;
+          this.taskQueue.queueMicroTask(this);
+        }
+      }
     }
   };
 
