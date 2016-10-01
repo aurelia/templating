@@ -263,7 +263,7 @@ export function elementConfig(target?): any {
 * Same as: <require from="..."></require>
 * @param resource Either: strings with moduleIds, Objects with 'src' and optionally 'as' properties or one of the classes of the module to be included.
 */
-export function viewResources(...resource) { // eslint-disable-line
+export function viewResources(...resources) { // eslint-disable-line
   return function(target) {
     metadata.define(ViewEngine.viewModelRequireMetadataKey, resources, target);
   };
