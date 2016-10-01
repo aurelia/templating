@@ -265,6 +265,6 @@ export function elementConfig(target?): any {
 */
 export function viewResources(...resource) { // eslint-disable-line
   return function(target) {
-    metadata.define(ViewEngine.viewModelRequireMetadataKey, resources, target);
+    metadata.define(ViewEngine.viewModelRequireMetadataKey, resource, target);
   };
 }
