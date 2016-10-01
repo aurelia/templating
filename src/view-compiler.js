@@ -46,10 +46,9 @@ function getNextAUTargetID() {
 }
 
 function makeIntoInstructionTarget(element) {
-  let value = element.getAttribute('class');
   let auTargetID = getNextAUTargetID();
 
-  element.setAttribute('class', (value ? value += ' au-target' : 'au-target'));
+  element.classList.add('au-target');
   element.setAttribute('au-target-id', auTargetID);
 
   return auTargetID;

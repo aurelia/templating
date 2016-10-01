@@ -225,7 +225,7 @@ function applySurrogateInstruction(container, element, instruction, controllers,
     if (currentAttributeValue) {
       if (key === 'class') {
         //merge the surrogate classes
-        element.setAttribute('class', currentAttributeValue + ' ' + values[key]);
+        element.classList.add(values[key]);
       } else if (key === 'style') {
         //merge the surrogate styles
         let styleObject = styleStringToObject(values[key]);
