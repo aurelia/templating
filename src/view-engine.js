@@ -248,11 +248,14 @@ export class ViewEngine {
 
       //cause compile/load of any associated views second
       //as a result all globals have access to all other globals during compilation
-      for (i = 0, ii = allAnalysis.length; i < ii; ++i) {
-        allAnalysis[i] = allAnalysis[i].load(container, loadContext);
-      }
-
-      return Promise.all(allAnalysis).then(() => resources);
+      // using reduce instead of Promise.all to ensure resources are loaded in order
+      // they are included on the page
+      return allAnalysis.reduce((prev, curr) => {
+        return prev.then(() => {
+          return curr.load(container, loadContext);
+        });
+      }, Promise.resolve())
+        .then(() => resources);
     });
   }
 
