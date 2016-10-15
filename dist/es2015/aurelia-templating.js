@@ -4410,7 +4410,7 @@ export function elementConfig(target) {
   return target ? deco(target) : deco;
 }
 
-export function viewResources(...resource) {
+export function viewResources(...resources) {
   return function (target) {
     metadata.define(ViewEngine.viewModelRequireMetadataKey, resources, target);
   };

@@ -1,6 +1,6 @@
 {
   "name": "aurelia-templating",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "An extensible HTML templating engine supporting databinding, custom elements, attached behaviors and more.",
   "keywords": [
     "aurelia",

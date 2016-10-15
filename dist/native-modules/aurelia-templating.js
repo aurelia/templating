@@ -4689,6 +4689,10 @@ export function elementConfig(target) {
 }
 
 export function viewResources() {
+  for (var _len = arguments.length, resources = Array(_len), _key = 0; _key < _len; _key++) {
+    resources[_key] = arguments[_key];
+  }
+
   return function (target) {
     metadata.define(ViewEngine.viewModelRequireMetadataKey, resources, target);
   };
