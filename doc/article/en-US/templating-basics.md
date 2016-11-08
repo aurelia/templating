@@ -506,7 +506,7 @@ Let's do the same thing, except with a traditional JavaScript object in our view
 <code-listing heading="repeater-template.html">
   <source-code lang="HTML">
     <template>
-      <p repeat.for="greeting of friends | keys">${greeting}, ${friends[greeting]}!</p>
+      <p repeat.for="greeting of friends | keys">${greeting}, ${friends[greeting].name}!</p>
     </template>
   </source-code>
 </code-listing>
