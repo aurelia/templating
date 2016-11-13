@@ -41,7 +41,7 @@ The simplest way to create an Aurelia custom element is to create an Aurelia vie
 
 HTML only custom elements may require in other custom elements and attributes as well as utilizing any other view resource just like any other Aurelia component may. HTML only custom elements also support explicit two-way databinding for properties, though it is not possible to create properties that default to two-way databinding with HTML only custom elements. For that type of functionality, you will need to provide a ViewModel for your custom element.
 
-The following example shows an Aurelia view utilzing two-way databinding to an example HTML only custom element. The example HTML only custom element itself requires in other custom elements, and utilizes two-way databinding to those custom elements. Note that it is possible to use the full power of Aurelia's templating engine from an HTML custom element, such as using the `debounce` binding behavior.
+The following example shows an Aurelia view utilizing two-way databinding to an example HTML only custom element. The example HTML only custom element itself requires in other custom elements, and utilizes two-way databinding to those custom elements. Note that it is possible to use the full power of Aurelia's templating engine from an HTML custom element, such as using the `debounce` binding behavior.
 
 <code-listing heading="app.html">
   <source-code lang="HTML">
