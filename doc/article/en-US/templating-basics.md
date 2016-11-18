@@ -158,7 +158,7 @@ greeting will change with it: "Hello, Jane Doe!". If we uncheck the box, the gre
 
 Notice that the way we set up the binding was by using `value.bind` and `checked.bind`. That `.` within the attribute is important: whenever you see the `.`, Aurelia is going to do something with that attribute. The most important thing to take away from this section is understanding that Aurelia will link attributes to the left of the `.` with actions to the right of the `.`.
 
-You can lean more about data-binding in the Binding section of our docs.
+You can learn more about data-binding in the Binding section of our docs.
 
 ### Binding Focus
 
