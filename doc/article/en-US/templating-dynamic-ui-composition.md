@@ -18,6 +18,8 @@
 
 In this section, we are going to be learning how you can dynamically compose inside of your applications utilising Aurelia's dynamic composition functionality.
 
+In many aspects, dynamic composition closely resembles that of how Aurelia's routing works. The big exception of course is dynamic composition allows you to dynamically render views and view-models after the page has loaded.
+
 ## [Simple composition](aurelia-doc://section/2/version/1.0.0)
 
 Using the `<compose>` element, we are going to be dynamically composing a view.
@@ -72,6 +74,8 @@ For the view property, we need to specify a file extension, unlike the view-mode
 
 ## [Passing through data](aurelia-doc://section/4/version/1.0.0)
 Using what we learned above, we can dynamically compose view-models and views and pass through additional data via the `model` property on the `<compose>` element.
+
+We are going to be building an example which will dynamically render a view/view-model pair and display provided values via the `model` attribute.
 
 <code-listing heading="hello-world${context.language.fileExtension}">
   <source-code lang="ES 2016">
