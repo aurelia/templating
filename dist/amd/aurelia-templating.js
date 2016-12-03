@@ -2469,7 +2469,7 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
     var value = element.getAttribute('class');
     var auTargetID = getNextAUTargetID();
 
-    element.setAttribute('class', value ? value += ' au-target' : 'au-target');
+    element.setAttribute('class', value ? value + ' au-target' : 'au-target');
     element.setAttribute('au-target-id', auTargetID);
 
     return auTargetID;
@@ -2538,7 +2538,7 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
         if (targetId) {
           var ins = instructions[targetId];
 
-          if (ins.shadowSlot || ins.lifting) {
+          if (ins.shadowSlot || ins.lifting || ins.elementInstruction !== null && !ins.elementInstruction.anchorIsContainer) {
             content.insertBefore(_aureliaPal.DOM.createComment('view'), firstChild);
           }
         }

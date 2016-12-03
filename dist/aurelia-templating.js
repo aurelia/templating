@@ -3132,7 +3132,7 @@ function makeIntoInstructionTarget(element) {
   let value = element.getAttribute('class');
   let auTargetID = getNextAUTargetID();
 
-  element.setAttribute('class', (value ? value += ' au-target' : 'au-target'));
+  element.setAttribute('class', (value ? value + ' au-target' : 'au-target'));
   element.setAttribute('au-target-id', auTargetID);
 
   return auTargetID;
@@ -3215,7 +3215,7 @@ export class ViewCompiler {
       if (targetId) {
         let ins = instructions[targetId];
 
-        if (ins.shadowSlot || ins.lifting) {
+        if (ins.shadowSlot || ins.lifting || (ins.elementInstruction !== null && !ins.elementInstruction.anchorIsContainer)) {
           content.insertBefore(DOM.createComment('view'), firstChild);
         }
       }

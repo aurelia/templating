@@ -2450,7 +2450,7 @@ function makeIntoInstructionTarget(element) {
   var value = element.getAttribute('class');
   var auTargetID = getNextAUTargetID();
 
-  element.setAttribute('class', value ? value += ' au-target' : 'au-target');
+  element.setAttribute('class', value ? value + ' au-target' : 'au-target');
   element.setAttribute('au-target-id', auTargetID);
 
   return auTargetID;
@@ -2519,7 +2519,7 @@ var ViewCompiler = exports.ViewCompiler = (_dec7 = (0, _aureliaDependencyInjecti
       if (targetId) {
         var ins = instructions[targetId];
 
-        if (ins.shadowSlot || ins.lifting) {
+        if (ins.shadowSlot || ins.lifting || ins.elementInstruction !== null && !ins.elementInstruction.anchorIsContainer) {
           content.insertBefore(_aureliaPal.DOM.createComment('view'), firstChild);
         }
       }
