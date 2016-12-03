@@ -1,3 +1,13 @@
+<a name="1.1.4"></a>
+## [1.1.4](https://github.com/aurelia/templating/compare/1.1.3...v1.1.4) (2016-12-03)
+
+
+### Bug Fixes
+
+* **view-compiler:** account for undefined element instruction ([d1d1fe4](https://github.com/aurelia/templating/commit/d1d1fe4)), closes [#503](https://github.com/aurelia/templating/issues/503)
+
+
+
 <a name="1.1.3"></a>
 ## [1.1.3](https://github.com/aurelia/templating/compare/1.1.2...v1.1.3) (2016-12-03)
 

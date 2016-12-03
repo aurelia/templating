@@ -2941,7 +2941,7 @@ System.register(['aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aurelia-
             if (targetId) {
               var ins = instructions[targetId];
 
-              if (ins.shadowSlot || ins.lifting || ins.elementInstruction !== null && !ins.elementInstruction.anchorIsContainer) {
+              if (ins.shadowSlot || ins.lifting || ins.elementInstruction && !ins.elementInstruction.anchorIsContainer) {
                 content.insertBefore(DOM.createComment('view'), firstChild);
               }
             }

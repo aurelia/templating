@@ -2519,7 +2519,7 @@ var ViewCompiler = exports.ViewCompiler = (_dec7 = (0, _aureliaDependencyInjecti
       if (targetId) {
         var ins = instructions[targetId];
 
-        if (ins.shadowSlot || ins.lifting || ins.elementInstruction !== null && !ins.elementInstruction.anchorIsContainer) {
+        if (ins.shadowSlot || ins.lifting || ins.elementInstruction && !ins.elementInstruction.anchorIsContainer) {
           content.insertBefore(_aureliaPal.DOM.createComment('view'), firstChild);
         }
       }
