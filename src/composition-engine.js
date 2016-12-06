@@ -69,6 +69,37 @@ function tryActivateViewModel(context) {
   return context.viewModel.activate(context.model) || Promise.resolve();
 }
 
+class SwapStrategies {
+  // animate the next view in before removing the current view;
+  before(viewSlot, previousView, callback) {
+    let promise = Promise.resolve(callback());
+
+    if (previousView !== undefined) {
+      return promise.then(() => viewSlot.remove(previousView, true));
+    }
+
+    return promise;
+  }
+
+  // animate the next view at the same time the current view is removed
+  with(viewSlot, previousView, callback) {
+    let promise = Promise.resolve(callback());
+
+    if (previousView !== undefined) {
+      return Promise.all([viewSlot.remove(previousView, true), promise]);
+    }
+
+    return promise;
+  }
+
+  // animate the next view in after the current view has been removed
+  after(viewSlot, previousView, callback) {
+    return Promise.resolve(viewSlot.removeAll(true)).then(callback);
+  }
+}
+
+const swapStrategies = new SwapStrategies();
+
 /**
 * Used to dynamically compose components.
 */
@@ -85,18 +116,26 @@ export class CompositionEngine {
 
   _createControllerAndSwap(context) {
     function swap(controller) {
-      return Promise.resolve(context.viewSlot.removeAll(true)).then(() => {
-        if (context.currentController) {
-          context.currentController.unbind();
-        }
+      let swapStrategy;
 
-        context.viewSlot.add(controller.view);
+      swapStrategy = context.swapOrder in swapStrategies
+              ? swapStrategies[context.swapOrder]
+              : swapStrategies.after;
 
-        if (context.compositionTransactionNotifier) {
-          context.compositionTransactionNotifier.done();
-        }
+      swapStrategy(context.viewSlot, context.viewSlot.children[0], () => {
+        return Promise.resolve().then(() => {
+          return context.viewSlot.add(controller.view);
+        }).then(() => {
+          if (context.currentController) {
+            context.currentController.unbind();
+          }
 
-        return controller;
+          if (context.compositionTransactionNotifier) {
+            context.compositionTransactionNotifier.done();
+          }
+
+          return controller;
+        });
       });
     }
 
@@ -202,14 +241,22 @@ export class CompositionEngine {
         result.bind(context.bindingContext, context.overrideContext);
 
         let work = () => {
-          return Promise.resolve(context.viewSlot.removeAll(true)).then(() => {
-            context.viewSlot.add(result);
+          let swapStrategy;
 
-            if (context.compositionTransactionNotifier) {
-              context.compositionTransactionNotifier.done();
-            }
+          swapStrategy = context.swapOrder in swapStrategies
+                  ? swapStrategies[context.swapOrder]
+                  : swapStrategies.after;
 
-            return result;
+          swapStrategy(context.viewSlot, context.viewSlot.children[0], () => {
+            return Promise.resolve().then(() => {
+              return context.viewSlot.add(result);
+            }).then(() => {
+              if (context.compositionTransactionNotifier) {
+                context.compositionTransactionNotifier.done();
+              }
+
+              return result;
+            });
           });
         };
 
