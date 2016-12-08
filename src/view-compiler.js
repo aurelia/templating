@@ -236,6 +236,7 @@ export class ViewCompiler {
                     }
                     break;
                 case 'bind':
+                case 'call':
                     if (type.defaultProperty) {
                         attrName = info.attrName = type.defaultProperty.name;
                     }
@@ -378,6 +379,7 @@ export class ViewCompiler {
                     }
                     break;
                 case 'bind':
+                case 'call':
                     if (type.defaultProperty) {
                         attrName = info.attrName = type.defaultProperty.name;
                     }
