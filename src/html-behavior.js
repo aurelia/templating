@@ -117,12 +117,8 @@ export class HtmlBehaviorResource {
 
     if (attributeName !== null) {
       if (properties.length === 0) { //default for custom attributes
-        new BindableProperty({
-          name: 'value',
-          changeHandler: 'valueChanged' in proto ? 'valueChanged' : null,
-          attribute: attributeName,
-          defaultBindingMode: attributeDefaultBindingMode
-        }).registerWith(target, this);
+          this.createDefaultBindableProperty(attributeName, attributeDefaultBindingMode, proto)
+              .registerWith(target, this);
       }
 
       current = properties[0];
@@ -143,12 +139,7 @@ export class HtmlBehaviorResource {
           }
         }
 
-        current = new BindableProperty({
-          name: 'value',
-          changeHandler: 'valueChanged' in proto ? 'valueChanged' : null,
-          attribute: attributeName,
-          defaultBindingMode: attributeDefaultBindingMode
-        });
+        current = this.createDefaultBindableProperty(attributeName, attributeDefaultBindingMode, proto);
 
         current.hasOptions = true;
         current.registerWith(target, this);
@@ -158,6 +149,17 @@ export class HtmlBehaviorResource {
         properties[i].defineOn(target, this);
       }
     }
+  }
+
+createDefaultBindableProperty(attributeName: string, attributeDefaultBindingMode: any, proto:any): BindableProperty
+  {
+      let handlerName = `${name}Changed`;
+      return new BindableProperty({
+            name: 'value',
+            changeHandler: 'valueChanged' in proto ? 'valueChanged' : null,
+            attribute: attributeName,
+            defaultBindingMode: attributeDefaultBindingMode
+      });
   }
 
   /**

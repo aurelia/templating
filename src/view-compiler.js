@@ -228,9 +228,18 @@ export class ViewCompiler {
 
             if (!info.command && !info.expression) { // if there is no command or detected expression
               info.command = property.hasOptions ? 'options' : null; //and it is an optons property, set the options command
-              if (property.hasOptions && type.defaultProperty && !attrValue.includes(":")) {
-                  attrValue = info.attrValue = `${type.defaultProperty.name}:${attrValue}`;
-              }
+            }
+            switch(info.command) {
+                case 'options':
+                    if (type.defaultProperty && !attrValue.includes(":")) {
+                        attrValue = info.attrValue = `${type.defaultProperty.name}:${attrValue}`;
+                    }
+                    break;
+                case 'bind':
+                    if (type.defaultProperty) {
+                        attrName = info.attrName = type.defaultProperty.name;
+                    }
+                    break;
             }
           }
         }
@@ -361,9 +370,18 @@ export class ViewCompiler {
 
             if (!info.command && !info.expression) { // if there is no command or detected expression
               info.command = property.hasOptions ? 'options' : null; //and it is an optons property, set the options command
-              if (property.hasOptions && type.defaultProperty && !attrValue.includes(":")) {
-                  attrValue = info.attrValue = `${type.defaultProperty.name}:${attrValue}`;
-              }
+            } 
+            switch(info.command) {
+                case 'options':
+                    if (type.defaultProperty && !attrValue.includes(":")) {
+                        attrValue = info.attrValue = `${type.defaultProperty.name}:${attrValue}`;
+                    }
+                    break;
+                case 'bind':
+                    if (type.defaultProperty) {
+                        attrName = info.attrName = type.defaultProperty.name;
+                    }
+                    break;
             }
           }
         }
