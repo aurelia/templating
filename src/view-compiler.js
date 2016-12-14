@@ -229,18 +229,15 @@ export class ViewCompiler {
             if (!info.command && !info.expression) { // if there is no command or detected expression
               info.command = property.hasOptions ? 'options' : null; //and it is an optons property, set the options command
             }
-            switch(info.command) {
-                case 'options':
-                    if (type.defaultProperty && !attrValue.includes(":")) {
-                        attrValue = info.attrValue = `${type.defaultProperty.name}:${attrValue}`;
-                    }
-                    break;
-                case 'bind':
-                case 'call':
-                    if (type.defaultProperty) {
-                        attrName = info.attrName = type.defaultProperty.name;
-                    }
-                    break;
+            if (info.command === 'options')
+            {
+              if (type.defaultProperty && !attrValue.includes(":"))
+              {
+                attrValue = info.attrValue = `${type.defaultProperty.name}:${attrValue}`;
+              }
+            }
+            else if (info.command && type.defaultProperty) {
+              attrName = info.attrName = type.defaultProperty.name;
             }
           }
         }
@@ -371,19 +368,17 @@ export class ViewCompiler {
 
             if (!info.command && !info.expression) { // if there is no command or detected expression
               info.command = property.hasOptions ? 'options' : null; //and it is an optons property, set the options command
-            } 
-            switch(info.command) {
-                case 'options':
-                    if (type.defaultProperty && !attrValue.includes(":")) {
-                        attrValue = info.attrValue = `${type.defaultProperty.name}:${attrValue}`;
-                    }
-                    break;
-                case 'bind':
-                case 'call':
-                    if (type.defaultProperty) {
-                        attrName = info.attrName = type.defaultProperty.name;
-                    }
-                    break;
+            }
+
+            if (info.command === 'options')
+            {
+              if (type.defaultProperty && !attrValue.includes(":"))
+              {
+                attrValue = info.attrValue = `${type.defaultProperty.name}:${attrValue}`;
+              }
+            }
+            else if (info.command && type.defaultProperty) {
+              attrName = info.attrName = type.defaultProperty.name;
             }
           }
         }
