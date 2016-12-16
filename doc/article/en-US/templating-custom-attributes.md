@@ -234,7 +234,7 @@ Options binding provides a custom attribute the ability to have multiple bindabl
 
 ## [Default Option](aurelia-doc://section/6/version/1.0.0)
 
-A single bindable property can be the default among all the options in an options binding.  Thus when we use a custom attribute that would otherwise require that we use the options HTML syntax, we can use the simpler HTML syntax of a single value binding. 
+A single bindable property can be made the default among all the options in an options binding.  Thus, when we use a custom attribute that would otherwise require that we use the options HTML syntax, and we want to provide a value or binding only for the default property, we can use the simpler HTML syntax of a single value binding. 
 
 As previously noted, with options bindings each bindable property must be decorated with the `bindable` decorator.  To specify that you want a bindable property to be the default among all the other bindable properties, use the `defaultBindable` configuration parameter of the `bindable` decorator, as shown below:
 
