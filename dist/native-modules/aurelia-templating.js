@@ -1,8 +1,8 @@
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _class, _temp, _dec, _class2, _dec2, _class3, _dec3, _class4, _dec4, _class5, _dec5, _class6, _class7, _temp2, _dec6, _class8, _class9, _temp3, _class11, _dec7, _class13, _dec8, _class14, _class15, _temp4, _dec9, _class16, _dec10, _class17, _dec11, _class18;
+var _class4, _temp, _dec, _class5, _dec2, _class6, _dec3, _class7, _dec4, _class8, _dec5, _class9, _class10, _temp2, _dec6, _class11, _class12, _temp3, _class15, _dec7, _class17, _dec8, _class18, _class19, _temp4, _dec9, _class21, _dec10, _class22, _dec11, _class23;
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
 
 
@@ -231,9 +231,9 @@ export var ElementEvents = function () {
   };
 
   ElementEvents.prototype.publish = function publish(eventName) {
-    var detail = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-    var bubbles = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
-    var cancelable = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : true;
+    var detail = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+    var bubbles = arguments.length <= 2 || arguments[2] === undefined ? true : arguments[2];
+    var cancelable = arguments.length <= 3 || arguments[3] === undefined ? true : arguments[3];
 
     var event = DOM.createCustomEvent(eventName, { cancelable: cancelable, bubbles: bubbles, detail: detail });
     this.element.dispatchEvent(event);
@@ -242,7 +242,7 @@ export var ElementEvents = function () {
   ElementEvents.prototype.subscribe = function subscribe(eventName, handler) {
     var _this2 = this;
 
-    var bubbles = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
+    var bubbles = arguments.length <= 2 || arguments[2] === undefined ? true : arguments[2];
 
     if (handler && typeof handler === 'function') {
       handler.eventName = eventName;
@@ -263,7 +263,7 @@ export var ElementEvents = function () {
   ElementEvents.prototype.subscribeOnce = function subscribeOnce(eventName, handler) {
     var _this3 = this;
 
-    var bubbles = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
+    var bubbles = arguments.length <= 2 || arguments[2] === undefined ? true : arguments[2];
 
     if (handler && typeof handler === 'function') {
       var _ret = function () {
@@ -326,8 +326,8 @@ export var ResourceLoadContext = function () {
 }();
 
 export var ViewCompileInstruction = function ViewCompileInstruction() {
-  var targetShadowDOM = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
-  var compileSurrogate = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+  var targetShadowDOM = arguments.length <= 0 || arguments[0] === undefined ? false : arguments[0];
+  var compileSurrogate = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
 
   
 
@@ -402,7 +402,7 @@ export var BehaviorInstruction = function () {
 
 BehaviorInstruction.normal = new BehaviorInstruction();
 
-export var TargetInstruction = (_temp = _class = function () {
+export var TargetInstruction = (_temp = _class4 = function () {
   TargetInstruction.shadowSlot = function shadowSlot(parentInjectorId) {
     var instruction = new TargetInstruction();
     instruction.parentInjectorId = parentInjectorId;
@@ -474,7 +474,7 @@ export var TargetInstruction = (_temp = _class = function () {
   }
 
   return TargetInstruction;
-}(), _class.noExpressions = Object.freeze([]), _temp);
+}(), _class4.noExpressions = Object.freeze([]), _temp);
 
 export var viewStrategy = protocol.create('aurelia:view-strategy', {
   validate: function validate(target) {
@@ -491,7 +491,7 @@ export var viewStrategy = protocol.create('aurelia:view-strategy', {
   }
 });
 
-export var RelativeViewStrategy = (_dec = viewStrategy(), _dec(_class2 = function () {
+export var RelativeViewStrategy = (_dec = viewStrategy(), _dec(_class5 = function () {
   function RelativeViewStrategy(path) {
     
 
@@ -515,9 +515,9 @@ export var RelativeViewStrategy = (_dec = viewStrategy(), _dec(_class2 = functio
   };
 
   return RelativeViewStrategy;
-}()) || _class2);
+}()) || _class5);
 
-export var ConventionalViewStrategy = (_dec2 = viewStrategy(), _dec2(_class3 = function () {
+export var ConventionalViewStrategy = (_dec2 = viewStrategy(), _dec2(_class6 = function () {
   function ConventionalViewStrategy(viewLocator, origin) {
     
 
@@ -531,9 +531,9 @@ export var ConventionalViewStrategy = (_dec2 = viewStrategy(), _dec2(_class3 = f
   };
 
   return ConventionalViewStrategy;
-}()) || _class3);
+}()) || _class6);
 
-export var NoViewStrategy = (_dec3 = viewStrategy(), _dec3(_class4 = function () {
+export var NoViewStrategy = (_dec3 = viewStrategy(), _dec3(_class7 = function () {
   function NoViewStrategy(dependencies, dependencyBaseUrl) {
     
 
@@ -572,9 +572,9 @@ export var NoViewStrategy = (_dec3 = viewStrategy(), _dec3(_class4 = function ()
   };
 
   return NoViewStrategy;
-}()) || _class4);
+}()) || _class7);
 
-export var TemplateRegistryViewStrategy = (_dec4 = viewStrategy(), _dec4(_class5 = function () {
+export var TemplateRegistryViewStrategy = (_dec4 = viewStrategy(), _dec4(_class8 = function () {
   function TemplateRegistryViewStrategy(moduleId, entry) {
     
 
@@ -594,9 +594,9 @@ export var TemplateRegistryViewStrategy = (_dec4 = viewStrategy(), _dec4(_class5
   };
 
   return TemplateRegistryViewStrategy;
-}()) || _class5);
+}()) || _class8);
 
-export var InlineViewStrategy = (_dec5 = viewStrategy(), _dec5(_class6 = function () {
+export var InlineViewStrategy = (_dec5 = viewStrategy(), _dec5(_class9 = function () {
   function InlineViewStrategy(markup, dependencies, dependencyBaseUrl) {
     
 
@@ -633,9 +633,9 @@ export var InlineViewStrategy = (_dec5 = viewStrategy(), _dec5(_class6 = functio
   };
 
   return InlineViewStrategy;
-}()) || _class6);
+}()) || _class9);
 
-export var ViewLocator = (_temp2 = _class7 = function () {
+export var ViewLocator = (_temp2 = _class10 = function () {
   function ViewLocator() {
     
   }
@@ -702,7 +702,7 @@ export var ViewLocator = (_temp2 = _class7 = function () {
   };
 
   return ViewLocator;
-}(), _class7.viewStrategyMetadataKey = 'aurelia:view-strategy', _temp2);
+}(), _class10.viewStrategyMetadataKey = 'aurelia:view-strategy', _temp2);
 
 function mi(name) {
   throw new Error('BindingLanguage must implement ' + name + '().');
@@ -730,7 +730,7 @@ export var BindingLanguage = function () {
 
 var noNodes = Object.freeze([]);
 
-export var SlotCustomAttribute = (_dec6 = inject(DOM.Element), _dec6(_class8 = function () {
+export var SlotCustomAttribute = (_dec6 = inject(DOM.Element), _dec6(_class11 = function () {
   function SlotCustomAttribute(element) {
     
 
@@ -741,7 +741,7 @@ export var SlotCustomAttribute = (_dec6 = inject(DOM.Element), _dec6(_class8 = f
   SlotCustomAttribute.prototype.valueChanged = function valueChanged(newValue, oldValue) {};
 
   return SlotCustomAttribute;
-}()) || _class8);
+}()) || _class11);
 
 export var PassThroughSlot = function () {
   function PassThroughSlot(anchor, name, destinationName, fallbackFactory) {
@@ -1074,7 +1074,7 @@ export var ShadowSlot = function () {
   return ShadowSlot;
 }();
 
-export var ShadowDOM = (_temp3 = _class9 = function () {
+export var ShadowDOM = (_temp3 = _class12 = function () {
   function ShadowDOM() {
     
   }
@@ -1160,7 +1160,7 @@ export var ShadowDOM = (_temp3 = _class9 = function () {
   };
 
   return ShadowDOM;
-}(), _class9.defaultSlotKey = '__au-default-slot-key__', _temp3);
+}(), _class12.defaultSlotKey = '__au-default-slot-key__', _temp3);
 
 function register(lookup, name, resource, type) {
   if (!name) {
@@ -1560,7 +1560,7 @@ function getAnimatableElement(view) {
 
 export var ViewSlot = function () {
   function ViewSlot(anchor, anchorIsContainer) {
-    var animator = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : Animator.instance;
+    var animator = arguments.length <= 2 || arguments[2] === undefined ? Animator.instance : arguments[2];
 
     
 
@@ -1578,7 +1578,7 @@ export var ViewSlot = function () {
   }
 
   ViewSlot.prototype.animateView = function animateView(view) {
-    var direction = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'enter';
+    var direction = arguments.length <= 1 || arguments[1] === undefined ? 'enter' : arguments[1];
 
     var animatableElement = getAnimatableElement(view);
 
@@ -1976,7 +1976,7 @@ export var ViewSlot = function () {
   return ViewSlot;
 }();
 
-var ProviderResolver = resolver(_class11 = function () {
+var ProviderResolver = resolver(_class15 = function () {
   function ProviderResolver() {
     
   }
@@ -1987,7 +1987,7 @@ var ProviderResolver = resolver(_class11 = function () {
   };
 
   return ProviderResolver;
-}()) || _class11;
+}()) || _class15;
 
 var providerResolverInstance = new ProviderResolver();
 
@@ -2201,8 +2201,8 @@ function applySurrogateInstruction(container, element, instruction, controllers,
         element.setAttribute('style', styleObjectToString(styleObject));
       }
     } else {
-      element.setAttribute(key, values[key]);
-    }
+        element.setAttribute(key, values[key]);
+      }
   }
 
   if (behaviorInstructions.length) {
@@ -2445,7 +2445,7 @@ function makeShadowSlot(compiler, resources, node, instructions, parentInjectorI
   return auShadowSlot;
 }
 
-export var ViewCompiler = (_dec7 = inject(BindingLanguage, ViewResources), _dec7(_class13 = function () {
+export var ViewCompiler = (_dec7 = inject(BindingLanguage, ViewResources), _dec7(_class17 = function () {
   function ViewCompiler(bindingLanguage, resources) {
     
 
@@ -2577,13 +2577,6 @@ export var ViewCompiler = (_dec7 = inject(BindingLanguage, ViewResources), _dec7
             if (!info.command && !info.expression) {
               info.command = property.hasOptions ? 'options' : null;
             }
-            if (info.command === 'options') {
-              if (type.defaultProperty && !attrValue.includes(":")) {
-                attrValue = info.attrValue = type.defaultProperty.name + ':' + attrValue;
-              }
-            } else if (info.command && type.defaultProperty) {
-              attrName = info.attrName = type.defaultProperty.name;
-            }
           }
         }
       }
@@ -2714,22 +2707,14 @@ export var ViewCompiler = (_dec7 = inject(BindingLanguage, ViewResources), _dec7
             if (!info.command && !info.expression) {
               info.command = property.hasOptions ? 'options' : null;
             }
-
-            if (info.command === 'options') {
-              if (type.defaultProperty && !attrValue.includes(":")) {
-                attrValue = info.attrValue = type.defaultProperty.name + ':' + attrValue;
-              }
-            } else if (info.command && type.defaultProperty) {
-              attrName = info.attrName = type.defaultProperty.name;
-            }
           }
         }
       } else if (elementInstruction) {
-        elementProperty = elementInstruction.type.attributes[info.attrName];
-        if (elementProperty) {
-          info.defaultBindingMode = elementProperty.defaultBindingMode;
+          elementProperty = elementInstruction.type.attributes[info.attrName];
+          if (elementProperty) {
+            info.defaultBindingMode = elementProperty.defaultBindingMode;
+          }
         }
-      }
 
       if (elementProperty) {
         instruction = bindingLanguage.createAttributeInstruction(resources, node, info, elementInstruction);
@@ -2820,7 +2805,7 @@ export var ViewCompiler = (_dec7 = inject(BindingLanguage, ViewResources), _dec7
   };
 
   return ViewCompiler;
-}()) || _class13);
+}()) || _class17);
 
 export var ResourceModule = function () {
   function ResourceModule(moduleId) {
@@ -3096,7 +3081,7 @@ var ProxyViewFactory = function () {
   return ProxyViewFactory;
 }();
 
-export var ViewEngine = (_dec8 = inject(Loader, Container, ViewCompiler, ModuleAnalyzer, ViewResources), _dec8(_class14 = (_temp4 = _class15 = function () {
+export var ViewEngine = (_dec8 = inject(Loader, Container, ViewCompiler, ModuleAnalyzer, ViewResources), _dec8(_class18 = (_temp4 = _class19 = function () {
   function ViewEngine(loader, container, viewCompiler, moduleAnalyzer, appResources) {
     
 
@@ -3279,7 +3264,7 @@ export var ViewEngine = (_dec8 = inject(Loader, Container, ViewCompiler, ModuleA
   };
 
   return ViewEngine;
-}(), _class15.viewModelRequireMetadataKey = 'aurelia:view-model-require', _temp4)) || _class14);
+}(), _class19.viewModelRequireMetadataKey = 'aurelia:view-model-require', _temp4)) || _class18);
 
 export var Controller = function () {
   function Controller(behavior, instruction, viewModel, container) {
@@ -3374,11 +3359,11 @@ export var Controller = function () {
       if (this.viewModel === scope.overrideContext.bindingContext) {
         overrideContext = scope.overrideContext;
       } else if (this.instruction.inheritBindingContext) {
-        overrideContext = createOverrideContext(this.viewModel, scope.overrideContext);
-      } else {
-        overrideContext = createOverrideContext(this.viewModel);
-        overrideContext.__parentOverrideContext = scope.overrideContext;
-      }
+          overrideContext = createOverrideContext(this.viewModel, scope.overrideContext);
+        } else {
+            overrideContext = createOverrideContext(this.viewModel);
+            overrideContext.__parentOverrideContext = scope.overrideContext;
+          }
 
       this.view.bind(this.viewModel, overrideContext);
     } else if (skipSelfSubscriber) {
@@ -3394,9 +3379,9 @@ export var Controller = function () {
 
   Controller.prototype.unbind = function unbind() {
     if (this.isBound) {
-      var _boundProperties = this.boundProperties;
-      var _i2 = void 0;
-      var _ii2 = void 0;
+      var boundProperties = this.boundProperties;
+      var i = void 0;
+      var ii = void 0;
 
       this.isBound = false;
       this.scope = null;
@@ -3413,8 +3398,8 @@ export var Controller = function () {
         this.elementEvents.disposeAll();
       }
 
-      for (_i2 = 0, _ii2 = _boundProperties.length; _i2 < _ii2; ++_i2) {
-        _boundProperties[_i2].binding.unbind();
+      for (i = 0, ii = boundProperties.length; i < ii; ++i) {
+        boundProperties[i].binding.unbind();
       }
     }
   };
@@ -3452,7 +3437,7 @@ export var Controller = function () {
   return Controller;
 }();
 
-export var BehaviorPropertyObserver = (_dec9 = subscriberCollection(), _dec9(_class16 = function () {
+export var BehaviorPropertyObserver = (_dec9 = subscriberCollection(), _dec9(_class21 = function () {
   function BehaviorPropertyObserver(taskQueue, obj, propertyName, selfSubscriber, initialValue) {
     
 
@@ -3514,7 +3499,7 @@ export var BehaviorPropertyObserver = (_dec9 = subscriberCollection(), _dec9(_cl
   };
 
   return BehaviorPropertyObserver;
-}()) || _class16);
+}()) || _class21);
 
 function getObserver(behavior, instance, name) {
   var lookup = instance.__observers__;
@@ -3767,7 +3752,6 @@ export var HtmlBehaviorResource = function () {
     this.properties = [];
     this.attributes = {};
     this.isInitialized = false;
-    this.defaultProperty = null;
   }
 
   HtmlBehaviorResource.convention = function convention(name, existing) {
@@ -3840,14 +3824,6 @@ export var HtmlBehaviorResource = function () {
       } else {
         for (i = 0, ii = properties.length; i < ii; ++i) {
           properties[i].defineOn(target, this);
-          if (properties[i].defaultBindable) {
-
-            if (this.defaultProperty) {
-              throw new Error("Only one bindable property on a custom element can be defined as the default");
-            }
-
-            this.defaultProperty = properties[i];
-          }
         }
 
         current = new BindableProperty({
@@ -4018,8 +3994,8 @@ export var HtmlBehaviorResource = function () {
 
           if (instruction.anchorIsContainer) {
             if (childBindings !== null) {
-              for (var _i3 = 0, _ii3 = childBindings.length; _i3 < _ii3; ++_i3) {
-                controller.view.addBinding(childBindings[_i3].create(element, viewModel, controller));
+              for (var i = 0, ii = childBindings.length; i < ii; ++i) {
+                controller.view.addBinding(childBindings[i].create(element, viewModel, controller));
               }
             }
 
@@ -4028,26 +4004,26 @@ export var HtmlBehaviorResource = function () {
             controller.view.insertNodesBefore(viewHost);
           }
         } else if (childBindings !== null) {
-          for (var _i4 = 0, _ii4 = childBindings.length; _i4 < _ii4; ++_i4) {
-            bindings.push(childBindings[_i4].create(element, viewModel, controller));
+          for (var _i2 = 0, _ii2 = childBindings.length; _i2 < _ii2; ++_i2) {
+            bindings.push(childBindings[_i2].create(element, viewModel, controller));
           }
         }
       } else if (controller.view) {
         controller.view.controller = controller;
 
         if (childBindings !== null) {
-          for (var _i5 = 0, _ii5 = childBindings.length; _i5 < _ii5; ++_i5) {
-            controller.view.addBinding(childBindings[_i5].create(instruction.host, viewModel, controller));
+          for (var _i3 = 0, _ii3 = childBindings.length; _i3 < _ii3; ++_i3) {
+            controller.view.addBinding(childBindings[_i3].create(instruction.host, viewModel, controller));
           }
         }
       } else if (childBindings !== null) {
-        for (var _i6 = 0, _ii6 = childBindings.length; _i6 < _ii6; ++_i6) {
-          bindings.push(childBindings[_i6].create(instruction.host, viewModel, controller));
+        for (var _i4 = 0, _ii4 = childBindings.length; _i4 < _ii4; ++_i4) {
+          bindings.push(childBindings[_i4].create(instruction.host, viewModel, controller));
         }
       }
     } else if (childBindings !== null) {
-      for (var _i7 = 0, _ii7 = childBindings.length; _i7 < _ii7; ++_i7) {
-        bindings.push(childBindings[_i7].create(element, viewModel, controller));
+      for (var _i5 = 0, _ii5 = childBindings.length; _i5 < _ii5; ++_i5) {
+        bindings.push(childBindings[_i5].create(element, viewModel, controller));
       }
     }
 
@@ -4151,8 +4127,8 @@ function onChildChange(mutations, observer) {
   var bindersLength = binders.length;
   var groupedMutations = new Map();
 
-  for (var _i8 = 0, _ii8 = mutations.length; _i8 < _ii8; ++_i8) {
-    var record = mutations[_i8];
+  for (var i = 0, ii = mutations.length; i < ii; ++i) {
+    var record = mutations[i];
     var added = record.addedNodes;
     var removed = record.removedNodes;
 
@@ -4220,8 +4196,8 @@ var ChildObserverBinder = function () {
       if (assignedSlot && assignedSlot.projectFromAnchors) {
         var anchors = assignedSlot.projectFromAnchors;
 
-        for (var _i9 = 0, _ii9 = anchors.length; _i9 < _ii9; ++_i9) {
-          if (anchors[_i9].auOwnerView === contentView) {
+        for (var i = 0, ii = anchors.length; i < ii; ++i) {
+          if (anchors[i].auOwnerView === contentView) {
             return true;
           }
         }
@@ -4365,7 +4341,7 @@ function tryActivateViewModel(context) {
   return context.viewModel.activate(context.model) || Promise.resolve();
 }
 
-export var CompositionEngine = (_dec10 = inject(ViewEngine, ViewLocator), _dec10(_class17 = function () {
+export var CompositionEngine = (_dec10 = inject(ViewEngine, ViewLocator), _dec10(_class22 = function () {
   function CompositionEngine(viewEngine, viewLocator) {
     
 
@@ -4512,7 +4488,7 @@ export var CompositionEngine = (_dec10 = inject(ViewEngine, ViewLocator), _dec10
   };
 
   return CompositionEngine;
-}()) || _class17);
+}()) || _class22);
 
 export var ElementConfigResource = function () {
   function ElementConfigResource() {
@@ -4722,7 +4698,7 @@ export function viewResources() {
   };
 }
 
-export var TemplatingEngine = (_dec11 = inject(Container, ModuleAnalyzer, ViewCompiler, CompositionEngine), _dec11(_class18 = function () {
+export var TemplatingEngine = (_dec11 = inject(Container, ModuleAnalyzer, ViewCompiler, CompositionEngine), _dec11(_class23 = function () {
   function TemplatingEngine(container, moduleAnalyzer, viewCompiler, compositionEngine) {
     
 
@@ -4762,4 +4738,4 @@ export var TemplatingEngine = (_dec11 = inject(Container, ModuleAnalyzer, ViewCo
   };
 
   return TemplatingEngine;
-}()) || _class18);
+}()) || _class23);
