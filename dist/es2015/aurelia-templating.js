@@ -1,4 +1,4 @@
-var _class, _temp, _dec, _class2, _dec2, _class3, _dec3, _class4, _dec4, _class5, _dec5, _class6, _class7, _temp2, _dec6, _class8, _class9, _temp3, _class11, _dec7, _class13, _dec8, _class14, _class15, _temp4, _dec9, _class16, _dec10, _class17, _dec11, _class18;
+var _class4, _temp, _dec, _class5, _dec2, _class6, _dec3, _class7, _dec4, _class8, _dec5, _class9, _class10, _temp2, _dec6, _class11, _class12, _temp3, _class15, _dec7, _class17, _dec8, _class18, _class19, _temp4, _dec9, _class21, _dec10, _class22, _dec11, _class23;
 
 import * as LogManager from 'aurelia-logging';
 import { metadata, Origin, protocol } from 'aurelia-metadata';
@@ -339,7 +339,7 @@ export let BehaviorInstruction = class BehaviorInstruction {
 
 BehaviorInstruction.normal = new BehaviorInstruction();
 
-export let TargetInstruction = (_temp = _class = class TargetInstruction {
+export let TargetInstruction = (_temp = _class4 = class TargetInstruction {
   static shadowSlot(parentInjectorId) {
     let instruction = new TargetInstruction();
     instruction.parentInjectorId = parentInjectorId;
@@ -407,7 +407,7 @@ export let TargetInstruction = (_temp = _class = class TargetInstruction {
 
     this.values = null;
   }
-}, _class.noExpressions = Object.freeze([]), _temp);
+}, _class4.noExpressions = Object.freeze([]), _temp);
 
 export const viewStrategy = protocol.create('aurelia:view-strategy', {
   validate(target) {
@@ -424,7 +424,7 @@ export const viewStrategy = protocol.create('aurelia:view-strategy', {
   }
 });
 
-export let RelativeViewStrategy = (_dec = viewStrategy(), _dec(_class2 = class RelativeViewStrategy {
+export let RelativeViewStrategy = (_dec = viewStrategy(), _dec(_class5 = class RelativeViewStrategy {
   constructor(path) {
     this.path = path;
     this.absolutePath = null;
@@ -444,9 +444,9 @@ export let RelativeViewStrategy = (_dec = viewStrategy(), _dec(_class2 = class R
       this.absolutePath = relativeToFile(this.path, file);
     }
   }
-}) || _class2);
+}) || _class5);
 
-export let ConventionalViewStrategy = (_dec2 = viewStrategy(), _dec2(_class3 = class ConventionalViewStrategy {
+export let ConventionalViewStrategy = (_dec2 = viewStrategy(), _dec2(_class6 = class ConventionalViewStrategy {
   constructor(viewLocator, origin) {
     this.moduleId = origin.moduleId;
     this.viewUrl = viewLocator.convertOriginToViewUrl(origin);
@@ -456,9 +456,9 @@ export let ConventionalViewStrategy = (_dec2 = viewStrategy(), _dec2(_class3 = c
     compileInstruction.associatedModuleId = this.moduleId;
     return viewEngine.loadViewFactory(this.viewUrl, compileInstruction, loadContext, target);
   }
-}) || _class3);
+}) || _class6);
 
-export let NoViewStrategy = (_dec3 = viewStrategy(), _dec3(_class4 = class NoViewStrategy {
+export let NoViewStrategy = (_dec3 = viewStrategy(), _dec3(_class7 = class NoViewStrategy {
   constructor(dependencies, dependencyBaseUrl) {
     this.dependencies = dependencies || null;
     this.dependencyBaseUrl = dependencyBaseUrl || '';
@@ -493,9 +493,9 @@ export let NoViewStrategy = (_dec3 = viewStrategy(), _dec3(_class4 = class NoVie
 
     return viewEngine.loadViewFactory(entry, compileInstruction, loadContext, target);
   }
-}) || _class4);
+}) || _class7);
 
-export let TemplateRegistryViewStrategy = (_dec4 = viewStrategy(), _dec4(_class5 = class TemplateRegistryViewStrategy {
+export let TemplateRegistryViewStrategy = (_dec4 = viewStrategy(), _dec4(_class8 = class TemplateRegistryViewStrategy {
   constructor(moduleId, entry) {
     this.moduleId = moduleId;
     this.entry = entry;
@@ -511,9 +511,9 @@ export let TemplateRegistryViewStrategy = (_dec4 = viewStrategy(), _dec4(_class5
     compileInstruction.associatedModuleId = this.moduleId;
     return viewEngine.loadViewFactory(entry, compileInstruction, loadContext, target);
   }
-}) || _class5);
+}) || _class8);
 
-export let InlineViewStrategy = (_dec5 = viewStrategy(), _dec5(_class6 = class InlineViewStrategy {
+export let InlineViewStrategy = (_dec5 = viewStrategy(), _dec5(_class9 = class InlineViewStrategy {
   constructor(markup, dependencies, dependencyBaseUrl) {
     this.markup = markup;
     this.dependencies = dependencies || null;
@@ -546,9 +546,9 @@ export let InlineViewStrategy = (_dec5 = viewStrategy(), _dec5(_class6 = class I
     compileInstruction.associatedModuleId = this.moduleId;
     return viewEngine.loadViewFactory(entry, compileInstruction, loadContext, target);
   }
-}) || _class6);
+}) || _class9);
 
-export let ViewLocator = (_temp2 = _class7 = class ViewLocator {
+export let ViewLocator = (_temp2 = _class10 = class ViewLocator {
   getViewStrategy(value) {
     if (!value) {
       return null;
@@ -609,7 +609,7 @@ export let ViewLocator = (_temp2 = _class7 = class ViewLocator {
     let id = moduleId.endsWith('.js') || moduleId.endsWith('.ts') ? moduleId.substring(0, moduleId.length - 3) : moduleId;
     return id + '.html';
   }
-}, _class7.viewStrategyMetadataKey = 'aurelia:view-strategy', _temp2);
+}, _class10.viewStrategyMetadataKey = 'aurelia:view-strategy', _temp2);
 
 function mi(name) {
   throw new Error(`BindingLanguage must implement ${ name }().`);
@@ -631,14 +631,14 @@ export let BindingLanguage = class BindingLanguage {
 
 let noNodes = Object.freeze([]);
 
-export let SlotCustomAttribute = (_dec6 = inject(DOM.Element), _dec6(_class8 = class SlotCustomAttribute {
+export let SlotCustomAttribute = (_dec6 = inject(DOM.Element), _dec6(_class11 = class SlotCustomAttribute {
   constructor(element) {
     this.element = element;
     this.element.auSlotAttribute = this;
   }
 
   valueChanged(newValue, oldValue) {}
-}) || _class8);
+}) || _class11);
 
 export let PassThroughSlot = class PassThroughSlot {
   constructor(anchor, name, destinationName, fallbackFactory) {
@@ -951,7 +951,7 @@ export let ShadowSlot = class ShadowSlot {
   }
 };
 
-export let ShadowDOM = (_temp3 = _class9 = class ShadowDOM {
+export let ShadowDOM = (_temp3 = _class12 = class ShadowDOM {
 
   static getSlotName(node) {
     if (node.auSlotAttribute === undefined) {
@@ -1032,7 +1032,7 @@ export let ShadowDOM = (_temp3 = _class9 = class ShadowDOM {
       }
     }
   }
-}, _class9.defaultSlotKey = '__au-default-slot-key__', _temp3);
+}, _class12.defaultSlotKey = '__au-default-slot-key__', _temp3);
 
 function register(lookup, name, resource, type) {
   if (!name) {
@@ -1808,12 +1808,12 @@ export let ViewSlot = class ViewSlot {
   }
 };
 
-let ProviderResolver = resolver(_class11 = class ProviderResolver {
+let ProviderResolver = resolver(_class15 = class ProviderResolver {
   get(container, key) {
     let id = key.__providerId__;
     return id in container ? container[id] : container[id] = container.invoke(key);
   }
-}) || _class11;
+}) || _class15;
 
 let providerResolverInstance = new ProviderResolver();
 
@@ -2027,8 +2027,8 @@ function applySurrogateInstruction(container, element, instruction, controllers,
         element.setAttribute('style', styleObjectToString(styleObject));
       }
     } else {
-      element.setAttribute(key, values[key]);
-    }
+        element.setAttribute(key, values[key]);
+      }
   }
 
   if (behaviorInstructions.length) {
@@ -2260,7 +2260,7 @@ function makeShadowSlot(compiler, resources, node, instructions, parentInjectorI
   return auShadowSlot;
 }
 
-export let ViewCompiler = (_dec7 = inject(BindingLanguage, ViewResources), _dec7(_class13 = class ViewCompiler {
+export let ViewCompiler = (_dec7 = inject(BindingLanguage, ViewResources), _dec7(_class17 = class ViewCompiler {
   constructor(bindingLanguage, resources) {
     this.bindingLanguage = bindingLanguage;
     this.resources = resources;
@@ -2389,13 +2389,6 @@ export let ViewCompiler = (_dec7 = inject(BindingLanguage, ViewResources), _dec7
 
             if (!info.command && !info.expression) {
               info.command = property.hasOptions ? 'options' : null;
-            }
-            if (info.command === 'options') {
-              if (type.defaultProperty && !attrValue.includes(":")) {
-                attrValue = info.attrValue = `${ type.defaultProperty.name }:${ attrValue }`;
-              }
-            } else if (info.command && type.defaultProperty) {
-              attrName = info.attrName = type.defaultProperty.name;
             }
           }
         }
@@ -2527,22 +2520,14 @@ export let ViewCompiler = (_dec7 = inject(BindingLanguage, ViewResources), _dec7
             if (!info.command && !info.expression) {
               info.command = property.hasOptions ? 'options' : null;
             }
-
-            if (info.command === 'options') {
-              if (type.defaultProperty && !attrValue.includes(":")) {
-                attrValue = info.attrValue = `${ type.defaultProperty.name }:${ attrValue }`;
-              }
-            } else if (info.command && type.defaultProperty) {
-              attrName = info.attrName = type.defaultProperty.name;
-            }
           }
         }
       } else if (elementInstruction) {
-        elementProperty = elementInstruction.type.attributes[info.attrName];
-        if (elementProperty) {
-          info.defaultBindingMode = elementProperty.defaultBindingMode;
+          elementProperty = elementInstruction.type.attributes[info.attrName];
+          if (elementProperty) {
+            info.defaultBindingMode = elementProperty.defaultBindingMode;
+          }
         }
-      }
 
       if (elementProperty) {
         instruction = bindingLanguage.createAttributeInstruction(resources, node, info, elementInstruction);
@@ -2631,7 +2616,7 @@ export let ViewCompiler = (_dec7 = inject(BindingLanguage, ViewResources), _dec7
 
     return node.nextSibling;
   }
-}) || _class13);
+}) || _class17);
 
 export let ResourceModule = class ResourceModule {
   constructor(moduleId) {
@@ -2884,7 +2869,7 @@ let ProxyViewFactory = class ProxyViewFactory {
   }
 };
 
-export let ViewEngine = (_dec8 = inject(Loader, Container, ViewCompiler, ModuleAnalyzer, ViewResources), _dec8(_class14 = (_temp4 = _class15 = class ViewEngine {
+export let ViewEngine = (_dec8 = inject(Loader, Container, ViewCompiler, ModuleAnalyzer, ViewResources), _dec8(_class18 = (_temp4 = _class19 = class ViewEngine {
   constructor(loader, container, viewCompiler, moduleAnalyzer, appResources) {
     this.loader = loader;
     this.container = container;
@@ -3049,7 +3034,7 @@ export let ViewEngine = (_dec8 = inject(Loader, Container, ViewCompiler, ModuleA
 
     return id;
   }
-}, _class15.viewModelRequireMetadataKey = 'aurelia:view-model-require', _temp4)) || _class14);
+}, _class19.viewModelRequireMetadataKey = 'aurelia:view-model-require', _temp4)) || _class18);
 
 export let Controller = class Controller {
   constructor(behavior, instruction, viewModel, container) {
@@ -3142,11 +3127,11 @@ export let Controller = class Controller {
       if (this.viewModel === scope.overrideContext.bindingContext) {
         overrideContext = scope.overrideContext;
       } else if (this.instruction.inheritBindingContext) {
-        overrideContext = createOverrideContext(this.viewModel, scope.overrideContext);
-      } else {
-        overrideContext = createOverrideContext(this.viewModel);
-        overrideContext.__parentOverrideContext = scope.overrideContext;
-      }
+          overrideContext = createOverrideContext(this.viewModel, scope.overrideContext);
+        } else {
+            overrideContext = createOverrideContext(this.viewModel);
+            overrideContext.__parentOverrideContext = scope.overrideContext;
+          }
 
       this.view.bind(this.viewModel, overrideContext);
     } else if (skipSelfSubscriber) {
@@ -3218,7 +3203,7 @@ export let Controller = class Controller {
   }
 };
 
-export let BehaviorPropertyObserver = (_dec9 = subscriberCollection(), _dec9(_class16 = class BehaviorPropertyObserver {
+export let BehaviorPropertyObserver = (_dec9 = subscriberCollection(), _dec9(_class21 = class BehaviorPropertyObserver {
   constructor(taskQueue, obj, propertyName, selfSubscriber, initialValue) {
     this.taskQueue = taskQueue;
     this.obj = obj;
@@ -3276,7 +3261,7 @@ export let BehaviorPropertyObserver = (_dec9 = subscriberCollection(), _dec9(_cl
   unsubscribe(context, callable) {
     this.removeSubscriber(context, callable);
   }
-}) || _class16);
+}) || _class21);
 
 function getObserver(behavior, instance, name) {
   let lookup = instance.__observers__;
@@ -3515,7 +3500,6 @@ export let HtmlBehaviorResource = class HtmlBehaviorResource {
     this.properties = [];
     this.attributes = {};
     this.isInitialized = false;
-    this.defaultProperty = null;
   }
 
   static convention(name, existing) {
@@ -3588,14 +3572,6 @@ export let HtmlBehaviorResource = class HtmlBehaviorResource {
       } else {
         for (i = 0, ii = properties.length; i < ii; ++i) {
           properties[i].defineOn(target, this);
-          if (properties[i].defaultBindable) {
-
-            if (this.defaultProperty) {
-              throw new Error("Only one bindable property on a custom element can be defined as the default");
-            }
-
-            this.defaultProperty = properties[i];
-          }
         }
 
         current = new BindableProperty({
@@ -4103,7 +4079,7 @@ function tryActivateViewModel(context) {
   return context.viewModel.activate(context.model) || Promise.resolve();
 }
 
-export let CompositionEngine = (_dec10 = inject(ViewEngine, ViewLocator), _dec10(_class17 = class CompositionEngine {
+export let CompositionEngine = (_dec10 = inject(ViewEngine, ViewLocator), _dec10(_class22 = class CompositionEngine {
   constructor(viewEngine, viewLocator) {
     this.viewEngine = viewEngine;
     this.viewLocator = viewLocator;
@@ -4240,7 +4216,7 @@ export let CompositionEngine = (_dec10 = inject(ViewEngine, ViewLocator), _dec10
 
     return Promise.resolve(null);
   }
-}) || _class17);
+}) || _class22);
 
 export let ElementConfigResource = class ElementConfigResource {
   initialize(container, target) {}
@@ -4440,7 +4416,7 @@ export function viewResources(...resources) {
   };
 }
 
-export let TemplatingEngine = (_dec11 = inject(Container, ModuleAnalyzer, ViewCompiler, CompositionEngine), _dec11(_class18 = class TemplatingEngine {
+export let TemplatingEngine = (_dec11 = inject(Container, ModuleAnalyzer, ViewCompiler, CompositionEngine), _dec11(_class23 = class TemplatingEngine {
   constructor(container, moduleAnalyzer, viewCompiler, compositionEngine) {
     this._container = container;
     this._moduleAnalyzer = moduleAnalyzer;
@@ -4476,4 +4452,4 @@ export let TemplatingEngine = (_dec11 = inject(Container, ModuleAnalyzer, ViewCo
 
     return view;
   }
-}) || _class18);
+}) || _class23);
