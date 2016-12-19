@@ -117,8 +117,12 @@ export class HtmlBehaviorResource {
 
     if (attributeName !== null) {
       if (properties.length === 0) { //default for custom attributes
-          this.createDefaultBindableProperty(attributeName, attributeDefaultBindingMode, proto)
-              .registerWith(target, this);
+        new BindableProperty({
+          name: 'value',
+          changeHandler: 'valueChanged' in proto ? 'valueChanged' : null,
+          attribute: attributeName,
+          defaultBindingMode: attributeDefaultBindingMode
+        }).registerWith(target, this);
       }
 
       current = properties[0];
@@ -130,16 +134,19 @@ export class HtmlBehaviorResource {
         for (i = 0, ii = properties.length; i < ii; ++i) {
           properties[i].defineOn(target, this);
           if (properties[i].defaultBindable) {
-
-              if (this.defaultProperty) {
-                  throw new Error("Only one bindable property on a custom element can be defined as the default");
-              }
-
-              this.defaultProperty = properties[i];
+            if (this.defaultProperty) {
+              throw new Error('Only one bindable property on a custom element can be defined as the default');
+            }
+            this.defaultProperty = properties[i];
           }
         }
 
-        current = this.createDefaultBindableProperty(attributeName, attributeDefaultBindingMode, proto);
+        current = new BindableProperty({
+          name: 'value',
+          changeHandler: 'valueChanged' in proto ? 'valueChanged' : null,
+          attribute: attributeName,
+          defaultBindingMode: attributeDefaultBindingMode
+        });
 
         current.hasOptions = true;
         current.registerWith(target, this);
@@ -149,17 +156,6 @@ export class HtmlBehaviorResource {
         properties[i].defineOn(target, this);
       }
     }
-  }
-
-createDefaultBindableProperty(attributeName: string, attributeDefaultBindingMode: any, proto:any): BindableProperty
-  {
-      let handlerName = `${name}Changed`;
-      return new BindableProperty({
-            name: 'value',
-            changeHandler: 'valueChanged' in proto ? 'valueChanged' : null,
-            attribute: attributeName,
-            defaultBindingMode: attributeDefaultBindingMode
-      });
   }
 
   /**
