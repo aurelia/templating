@@ -908,8 +908,6 @@ export declare class SlotCustomAttribute {
   constructor(element?: any);
   valueChanged(newValue?: any, oldValue?: any): any;
 }
-
-//console.log('au-slot', newValue);
 export declare class PassThroughSlot {
   constructor(anchor?: any, name?: any, destinationName?: any, fallbackFactory?: any);
   needsFallbackRendering: any;
@@ -1289,7 +1287,6 @@ export declare class BoundViewFactory {
     */
   constructor(parentContainer: Container, viewFactory: ViewFactory, partReplacements?: Object);
   
-  //This is referenced internally in the controller's bind method.
   /**
     * Creates a view or returns one from the internal cache, if available.
     * @return The created view.
@@ -1886,7 +1883,6 @@ export declare function templateController(target?: any): any;
 */
 export declare function bindable(nameOrConfigOrTarget?: string | Object, key?: any, descriptor?: any): any;
 
-//placed on a class
 /**
 * Decorator: Specifies that the decorated custom attribute has options that
 * are dynamic, based on their presence in HTML and not statically known.

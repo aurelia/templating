@@ -3312,6 +3312,16 @@ export class ViewCompiler {
             if (!info.command && !info.expression) { // if there is no command or detected expression
               info.command = property.hasOptions ? 'options' : null; //and it is an optons property, set the options command
             }
+            if (info.command === 'options')
+            {
+              if (type.defaultProperty && !attrValue.includes(":"))
+              {
+                attrValue = info.attrValue = `${type.defaultProperty.name}:${attrValue}`;
+              }
+            }
+            else if (info.command && type.defaultProperty) {
+              attrName = info.attrName = type.defaultProperty.name;
+            }
           }
         }
       }
@@ -3441,6 +3451,17 @@ export class ViewCompiler {
 
             if (!info.command && !info.expression) { // if there is no command or detected expression
               info.command = property.hasOptions ? 'options' : null; //and it is an optons property, set the options command
+            }
+
+            if (info.command === 'options')
+            {
+              if (type.defaultProperty && !attrValue.includes(":"))
+              {
+                attrValue = info.attrValue = `${type.defaultProperty.name}:${attrValue}`;
+              }
+            }
+            else if (info.command && type.defaultProperty) {
+              attrName = info.attrName = type.defaultProperty.name;
             }
           }
         }
@@ -4687,6 +4708,7 @@ export class HtmlBehaviorResource {
     this.properties = [];
     this.attributes = {};
     this.isInitialized = false;
+    this.defaultProperty = null;
   }
 
   /**
@@ -4774,6 +4796,14 @@ export class HtmlBehaviorResource {
       } else { //custom attribute with options
         for (i = 0, ii = properties.length; i < ii; ++i) {
           properties[i].defineOn(target, this);
+          if (properties[i].defaultBindable) {
+
+              if (this.defaultProperty) {
+                  throw new Error("Only one bindable property on a custom element can be defined as the default");
+              }
+
+              this.defaultProperty = properties[i];
+          }
         }
 
         current = new BindableProperty({

@@ -229,14 +229,11 @@ export class ViewCompiler {
             if (!info.command && !info.expression) { // if there is no command or detected expression
               info.command = property.hasOptions ? 'options' : null; //and it is an optons property, set the options command
             }
-            if (info.command === 'options')
-            {
-              if (type.defaultProperty && !attrValue.includes(":"))
-              {
+            if (info.command === 'options') {
+              if (type.defaultProperty && !attrValue.includes(':')) {
                 attrValue = info.attrValue = `${type.defaultProperty.name}:${attrValue}`;
               }
-            }
-            else if (info.command && type.defaultProperty) {
+            } else if (info.command && type.defaultProperty) {
               attrName = info.attrName = type.defaultProperty.name;
             }
           }
@@ -370,14 +367,11 @@ export class ViewCompiler {
               info.command = property.hasOptions ? 'options' : null; //and it is an optons property, set the options command
             }
 
-            if (info.command === 'options')
-            {
-              if (type.defaultProperty && !attrValue.includes(":"))
-              {
+            if (info.command === 'options') {
+              if (type.defaultProperty && !attrValue.includes(':')) {
                 attrValue = info.attrValue = `${type.defaultProperty.name}:${attrValue}`;
               }
-            }
-            else if (info.command && type.defaultProperty) {
+            } else if (info.command && type.defaultProperty) {
               attrName = info.attrName = type.defaultProperty.name;
             }
           }
