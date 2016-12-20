@@ -93,11 +93,11 @@ function createElementContainer(parent, element, instruction, children, partRepl
 }
 
 function hasAttribute(name) {
-  this._element.hasAttribute(name)
+  return this._element.hasAttribute(name)
 }
 
 function getAttribute(name) {
-  this._element.getAttribute(name);
+  return this._element.getAttribute(name);
 }
 
 function setAttribute(name, value) {
