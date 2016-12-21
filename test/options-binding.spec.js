@@ -80,5 +80,16 @@ describe('Custom Attribute', () => {
           expect(info.attrValue).toBe('barValue');
         });
     });
+
+    it('detects that default unnamed, call option is given', () => {
+        const attrName = 'custom-options-attribute-5';
+        runCommonCustomAttributeTest(attrName, attrName + '.call', 'barValue()', (info) =>
+        {
+          expect(info.command).toBe('call');
+          expect(info.attrName).toBe('bar');
+          expect(info.attrValue).toBe('barValue()');
+        });
+    });
+
   });
 });
