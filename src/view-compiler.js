@@ -11,35 +11,6 @@ function getNextInjectorId() {
   return ++nextInjectorId;
 }
 
-function configureProperties(instruction, resources) {
-  let type = instruction.type;
-  let attrName = instruction.attrName;
-  let attributes = instruction.attributes;
-  let property;
-  let key;
-  let value;
-
-  let knownAttribute = resources.mapAttribute(attrName);
-  if (knownAttribute && attrName in attributes && knownAttribute !== attrName) {
-    attributes[knownAttribute] = attributes[attrName];
-    delete attributes[attrName];
-  }
-
-  for (key in attributes) {
-    value = attributes[key];
-
-    if (value !== null && typeof value === 'object') {
-      property = type.attributes[key];
-
-      if (property !== undefined) {
-        value.targetProperty = property.name;
-      } else {
-        value.targetProperty = key;
-      }
-    }
-  }
-}
-
 let lastAUTargetID = 0;
 function getNextAUTargetID() {
   return (++lastAUTargetID).toString();
@@ -229,11 +200,11 @@ export class ViewCompiler {
             if (!info.command && !info.expression) { // if there is no command or detected expression
               info.command = property.hasOptions ? 'options' : null; //and it is an optons property, set the options command
             }
-            if (info.command === 'options') {
-              if (type.defaultProperty && !attrValue.includes(':')) {
-                attrValue = info.attrValue = `${type.defaultProperty.name}:${attrValue}`;
-              }
-            } else if (info.command && type.defaultProperty) {
+
+            // if the attribute itself is bound to a default attribute value then we have to
+            // associate the attribute value with the name of the default bindable property
+            // (otherwise it will remain associated with "value")
+            if (info.command && (info.command !== 'options') && type.defaultProperty) {
               attrName = info.attrName = type.defaultProperty.name;
             }
           }
@@ -252,7 +223,7 @@ export class ViewCompiler {
         } else { //attribute bindings
           if (type) { //templator or attached behavior found
             instruction.type = type;
-            configureProperties(instruction, resources);
+            this._configureProperties(instruction, resources);
 
             if (type.liftsContent) { //template controller
               throw new Error('You cannot place a template controller on a surrogate element.');
@@ -367,11 +338,10 @@ export class ViewCompiler {
               info.command = property.hasOptions ? 'options' : null; //and it is an optons property, set the options command
             }
 
-            if (info.command === 'options') {
-              if (type.defaultProperty && !attrValue.includes(':')) {
-                attrValue = info.attrValue = `${type.defaultProperty.name}:${attrValue}`;
-              }
-            } else if (info.command && type.defaultProperty) {
+            // if the attribute itself is bound to a default attribute value then we have to
+            // associate the attribute value with the name of the default bindable property
+            // (otherwise it will remain associated with "value")
+            if (info.command && (info.command !== 'options') && type.defaultProperty) {
               attrName = info.attrName = type.defaultProperty.name;
             }
           }
@@ -399,7 +369,7 @@ export class ViewCompiler {
         } else { //attribute bindings
           if (type) { //templator or attached behavior found
             instruction.type = type;
-            configureProperties(instruction, resources);
+            this._configureProperties(instruction, resources);
 
             if (type.liftsContent) { //template controller
               instruction.originalAttrName = attrName;
@@ -478,5 +448,34 @@ export class ViewCompiler {
     }
 
     return node.nextSibling;
+  }
+
+  _configureProperties(instruction, resources) {
+    let type = instruction.type;
+    let attrName = instruction.attrName;
+    let attributes = instruction.attributes;
+    let property;
+    let key;
+    let value;
+
+    let knownAttribute = resources.mapAttribute(attrName);
+    if (knownAttribute && attrName in attributes && knownAttribute !== attrName) {
+      attributes[knownAttribute] = attributes[attrName];
+      delete attributes[attrName];
+    }
+
+    for (key in attributes) {
+      value = attributes[key];
+
+      if (value !== null && typeof value === 'object') {
+        property = type.attributes[key];
+
+        if (property !== undefined) {
+          value.targetProperty = property.name;
+        } else {
+          value.targetProperty = key;
+        }
+      }
+    }
   }
 }

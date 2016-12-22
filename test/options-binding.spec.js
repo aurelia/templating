@@ -1,6 +1,7 @@
 import './setup';
 import {ViewCompiler} from '../src/view-compiler';
 import {ViewResources} from '../src/view-resources';
+import {BindingExpression, CallExpression} from 'aurelia-binding';
 import {Container} from 'aurelia-dependency-injection';
 import {TemplatingBindingLanguage} from 'aurelia-templating-binding';
 import {BindingLanguage} from '../src/binding-language';
@@ -10,7 +11,7 @@ import {BindableProperty} from '../src/bindable-property';
 describe('Custom Attribute', () => {
   var viewCompiler, language, container;
 
-  var runCommonCustomAttributeTest = function(attrRootName, attrSpecification, attrValue, expect ) {
+  var runCommonCustomAttributeTest = function(attrRootName, attrSpecification, attrValue, expectCallback ) {
       const behavior = new HtmlBehaviorResource();
       behavior.attributeName = attrRootName;
       behavior.properties.push(new BindableProperty({ name: 'foo' }));
@@ -25,13 +26,18 @@ describe('Custom Attribute', () => {
 
       div.setAttribute(attrSpecification, attrValue);
 
-      let createAttributeInstructionSpy = spyOn(language, 'createAttributeInstruction');
+      //let createAttributeInstructionSpy = spyOn(language, 'createAttributeInstruction').and.callThrough();
+      let configurePropertiesSpy = spyOn(viewCompiler, '_configureProperties').and.callThrough();
 
       viewCompiler._compileElement(div, viewCompiler.resources, template);
 
-      let info = createAttributeInstructionSpy.calls.argsFor(0)[2];
+      //expect(createAttributeInstructionSpy.calls.any()).toEqual(true);
+      //let info = createAttributeInstructionSpy.calls.argsFor(0)[2];
+      
+      //expect([0,1]).toContain(configurePropertiesSpy.calls.count());
+      let instruction = (configurePropertiesSpy.calls.count() === 1) ? configurePropertiesSpy.calls.argsFor(0)[0] : null;
 
-      expect(info);
+      expectCallback(instruction);
     }  
 
   beforeAll(() => {
@@ -48,46 +54,75 @@ describe('Custom Attribute', () => {
     
     it('detects when unbound options are given', () => {
         const attrName = 'custom-options-attribute-1';
-        runCommonCustomAttributeTest(attrName, attrName, 'foo: foo; bar: barValue', (info) =>
+        runCommonCustomAttributeTest(attrName, attrName, 'foo:fooValue;bar:barValue', (instruction) =>
         {
-          expect(info.command).toBe('options');
+          expect(instruction).not.toBeNull();
+          expect(instruction.attributes['foo']).toBe('fooValue');
+          expect(instruction.attributes['bar']).toBe('barValue');
         });
     });
 
     it('detects when bound options are given', () => {
         const attrName = 'custom-options-attribute-2';
-        runCommonCustomAttributeTest(attrName, attrName, 'foo.bind: foo; bar: barValue', (info) =>
+        runCommonCustomAttributeTest(attrName, attrName, 'foo.bind:fooProperty;bar:barValue', (instruction) =>
         {
-          expect(info.command).toBe('options');
+          expect(instruction).not.toBeNull();
+          expect(instruction.attributes['bar']).toBe('barValue');
+          expect(instruction.attributes['foo'] instanceof BindingExpression).toBeTruthy();
+          expect(instruction.attributes['foo'].targetProperty).toBe('foo');
+          expect(instruction.attributes['foo'].sourceExpression.name).toBe('fooProperty');
         });
     });
 
-    it('detects that default unnamed, unbound option is given', () => {
+    it('detects that unbound default but named option is given', () => {
         const attrName = 'custom-options-attribute-3';
-        runCommonCustomAttributeTest(attrName, attrName, 'barValue', (info) =>
+        runCommonCustomAttributeTest(attrName, attrName, 'bar:barValue', (instruction) =>
         {
-          expect(info.command).toBe('options');
-          expect(info.attrValue).toBe('bar:barValue');
+          expect(instruction).not.toBeNull();
+          expect(instruction.attributes['bar']).toBe('barValue');
         });
     });
 
-    it('detects that default unnamed, bound option is given', () => {
+    it('detects that bound default but named option is given', () => {
         const attrName = 'custom-options-attribute-4';
-        runCommonCustomAttributeTest(attrName, attrName + '.bind', 'barValue', (info) =>
+        runCommonCustomAttributeTest(attrName, attrName, 'bar.bind:barProperty', (instruction) =>
         {
-          expect(info.command).toBe('bind');
-          expect(info.attrName).toBe('bar');
-          expect(info.attrValue).toBe('barValue');
+          expect(instruction).not.toBeNull();
+          expect(instruction.attributes['bar'] instanceof BindingExpression).toBeTruthy();
+          expect(instruction.attributes['bar'].targetProperty).toBe('bar');
+          expect(instruction.attributes['bar'].sourceExpression.name).toBe('barProperty');
         });
     });
 
-    it('detects that default unnamed, call option is given', () => {
+
+    it('detects that unbound default option is given', () => {
         const attrName = 'custom-options-attribute-5';
-        runCommonCustomAttributeTest(attrName, attrName + '.call', 'barValue()', (info) =>
+        runCommonCustomAttributeTest(attrName, attrName, 'barValue', (instruction) =>
         {
-          expect(info.command).toBe('call');
-          expect(info.attrName).toBe('bar');
-          expect(info.attrValue).toBe('barValue()');
+          expect(instruction).not.toBeNull();
+          expect(instruction.attributes['bar']).toBe('barValue');
+        });
+    });
+
+    it('detects that default option is given to bind', () => {
+        const attrName = 'custom-options-attribute-6';
+        runCommonCustomAttributeTest(attrName, attrName + '.bind', 'barProperty', (instruction) =>
+        {
+          expect(instruction).not.toBeNull();
+          expect(instruction.attributes['bar'] instanceof BindingExpression).toBeTruthy();
+          expect(instruction.attributes['bar'].targetProperty).toBe('bar');
+          expect(instruction.attributes['bar'].sourceExpression.name).toBe('barProperty');
+        });
+    });
+
+    it('detects that default option is given to call', () => {
+        const attrName = 'custom-options-attribute-7';
+        runCommonCustomAttributeTest(attrName, attrName + '.call', 'barCall()', (instruction) =>
+        {
+          expect(instruction).not.toBeNull();
+          expect(instruction.attributes['bar'] instanceof CallExpression).toBeTruthy();
+          expect(instruction.attributes['bar'].targetProperty).toBe('bar');
+          expect(instruction.attributes['bar'].sourceExpression.name).toBe('barCall');
         });
     });
 
