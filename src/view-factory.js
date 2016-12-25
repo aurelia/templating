@@ -92,6 +92,18 @@ function createElementContainer(parent, element, instruction, children, partRepl
   return container;
 }
 
+function hasAttribute(name) {
+  return this._element.hasAttribute(name)
+}
+
+function getAttribute(name) {
+  return this._element.getAttribute(name);
+}
+
+function setAttribute(name, value) {
+  this._element.setAttribute(name, value);
+}
+
 function makeElementIntoAnchor(element, elementInstruction) {
   let anchor = DOM.createComment('anchor');
 
@@ -102,9 +114,11 @@ function makeElementIntoAnchor(element, elementInstruction) {
       anchor.contentElement = firstChild;
     }
 
-    anchor.hasAttribute = function(name) { return element.hasAttribute(name); };
-    anchor.getAttribute = function(name) { return element.getAttribute(name); };
-    anchor.setAttribute = function(name, value) { element.setAttribute(name, value); };
+    anchor._element = element;
+
+    anchor.hasAttribute = hasAttribute;
+    anchor.getAttribute = getAttribute;
+    anchor.setAttribute = setAttribute;
   }
 
   DOM.replaceNode(anchor, element);
