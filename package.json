@@ -23,10 +23,21 @@
   },
   "jspm": {
     "registry": "npm",
+    "jspmPackage": true,
     "main": "aurelia-templating",
     "format": "amd",
     "directories": {
       "dist": "dist/amd"
+    },
+    "peerDependencies": {
+      "aurelia-binding": "^1.0.0",
+      "aurelia-dependency-injection": "^1.0.0",
+      "aurelia-loader": "^1.0.0",
+      "aurelia-logging": "^1.0.0",
+      "aurelia-metadata": "^1.0.0",
+      "aurelia-pal": "^1.0.0",
+      "aurelia-path": "^1.0.0",
+      "aurelia-task-queue": "^1.1.0"
     },
     "dependencies": {
       "aurelia-binding": "^1.0.0",
@@ -44,7 +55,7 @@
       "aurelia-templating-binding": "^1.1.0",
       "babel": "babel-core@^5.8.24",
       "babel-runtime": "^5.8.24",
-      "core-js": "^1.1.4"
+      "core-js": "^2.0.3"
     }
   },
   "dependencies": {
