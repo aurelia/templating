@@ -236,7 +236,7 @@ Options binding provides a custom attribute the ability to have multiple bindabl
 
 A single bindable property can be made the default among all the options in an options binding.  Thus, when you use a custom attribute that would otherwise require using the options HTML syntax, and you want to provide a value or binding only for the default property, then you can use the simpler HTML syntax of a single value binding. 
 
-With options bindings each bindable property must be decorated with the `bindable` decorator.  To specify that you want a bindable property to be the default among all the other bindable properties, use the `defaultBindable` configuration parameter of the `bindable` decorator, as shown below:
+With options bindings each bindable property must be decorated with the `bindable` decorator.  To specify that you want a bindable property to be the default among all the other bindable properties, use the `primaryProperty` configuration parameter of the `bindable` decorator, as shown below:
 
 <code-listing heading="square${context.language.fileExtension}">
   <source-code lang="ES 2015/2016">
@@ -245,7 +245,7 @@ With options bindings each bindable property must be decorated with the `bindabl
     @inject(Element)
     export class SquareCustomAttribute {
       @bindable sideLength;
-      @bindable({ defaultBindable: true }) color;
+      @bindable({ primaryProperty: true }) color;
 
       constructor(element){
         this.element = element;
@@ -258,7 +258,7 @@ With options bindings each bindable property must be decorated with the `bindabl
     @autoinject
     export class SquareCustomAttribute {
       @bindable sideLength: string;
-      @bindable color({ defaultBindable: true }): string;
+      @bindable color({ primaryProperty: true }): string;
 
       constructor(private element: Element){
       }

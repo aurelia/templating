@@ -15,7 +15,7 @@ describe('Custom Attribute', () => {
       const behavior = new HtmlBehaviorResource();
       behavior.attributeName = attrRootName;
       behavior.properties.push(new BindableProperty({ name: 'foo' }));
-      behavior.properties.push(new BindableProperty({ name: 'bar', defaultBindable: true }));
+      behavior.properties.push(new BindableProperty({ name: 'bar', primaryProperty: true }));
       behavior.initialize(container, function() { this.foo = "fooValue"; this.bar = "barValue"; });
 
       viewCompiler.resources.registerAttribute(attrRootName, behavior, attrRootName);

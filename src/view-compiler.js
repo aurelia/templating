@@ -204,8 +204,8 @@ export class ViewCompiler {
             // if the attribute itself is bound to a default attribute value then we have to
             // associate the attribute value with the name of the default bindable property
             // (otherwise it will remain associated with "value")
-            if (info.command && (info.command !== 'options') && type.defaultProperty) {
-              attrName = info.attrName = type.defaultProperty.name;
+            if (info.command && (info.command !== 'options') && type.primaryProperty) {
+              attrName = info.attrName = type.primaryProperty.name;
             }
           }
         }
@@ -341,8 +341,8 @@ export class ViewCompiler {
             // if the attribute itself is bound to a default attribute value then we have to
             // associate the attribute value with the name of the default bindable property
             // (otherwise it will remain associated with "value")
-            if (info.command && (info.command !== 'options') && type.defaultProperty) {
-              attrName = info.attrName = type.defaultProperty.name;
+            if (info.command && (info.command !== 'options') && type.primaryProperty) {
+              attrName = info.attrName = type.primaryProperty.name;
             }
           }
         }
