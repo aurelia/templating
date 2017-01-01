@@ -59,6 +59,11 @@ interface CompositionContext {
   * Should the composition system skip calling the "activate" hook on the view model.
   */
   skipActivation?: boolean;
+  /**
+  * The element that will parent the dynamic component.
+  * It will be registered in the child container of this composition.
+  */
+  host?: Element;
 }
 
 function tryActivateViewModel(context) {
