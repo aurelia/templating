@@ -204,7 +204,7 @@ Options binding provides a custom attribute the ability to have multiple bindabl
     import {bindable, autoinject} from 'aurelia-framework';
 
     @autoinject
-    export class RedSquareCustomAttribute {
+    export class SquareCustomAttribute {
       @bindable sideLength: string;
       @bindable color: string;
 
@@ -222,7 +222,7 @@ Options binding provides a custom attribute the ability to have multiple bindabl
   </source-code>
 </code-listing>
 
-<code-listing heading="Single Value Binding Usage">
+<code-listing heading="Options Binding Usage">
   <source-code lang="HTML">
     <template>
       <require from="./square"></require>
@@ -232,7 +232,65 @@ Options binding provides a custom attribute the ability to have multiple bindabl
   </source-code>
 </code-listing>
 
-## [Dynamic Options Binding](aurelia-doc://section/6/version/1.0.0)
+## [Default Option](aurelia-doc://section/6/version/1.0.0)
+
+A single bindable property can be made the default among all the options in an options binding.  Thus, when you use a custom attribute that would otherwise require using the options HTML syntax, and you want to provide a value or binding only for the default property, then you can use the simpler HTML syntax of a single value binding. 
+
+With options bindings each bindable property must be decorated with the `bindable` decorator.  To specify that you want a bindable property to be the default among all the other bindable properties, use the `primaryProperty` configuration parameter of the `bindable` decorator, as shown below:
+
+<code-listing heading="square${context.language.fileExtension}">
+  <source-code lang="ES 2015/2016">
+    import {bindable, inject} from 'aurelia-framework';
+
+    @inject(Element)
+    export class SquareCustomAttribute {
+      @bindable sideLength;
+      @bindable({ primaryProperty: true }) color;
+
+      constructor(element){
+        this.element = element;
+      }
+    }
+  </source-code>
+  <source-code lang="TypeScript">
+    import {bindable, autoinject} from 'aurelia-framework';
+
+    @autoinject
+    export class SquareCustomAttribute {
+      @bindable sideLength: string;
+      @bindable color({ primaryProperty: true }): string;
+
+      constructor(private element: Element){
+      }
+    }
+  </source-code>
+</code-listing>
+
+Then when you use the custom attribute, instead of this:
+
+<code-listing heading="Usage when Binding a Single Property using the Options Syntax">
+  <source-code lang="HTML">
+    <div square="color.bind: squareColor"></div> 
+ </source-code>
+</code-listing>
+
+You can do this:
+
+<code-listing heading="Usage with Simpler Binding Syntax on a Default Bindable Property">
+  <source-code lang="HTML">
+      <div square.bind="squareColor"></div> 
+</source-code>
+</code-listing>
+
+Or if you don't care about binding, then this:
+
+<code-listing heading="Usage with Simpler Syntax on a Default Bindable Property">
+  <source-code lang="HTML">
+      <div square="#123456"></div> 
+</source-code>
+</code-listing>
+
+## [Dynamic Options Binding](aurelia-doc://section/7/version/1.0.0)
 
 Utilizing dynamic options, a custom attribute may deal with bindable properties where the name of the property is not known when creating the attribute. Simply decorate the attribute's view-model with the `dynamicOptions` decorator and implement the `propertyChanged(name, newValue, oldValue)` callback function. Aurelia will provide the name of the option that has changed along with new and old values for the option. Binding to a dynamic options attribute works exactly the same as binding to an options attribute in the DOM.
 
@@ -298,6 +356,7 @@ Utilizing dynamic options, a custom attribute may deal with bindable properties 
   </source-code>
 </code-listing>
 
-## [Globally Accessible Custom Attributes](aurelia-doc://section/7/version/1.0.0)
+## [Globally Accessible Custom Attributes](aurelia-doc://section/8/version/1.0.0)
 
 In all of our examples, we've been using the `require` element to import custom attributes we need into our view.  There's an easier way.  If you have some commonly used custom attributes that you'd like to make globally available, use Aurelia's `globalResources` function to register them.  This will will eliminate the need for `require` elements at the top of every view.
+
