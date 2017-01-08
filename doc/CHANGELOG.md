@@ -1,3 +1,21 @@
+<a name="1.2.0"></a>
+# [1.2.0](https://github.com/aurelia/templating/compare/1.1.4...v1.2.0) (2017-01-08)
+
+
+### Bug Fixes
+
+* Add return to hasAttribute and getAttribute ([1f8bb3a](https://github.com/aurelia/templating/commit/1f8bb3a))
+* **composition-engine:** add "host" to CompositionContext ([b9d927c](https://github.com/aurelia/templating/commit/b9d927c))
+
+
+### Features
+
+* **HtmlBehavior:** primary property/bindable ([dd5ddfa](https://github.com/aurelia/templating/commit/dd5ddfa)), closes [aurelia/templating-binding#56](https://github.com/aurelia/templating-binding/issues/56)
+
+### Performance
+
+* **view-factory:** Avoid creating anonymous function for each containerless anchor.
+
 <a name="1.1.4"></a>
 ## [1.1.4](https://github.com/aurelia/templating/compare/1.1.3...v1.1.4) (2016-12-03)
 

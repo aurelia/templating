@@ -2723,6 +2723,18 @@ function createElementContainer(parent, element, instruction, children, partRepl
   return container;
 }
 
+function hasAttribute(name) {
+  return this._element.hasAttribute(name);
+}
+
+function getAttribute(name) {
+  return this._element.getAttribute(name);
+}
+
+function setAttribute(name, value) {
+  this._element.setAttribute(name, value);
+}
+
 function makeElementIntoAnchor(element, elementInstruction) {
   let anchor = DOM.createComment('anchor');
 
@@ -2733,9 +2745,11 @@ function makeElementIntoAnchor(element, elementInstruction) {
       anchor.contentElement = firstChild;
     }
 
-    anchor.hasAttribute = function(name) { return element.hasAttribute(name); };
-    anchor.getAttribute = function(name) { return element.getAttribute(name); };
-    anchor.setAttribute = function(name, value) { element.setAttribute(name, value); };
+    anchor._element = element;
+
+    anchor.hasAttribute = hasAttribute;
+    anchor.getAttribute = getAttribute;
+    anchor.setAttribute = setAttribute;
   }
 
   DOM.replaceNode(anchor, element);
@@ -3094,35 +3108,6 @@ function getNextInjectorId() {
   return ++nextInjectorId;
 }
 
-function configureProperties(instruction, resources) {
-  let type = instruction.type;
-  let attrName = instruction.attrName;
-  let attributes = instruction.attributes;
-  let property;
-  let key;
-  let value;
-
-  let knownAttribute = resources.mapAttribute(attrName);
-  if (knownAttribute && attrName in attributes && knownAttribute !== attrName) {
-    attributes[knownAttribute] = attributes[attrName];
-    delete attributes[attrName];
-  }
-
-  for (key in attributes) {
-    value = attributes[key];
-
-    if (value !== null && typeof value === 'object') {
-      property = type.attributes[key];
-
-      if (property !== undefined) {
-        value.targetProperty = property.name;
-      } else {
-        value.targetProperty = key;
-      }
-    }
-  }
-}
-
 let lastAUTargetID = 0;
 function getNextAUTargetID() {
   return (++lastAUTargetID).toString();
@@ -3312,6 +3297,13 @@ export class ViewCompiler {
             if (!info.command && !info.expression) { // if there is no command or detected expression
               info.command = property.hasOptions ? 'options' : null; //and it is an optons property, set the options command
             }
+
+            // if the attribute itself is bound to a default attribute value then we have to
+            // associate the attribute value with the name of the default bindable property
+            // (otherwise it will remain associated with "value")
+            if (info.command && (info.command !== 'options') && type.primaryProperty) {
+              attrName = info.attrName = type.primaryProperty.name;
+            }
           }
         }
       }
@@ -3328,7 +3320,7 @@ export class ViewCompiler {
         } else { //attribute bindings
           if (type) { //templator or attached behavior found
             instruction.type = type;
-            configureProperties(instruction, resources);
+            this._configureProperties(instruction, resources);
 
             if (type.liftsContent) { //template controller
               throw new Error('You cannot place a template controller on a surrogate element.');
@@ -3442,6 +3434,13 @@ export class ViewCompiler {
             if (!info.command && !info.expression) { // if there is no command or detected expression
               info.command = property.hasOptions ? 'options' : null; //and it is an optons property, set the options command
             }
+
+            // if the attribute itself is bound to a default attribute value then we have to
+            // associate the attribute value with the name of the default bindable property
+            // (otherwise it will remain associated with "value")
+            if (info.command && (info.command !== 'options') && type.primaryProperty) {
+              attrName = info.attrName = type.primaryProperty.name;
+            }
           }
         }
       } else if (elementInstruction) { //or if this is on a custom element
@@ -3467,7 +3466,7 @@ export class ViewCompiler {
         } else { //attribute bindings
           if (type) { //templator or attached behavior found
             instruction.type = type;
-            configureProperties(instruction, resources);
+            this._configureProperties(instruction, resources);
 
             if (type.liftsContent) { //template controller
               instruction.originalAttrName = attrName;
@@ -3546,6 +3545,35 @@ export class ViewCompiler {
     }
 
     return node.nextSibling;
+  }
+
+  _configureProperties(instruction, resources) {
+    let type = instruction.type;
+    let attrName = instruction.attrName;
+    let attributes = instruction.attributes;
+    let property;
+    let key;
+    let value;
+
+    let knownAttribute = resources.mapAttribute(attrName);
+    if (knownAttribute && attrName in attributes && knownAttribute !== attrName) {
+      attributes[knownAttribute] = attributes[attrName];
+      delete attributes[attrName];
+    }
+
+    for (key in attributes) {
+      value = attributes[key];
+
+      if (value !== null && typeof value === 'object') {
+        property = type.attributes[key];
+
+        if (property !== undefined) {
+          value.targetProperty = property.name;
+        } else {
+          value.targetProperty = key;
+        }
+      }
+    }
   }
 }
 
@@ -4687,6 +4715,7 @@ export class HtmlBehaviorResource {
     this.properties = [];
     this.attributes = {};
     this.isInitialized = false;
+    this.primaryProperty = null;
   }
 
   /**
@@ -4774,6 +4803,12 @@ export class HtmlBehaviorResource {
       } else { //custom attribute with options
         for (i = 0, ii = properties.length; i < ii; ++i) {
           properties[i].defineOn(target, this);
+          if (properties[i].primaryProperty) {
+            if (this.primaryProperty) {
+              throw new Error('Only one bindable property on a custom element can be defined as the default');
+            }
+            this.primaryProperty = properties[i];
+          }
         }
 
         current = new BindableProperty({
@@ -5368,6 +5403,11 @@ interface CompositionContext {
   * Should the composition system skip calling the "activate" hook on the view model.
   */
   skipActivation?: boolean;
+  /**
+  * The element that will parent the dynamic component.
+  * It will be registered in the child container of this composition.
+  */
+  host?: Element;
 }
 
 function tryActivateViewModel(context) {
