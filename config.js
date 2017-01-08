@@ -17,7 +17,6 @@ System.config({
     "aurelia-path": "npm:aurelia-path@1.1.1",
     "aurelia-polyfills": "npm:aurelia-polyfills@1.0.0",
     "aurelia-task-queue": "npm:aurelia-task-queue@1.1.0",
-    "aurelia-templating-binding": "npm:aurelia-templating-binding@1.1.0",
     "babel": "npm:babel-core@5.8.38",
     "babel-runtime": "npm:babel-runtime@5.8.38",
     "core-js": "npm:core-js@2.4.1",
@@ -70,21 +69,6 @@ System.config({
     },
     "npm:aurelia-task-queue@1.1.0": {
       "aurelia-pal": "npm:aurelia-pal@1.2.0"
-    },
-    "npm:aurelia-templating-binding@1.1.0": {
-      "aurelia-binding": "npm:aurelia-binding@1.1.0",
-      "aurelia-logging": "npm:aurelia-logging@1.2.0",
-      "aurelia-templating": "npm:aurelia-templating@1.1.4"
-    },
-    "npm:aurelia-templating@1.1.4": {
-      "aurelia-binding": "npm:aurelia-binding@1.1.0",
-      "aurelia-dependency-injection": "npm:aurelia-dependency-injection@1.2.1",
-      "aurelia-loader": "npm:aurelia-loader@1.0.0",
-      "aurelia-logging": "npm:aurelia-logging@1.2.0",
-      "aurelia-metadata": "npm:aurelia-metadata@1.0.2",
-      "aurelia-pal": "npm:aurelia-pal@1.2.0",
-      "aurelia-path": "npm:aurelia-path@1.1.1",
-      "aurelia-task-queue": "npm:aurelia-task-queue@1.1.0"
     },
     "npm:babel-runtime@5.8.38": {
       "process": "github:jspm/nodelibs-process@0.1.2"
