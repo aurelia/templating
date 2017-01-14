@@ -205,7 +205,7 @@ export class ViewCompiler {
             // associate the attribute value with the name of the default bindable property
             // (otherwise it will remain associated with "value")
             if (info.command && (info.command !== 'options') && type.primaryProperty) {
-              let primaryProperty = type.primaryProperty;
+              const primaryProperty = type.primaryProperty;
               attrName = info.attrName = primaryProperty.name;
               // note that the defaultBindingMode always overrides the attribute bindingMode which is only used for "single-value" custom attributes
               // when using the syntax `<div square.bind="color"></div>`
@@ -346,7 +346,7 @@ export class ViewCompiler {
             // associate the attribute value with the name of the default bindable property
             // (otherwise it will remain associated with "value")
             if (info.command && (info.command !== 'options') && type.primaryProperty) {
-              let primaryProperty = type.primaryProperty;
+              const primaryProperty = type.primaryProperty;
               attrName = info.attrName = primaryProperty.name;
               // note that the defaultBindingMode always overrides the attribute bindingMode which is only used for "single-value" custom attributes
               // when using the syntax `<div square.bind="color"></div>`
