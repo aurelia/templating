@@ -3,6 +3,7 @@ import {DOM} from 'aurelia-pal';
 import {Controller} from './controller';
 import {ModuleAnalyzer} from './module-analyzer';
 import {Animator} from './animator';
+import {View} from './view';
 import {ViewResources} from './view-resources';
 import {CompositionEngine} from './composition-engine';
 import {ViewFactory} from './view-factory';
@@ -95,6 +96,7 @@ export class TemplatingEngine {
     let view = factory.create(container, BehaviorInstruction.enhance());
 
     view.bind(instruction.bindingContext || {}, instruction.overrideContext);
+    container.registerInstance(View, view);
 
     return view;
   }
