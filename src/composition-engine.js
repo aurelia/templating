@@ -1,3 +1,4 @@
+import {SwapStrategies} from './swap-strategies';
 import {ViewLocator} from './view-locator';
 import {ViewEngine} from './view-engine';
 import {HtmlBehaviorResource} from './html-behavior';
@@ -6,7 +7,6 @@ import {CompositionTransaction} from './composition-transaction';
 import {DOM} from 'aurelia-pal';
 import {Container, inject} from 'aurelia-dependency-injection';
 import {metadata} from 'aurelia-metadata';
-
 /**
 * Instructs the composition engine how to dynamically compose a component.
 */
@@ -69,37 +69,6 @@ function tryActivateViewModel(context) {
   return context.viewModel.activate(context.model) || Promise.resolve();
 }
 
-class SwapStrategies {
-  // animate the next view in before removing the current view;
-  before(viewSlot, previousView, callback) {
-    let promise = Promise.resolve(callback());
-
-    if (previousView !== undefined) {
-      return promise.then(() => viewSlot.remove(previousView, true));
-    }
-
-    return promise;
-  }
-
-  // animate the next view at the same time the current view is removed
-  with(viewSlot, previousView, callback) {
-    let promise = Promise.resolve(callback());
-
-    if (previousView !== undefined) {
-      return Promise.all([viewSlot.remove(previousView, true), promise]);
-    }
-
-    return promise;
-  }
-
-  // animate the next view in after the current view has been removed
-  after(viewSlot, previousView, callback) {
-    return Promise.resolve(viewSlot.removeAll(true)).then(callback);
-  }
-}
-
-const swapStrategies = new SwapStrategies();
-
 /**
 * Used to dynamically compose components.
 */
@@ -116,11 +85,7 @@ export class CompositionEngine {
 
   _createControllerAndSwap(context) {
     function swap(controller) {
-      let swapStrategy;
-
-      swapStrategy = context.swapOrder in swapStrategies
-              ? swapStrategies[context.swapOrder]
-              : swapStrategies.after;
+      let swapStrategy = SwapStrategies[context.swapOrder] || SwapStrategies.after;
 
       swapStrategy(context.viewSlot, context.viewSlot.children[0], () => {
         return Promise.resolve().then(() => {
@@ -241,11 +206,7 @@ export class CompositionEngine {
         result.bind(context.bindingContext, context.overrideContext);
 
         let work = () => {
-          let swapStrategy;
-
-          swapStrategy = context.swapOrder in swapStrategies
-                  ? swapStrategies[context.swapOrder]
-                  : swapStrategies.after;
+          let swapStrategy = SwapStrategies[context.swapOrder] || SwapStrategies.after;
 
           swapStrategy(context.viewSlot, context.viewSlot.children[0], () => {
             return Promise.resolve().then(() => {
