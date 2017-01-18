@@ -1,24 +1,20 @@
 export const SwapStrategies = {
   // animate the next view in before removing the current view;
-  before(viewSlot, previousView, callback) {
-    let promise = Promise.resolve(callback());
-
-    if (previousView !== undefined) {
-      return promise.then(() => viewSlot.remove(previousView, true));
+  before(viewSlot, previousViews, callback) {
+    if (previousViews !== undefined) {
+      return callback().then(() => viewSlot.removeMany(previousViews, true));
     }
 
-    return promise;
+    return callback();
   },
 
   // animate the next view at the same time the current view is removed
-  with(viewSlot, previousView, callback) {
-    let promise = Promise.resolve(callback());
-
-    if (previousView !== undefined) {
-      return Promise.all([viewSlot.remove(previousView, true), promise]);
+  with(viewSlot, previousViews, callback) {
+    if (previousViews !== undefined) {
+      return Promise.all([viewSlot.removeMany(previousViews, true), callback()]);
     }
 
-    return promise;
+    return callback();
   },
 
   // animate the next view in after the current view has been removed

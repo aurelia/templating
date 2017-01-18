@@ -86,21 +86,20 @@ export class CompositionEngine {
   _createControllerAndSwap(context) {
     function swap(controller) {
       let swapStrategy = SwapStrategies[context.swapOrder] || SwapStrategies.after;
+      let previousViews = context.viewSlot.children.slice();
 
-      swapStrategy(context.viewSlot, context.viewSlot.children[0], () => {
-        return Promise.resolve().then(() => {
-          return context.viewSlot.add(controller.view);
-        }).then(() => {
+      return swapStrategy(context.viewSlot, previousViews, () => {
+        return Promise.resolve(context.viewSlot.add(controller.view)).then(() => {
           if (context.currentController) {
             context.currentController.unbind();
           }
-
-          if (context.compositionTransactionNotifier) {
-            context.compositionTransactionNotifier.done();
-          }
-
-          return controller;
         });
+      }).then(() => {
+        if (context.compositionTransactionNotifier) {
+          context.compositionTransactionNotifier.done();
+        }
+
+        return controller;
       });
     }
 
@@ -207,17 +206,20 @@ export class CompositionEngine {
 
         let work = () => {
           let swapStrategy = SwapStrategies[context.swapOrder] || SwapStrategies.after;
+          let previousViews = context.viewSlot.children.slice();
 
-          swapStrategy(context.viewSlot, context.viewSlot.children[0], () => {
-            return Promise.resolve().then(() => {
-              return context.viewSlot.add(result);
-            }).then(() => {
-              if (context.compositionTransactionNotifier) {
-                context.compositionTransactionNotifier.done();
+          return swapStrategy(context.viewSlot, previousViews, () => {
+            return Promise.resolve(context.viewSlot.add(controller.result)).then(() => {
+              if (context.currentController) {
+                context.currentController.unbind();
               }
-
-              return result;
             });
+          }).then(() => {
+            if (context.compositionTransactionNotifier) {
+              context.compositionTransactionNotifier.done();
+            }
+
+            return result;
           });
         };
 
