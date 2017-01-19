@@ -358,5 +358,5 @@ Utilizing dynamic options, a custom attribute may deal with bindable properties 
 
 ## [Globally Accessible Custom Attributes](aurelia-doc://section/8/version/1.0.0)
 
-In all of our examples, we've been using the `require` element to import custom attributes we need into our view.  There's an easier way.  If you have some commonly used custom attributes that you'd like to make globally available, use Aurelia's `globalResources` function to register them.  This will will eliminate the need for `require` elements at the top of every view.
+In all of our examples, we've been using the `require` element to import custom attributes we need into our view.  There's an easier way.  If you have some commonly used custom attributes that you'd like to make globally available, use Aurelia's `globalResources` function to register them.  This will eliminate the need to `require` elements at the top of every view.
 
