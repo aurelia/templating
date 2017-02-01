@@ -83,34 +83,32 @@ export class CompositionEngine {
     this.viewLocator = viewLocator;
   }
 
-  _createControllerAndSwap(context) {
-    function swap(controller) {
-      let swapStrategy = SwapStrategies[context.swapOrder] || SwapStrategies.after;
-      let previousViews = context.viewSlot.children.slice();
+  _swap(context, view) {
+    let swapStrategy = SwapStrategies[context.swapOrder] || SwapStrategies.after;
+    let previousViews = context.viewSlot.children.slice();
 
-      return swapStrategy(context.viewSlot, previousViews, () => {
-        return Promise.resolve(context.viewSlot.add(controller.view)).then(() => {
-          if (context.currentController) {
-            context.currentController.unbind();
-          }
-        });
-      }).then(() => {
-        if (context.compositionTransactionNotifier) {
-          context.compositionTransactionNotifier.done();
+    return swapStrategy(context.viewSlot, previousViews, () => {
+      return Promise.resolve(context.viewSlot.add(view)).then(() => {
+        if (context.currentController) {
+          context.currentController.unbind();
         }
-
-        return controller;
       });
-    }
+    }).then(() => {
+      if (context.compositionTransactionNotifier) {
+        context.compositionTransactionNotifier.done();
+      }
+    });
+  }
 
+  _createControllerAndSwap(context) {
     return this.createController(context).then(controller => {
       controller.automate(context.overrideContext, context.owningView);
 
       if (context.compositionTransactionOwnershipToken) {
-        return context.compositionTransactionOwnershipToken.waitForCompositionComplete().then(() => swap(controller));
+        return context.compositionTransactionOwnershipToken.waitForCompositionComplete().then(() => this._swap(context, controller.view));
       }
 
-      return swap(controller);
+      return this._swap(context, controller.view).then(() => controller);
     });
   }
 
@@ -204,30 +202,11 @@ export class CompositionEngine {
         let result = viewFactory.create(context.childContainer);
         result.bind(context.bindingContext, context.overrideContext);
 
-        let work = () => {
-          let swapStrategy = SwapStrategies[context.swapOrder] || SwapStrategies.after;
-          let previousViews = context.viewSlot.children.slice();
-
-          return swapStrategy(context.viewSlot, previousViews, () => {
-            return Promise.resolve(context.viewSlot.add(controller.result)).then(() => {
-              if (context.currentController) {
-                context.currentController.unbind();
-              }
-            });
-          }).then(() => {
-            if (context.compositionTransactionNotifier) {
-              context.compositionTransactionNotifier.done();
-            }
-
-            return result;
-          });
-        };
-
         if (context.compositionTransactionOwnershipToken) {
-          return context.compositionTransactionOwnershipToken.waitForCompositionComplete().then(work);
+          return context.compositionTransactionOwnershipToken.waitForCompositionComplete().then(() => this._swap(context, result));
         }
 
-        return work();
+        return this._swap(context, result).then(() => result);
       });
     } else if (context.viewSlot) {
       context.viewSlot.removeAll();
