@@ -105,7 +105,9 @@ export class CompositionEngine {
       controller.automate(context.overrideContext, context.owningView);
 
       if (context.compositionTransactionOwnershipToken) {
-        return context.compositionTransactionOwnershipToken.waitForCompositionComplete().then(() => this._swap(context, controller.view));
+        return context.compositionTransactionOwnershipToken.waitForCompositionComplete()
+          .then(() => this._swap(context, controller.view))
+          .then(() => controller);
       }
 
       return this._swap(context, controller.view).then(() => controller);
@@ -203,7 +205,9 @@ export class CompositionEngine {
         result.bind(context.bindingContext, context.overrideContext);
 
         if (context.compositionTransactionOwnershipToken) {
-          return context.compositionTransactionOwnershipToken.waitForCompositionComplete().then(() => this._swap(context, result));
+          return context.compositionTransactionOwnershipToken.waitForCompositionComplete()
+            .then(() => this._swap(context, result))
+            .then(() => result);
         }
 
         return this._swap(context, result).then(() => result);
