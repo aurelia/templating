@@ -307,7 +307,7 @@ That was fun! But we can go deeper. What about slots, that target other slots wi
 
 ## [Slot Implementation Limitations](aurelia-doc://section/5/version/1.0.0)
 
-At the time this document is written, no browser supports Shadow DOM v1 slots. Thus, Aurelia has implemented the specification. We haven't attempted to create a "generic" polyfill designed to be used outside of Aurelia. Our slots implementation is baked into Aurelia's templating compiler and renderer so that it can provide maximum performance and meet the needs of our community. We haven't attempted to implement all the APIs of the spec, but rather to emulate the declarative rendering capabilities of slots. By programming against Aurelia in this way, you don't need to worry about whether or not your browser does or does not support slots natively. Aurelia will take care of it for you.
+At the time this document is written, no browser supports [Shadow DOM](https://w3c.github.io/webcomponents/spec/shadow/) v1 slots. Thus, Aurelia has implemented the specification. We haven't attempted to create a "generic" polyfill designed to be used outside of Aurelia. Our slots implementation is baked into Aurelia's templating compiler and renderer so that it can provide maximum performance and meet the needs of our community. We haven't attempted to implement all the APIs of the spec, but rather to emulate the declarative rendering capabilities of slots. By programming against Aurelia in this way, you don't need to worry about whether or not your browser does or does not support slots natively. Aurelia will take care of it for you.
 
 Known limitations of our implementation are as follows:
 
