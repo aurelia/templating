@@ -65,13 +65,13 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
     };
   }();
 
-  var _class, _temp, _dec, _class2, _dec2, _class3, _dec3, _class4, _dec4, _class5, _dec5, _class6, _class7, _temp2, _dec6, _class8, _class9, _temp3, _class11, _dec7, _class13, _dec8, _class14, _class15, _temp4, _dec9, _class16, _dec10, _class17, _dec11, _class18;
-
   var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) {
     return typeof obj;
   } : function (obj) {
     return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
   };
+
+  var _class, _temp, _dec, _class2, _dec2, _class3, _dec3, _class4, _dec4, _class5, _dec5, _class6, _class7, _temp2, _dec6, _class8, _class9, _temp3, _class11, _dec7, _class13, _dec8, _class14, _class15, _temp4, _dec9, _class16, _dec10, _class17, _dec11, _class18;
 
   
 
@@ -321,22 +321,14 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
     };
 
     ElementEvents.prototype.subscribeOnce = function subscribeOnce(eventName, handler) {
-      var _this3 = this;
-
       var bubbles = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
 
       if (handler && typeof handler === 'function') {
-        var _ret = function () {
-          var _handler = function _handler(event) {
-            handler(event);
-            _handler.dispose();
-          };
-          return {
-            v: _this3.subscribe(eventName, _handler, bubbles)
-          };
-        }();
-
-        if ((typeof _ret === 'undefined' ? 'undefined' : _typeof(_ret)) === "object") return _ret.v;
+        var _handler = function _handler(event) {
+          handler(event);
+          _handler.dispose();
+        };
+        return this.subscribe(eventName, _handler, bubbles);
       }
 
       return undefined;
@@ -1763,7 +1755,7 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
     };
 
     ViewSlot.prototype.removeMany = function removeMany(viewsToRemove, returnToCache, skipAnimation) {
-      var _this4 = this;
+      var _this3 = this;
 
       var children = this.children;
       var ii = viewsToRemove.length;
@@ -1776,7 +1768,7 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
           return;
         }
 
-        var animation = _this4.animateView(child, 'leave');
+        var animation = _this3.animateView(child, 'leave');
         if (animation) {
           rmPromises.push(animation.then(function () {
             return child.removeNodes();
@@ -1787,7 +1779,7 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
       });
 
       var removeAction = function removeAction() {
-        if (_this4.isAttached) {
+        if (_this3.isAttached) {
           for (i = 0; i < ii; ++i) {
             viewsToRemove[i].detached();
           }
@@ -1817,16 +1809,16 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
     };
 
     ViewSlot.prototype.removeAt = function removeAt(index, returnToCache, skipAnimation) {
-      var _this5 = this;
+      var _this4 = this;
 
       var view = this.children[index];
 
       var removeAction = function removeAction() {
-        index = _this5.children.indexOf(view);
+        index = _this4.children.indexOf(view);
         view.removeNodes();
-        _this5.children.splice(index, 1);
+        _this4.children.splice(index, 1);
 
-        if (_this5.isAttached) {
+        if (_this4.isAttached) {
           view.detached();
         }
 
@@ -1850,7 +1842,7 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
     };
 
     ViewSlot.prototype.removeAll = function removeAll(returnToCache, skipAnimation) {
-      var _this6 = this;
+      var _this5 = this;
 
       var children = this.children;
       var ii = children.length;
@@ -1863,7 +1855,7 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
           return;
         }
 
-        var animation = _this6.animateView(child, 'leave');
+        var animation = _this5.animateView(child, 'leave');
         if (animation) {
           rmPromises.push(animation.then(function () {
             return child.removeNodes();
@@ -1874,7 +1866,7 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
       });
 
       var removeAction = function removeAction() {
-        if (_this6.isAttached) {
+        if (_this5.isAttached) {
           for (i = 0; i < ii; ++i) {
             children[i].detached();
           }
@@ -1890,7 +1882,7 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
           }
         }
 
-        _this6.children = [];
+        _this5.children = [];
       };
 
       if (rmPromises.length > 0) {
@@ -1937,7 +1929,7 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
     };
 
     ViewSlot.prototype.projectTo = function projectTo(slots) {
-      var _this7 = this;
+      var _this6 = this;
 
       this.projectToSlots = slots;
       this.add = this._projectionAdd;
@@ -1948,7 +1940,7 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
       this.removeMany = this._projectionRemoveMany;
       this.removeAll = this._projectionRemoveAll;
       this.children.forEach(function (view) {
-        return ShadowDOM.distributeView(view, slots, _this7);
+        return ShadowDOM.distributeView(view, slots, _this6);
       });
     };
 
@@ -2012,10 +2004,10 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
     };
 
     ViewSlot.prototype._projectionRemoveMany = function _projectionRemoveMany(viewsToRemove, returnToCache) {
-      var _this8 = this;
+      var _this7 = this;
 
       viewsToRemove.forEach(function (view) {
-        return _this8.remove(view, returnToCache);
+        return _this7.remove(view, returnToCache);
       });
     };
 
@@ -3128,12 +3120,12 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
 
   var ProxyViewFactory = function () {
     function ProxyViewFactory(promise) {
-      var _this9 = this;
+      var _this8 = this;
 
       
 
       promise.then(function (x) {
-        return _this9.viewFactory = x;
+        return _this8.viewFactory = x;
       });
     }
 
@@ -3187,7 +3179,7 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
     };
 
     ViewEngine.prototype.loadViewFactory = function loadViewFactory(urlOrRegistryEntry, compileInstruction, loadContext, target) {
-      var _this10 = this;
+      var _this9 = this;
 
       loadContext = loadContext || new ResourceLoadContext();
 
@@ -3207,14 +3199,14 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
 
         loadContext.addDependency(urlOrRegistryEntry);
 
-        registryEntry.onReady = _this10.loadTemplateResources(registryEntry, compileInstruction, loadContext, target).then(function (resources) {
+        registryEntry.onReady = _this9.loadTemplateResources(registryEntry, compileInstruction, loadContext, target).then(function (resources) {
           registryEntry.resources = resources;
 
           if (registryEntry.template === null) {
             return registryEntry.factory = null;
           }
 
-          var viewFactory = _this10.viewCompiler.compile(registryEntry.template, resources, compileInstruction);
+          var viewFactory = _this9.viewCompiler.compile(registryEntry.template, resources, compileInstruction);
           return registryEntry.factory = viewFactory;
         });
 
@@ -3263,30 +3255,30 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
     };
 
     ViewEngine.prototype.importViewModelResource = function importViewModelResource(moduleImport, moduleMember) {
-      var _this11 = this;
+      var _this10 = this;
 
       return this.loader.loadModule(moduleImport).then(function (viewModelModule) {
         var normalizedId = _aureliaMetadata.Origin.get(viewModelModule).moduleId;
-        var resourceModule = _this11.moduleAnalyzer.analyze(normalizedId, viewModelModule, moduleMember);
+        var resourceModule = _this10.moduleAnalyzer.analyze(normalizedId, viewModelModule, moduleMember);
 
         if (!resourceModule.mainResource) {
           throw new Error('No view model found in module "' + moduleImport + '".');
         }
 
-        resourceModule.initialize(_this11.container);
+        resourceModule.initialize(_this10.container);
 
         return resourceModule.mainResource;
       });
     };
 
     ViewEngine.prototype.importViewResources = function importViewResources(moduleIds, names, resources, compileInstruction, loadContext) {
-      var _this12 = this;
+      var _this11 = this;
 
       loadContext = loadContext || new ResourceLoadContext();
       compileInstruction = compileInstruction || ViewCompileInstruction.normal;
 
       moduleIds = moduleIds.map(function (x) {
-        return _this12._applyLoaderPlugin(x);
+        return _this11._applyLoaderPlugin(x);
       });
 
       return this.loader.loadAllModules(moduleIds).then(function (imports) {
@@ -3296,8 +3288,8 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
         var normalizedId = void 0;
         var current = void 0;
         var associatedModule = void 0;
-        var container = _this12.container;
-        var moduleAnalyzer = _this12.moduleAnalyzer;
+        var container = _this11.container;
+        var moduleAnalyzer = _this11.moduleAnalyzer;
         var allAnalysis = new Array(imports.length);
 
         for (i = 0, ii = imports.length; i < ii; ++i) {
@@ -3584,16 +3576,18 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
   }()) || _class16);
 
 
-  function getObserver(behavior, instance, name) {
+  function getObserver(instance, name) {
     var lookup = instance.__observers__;
 
     if (lookup === undefined) {
-      if (!behavior.isInitialized) {
-        behavior.initialize(_aureliaDependencyInjection.Container.instance || new _aureliaDependencyInjection.Container(), instance.constructor);
+      var ctor = Object.getPrototypeOf(instance).constructor;
+      var _behavior = _aureliaMetadata.metadata.get(_aureliaMetadata.metadata.resource, ctor);
+      if (!_behavior.isInitialized) {
+        _behavior.initialize(_aureliaDependencyInjection.Container.instance || new _aureliaDependencyInjection.Container(), instance.constructor);
       }
 
-      lookup = behavior.observerLocator.getOrCreateObserversLookup(instance);
-      behavior._ensurePropertiesDefined(instance, lookup);
+      lookup = _behavior.observerLocator.getOrCreateObserversLookup(instance);
+      _behavior._ensurePropertiesDefined(instance, lookup);
     }
 
     return lookup[name];
@@ -3625,13 +3619,13 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
 
       if (descriptor) {
         this.descriptor = descriptor;
-        return this._configureDescriptor(behavior, descriptor);
+        return this._configureDescriptor(descriptor);
       }
 
       return undefined;
     };
 
-    BindableProperty.prototype._configureDescriptor = function _configureDescriptor(behavior, descriptor) {
+    BindableProperty.prototype._configureDescriptor = function _configureDescriptor(descriptor) {
       var name = this.name;
 
       descriptor.configurable = true;
@@ -3650,15 +3644,15 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
       }
 
       descriptor.get = function () {
-        return getObserver(behavior, this, name).getValue();
+        return getObserver(this, name).getValue();
       };
 
       descriptor.set = function (value) {
-        getObserver(behavior, this, name).setValue(value);
+        getObserver(this, name).setValue(value);
       };
 
       descriptor.get.getObserver = function (obj) {
-        return getObserver(behavior, obj, name);
+        return getObserver(obj, name);
       };
 
       return descriptor;
@@ -3930,18 +3924,20 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
         for (i = 0, ii = properties.length; i < ii; ++i) {
           properties[i].defineOn(target, this);
         }
+
+        this._copyInheritedProperties(container, target);
       }
     };
 
     HtmlBehaviorResource.prototype.register = function register(registry, name) {
-      var _this13 = this;
+      var _this12 = this;
 
       if (this.attributeName !== null) {
         registry.registerAttribute(name || this.attributeName, this, this.attributeName);
 
         if (Array.isArray(this.aliases)) {
           this.aliases.forEach(function (alias) {
-            registry.registerAttribute(alias, _this13, _this13.attributeName);
+            registry.registerAttribute(alias, _this12, _this12.attributeName);
           });
         }
       }
@@ -3952,7 +3948,7 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
     };
 
     HtmlBehaviorResource.prototype.load = function load(container, target, loadContext, viewStrategy, transientView) {
-      var _this14 = this;
+      var _this13 = this;
 
       var options = void 0;
 
@@ -3965,8 +3961,8 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
         }
 
         return viewStrategy.loadViewFactory(container.get(ViewEngine), options, loadContext, target).then(function (viewFactory) {
-          if (!transientView || !_this14.viewFactory) {
-            _this14.viewFactory = viewFactory;
+          if (!transientView || !_this13.viewFactory) {
+            _this13.viewFactory = viewFactory;
           }
 
           return viewFactory;
@@ -4158,6 +4154,43 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
       }
     };
 
+    HtmlBehaviorResource.prototype._copyInheritedProperties = function _copyInheritedProperties(container, target) {
+      var _this14 = this;
+
+      var behavior = void 0,
+          derived = target;
+      while (true) {
+        var proto = Object.getPrototypeOf(target.prototype);
+        target = proto && proto.constructor;
+        if (!target) {
+          return;
+        }
+        behavior = _aureliaMetadata.metadata.getOwn(_aureliaMetadata.metadata.resource, target);
+        if (behavior) {
+          break;
+        }
+      }
+      behavior.initialize(container, target);
+
+      var _loop = function _loop(_i8, _ii8) {
+        var prop = behavior.properties[_i8];
+
+        if (_this14.properties.some(function (p) {
+          return p.name === prop.name;
+        })) {
+          return 'continue';
+        }
+
+        new BindableProperty(prop).registerWith(derived, _this14);
+      };
+
+      for (var _i8 = 0, _ii8 = behavior.properties.length; _i8 < _ii8; ++_i8) {
+        var _ret = _loop(_i8, _ii8);
+
+        if (_ret === 'continue') continue;
+      }
+    };
+
     return HtmlBehaviorResource;
   }();
 
@@ -4226,8 +4259,8 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
     var bindersLength = binders.length;
     var groupedMutations = new Map();
 
-    for (var _i8 = 0, _ii8 = mutations.length; _i8 < _ii8; ++_i8) {
-      var record = mutations[_i8];
+    for (var _i9 = 0, _ii9 = mutations.length; _i9 < _ii9; ++_i9) {
+      var record = mutations[_i9];
       var added = record.addedNodes;
       var removed = record.removedNodes;
 
@@ -4295,8 +4328,8 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
         if (assignedSlot && assignedSlot.projectFromAnchors) {
           var anchors = assignedSlot.projectFromAnchors;
 
-          for (var _i9 = 0, _ii9 = anchors.length; _i9 < _ii9; ++_i9) {
-            if (anchors[_i9].auOwnerView === contentView) {
+          for (var _i10 = 0, _ii10 = anchors.length; _i10 < _ii10; ++_i10) {
+            if (anchors[_i10].auOwnerView === contentView) {
               return true;
             }
           }

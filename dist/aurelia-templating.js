@@ -4457,10 +4457,18 @@ export class BehaviorPropertyObserver {
   }
 }
 
-function getObserver(behavior, instance, name) {
+function getObserver(instance, name) {
   let lookup = instance.__observers__;
 
   if (lookup === undefined) {
+    // We need to lookup the actual behavior for this instance, 
+    // as it might be a derived class (and behavior) rather than 
+    // the class (and behavior) that declared the property calling getObserver().
+    // This means we can't capture the behavior in property get/set/getObserver and pass it here. 
+    // Note that it's probably for the best, as passing the behavior is an overhead 
+    // that is only useful in the very first call of the first property of the instance.
+    let ctor = Object.getPrototypeOf(instance).constructor; // Playing safe here, user could have written to instance.constructor.
+    let behavior = metadata.get(metadata.resource, ctor);
     if (!behavior.isInitialized) {
       behavior.initialize(Container.instance || new Container(), instance.constructor);
     }
@@ -4509,13 +4517,13 @@ export class BindableProperty {
 
     if (descriptor) {
       this.descriptor = descriptor;
-      return this._configureDescriptor(behavior, descriptor);
+      return this._configureDescriptor(descriptor);
     }
 
     return undefined;
   }
 
-  _configureDescriptor(behavior: HtmlBehaviorResource, descriptor: Object): Object {
+  _configureDescriptor(descriptor: Object): Object {
     let name = this.name;
 
     descriptor.configurable = true;
@@ -4534,15 +4542,15 @@ export class BindableProperty {
     }
 
     descriptor.get = function() {
-      return getObserver(behavior, this, name).getValue();
+      return getObserver(this, name).getValue();
     };
 
     descriptor.set = function(value) {
-      getObserver(behavior, this, name).setValue(value);
+      getObserver(this, name).setValue(value);
     };
 
     descriptor.get.getObserver = function(obj) {
-      return getObserver(behavior, obj, name);
+      return getObserver(obj, name);
     };
 
     return descriptor;
@@ -4837,6 +4845,10 @@ export class HtmlBehaviorResource {
       for (i = 0, ii = properties.length; i < ii; ++i) {
         properties[i].defineOn(target, this);
       }
+      // Because how inherited properties would interact with the default 'value' property 
+      // in a custom attribute is not well defined yet, we only inherit properties on 
+      // custom elements, where it's not a problem.
+      this._copyInheritedProperties(container, target);
     }
   }
 
@@ -5099,6 +5111,37 @@ export class HtmlBehaviorResource {
         lookup[observer.propertyName] = observer;
       }
     }
+  }
+
+  _copyInheritedProperties(container: Container, target: Function) {
+    // This methods enables inherited @bindable properties.    
+    // We look for the first base class with metadata, make sure it's initialized 
+    // and copy its properties. 
+    // We don't need to walk further than the first parent with metadata because
+    // it had also inherited properties during its own initialization.
+    let behavior, derived = target;
+    while (true) {
+      let proto = Object.getPrototypeOf(target.prototype);
+      target = proto && proto.constructor;
+      if (!target) {
+        return;
+      }
+      behavior = metadata.getOwn(metadata.resource, target);
+      if (behavior) {
+        break;
+      }
+    }
+    behavior.initialize(container, target);    
+    for (let i = 0, ii = behavior.properties.length; i < ii; ++i) {
+      let prop = behavior.properties[i];
+      // Check that the property metadata was not overriden or re-defined in this class
+      if (this.properties.some(p => p.name === prop.name)) {
+        continue;
+      }
+      // We don't need to call .defineOn() for those properties because it was done
+      // on the parent prototype during initialization.
+      new BindableProperty(prop).registerWith(derived, this);
+    }    
   }
 }
 

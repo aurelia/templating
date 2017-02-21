@@ -2,11 +2,20 @@ import {_hyphenate} from './util';
 import {BehaviorPropertyObserver} from './behavior-property-observer';
 import {bindingMode} from 'aurelia-binding';
 import {Container} from 'aurelia-dependency-injection';
+import {metadata} from 'aurelia-metadata';
 
-function getObserver(behavior, instance, name) {
+function getObserver(instance, name) {
   let lookup = instance.__observers__;
 
   if (lookup === undefined) {
+    // We need to lookup the actual behavior for this instance, 
+    // as it might be a derived class (and behavior) rather than 
+    // the class (and behavior) that declared the property calling getObserver().
+    // This means we can't capture the behavior in property get/set/getObserver and pass it here. 
+    // Note that it's probably for the best, as passing the behavior is an overhead 
+    // that is only useful in the very first call of the first property of the instance.
+    let ctor = Object.getPrototypeOf(instance).constructor; // Playing safe here, user could have written to instance.constructor.
+    let behavior = metadata.get(metadata.resource, ctor);
     if (!behavior.isInitialized) {
       behavior.initialize(Container.instance || new Container(), instance.constructor);
     }
@@ -55,13 +64,13 @@ export class BindableProperty {
 
     if (descriptor) {
       this.descriptor = descriptor;
-      return this._configureDescriptor(behavior, descriptor);
+      return this._configureDescriptor(descriptor);
     }
 
     return undefined;
   }
 
-  _configureDescriptor(behavior: HtmlBehaviorResource, descriptor: Object): Object {
+  _configureDescriptor(descriptor: Object): Object {
     let name = this.name;
 
     descriptor.configurable = true;
@@ -80,15 +89,15 @@ export class BindableProperty {
     }
 
     descriptor.get = function() {
-      return getObserver(behavior, this, name).getValue();
+      return getObserver(this, name).getValue();
     };
 
     descriptor.set = function(value) {
-      getObserver(behavior, this, name).setValue(value);
+      getObserver(this, name).setValue(value);
     };
 
     descriptor.get.getObserver = function(obj) {
-      return getObserver(behavior, obj, name);
+      return getObserver(obj, name);
     };
 
     return descriptor;

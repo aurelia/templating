@@ -612,7 +612,7 @@ export let ViewLocator = (_temp2 = _class7 = class ViewLocator {
 }, _class7.viewStrategyMetadataKey = 'aurelia:view-strategy', _temp2);
 
 function mi(name) {
-  throw new Error(`BindingLanguage must implement ${ name }().`);
+  throw new Error(`BindingLanguage must implement ${name}().`);
 }
 
 export let BindingLanguage = class BindingLanguage {
@@ -1042,7 +1042,7 @@ function register(lookup, name, resource, type) {
   let existing = lookup[name];
   if (existing) {
     if (existing !== resource) {
-      throw new Error(`Attempted to register ${ type } when one with the same name already exists. Name: ${ name }.`);
+      throw new Error(`Attempted to register ${type} when one with the same name already exists. Name: ${name}.`);
     }
 
     return;
@@ -2964,7 +2964,7 @@ export let ViewEngine = (_dec8 = inject(Loader, Container, ViewCompiler, ModuleA
 
     importIds = dependencies.map(x => x.src);
     names = dependencies.map(x => x.name);
-    logger.debug(`importing resources for ${ registryEntry.address }`, importIds);
+    logger.debug(`importing resources for ${registryEntry.address}`, importIds);
 
     if (target) {
       let viewModelRequires = metadata.get(ViewEngine.viewModelRequireMetadataKey, target);
@@ -2979,7 +2979,7 @@ export let ViewEngine = (_dec8 = inject(Loader, Container, ViewCompiler, ModuleA
             names.push(req.as);
           }
         }
-        logger.debug(`importing ViewModel resources for ${ compileInstruction.associatedModuleId }`, importIds.slice(templateImportCount));
+        logger.debug(`importing ViewModel resources for ${compileInstruction.associatedModuleId}`, importIds.slice(templateImportCount));
       }
     }
 
@@ -2992,7 +2992,7 @@ export let ViewEngine = (_dec8 = inject(Loader, Container, ViewCompiler, ModuleA
       let resourceModule = this.moduleAnalyzer.analyze(normalizedId, viewModelModule, moduleMember);
 
       if (!resourceModule.mainResource) {
-        throw new Error(`No view model found in module "${ moduleImport }".`);
+        throw new Error(`No view model found in module "${moduleImport}".`);
       }
 
       resourceModule.initialize(this.container);
@@ -3289,10 +3289,12 @@ export let BehaviorPropertyObserver = (_dec9 = subscriberCollection(), _dec9(_cl
   }
 }) || _class16);
 
-function getObserver(behavior, instance, name) {
+function getObserver(instance, name) {
   let lookup = instance.__observers__;
 
   if (lookup === undefined) {
+    let ctor = Object.getPrototypeOf(instance).constructor;
+    let behavior = metadata.get(metadata.resource, ctor);
     if (!behavior.isInitialized) {
       behavior.initialize(Container.instance || new Container(), instance.constructor);
     }
@@ -3328,13 +3330,13 @@ export let BindableProperty = class BindableProperty {
 
     if (descriptor) {
       this.descriptor = descriptor;
-      return this._configureDescriptor(behavior, descriptor);
+      return this._configureDescriptor(descriptor);
     }
 
     return undefined;
   }
 
-  _configureDescriptor(behavior, descriptor) {
+  _configureDescriptor(descriptor) {
     let name = this.name;
 
     descriptor.configurable = true;
@@ -3353,15 +3355,15 @@ export let BindableProperty = class BindableProperty {
     }
 
     descriptor.get = function () {
-      return getObserver(behavior, this, name).getValue();
+      return getObserver(this, name).getValue();
     };
 
     descriptor.set = function (value) {
-      getObserver(behavior, this, name).setValue(value);
+      getObserver(this, name).setValue(value);
     };
 
     descriptor.get.getObserver = function (obj) {
-      return getObserver(behavior, obj, name);
+      return getObserver(obj, name);
     };
 
     return descriptor;
@@ -3406,7 +3408,7 @@ export let BindableProperty = class BindableProperty {
     } else if ('propertyChanged' in viewModel) {
       selfSubscriber = (newValue, oldValue) => viewModel.propertyChanged(name, newValue, oldValue);
     } else if (changeHandlerName !== null) {
-      throw new Error(`Change handler ${ changeHandlerName } was specified but not declared on the class.`);
+      throw new Error(`Change handler ${changeHandlerName} was specified but not declared on the class.`);
     }
 
     if (defaultValue !== undefined) {
@@ -3621,6 +3623,8 @@ export let HtmlBehaviorResource = class HtmlBehaviorResource {
       for (i = 0, ii = properties.length; i < ii; ++i) {
         properties[i].defineOn(target, this);
       }
+
+      this._copyInheritedProperties(container, target);
     }
   }
 
@@ -3842,6 +3846,32 @@ export let HtmlBehaviorResource = class HtmlBehaviorResource {
       if (observer !== undefined) {
         lookup[observer.propertyName] = observer;
       }
+    }
+  }
+
+  _copyInheritedProperties(container, target) {
+    let behavior,
+        derived = target;
+    while (true) {
+      let proto = Object.getPrototypeOf(target.prototype);
+      target = proto && proto.constructor;
+      if (!target) {
+        return;
+      }
+      behavior = metadata.getOwn(metadata.resource, target);
+      if (behavior) {
+        break;
+      }
+    }
+    behavior.initialize(container, target);
+    for (let i = 0, ii = behavior.properties.length; i < ii; ++i) {
+      let prop = behavior.properties[i];
+
+      if (this.properties.some(p => p.name === prop.name)) {
+        continue;
+      }
+
+      new BindableProperty(prop).registerWith(derived, this);
     }
   }
 };
@@ -4280,7 +4310,7 @@ export let ElementConfigResource = class ElementConfigResource {
 function validateBehaviorName(name, type) {
   if (/[A-Z]/.test(name)) {
     let newName = _hyphenate(name);
-    LogManager.getLogger('templating').warn(`'${ name }' is not a valid ${ type } name and has been converted to '${ newName }'. Upper-case letters are not allowed because the DOM is not case-sensitive.`);
+    LogManager.getLogger('templating').warn(`'${name}' is not a valid ${type} name and has been converted to '${newName}'. Upper-case letters are not allowed because the DOM is not case-sensitive.`);
     return newName;
   }
   return name;
