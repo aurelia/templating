@@ -1,3 +1,4 @@
+import {SwapStrategies} from './swap-strategies';
 import {ViewLocator} from './view-locator';
 import {ViewEngine} from './view-engine';
 import {HtmlBehaviorResource} from './html-behavior';
@@ -6,7 +7,6 @@ import {CompositionTransaction} from './composition-transaction';
 import {DOM} from 'aurelia-pal';
 import {Container, inject} from 'aurelia-dependency-injection';
 import {metadata} from 'aurelia-metadata';
-
 /**
 * Instructs the composition engine how to dynamically compose a component.
 */
@@ -88,31 +88,34 @@ export class CompositionEngine {
     this.viewLocator = viewLocator;
   }
 
-  _createControllerAndSwap(context) {
-    function swap(controller) {
-      return Promise.resolve(context.viewSlot.removeAll(true)).then(() => {
+  _swap(context, view) {
+    let swapStrategy = SwapStrategies[context.swapOrder] || SwapStrategies.after;
+    let previousViews = context.viewSlot.children.slice();
+
+    return swapStrategy(context.viewSlot, previousViews, () => {
+      return Promise.resolve(context.viewSlot.add(view)).then(() => {
         if (context.currentController) {
           context.currentController.unbind();
         }
-
-        context.viewSlot.add(controller.view);
-
-        if (context.compositionTransactionNotifier) {
-          context.compositionTransactionNotifier.done();
-        }
-
-        return controller;
       });
-    }
+    }).then(() => {
+      if (context.compositionTransactionNotifier) {
+        context.compositionTransactionNotifier.done();
+      }
+    });
+  }
 
+  _createControllerAndSwap(context) {
     return this.createController(context).then(controller => {
       controller.automate(context.overrideContext, context.owningView);
 
       if (context.compositionTransactionOwnershipToken) {
-        return context.compositionTransactionOwnershipToken.waitForCompositionComplete().then(() => swap(controller));
+        return context.compositionTransactionOwnershipToken.waitForCompositionComplete()
+          .then(() => this._swap(context, controller.view))
+          .then(() => controller);
       }
 
-      return swap(controller);
+      return this._swap(context, controller.view).then(() => controller);
     });
   }
 
@@ -206,23 +209,13 @@ export class CompositionEngine {
         let result = viewFactory.create(context.childContainer);
         result.bind(context.bindingContext, context.overrideContext);
 
-        let work = () => {
-          return Promise.resolve(context.viewSlot.removeAll(true)).then(() => {
-            context.viewSlot.add(result);
-
-            if (context.compositionTransactionNotifier) {
-              context.compositionTransactionNotifier.done();
-            }
-
-            return result;
-          });
-        };
-
         if (context.compositionTransactionOwnershipToken) {
-          return context.compositionTransactionOwnershipToken.waitForCompositionComplete().then(work);
+          return context.compositionTransactionOwnershipToken.waitForCompositionComplete()
+            .then(() => this._swap(context, result))
+            .then(() => result);
         }
 
-        return work();
+        return this._swap(context, result).then(() => result);
       });
     } else if (context.viewSlot) {
       context.viewSlot.removeAll();

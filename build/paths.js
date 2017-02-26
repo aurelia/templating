@@ -49,6 +49,7 @@ paths.files = [
   'bindable-property.js',
   'html-behavior.js',
   'child-observation.js',
+  'swap-strategies.js',
   'composition-engine.js',
   'element-config.js',
   'decorators.js',
