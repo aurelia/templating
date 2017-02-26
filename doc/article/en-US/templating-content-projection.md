@@ -314,3 +314,14 @@ Known limitations of our implementation are as follows:
 * You cannot data-bind the slot's `name` attribute.
 * You cannot data-bind the `slot` attribute.
 * You cannot dynamically generate `slot` elements inside a component's view.
+
+For example, the following would fail because the slot cannot be dynamic, however `show.bind` would be okay as the slot is generated but show hides it using css. Using template parts would be another alternative or applying `if.bind` to the content inside the slot.
+
+<code-listing heading="The Composed Visual Tree">
+  <template>
+    <div if.bind="something">
+      <slot></slot>
+    </div>
+  </template>
+</code-listing>
+
