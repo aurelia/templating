@@ -1,6 +1,6 @@
 function remove(viewSlot, previous) {
-  return Array.isArray(previous) 
-    ? viewSlot.removeMany(previous, true) 
+  return Array.isArray(previous)
+    ? viewSlot.removeMany(previous, true)
     : viewSlot.remove(previous, true);
 }
 

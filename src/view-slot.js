@@ -340,7 +340,7 @@ export class ViewSlot {
       if (returnToCache) {
         for (i = 0; i < ii; ++i) {
           const child = children[i];
-          
+
           if (child) {
             child.returnToCache();
           }
