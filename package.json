@@ -135,6 +135,10 @@
         {
           "title": "Templating: Content Projection",
           "href": "doc/article/en-US/templating-content-projection.md"
+        },
+        {
+          "title": "Templating: Dynamic UI Composition",
+          "href": "doc/article/en-US/templating-dynamic-ui-composition.md"
         }
       ]
     }
