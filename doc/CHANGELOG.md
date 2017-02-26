@@ -1,3 +1,23 @@
+<a name="1.3.0"></a>
+# [1.3.0](https://github.com/aurelia/templating/compare/1.2.0...v1.3.0) (2017-02-26)
+
+
+### Bug Fixes
+
+* **child-observation:** make property descriptor configurable ([7f07ffb](https://github.com/aurelia/templating/commit/7f07ffb)), closes [#520](https://github.com/aurelia/templating/issues/520)
+* **swap:** fix missing return result/controller statement ([e464663](https://github.com/aurelia/templating/commit/e464663))
+* **swap-strategies:** correct parameter name on with method ([bb6e09d](https://github.com/aurelia/templating/commit/bb6e09d))
+* **view-slot:** check for undefined child ([47a04a7](https://github.com/aurelia/templating/commit/47a04a7))
+* **view-slot:** eliminate double lookup ([8639ad5](https://github.com/aurelia/templating/commit/8639ad5))
+* **ViewCompiler:** use primary prop's default binding mode ([3a350e8](https://github.com/aurelia/templating/commit/3a350e8))
+
+
+### Features
+
+* **swapOrder:** add swaporder property for concurrent enter/leave transitions ([6a77043](https://github.com/aurelia/templating/commit/6a77043))
+
+
+
 <a name="1.2.0"></a>
 # [1.2.0](https://github.com/aurelia/templating/compare/1.1.4...v1.2.0) (2017-01-08)
 

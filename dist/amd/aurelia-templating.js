@@ -4,7 +4,7 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
   Object.defineProperty(exports, "__esModule", {
     value: true
   });
-  exports.TemplatingEngine = exports.ElementConfigResource = exports.CompositionEngine = exports.HtmlBehaviorResource = exports.BindableProperty = exports.BehaviorPropertyObserver = exports.Controller = exports.ViewEngine = exports.ModuleAnalyzer = exports.ResourceDescription = exports.ResourceModule = exports.ViewCompiler = exports.ViewFactory = exports.BoundViewFactory = exports.ViewSlot = exports.View = exports.ViewResources = exports.ShadowDOM = exports.ShadowSlot = exports.PassThroughSlot = exports.SlotCustomAttribute = exports.BindingLanguage = exports.ViewLocator = exports.InlineViewStrategy = exports.TemplateRegistryViewStrategy = exports.NoViewStrategy = exports.ConventionalViewStrategy = exports.RelativeViewStrategy = exports.viewStrategy = exports.TargetInstruction = exports.BehaviorInstruction = exports.ViewCompileInstruction = exports.ResourceLoadContext = exports.ElementEvents = exports.ViewEngineHooksResource = exports.CompositionTransaction = exports.CompositionTransactionOwnershipToken = exports.CompositionTransactionNotifier = exports.Animator = exports.animationEvent = undefined;
+  exports.TemplatingEngine = exports.ElementConfigResource = exports.CompositionEngine = exports.SwapStrategies = exports.HtmlBehaviorResource = exports.BindableProperty = exports.BehaviorPropertyObserver = exports.Controller = exports.ViewEngine = exports.ModuleAnalyzer = exports.ResourceDescription = exports.ResourceModule = exports.ViewCompiler = exports.ViewFactory = exports.BoundViewFactory = exports.ViewSlot = exports.View = exports.ViewResources = exports.ShadowDOM = exports.ShadowSlot = exports.PassThroughSlot = exports.SlotCustomAttribute = exports.BindingLanguage = exports.ViewLocator = exports.InlineViewStrategy = exports.TemplateRegistryViewStrategy = exports.NoViewStrategy = exports.ConventionalViewStrategy = exports.RelativeViewStrategy = exports.viewStrategy = exports.TargetInstruction = exports.BehaviorInstruction = exports.ViewCompileInstruction = exports.ResourceLoadContext = exports.ElementEvents = exports.ViewEngineHooksResource = exports.CompositionTransaction = exports.CompositionTransactionOwnershipToken = exports.CompositionTransactionNotifier = exports.Animator = exports.animationEvent = undefined;
   exports._hyphenate = _hyphenate;
   exports._isAllWhitespace = _isAllWhitespace;
   exports.viewEngineHooks = viewEngineHooks;
@@ -1882,7 +1882,11 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
 
         if (returnToCache) {
           for (i = 0; i < ii; ++i) {
-            children[i].returnToCache();
+            var _child3 = children[i];
+
+            if (_child3) {
+              _child3.returnToCache();
+            }
           }
         }
 
@@ -2466,10 +2470,10 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
 
     if (node.innerHTML.trim()) {
       var fragment = _aureliaPal.DOM.createDocumentFragment();
-      var _child3 = void 0;
+      var _child4 = void 0;
 
-      while (_child3 = node.firstChild) {
-        fragment.appendChild(_child3);
+      while (_child4 = node.firstChild) {
+        fragment.appendChild(_child4);
       }
 
       instruction.slotFallbackFactory = compiler.compile(fragment, resources);
@@ -2614,7 +2618,10 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
               }
 
               if (info.command && info.command !== 'options' && type.primaryProperty) {
-                attrName = info.attrName = type.primaryProperty.name;
+                var primaryProperty = type.primaryProperty;
+                attrName = info.attrName = primaryProperty.name;
+
+                info.defaultBindingMode = primaryProperty.defaultBindingMode;
               }
             }
           }
@@ -2748,7 +2755,10 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
               }
 
               if (info.command && info.command !== 'options' && type.primaryProperty) {
-                attrName = info.attrName = type.primaryProperty.name;
+                var primaryProperty = type.primaryProperty;
+                attrName = info.attrName = primaryProperty.name;
+
+                info.defaultBindingMode = primaryProperty.defaultBindingMode;
               }
             }
           }
@@ -4157,6 +4167,7 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
 
       if (descriptor) {
         descriptor.writable = true;
+        descriptor.configurable = true;
       }
 
       selectorOrConfig.all = all;
@@ -4413,6 +4424,24 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
     return ChildObserverBinder;
   }();
 
+  function remove(viewSlot, previous) {
+    return Array.isArray(previous) ? viewSlot.removeMany(previous, true) : viewSlot.remove(previous, true);
+  }
+
+  var SwapStrategies = exports.SwapStrategies = {
+    before: function before(viewSlot, previous, callback) {
+      return previous === undefined ? callback() : callback().then(function () {
+        return remove(viewSlot, previous);
+      });
+    },
+    with: function _with(viewSlot, previous, callback) {
+      return previous === undefined ? callback() : Promise.all([remove(viewSlot, previous), callback()]);
+    },
+    after: function after(viewSlot, previous, callback) {
+      return Promise.resolve(viewSlot.removeAll(true)).then(callback);
+    }
+  };
+
   function tryActivateViewModel(context) {
     if (context.skipActivation || typeof context.viewModel.activate !== 'function') {
       return Promise.resolve();
@@ -4429,38 +4458,45 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
       this.viewLocator = viewLocator;
     }
 
-    CompositionEngine.prototype._createControllerAndSwap = function _createControllerAndSwap(context) {
-      function swap(controller) {
-        return Promise.resolve(context.viewSlot.removeAll(true)).then(function () {
+    CompositionEngine.prototype._swap = function _swap(context, view) {
+      var swapStrategy = SwapStrategies[context.swapOrder] || SwapStrategies.after;
+      var previousViews = context.viewSlot.children.slice();
+
+      return swapStrategy(context.viewSlot, previousViews, function () {
+        return Promise.resolve(context.viewSlot.add(view)).then(function () {
           if (context.currentController) {
             context.currentController.unbind();
           }
-
-          context.viewSlot.add(controller.view);
-
-          if (context.compositionTransactionNotifier) {
-            context.compositionTransactionNotifier.done();
-          }
-
-          return controller;
         });
-      }
+      }).then(function () {
+        if (context.compositionTransactionNotifier) {
+          context.compositionTransactionNotifier.done();
+        }
+      });
+    };
+
+    CompositionEngine.prototype._createControllerAndSwap = function _createControllerAndSwap(context) {
+      var _this14 = this;
 
       return this.createController(context).then(function (controller) {
         controller.automate(context.overrideContext, context.owningView);
 
         if (context.compositionTransactionOwnershipToken) {
           return context.compositionTransactionOwnershipToken.waitForCompositionComplete().then(function () {
-            return swap(controller);
+            return _this14._swap(context, controller.view);
+          }).then(function () {
+            return controller;
           });
         }
 
-        return swap(controller);
+        return _this14._swap(context, controller.view).then(function () {
+          return controller;
+        });
       });
     };
 
     CompositionEngine.prototype.createController = function createController(context) {
-      var _this14 = this;
+      var _this15 = this;
 
       var childContainer = void 0;
       var viewModel = void 0;
@@ -4473,7 +4509,7 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
         viewModelResource = context.viewModelResource;
         m = viewModelResource.metadata;
 
-        var viewStrategy = _this14.viewLocator.getViewStrategy(context.view || viewModel);
+        var viewStrategy = _this15.viewLocator.getViewStrategy(context.view || viewModel);
 
         if (context.viewResources) {
           viewStrategy.makeRelativeTo(context.viewResources.viewUrl);
@@ -4513,6 +4549,8 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
     };
 
     CompositionEngine.prototype.compose = function compose(context) {
+      var _this16 = this;
+
       context.childContainer = context.childContainer || context.container.createChild();
       context.view = this.viewLocator.getViewStrategy(context.view);
 
@@ -4536,23 +4574,17 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
           var result = viewFactory.create(context.childContainer);
           result.bind(context.bindingContext, context.overrideContext);
 
-          var work = function work() {
-            return Promise.resolve(context.viewSlot.removeAll(true)).then(function () {
-              context.viewSlot.add(result);
-
-              if (context.compositionTransactionNotifier) {
-                context.compositionTransactionNotifier.done();
-              }
-
+          if (context.compositionTransactionOwnershipToken) {
+            return context.compositionTransactionOwnershipToken.waitForCompositionComplete().then(function () {
+              return _this16._swap(context, result);
+            }).then(function () {
               return result;
             });
-          };
-
-          if (context.compositionTransactionOwnershipToken) {
-            return context.compositionTransactionOwnershipToken.waitForCompositionComplete().then(work);
           }
 
-          return work();
+          return _this16._swap(context, result).then(function () {
+            return result;
+          });
         });
       } else if (context.viewSlot) {
         context.viewSlot.removeAll();

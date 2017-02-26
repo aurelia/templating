@@ -1670,7 +1670,11 @@ export let ViewSlot = class ViewSlot {
 
       if (returnToCache) {
         for (i = 0; i < ii; ++i) {
-          children[i].returnToCache();
+          const child = children[i];
+
+          if (child) {
+            child.returnToCache();
+          }
         }
       }
 
@@ -2371,7 +2375,10 @@ export let ViewCompiler = (_dec7 = inject(BindingLanguage, ViewResources), _dec7
             }
 
             if (info.command && info.command !== 'options' && type.primaryProperty) {
-              attrName = info.attrName = type.primaryProperty.name;
+              const primaryProperty = type.primaryProperty;
+              attrName = info.attrName = primaryProperty.name;
+
+              info.defaultBindingMode = primaryProperty.defaultBindingMode;
             }
           }
         }
@@ -2505,7 +2512,10 @@ export let ViewCompiler = (_dec7 = inject(BindingLanguage, ViewResources), _dec7
             }
 
             if (info.command && info.command !== 'options' && type.primaryProperty) {
-              attrName = info.attrName = type.primaryProperty.name;
+              const primaryProperty = type.primaryProperty;
+              attrName = info.attrName = primaryProperty.name;
+
+              info.defaultBindingMode = primaryProperty.defaultBindingMode;
             }
           }
         }
@@ -3844,6 +3854,7 @@ function createChildObserverDecorator(selectorOrConfig, all) {
 
     if (descriptor) {
       descriptor.writable = true;
+      descriptor.configurable = true;
     }
 
     selectorOrConfig.all = all;
@@ -4094,6 +4105,24 @@ let ChildObserverBinder = class ChildObserverBinder {
 };
 
 
+function remove(viewSlot, previous) {
+  return Array.isArray(previous) ? viewSlot.removeMany(previous, true) : viewSlot.remove(previous, true);
+}
+
+export const SwapStrategies = {
+  before(viewSlot, previous, callback) {
+    return previous === undefined ? callback() : callback().then(() => remove(viewSlot, previous));
+  },
+
+  with(viewSlot, previous, callback) {
+    return previous === undefined ? callback() : Promise.all([remove(viewSlot, previous), callback()]);
+  },
+
+  after(viewSlot, previous, callback) {
+    return Promise.resolve(viewSlot.removeAll(true)).then(callback);
+  }
+};
+
 function tryActivateViewModel(context) {
   if (context.skipActivation || typeof context.viewModel.activate !== 'function') {
     return Promise.resolve();
@@ -4108,31 +4137,32 @@ export let CompositionEngine = (_dec10 = inject(ViewEngine, ViewLocator), _dec10
     this.viewLocator = viewLocator;
   }
 
-  _createControllerAndSwap(context) {
-    function swap(controller) {
-      return Promise.resolve(context.viewSlot.removeAll(true)).then(() => {
+  _swap(context, view) {
+    let swapStrategy = SwapStrategies[context.swapOrder] || SwapStrategies.after;
+    let previousViews = context.viewSlot.children.slice();
+
+    return swapStrategy(context.viewSlot, previousViews, () => {
+      return Promise.resolve(context.viewSlot.add(view)).then(() => {
         if (context.currentController) {
           context.currentController.unbind();
         }
-
-        context.viewSlot.add(controller.view);
-
-        if (context.compositionTransactionNotifier) {
-          context.compositionTransactionNotifier.done();
-        }
-
-        return controller;
       });
-    }
+    }).then(() => {
+      if (context.compositionTransactionNotifier) {
+        context.compositionTransactionNotifier.done();
+      }
+    });
+  }
 
+  _createControllerAndSwap(context) {
     return this.createController(context).then(controller => {
       controller.automate(context.overrideContext, context.owningView);
 
       if (context.compositionTransactionOwnershipToken) {
-        return context.compositionTransactionOwnershipToken.waitForCompositionComplete().then(() => swap(controller));
+        return context.compositionTransactionOwnershipToken.waitForCompositionComplete().then(() => this._swap(context, controller.view)).then(() => controller);
       }
 
-      return swap(controller);
+      return this._swap(context, controller.view).then(() => controller);
     });
   }
 
@@ -4209,23 +4239,11 @@ export let CompositionEngine = (_dec10 = inject(ViewEngine, ViewLocator), _dec10
         let result = viewFactory.create(context.childContainer);
         result.bind(context.bindingContext, context.overrideContext);
 
-        let work = () => {
-          return Promise.resolve(context.viewSlot.removeAll(true)).then(() => {
-            context.viewSlot.add(result);
-
-            if (context.compositionTransactionNotifier) {
-              context.compositionTransactionNotifier.done();
-            }
-
-            return result;
-          });
-        };
-
         if (context.compositionTransactionOwnershipToken) {
-          return context.compositionTransactionOwnershipToken.waitForCompositionComplete().then(work);
+          return context.compositionTransactionOwnershipToken.waitForCompositionComplete().then(() => this._swap(context, result)).then(() => result);
         }
 
-        return work();
+        return this._swap(context, result).then(() => result);
       });
     } else if (context.viewSlot) {
       context.viewSlot.removeAll();
