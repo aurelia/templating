@@ -13,7 +13,7 @@ export const SwapStrategies = {
   },
 
   // animate the next view at the same time the current view is removed
-  with(viewSlot, previousViews, callback) {
+  with(viewSlot, previous, callback) {
     return (previous === undefined)
       ? callback()
       : Promise.all([remove(viewSlot, previous), callback()]);
