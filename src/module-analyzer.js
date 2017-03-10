@@ -70,8 +70,19 @@ export class ResourceModule {
     }
 
     for (let i = 0, ii = resources.length; i < ii; ++i) {
-      resources[i].register(registry, name);
+      const resource = resources[i];
+      resource.register(registry, name);
       name = null;
+
+      /* register any aliases present */
+      if (resource.metadata &&
+          resource.metadata.attributeName !== undefined &&
+          resource.value &&
+          Array.isArray(resource.value.aliases)) {
+        resource.value.aliases.forEach( (alias) => {
+          registry.registerAttribute(alias, resource.metadata, resource.metadata.attributeName);
+        });
+      }
     }
   }
 
