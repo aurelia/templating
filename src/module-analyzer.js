@@ -79,7 +79,14 @@ export class ResourceModule {
           resource.metadata.attributeName !== undefined &&
           resource.value &&
           Array.isArray(resource.value.aliases)) {
-        resource.value.aliases.forEach( (alias) => {
+        resource.value
+          .aliases
+          .filter((a, pos, arr) =>
+            a !== resource.metadata.attributeName &&
+            typeof a === "string" &&
+            a.length > 0 &&
+            arr.indexOf(a) === pos)
+          .forEach( (alias) => {
           registry.registerAttribute(alias, resource.metadata, resource.metadata.attributeName);
         });
       }
