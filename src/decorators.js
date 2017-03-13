@@ -55,7 +55,8 @@ export function customElement(name: string): any {
 /**
 * Decorator: Indicates that the decorated class is a custom attribute.
 * @param name The name of the custom attribute.
-* @param defaultBindingMode The default binding mode to use when the attribute is bound wtih .bind.
+* @param defaultBindingMode The default binding mode to use when the attribute is bound with .bind.
+* @param aliases The array of aliases to associate to the custom attribute.
 */
 export function customAttribute(name: string, defaultBindingMode?: number, aliases?: string[]): any {
   return function(target) {
