@@ -57,8 +57,12 @@ export function customElement(name: string): any {
 * @param name The name of the custom attribute.
 * @param defaultBindingMode The default binding mode to use when the attribute is bound wtih .bind.
 */
-export function customAttribute(name: string, defaultBindingMode?: number): any {
+export function customAttribute(name: string, defaultBindingMode?: number, aliases?: string[]): any {
   return function(target) {
+    if (aliases) {
+      target.aliases = aliases;
+    }
+
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, target);
     r.attributeName = validateBehaviorName(name, 'custom attribute');
     r.attributeDefaultBindingMode = defaultBindingMode;
