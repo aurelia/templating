@@ -5,7 +5,7 @@ import {TaskQueue} from 'aurelia-task-queue';
 import {HtmlBehaviorResource} from '../src/html-behavior';
 import {ViewResources} from '../src/view-resources';
 
-fdescribe('html-behavior', () => {
+describe('html-behavior', () => {
   let defaultBindingMode = bindingMode.oneWay;
 
   it('should leave BindableProperty defaultBindingMode undefined after initialize when unspecified', () => {
