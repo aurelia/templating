@@ -70,26 +70,8 @@ export class ResourceModule {
     }
 
     for (let i = 0, ii = resources.length; i < ii; ++i) {
-      const resource = resources[i];
-      resource.register(registry, name);
+      resources[i].register(registry, name);
       name = null;
-
-      /* register any aliases present */
-      if (resource.metadata &&
-          resource.metadata.attributeName !== undefined &&
-          resource.value &&
-          Array.isArray(resource.value.aliases)) {
-        resource.value
-          .aliases
-          .filter((a, pos, arr) =>
-            a !== resource.metadata.attributeName &&
-            typeof a === "string" &&
-            a.length > 0 &&
-            arr.indexOf(a) === pos)
-          .forEach( (alias) => {
-          registry.registerAttribute(alias, resource.metadata, resource.metadata.attributeName);
-        });
-      }
     }
   }
 

@@ -168,6 +168,12 @@ export class HtmlBehaviorResource {
   register(registry: ViewResources, name?: string): void {
     if (this.attributeName !== null) {
       registry.registerAttribute(name || this.attributeName, this, this.attributeName);
+
+      if (Array.isArray(this.target.aliases)) {
+        this.target.aliases.forEach( (alias) => {
+          registry.registerAttribute(alias, this, this.attributeName);
+        });
+      }
     }
 
     if (this.elementName !== null) {
