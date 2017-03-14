@@ -170,9 +170,16 @@ export class HtmlBehaviorResource {
       registry.registerAttribute(name || this.attributeName, this, this.attributeName);
 
       if (Array.isArray(this.target.aliases)) {
-        this.target.aliases.forEach( (alias) => {
-          registry.registerAttribute(alias, this, this.attributeName);
-        });
+        this.target
+          .aliases
+          .filter((a, pos, arr) =>
+             a !== this.attributeName &&
+             typeof a === 'string' &&
+             a.length > 0 &&
+             arr.indexOf(a) === pos)
+          .forEach( (alias) => {
+            registry.registerAttribute(alias, this, this.attributeName);
+          });
       }
     }
 

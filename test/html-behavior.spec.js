@@ -31,7 +31,7 @@ fdescribe('html-behavior', () => {
     resource.attributeName = 'test';
 
     let target = function() {};
-    target.aliases = ['foo', 'bar'];
+    target.aliases = ['foo', 'bar', 'test'];
 
     let container = new Container();
     container.registerInstance(ObserverLocator, {});
@@ -39,6 +39,7 @@ fdescribe('html-behavior', () => {
     resource.initialize(container, target);
     resource.register(resources);
 
+    // alias test should be skipped as it is the original name
     expect(resources.registerAttribute).toHaveBeenCalledTimes(3);
   });
 
