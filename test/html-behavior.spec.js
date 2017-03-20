@@ -29,9 +29,9 @@ describe('html-behavior', () => {
 
     const resource = new HtmlBehaviorResource();
     resource.attributeName = 'test';
+    resource.aliases = ['foo', 'bar', 'test'];
 
     let target = function() {};
-    target.aliases = ['foo', 'bar', 'test'];
 
     let container = new Container();
     container.registerInstance(ObserverLocator, {});

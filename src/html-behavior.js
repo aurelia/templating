@@ -169,9 +169,8 @@ export class HtmlBehaviorResource {
     if (this.attributeName !== null) {
       registry.registerAttribute(name || this.attributeName, this, this.attributeName);
 
-      if (Array.isArray(this.target.aliases)) {
-        this.target
-          .aliases
+      if (Array.isArray(this.aliases)) {
+        this.aliases
           .filter((a, pos, arr) =>
              a !== this.attributeName &&
              typeof a === 'string' &&

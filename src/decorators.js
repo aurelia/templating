@@ -60,13 +60,10 @@ export function customElement(name: string): any {
 */
 export function customAttribute(name: string, defaultBindingMode?: number, aliases?: string[]): any {
   return function(target) {
-    if (aliases) {
-      target.aliases = aliases;
-    }
-
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, target);
     r.attributeName = validateBehaviorName(name, 'custom attribute');
     r.attributeDefaultBindingMode = defaultBindingMode;
+    r.aliases = aliases;
   };
 }
 
