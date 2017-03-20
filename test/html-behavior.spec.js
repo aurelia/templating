@@ -29,7 +29,7 @@ describe('html-behavior', () => {
 
     const resource = new HtmlBehaviorResource();
     resource.attributeName = 'test';
-    resource.aliases = ['foo', 'bar', 'test'];
+    resource.aliases = ['foo', 'bar'];
 
     let target = function() {};
 
@@ -39,7 +39,7 @@ describe('html-behavior', () => {
     resource.initialize(container, target);
     resource.register(resources);
 
-    // alias test should be skipped as it is the original name
+    // one call for the base name and 2 for the aliases
     expect(resources.registerAttribute).toHaveBeenCalledTimes(3);
   });
 

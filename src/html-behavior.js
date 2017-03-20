@@ -171,11 +171,6 @@ export class HtmlBehaviorResource {
 
       if (Array.isArray(this.aliases)) {
         this.aliases
-          .filter((a, pos, arr) =>
-             a !== this.attributeName &&
-             typeof a === 'string' &&
-             a.length > 0 &&
-             arr.indexOf(a) === pos)
           .forEach( (alias) => {
             registry.registerAttribute(alias, this, this.attributeName);
           });
