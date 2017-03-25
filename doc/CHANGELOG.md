@@ -1,3 +1,24 @@
+<a name="1.4.0"></a>
+# [1.4.0](https://github.com/aurelia/templating/compare/1.3.0...v1.4.0) (2017-03-25)
+
+
+### Bug Fixes
+
+* **aliases:** add missing filters and test ([5ac9981](https://github.com/aurelia/templating/commit/5ac9981))
+* **aliases:** filter aliases ([d00a7d0](https://github.com/aurelia/templating/commit/d00a7d0))
+* **aliases:** move to html-behavior ([b659b22](https://github.com/aurelia/templating/commit/b659b22))
+* **aliases:** place aliases on metadata ([24201fd](https://github.com/aurelia/templating/commit/24201fd))
+* **html-behavior:** remove extraneous filter ([4536135](https://github.com/aurelia/templating/commit/4536135))
+* **templating-engine:** enhanced views should attach ([5793d9c](https://github.com/aurelia/templating/commit/5793d9c))
+
+
+### Features
+
+* **alias:** process aliases for custom attributes ([7af0b42](https://github.com/aurelia/templating/commit/7af0b42))
+* **decorators:** customAttribute accepts aliases ([e03c929](https://github.com/aurelia/templating/commit/e03c929))
+
+
+
 <a name="1.3.0"></a>
 # [1.3.0](https://github.com/aurelia/templating/compare/1.2.0...v1.3.0) (2017-02-26)
 

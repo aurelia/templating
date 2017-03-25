@@ -4850,6 +4850,13 @@ export class HtmlBehaviorResource {
   register(registry: ViewResources, name?: string): void {
     if (this.attributeName !== null) {
       registry.registerAttribute(name || this.attributeName, this, this.attributeName);
+
+      if (Array.isArray(this.aliases)) {
+        this.aliases
+          .forEach( (alias) => {
+            registry.registerAttribute(alias, this, this.attributeName);
+          });
+      }
     }
 
     if (this.elementName !== null) {
@@ -5699,13 +5706,15 @@ export function customElement(name: string): any {
 /**
 * Decorator: Indicates that the decorated class is a custom attribute.
 * @param name The name of the custom attribute.
-* @param defaultBindingMode The default binding mode to use when the attribute is bound wtih .bind.
+* @param defaultBindingMode The default binding mode to use when the attribute is bound with .bind.
+* @param aliases The array of aliases to associate to the custom attribute.
 */
-export function customAttribute(name: string, defaultBindingMode?: number): any {
+export function customAttribute(name: string, defaultBindingMode?: number, aliases?: string[]): any {
   return function(target) {
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, target);
     r.attributeName = validateBehaviorName(name, 'custom attribute');
     r.attributeDefaultBindingMode = defaultBindingMode;
+    r.aliases = aliases;
   };
 }
 
@@ -5999,6 +6008,10 @@ export class TemplatingEngine {
     let view = factory.create(container, BehaviorInstruction.enhance());
 
     view.bind(instruction.bindingContext || {}, instruction.overrideContext);
+
+    view.firstChild = view.lastChild = view.fragment;
+    view.fragment = DOM.createDocumentFragment();
+    view.attached();
 
     return view;
   }
