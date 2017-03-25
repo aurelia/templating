@@ -96,6 +96,10 @@ export class TemplatingEngine {
 
     view.bind(instruction.bindingContext || {}, instruction.overrideContext);
 
+    view.firstChild = view.lastChild = view.fragment;
+    view.fragment = DOM.createDocumentFragment();
+    view.attached();
+
     return view;
   }
 }
