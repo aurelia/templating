@@ -258,7 +258,7 @@ With options bindings each bindable property must be decorated with the `bindabl
     @autoinject
     export class SquareCustomAttribute {
       @bindable sideLength: string;
-      @bindable color({ primaryProperty: true }): string;
+      @bindable({ primaryProperty: true }) color: string;
 
       constructor(private element: Element){
       }
