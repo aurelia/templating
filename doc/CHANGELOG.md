@@ -1,3 +1,8 @@
+<a name="1.4.1"></a>
+## [1.4.1](https://github.com/aurelia/templating/compare/1.4.0...v1.4.1) (2017-04-05)
+
+* Documentation update.
+
 <a name="1.4.0"></a>
 # [1.4.0](https://github.com/aurelia/templating/compare/1.3.0...v1.4.0) (2017-03-25)
 
