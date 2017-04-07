@@ -148,4 +148,4 @@ If you have worked with the Aurelia router before and router parameters, you wil
 Notice how we are referencing values on our provided object, `name` and `company`, and then looping over an array of provided strings for `likes`.
 
 > Info
-> While the full view lifecycle (created, bind, attached, detached, unbind) is support during dynamic composition, the full navigation lifecycle is not. Only the `activate` hook is enabled. I receives a single parameter which is the `model` and can optionally return a promise if executing an asynchronous task.
+> While the full view lifecycle (created, bind, attached, detached, unbind) is supported during dynamic composition, the full navigation lifecycle is not. Only the `activate` hook is enabled. It receives a single parameter which is the `model` and can optionally return a promise if executing an asynchronous task.
