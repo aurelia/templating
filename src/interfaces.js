@@ -12,7 +12,7 @@ interface ComponentCreated {
     * This is the view that the component is declared inside of. If the component itself has a view,
     * this will be passed second.
     */
-    created(owningView: View, myView: View): void;
+    created?(owningView: View, myView: View): void;
 }
 
 /**
@@ -25,7 +25,7 @@ interface ComponentBind {
     * An "override context" will be passed second. The override context contains information used to traverse
     * the parent hierarchy and can also be used to add any contextual properties that the component wants to add.
     */
-    bind(bindingContext: any, overrideContext: any): void;
+    bind?(bindingContext: any, overrideContext: any): void;
 }
 
 /**
@@ -35,7 +35,7 @@ interface ComponentAttached {
     /**
     * Implement this hook if you want to perform custom logic when the component is attached to the DOM (in document).
     */
-    attached(): void;
+    attached?(): void;
 }
 
 /**
@@ -45,7 +45,7 @@ interface ComponentDetached {
     /**
     * Implement this hook if you want to perform custom logic if/when the component is removed from the the DOM.
     */
-    detached(): void;
+    detached?(): void;
 }
 
 /**
@@ -55,7 +55,7 @@ interface ComponentUnbind {
     /**
     * Implement this hook if you want to perform custom logic after the component is detached and unbound.
     */
-    unbind(): void;
+    unbind?(): void;
 }
 
 /**
@@ -65,5 +65,5 @@ interface DynamicComponentGetViewStrategy {
     /**
     * Implement this hook if you want to provide custom view strategy when this component is used with the compose element or the router.
     */
-    getViewStrategy(): string|ViewStrategy;
+    getViewStrategy?(): string|ViewStrategy;
 }
