@@ -3,6 +3,7 @@ import {Container} from 'aurelia-dependency-injection';
 import {createOverrideContext} from 'aurelia-binding';
 import {TemplatingEngine} from '../src/templating-engine';
 import {ViewResources} from '../src/view-resources';
+import {View} from '../src/view';
 import {DOM} from 'aurelia-pal';
 
 describe('enhance', () => {
@@ -45,5 +46,14 @@ describe('enhance', () => {
     let r = compileNodeSpy.calls.argsFor(0)[1];
 
     expect(r).toBe(resources);
+  });
+
+  it('registers the enhanced View with the container from the EnhanceInstruction', () => {
+    let view = templatingEngine.enhance({
+      container: container,
+      element: element
+    });
+
+    expect(view).toBe(container.get(View));
   });
 });
