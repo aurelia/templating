@@ -306,6 +306,8 @@ export class ViewCompiler {
       }
       return node.nextSibling;
     } else if (tagName === 'template') {
+      if(!node.content){
+        throw new Error('You cannot place a template element within '+ source.namespaceURI + ' namespace')
       }
       viewFactory = this.compile(node, resources);
       viewFactory.part = node.getAttribute('part');
