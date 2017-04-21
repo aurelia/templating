@@ -30,6 +30,18 @@ describe('ViewCompiler', () => {
       factory = viewCompiler.compile(template, resources, null);
       expect(factory).not.toBe(null);
     });
+
+    it('throws on compile template within svg namespace', () => {
+      var template = document.createElementNS("http://www.w3.org/2000/svg", 'template'),
+        node = document.createDocumentFragment();
+      template.appendChild(node);
+
+      var compileFunc = () => {
+        viewCompiler.compile(template, resources, null)
+      };
+
+      expect(compileFunc).toThrow();
+    });
   });
 
   describe('compileNode', () => {
