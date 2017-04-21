@@ -306,6 +306,7 @@ export class ViewCompiler {
       }
       return node.nextSibling;
     } else if (tagName === 'template') {
+      }
       viewFactory = this.compile(node, resources);
       viewFactory.part = node.getAttribute('part');
     } else {
