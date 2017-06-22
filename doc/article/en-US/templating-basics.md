@@ -220,7 +220,7 @@ an HTML template, a view-model, and maybe even some initialization data for us? 
   <source-code lang="HTML">
     <template>
       <compose view-model="hello"
-               view="hello.html"
+               view="./hello.html"
                model.bind="{ target : 'World' }" ></compose>
     </template>
   </source-code>
