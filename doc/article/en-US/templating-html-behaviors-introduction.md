@@ -235,6 +235,112 @@ By default, bindable properties only allow `one-way` data binding. This means th
   </source-code>
 </code-listing>
 
+
+For our developers who love to keep their [SoCs](https://en.wikipedia.org/wiki/Separation_of_concerns) [DRY](https://en.wikipedia.org/wiki/Don%27t_repeat_yourself), bindable properties within element components are inherited through the class hierarchy making a powerful complement to component composition with its intuitive manner for expressing the imagination.
+
+In the following example we create a generic icon button component `ib` that is integrated with [font awesome](http://fontawesome.io/).
+
+<code-listing heading="ib.js">
+  <source-code lang="ES 2015">
+    
+    import {bindable} from 'aurelia-framework'
+    
+    export class Ib{
+      @bindable icon = 'ban'
+      
+      constructor(){
+      }
+      
+      onclick(){
+        alert("Default method")
+      }
+      
+    }
+    
+  </source-code>
+</code-listing>
+
+Its generic `View` file `ib.html`
+
+<code-listing heading="ib.html">
+  <source-code lang="HTML">
+  
+    <template>
+      <i class="fa fa-${icon}" click.delegate="onclick" />
+    </template>
+  </source-code>
+</code-listing>
+
+Our following component that extends the generic button and setting its default icon as well as a different base function for
+a new `add button` component family.
+
+<code-listing heading="add-button.js">
+  <source-code lang="ES 2015"/>
+    
+    import {useView, viewResources} from 'aurelia-framework'
+    import {Ib} from 'ib'
+    
+    @useView('ib.html') //with future improvement on compatibility of inheritance we'll remove the redundancy of useView
+    @viewResources('add-button.css')
+    export class AddButton extends Ib{
+      constructor(){
+        super();
+        this.icon = 'plus' //Set a default icon for add buttons
+        this.onclick = this.add //Overrides what this button's function is called
+      }
+      
+      add(){
+        alert('Base add buton')
+        console.log('Some more base add button stuff')
+      }
+      
+    }
+    
+  </source-code>
+</code-listing>
+
+Some default styling for the `add button` family in `add-button.css`
+
+<code-listing heading="add-button.css">
+  <source-code lang="CSS3"/>
+  
+    fa-icon: {
+      color: green;
+      font-weight: bold;
+      font-size: large
+    };
+        
+  </source-code>
+</code-listing>
+
+And finally our composition using both button families (Note that `ib` is only necessary as a viewResource if used within the composition)
+
+<code-listing heading="composition.js">
+  <source-code lang="ES 2015"/>
+  
+    import {viewResources} from 'aurelia-framework'
+    
+    @viewResources('ib', 'add-button', 'add-button.css') //With future improvements on compatibility of transitive resources we'll remove redundancy of viewResource imports
+    export class Composition{
+      constructor(){
+      }
+    }
+        
+  </source-code>
+</code-listing>  
+<code-listing heading="composition.html">
+  <source-code lang="HTML">
+    
+    <template>
+      <ib /> <!-- Default button use -->
+      <ib icon="cogs" /> <!-- inline binding button use -->
+      <add-button /> <!-- Default extended button use -->
+      <add-button icon="plus-square-o" /> <!-- inline binding with extended button use -->
+    </template>
+  </source-code>
+</code-listing>
+
+
 Binding with Custom Attributes is a bit more nuanced than Custom Elements in that Custom Attributes support three types of binding: single value, options binding, and dynamic options binding. In this document, we will only look at single value binding. Please check out the Custom Attribute documentation for examples of how to implement and use all three types of bindings.
 
 The `@bindable` decorator isn't used when doing single value binding with a Custom Attribute because all attributes have a `value` property by default. This is ensured by Aurelia. Instead, we implement a `valueChanged` callback function that Aurelia calls to alert us that the bound value of the Custom Attribute has changed. Aurelia will set the value to the `value` property of the Custom Attribute's ViewModel, and will pass two parameters to the `valueChanged` callback: the new value and the old value. Let's look at an example.
