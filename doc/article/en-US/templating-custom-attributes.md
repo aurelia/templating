@@ -314,7 +314,7 @@ Utilizing dynamic options, a custom attribute may deal with bindable properties 
             this.element.style.width = this.element.style.height = `${newValue}px`;
             break;
           default:
-            this.element.style[name] = value;
+            this.element.style[name] = newValue;
             break;
         }
       }
