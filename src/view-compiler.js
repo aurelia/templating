@@ -293,6 +293,7 @@ export class ViewCompiler {
     let attr;
     let attrName;
     let attrValue;
+    let originalAttrName;
     let instruction;
     let info;
     let property;
@@ -319,7 +320,7 @@ export class ViewCompiler {
 
     for (i = 0, ii = attributes.length; i < ii; ++i) {
       attr = attributes[i];
-      attrName = attr.name;
+      originalAttrName = attrName = attr.name;
       attrValue = attr.value;
       info = bindingLanguage.inspectAttribute(resources, tagName, attrName, attrValue);
 
@@ -380,7 +381,7 @@ export class ViewCompiler {
             this._configureProperties(instruction, resources);
 
             if (type.liftsContent) { //template controller
-              instruction.originalAttrName = attrName;
+              instruction.originalAttrName = originalAttrName;
               liftingInstruction = instruction;
               break;
             } else { //attached behavior
@@ -398,7 +399,7 @@ export class ViewCompiler {
           instruction.attributes[resources.mapAttribute(attrName)] = attrValue;
 
           if (type.liftsContent) { //template controller
-            instruction.originalAttrName = attrName;
+            instruction.originalAttrName = originalAttrName;
             liftingInstruction = instruction;
             break;
           } else { //attached behavior
