@@ -248,7 +248,7 @@ Surrogate behaviors allow you to add attributes, event handlers, and bindings on
 <code-listing heading="Template using `my-button` custom element">
   <source-code lang="HTML">
     <template>
-      <require from="my-button"></reqire>
+      <require from="my-button"></require>
 
       <my-button></my-button>
     </template>
