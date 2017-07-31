@@ -2,6 +2,8 @@ import * as LogManager from 'aurelia-logging';
 import {subscriberCollection} from 'aurelia-binding';
 import {TaskQueue} from 'aurelia-task-queue';
 
+type CoerceInstruction = 'none' | 'string' | 'number' | 'boolean' | 'date' | { (value: any): any }
+
 /**
 * An implementation of Aurelia's Observer interface that is used to back bindable properties defined on a behavior.
 */
@@ -28,7 +30,6 @@ export class BehaviorPropertyObserver {
       this.setCoerce(coerce);
     }
   }
-  
   setCoerce(coerce) {
     let c;
     switch (typeof coerce) {

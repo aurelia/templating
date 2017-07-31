@@ -88,14 +88,14 @@ export function templateController(target?): any {
 export function bindable(nameOrConfigOrTarget?: string | Object, key?, descriptor?): any {
   let deco = function(target, key2, descriptor2) {
     /**
-     * key2 is truthy => target is an instance of a class. The decorator happens inside a constructor
-     * key2 is falsy => target is a class. The decorator happens right after the class definition
+     * key2 = truthy => decorated on a class instance
+     * key2 = falsy => decorated on a class
      */
     let actualTarget = key2 ? target.constructor : target;
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, actualTarget);
     let prop;
 
-    if (key2) {
+    if (key2) { //is it on a property or a class?
       nameOrConfigOrTarget = nameOrConfigOrTarget || {};
       nameOrConfigOrTarget.name = key2;
     }
@@ -106,7 +106,7 @@ export function bindable(nameOrConfigOrTarget?: string | Object, key?, descripto
 
   if (!nameOrConfigOrTarget) {
     /**
-     * placed on property initializer with parens
+     * placed on property initializer with parens, without any params
      * @example:
      * class ViewModel {
      *   @bindable() property
@@ -123,6 +123,7 @@ export function bindable(nameOrConfigOrTarget?: string | Object, key?, descripto
      * class ViewModel {
      *   @bindable property
      * }
+     * 
      */
     let target = nameOrConfigOrTarget;
     nameOrConfigOrTarget = null;
