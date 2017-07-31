@@ -159,7 +159,7 @@ export class BindableProperty {
       initialValue = typeof defaultValue === 'function' ? defaultValue.call(viewModel) : defaultValue;
     }
 
-    return new BehaviorPropertyObserver(this.owner.taskQueue, viewModel, this.name, selfSubscriber, initialValue);
+    return new BehaviorPropertyObserver(this.owner.taskQueue, viewModel, this.name, selfSubscriber, initialValue, this.coerce);
   }
 
   _initialize(viewModel, observerLookup, attributes, behaviorHandlesBind, boundProperties): void {

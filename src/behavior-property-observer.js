@@ -1,3 +1,4 @@
+import * as LogManager from 'aurelia-logging';
 import {subscriberCollection} from 'aurelia-binding';
 import {TaskQueue} from 'aurelia-task-queue';
 
@@ -13,8 +14,9 @@ export class BehaviorPropertyObserver {
   * @param propertyName The name of the property.
   * @param selfSubscriber The callback function that notifies the object which defines the properties, if present.
   * @param initialValue The initial value of the property.
+  * @param coerce Instruction on how to convert value in setter
   */
-  constructor(taskQueue: TaskQueue, obj: Object, propertyName: string, selfSubscriber: Function, initialValue: any) {
+  constructor(taskQueue: TaskQueue, obj: Object, propertyName: string, selfSubscriber: Function, initialValue: any, coerce?: CoerceInstruction) {
     this.taskQueue = taskQueue;
     this.obj = obj;
     this.propertyName = propertyName;
@@ -22,6 +24,27 @@ export class BehaviorPropertyObserver {
     this.publishing = false;
     this.selfSubscriber = selfSubscriber;
     this.currentValue = this.oldValue = initialValue;
+    if (typeof coerce !== 'undefined') {
+      this.setCoerce(coerce);
+    }
+  }
+  
+  setCoerce(coerce) {
+    let c;
+    switch (typeof coerce) {
+    case 'function':
+      c = coerce; break;
+    case 'string':
+      c = coerces[coerce]; break;
+    default: break;
+    }
+    if (!c) {
+      LogManager
+        .getLogger('behavior-property-observer')
+        .warn(`Invalid coerce instruction. Should be either one of ${Object.keys(coerces)} or a function.`);
+      c = coerces.none;
+    }
+    this.coerce = c;
   }
 
   /**
@@ -37,10 +60,11 @@ export class BehaviorPropertyObserver {
   */
   setValue(newValue: any): void {
     let oldValue = this.currentValue;
+    let realNewValue = this.coerce ? this.coerce(newValue) : newValue;
 
-    if (oldValue !== newValue) {
+    if (oldValue !== realNewValue) {
       this.oldValue = oldValue;
-      this.currentValue = newValue;
+      this.currentValue = realNewValue;
 
       if (this.publishing && this.notqueued) {
         if (this.taskQueue.flushing) {
@@ -92,3 +116,27 @@ export class BehaviorPropertyObserver {
     this.removeSubscriber(context, callable);
   }
 }
+
+const numCons = Number;
+const dateCons = Date;
+const _isFinite = isFinite;
+const _isNaN = isNaN;
+
+export const coerces = {
+  none(a) {
+    return a;
+  },
+  number(a) {
+    var val = numCons(a);
+    return !_isNaN(val) && _isFinite(val) ? val : 0;
+  },
+  string(a) {
+    return '' + a;
+  },
+  boolean(a) {
+    return !!a;
+  },
+  date(a) {
+    return new dateCons(a);
+  }
+};

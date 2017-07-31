@@ -87,11 +87,15 @@ export function templateController(target?): any {
 */
 export function bindable(nameOrConfigOrTarget?: string | Object, key?, descriptor?): any {
   let deco = function(target, key2, descriptor2) {
-    let actualTarget = key2 ? target.constructor : target; //is it on a property or a class?
+    /**
+     * key2 is truthy => target is an instance of a class. The decorator happens inside a constructor
+     * key2 is falsy => target is a class. The decorator happens right after the class definition
+     */
+    let actualTarget = key2 ? target.constructor : target;
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, actualTarget);
     let prop;
 
-    if (key2) { //is it on a property or a class?
+    if (key2) {
       nameOrConfigOrTarget = nameOrConfigOrTarget || {};
       nameOrConfigOrTarget.name = key2;
     }
@@ -100,17 +104,37 @@ export function bindable(nameOrConfigOrTarget?: string | Object, key?, descripto
     return prop.registerWith(actualTarget, r, descriptor2);
   };
 
-  if (!nameOrConfigOrTarget) { //placed on property initializer with parens
+  if (!nameOrConfigOrTarget) {
+    /**
+     * placed on property initializer with parens
+     * @example:
+     * class ViewModel {
+     *   @bindable() property
+     * }
+     * @bindable() class ViewModel {}
+     */
     return deco;
   }
 
-  if (key) { //placed on a property initializer without parens
+  if (key) {
+    /**
+     * placed on a property initializer without parens
+     * @example
+     * class ViewModel {
+     *   @bindable property
+     * }
+     */
     let target = nameOrConfigOrTarget;
     nameOrConfigOrTarget = null;
     return deco(target, key, descriptor);
   }
 
-  return deco; //placed on a class
+  /**
+   * placed on a class
+   * @example
+   * @bindable class MyViewModel {}
+   */
+  return deco;
 }
 
 /**
