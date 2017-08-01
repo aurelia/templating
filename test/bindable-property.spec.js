@@ -31,25 +31,11 @@ describe('BindableProperty', () => {
     bindableProperty.owner = {};
     expect(bindableProperty.createObserver({}).coerce).toBe(coerces.none);
   
-    bindableProperty = new BindableProperty({ name: 'test', coerce: 'none' });
-    bindableProperty.owner = {};
-    expect(bindableProperty.createObserver({}).coerce).toBe(coerces.none);
-  
-    bindableProperty = new BindableProperty({ name: 'test', coerce: 'string' });
-    bindableProperty.owner = {};
-    expect(bindableProperty.createObserver({}).coerce).toBe(coerces.string);
-  
-    bindableProperty = new BindableProperty({ name: 'test', coerce: 'boolean' });
-    bindableProperty.owner = {};
-    expect(bindableProperty.createObserver({}).coerce).toBe(coerces.boolean);
-  
-    bindableProperty = new BindableProperty({ name: 'test', coerce: 'number' });
-    bindableProperty.owner = {};
-    expect(bindableProperty.createObserver({}).coerce).toBe(coerces.number);
-  
-    bindableProperty = new BindableProperty({ name: 'test', coerce: 'date' });
-    bindableProperty.owner = {};
-    expect(bindableProperty.createObserver({}).coerce).toBe(coerces.date);
+    ['none', 'string', 'boolean', 'number', 'date'].forEach(type => {
+      bindableProperty = new BindableProperty({ name: 'test', coerce: type });
+      bindableProperty.owner = {};
+      expect(bindableProperty.createObserver({}).coerce).toBe(coerces[type]);
+    });
   
     const testFn = a => a;
     bindableProperty = new BindableProperty({ name: 'test', coerce: testFn });

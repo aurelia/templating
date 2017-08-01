@@ -141,3 +141,25 @@ export const coerces = {
     return new dateCons(a);
   }
 };
+
+/**@type {Map<Function, string>} */
+export const classCoerceMap = new Map([
+  [Number, 'number'],
+  [String, 'string'],
+  [Boolean, 'boolean'],
+  [Date, 'date']
+]);
+
+/**
+ * Map a class to a string for typescript property coerce
+ * @param Class {Function} the property class to register
+ * @param strType {string} the string that represents class in the lookup
+ * @param converter {function(val)} coerce function tobe registered with @param strType
+ */
+export function mapCoerceForClass(Class, strType, coerce) {
+  if (typeof strType !== 'string' || typeof coerce !== 'function') {
+    LogManager.warn(`Bad attempt at mapping class: ${Class.name} to type: ${strType}`);
+  }
+  coerces[strType] = coerce;
+  coerceClassMap.set(Class, strType);
+}

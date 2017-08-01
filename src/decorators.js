@@ -5,6 +5,7 @@ import {BindableProperty} from './bindable-property';
 import {ElementConfigResource} from './element-config';
 import {ViewLocator, RelativeViewStrategy, NoViewStrategy, InlineViewStrategy} from './view-strategy';
 import {HtmlBehaviorResource} from './html-behavior';
+import {mapCoerceForClass, classCoerceMap} from './behavior-property-observer';
 import {_hyphenate} from './util';
 
 function validateBehaviorName(name, type) {
@@ -94,10 +95,21 @@ export function bindable(nameOrConfigOrTarget?: string | Object, key?, descripto
     let actualTarget = key2 ? target.constructor : target;
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, actualTarget);
     let prop;
+    let propType;
 
     if (key2) { //is it on a property or a class?
       nameOrConfigOrTarget = nameOrConfigOrTarget || {};
       nameOrConfigOrTarget.name = key2;
+      /**
+       * Support for Typescript decorator, with metadata on property type.
+       * Will check for typing only when user didn't explicitly set coerce
+       */
+      if (!nameOrConfigOrTarget.coerce) {
+        propType = metadata.getOwn(metadata.propertyType, target, key2);
+        if (propType) {
+          nameOrConfigOrTarget = classCoerceMap.get(propType) || 'none';
+        }
+      }
     }
 
     prop = new BindableProperty(nameOrConfigOrTarget);
