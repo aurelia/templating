@@ -158,7 +158,9 @@ export const classCoerceMap = new Map([
  */
 export function mapCoerceForClass(Class, strType, coerce) {
   if (typeof strType !== 'string' || typeof coerce !== 'function') {
-    LogManager.warn(`Bad attempt at mapping class: ${Class.name} to type: ${strType}`);
+    LogManager
+      .getLogger('behavior-property-observer')
+      .warn(`Bad attempt at mapping coerce for class: ${Class.name} to type: ${strType}`);
   }
   coerces[strType] = coerce;
   coerceClassMap.set(Class, strType);
