@@ -102,9 +102,10 @@ export class ViewEngine {
     loadContext = loadContext || new ResourceLoadContext();
 
     return ensureRegistryEntry(this.loader, urlOrRegistryEntry).then(registryEntry => {
+      const url = typeof urlOrRegistryEntry === 'string' ? urlOrRegistryEntry : urlOrRegistryEntry.address;
       if (registryEntry.onReady) {
-        if (!loadContext.hasDependency(urlOrRegistryEntry)) {
-          loadContext.addDependency(urlOrRegistryEntry);
+        if (!loadContext.hasDependency(url)) {
+          loadContext.addDependency(url);
           return registryEntry.onReady;
         }
 
@@ -116,7 +117,7 @@ export class ViewEngine {
         return Promise.resolve(new ProxyViewFactory(registryEntry.onReady));
       }
 
-      loadContext.addDependency(urlOrRegistryEntry);
+      loadContext.addDependency(url);
 
       registryEntry.onReady = this.loadTemplateResources(registryEntry, compileInstruction, loadContext, target).then(resources => {
         registryEntry.resources = resources;
