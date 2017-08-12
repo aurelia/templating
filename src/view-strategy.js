@@ -202,7 +202,7 @@ export class TemplateRegistryViewStrategy {
 }
 
 /**
-* A view strategy that allows the component authore to inline the html for the view.
+* A view strategy that allows the component author to inline the html for the view.
 */
 @viewStrategy()
 export class InlineViewStrategy {
