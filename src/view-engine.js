@@ -102,7 +102,8 @@ export class ViewEngine {
     loadContext = loadContext || new ResourceLoadContext();
 
     return ensureRegistryEntry(this.loader, urlOrRegistryEntry).then(registryEntry => {
-      const url = typeof urlOrRegistryEntry === 'string' ? urlOrRegistryEntry : urlOrRegistryEntry.address;
+      const url = registryEntry.address;
+
       if (registryEntry.onReady) {
         if (!loadContext.hasDependency(url)) {
           loadContext.addDependency(url);
