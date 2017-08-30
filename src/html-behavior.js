@@ -405,7 +405,7 @@ export class HtmlBehaviorResource {
   /**
    * Allow a bindable property on custom element to register how to reflect prop value to attribute
    * @param {string} propertyName 
-   * @param {boolean | {(element: Element, newVal: any, oldVal: any) => any}} reflection 
+   * @param {boolean | {(element: Element, name: string, newVal, oldVal) => any}} reflection 
    */
   registerReflection(propertyName, reflection) {
     let reflections = this.reflections || (this.reflections = {});

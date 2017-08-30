@@ -37,7 +37,7 @@ export class BindableProperty {
   */
   constructor(nameOrConfig: string | {
     defaultBindingMode?: number,
-    reflect?: boolean | {(el: Element, newVal, oldVal): any},
+    reflect?: boolean | {(el: Element, name: string, newVal, oldVal): any},
     name?: string,
     attribute?: any,
     changeHandler?: string
