@@ -425,6 +425,7 @@ export class HtmlBehaviorResource {
    */
   _setupReflections(element, target) {
     if (!this.reflections) return;
+    if (this._reflectedTarget === target) return;
 
     let {reflections} = this;
     let method = 'propertyChanged';
@@ -446,6 +447,7 @@ export class HtmlBehaviorResource {
     })) {
       throw new Error(`Cannot setup property reflection on <${this.elementName}/> for ${target.name}`);
     };
+    this._reflectedTarget = target;
   }
 
   _ensurePropertiesDefined(instance: Object, lookup: Object) {
