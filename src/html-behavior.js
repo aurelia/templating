@@ -512,7 +512,7 @@ export class HtmlBehaviorResource {
  * @param {any} newValue 
  */
 function propToAttr(element, propertyName, newValue) {
-  if (newVal == null) {
+  if (newValue == null) {
     element.removeAttribute(propertyName)
   } else {
     element.setAttribute(propertyName, newValue);
