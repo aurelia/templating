@@ -323,6 +323,7 @@ export class HtmlBehaviorResource {
 
     if (element !== null) {
       element.au = au = element.au || {};
+      this._setupReflections(element, this.target);
     }
 
     let viewModel = instruction.viewModel || container.get(this.target);
@@ -401,6 +402,52 @@ export class HtmlBehaviorResource {
     return controller;
   }
 
+  /**
+   * Allow a bindable property on custom element to register how to reflect prop value to attribute
+   * @param {string} propertyName 
+   * @param {boolean | {(element: Element, newVal: any, oldVal: any) => any}} reflection 
+   */
+  registerReflection(propertyName, reflection) {
+    let reflections = this.reflections || (this.reflections = {});
+    if (propertyName in reflections) {
+      throw new Error(`Reflection for ${propertyName} was already registered`);
+    }
+    if (typeof reflection === 'function') {
+      reflections[propertyName] = reflection;
+    } else if (reflection) {
+      reflections[propertyName] = propToAttr;
+    }
+  }
+  
+  /**
+   * @param {Element} element 
+   * @param {Function} target 
+   */
+  _setupReflections(element, target) {
+    if (!this.reflections) return;
+
+    let {reflections} = this;
+    let method = 'propertyChanged';
+    let onChanged = target.prototype[method];
+    let hasHandler = !!onChanged;
+    
+    let alteredHandler = hasHandler
+      ? function propertyChanged(name, newVal, oldVal) {
+          onChanged.call(this, name, newVal, oldVal);
+          reflections[name].call(this, element, name, newVal, oldVal)
+        }
+      : function propertyChanged(name, newVal, oldVal) {
+          reflections[name].call(this, element, name, newVal, oldVal);
+        }
+
+    if (!Reflect.defineProperty(target.prototype, method, {
+      configurable: true,
+      value: alteredHandler
+    })) {
+      throw new Error(`Cannot setup property reflection on <${this.elementName}/> for ${target.name}`);
+    };
+  }
+
   _ensurePropertiesDefined(instance: Object, lookup: Object) {
     let properties;
     let i;
@@ -453,4 +500,15 @@ export class HtmlBehaviorResource {
       new BindableProperty(prop).registerWith(derived, this);
     }    
   }
+}
+
+/**
+ * @private
+ * Used for avoid creating mapping function multiple times
+ * @param {Element} element 
+ * @param {string} propertyName 
+ * @param {any} newValue 
+ */
+function propToAttr(element, propertyName, newValue) {
+  element.setAttribute(propertyName, newValue);
 }

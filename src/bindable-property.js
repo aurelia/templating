@@ -35,7 +35,7 @@ export class BindableProperty {
   * Creates an instance of BindableProperty.
   * @param nameOrConfig The name of the property or a cofiguration object.
   */
-  constructor(nameOrConfig: string | Object) {
+  constructor(nameOrConfig) {
     if (typeof nameOrConfig === 'string') {
       this.name = nameOrConfig;
     } else {
@@ -61,6 +61,10 @@ export class BindableProperty {
     behavior.properties.push(this);
     behavior.attributes[this.attribute] = this;
     this.owner = behavior;
+
+    if (this.reflect) {
+      behavior.registerReflection(this.name, this.reflect);
+    }
 
     if (descriptor) {
       this.descriptor = descriptor;
