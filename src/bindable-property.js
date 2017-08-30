@@ -35,7 +35,13 @@ export class BindableProperty {
   * Creates an instance of BindableProperty.
   * @param nameOrConfig The name of the property or a cofiguration object.
   */
-  constructor(nameOrConfig) {
+  constructor(nameOrConfig: string | {
+    defaultBindingMode?: number,
+    reflect?: boolean | {(el: Element, newVal, oldVal): any},
+    name?: string,
+    attribute?: any,
+    changeHandler?: string
+  }) {
     if (typeof nameOrConfig === 'string') {
       this.name = nameOrConfig;
     } else {
