@@ -64,12 +64,14 @@ export class BindableProperty {
   * @param descriptor The property descriptor for this property.
   */
   registerWith(target: Function, behavior: HtmlBehaviorResource, descriptor?: Object): void {
+    let { reflect } = this;
     behavior.properties.push(this);
     behavior.attributes[this.attribute] = this;
     this.owner = behavior;
 
-    if (this.reflect) {
-      behavior.registerReflection(this.name, this.reflect);
+    if (reflect) {
+      behavior._registerReflection(this.name, typeof reflect === 'function' ? reflect : propToAttr);
+      this._configureReflection(target);
     }
 
     if (descriptor) {
@@ -78,6 +80,38 @@ export class BindableProperty {
     }
 
     return undefined;
+  }
+  
+  _configureReflection(target) {
+    if (target.__reflectionConfigured__) return;
+
+    let method = 'propertyChanged';
+    let onChanged = target.prototype[method];
+    let hasHandler = !!onChanged;
+    
+    let alteredHandler;
+    if (hasHandler) { // avoid ternary to make it consisten with the rest ?
+      alteredHandler = function propertyChanged(name, newVal, oldVal) {
+        onChanged.call(this, name, newVal, oldVal);
+        let { __element__, __reflections__ } = this.__observers__;
+        if (!__element__) return;
+        __reflections__[name].call(this, __element__, name, newVal, oldVal)
+      }
+    } else {
+      alteredHandler = function propertyChanged(name, newVal, oldVal) {
+        let { __element__, __reflections__ } = this.__observers__;
+        if (!__element__) return;
+        __reflections__[name].call(this, __element__, name, newVal, oldVal);
+      }
+    }
+  
+    if (!Reflect.defineProperty(target.prototype, method, {
+      configurable: true,
+      value: alteredHandler
+    })) {
+      throw new Error(`Cannot setup property reflection on <${this.name}/> for ${target.name}`);
+    };
+    target.__reflectionConfigured__ = true;
   }
 
   _configureDescriptor(descriptor: Object): Object {
@@ -256,5 +290,20 @@ export class BindableProperty {
 
     observer.publishing = true;
     observer.selfSubscriber = selfSubscriber;
+  }
+}
+
+/**
+ * @private
+ * Used for avoid creating mapping function multiple times
+ * @param {Element} element 
+ * @param {string} propertyName 
+ * @param {any} newValue 
+ */
+function propToAttr(element, propertyName, newValue) {
+  if (newValue == null) {
+    element.removeAttribute(propertyName);
+  } else {
+    element.setAttribute(propertyName, newValue);
   }
 }

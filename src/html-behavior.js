@@ -323,13 +323,16 @@ export class HtmlBehaviorResource {
 
     if (element !== null) {
       element.au = au = element.au || {};
-      this._setupReflections(element, this.target);
     }
 
     let viewModel = instruction.viewModel || container.get(this.target);
     let controller = new Controller(this, instruction, viewModel, container);
     let childBindings = this.childBindings;
     let viewFactory;
+
+    if (element !== null) {
+      this._setupReflections(element, viewModel);
+    }
 
     if (this.liftsContent) {
       //template controller
@@ -405,49 +408,28 @@ export class HtmlBehaviorResource {
   /**
    * Allow a bindable property on custom element to register how to reflect prop value to attribute
    * @param {string} propertyName 
-   * @param {boolean | {(element: Element, name: string, newVal, oldVal) => any}} reflection 
+   * @param {{(element: Element, name: string, newVal, oldVal) => any}} instruction A function with suitable parameters to react for setting attribute on the element
    */
-  registerReflection(propertyName, reflection) {
+  _registerReflection(propertyName, instruction) {
     let reflections = this.reflections || (this.reflections = {});
     if (propertyName in reflections) {
       throw new Error(`Reflection for ${propertyName} was already registered`);
     }
-    if (typeof reflection === 'function') {
-      reflections[propertyName] = reflection;
-    } else if (reflection) {
-      reflections[propertyName] = propToAttr;
+    if (typeof instruction !== 'function') {
+      throw new Error('Invalid reflection instruction');
     }
+    reflections[propertyName] = instruction;
   }
   
   /**
    * @param {Element} element 
-   * @param {Function} target 
+   * @param {object} viewModel 
    */
-  _setupReflections(element, target) {
+  _setupReflections(element, viewModel) {
     if (!this.reflections) return;
-    if (this._reflectedTarget === target) return;
-
-    let {reflections} = this;
-    let method = 'propertyChanged';
-    let onChanged = target.prototype[method];
-    let hasHandler = !!onChanged;
-    
-    let alteredHandler = hasHandler
-      ? function propertyChanged(name, newVal, oldVal) {
-          onChanged.call(this, name, newVal, oldVal);
-          reflections[name].call(this, element, name, newVal, oldVal)
-        }
-      : function propertyChanged(name, newVal, oldVal) {
-          reflections[name].call(this, element, name, newVal, oldVal);
-        }
-
-    if (!Reflect.defineProperty(target.prototype, method, {
-      configurable: true,
-      value: alteredHandler
-    })) {
-      throw new Error(`Cannot setup property reflection on <${this.elementName}/> for ${target.name}`);
-    };
-    this._reflectedTarget = target;
+    let lookup = this.observerLocator.getOrCreateObserversLookup(viewModel);
+    lookup.__reflections__ = this.reflections;
+    lookup.__element__ = element;
   }
 
   _ensurePropertiesDefined(instance: Object, lookup: Object) {
@@ -501,20 +483,5 @@ export class HtmlBehaviorResource {
       // on the parent prototype during initialization.
       new BindableProperty(prop).registerWith(derived, this);
     }    
-  }
-}
-
-/**
- * @private
- * Used for avoid creating mapping function multiple times
- * @param {Element} element 
- * @param {string} propertyName 
- * @param {any} newValue 
- */
-function propToAttr(element, propertyName, newValue) {
-  if (newValue == null) {
-    element.removeAttribute(propertyName)
-  } else {
-    element.setAttribute(propertyName, newValue);
   }
 }
