@@ -4,15 +4,17 @@ import {bindingMode} from 'aurelia-binding';
 import {Container} from 'aurelia-dependency-injection';
 import {metadata} from 'aurelia-metadata';
 
+const reflectionConfigured = Symbol('reflection');
+
 function getObserver(instance, name) {
   let lookup = instance.__observers__;
 
   if (lookup === undefined) {
-    // We need to lookup the actual behavior for this instance, 
-    // as it might be a derived class (and behavior) rather than 
+    // We need to lookup the actual behavior for this instance,
+    // as it might be a derived class (and behavior) rather than
     // the class (and behavior) that declared the property calling getObserver().
-    // This means we can't capture the behavior in property get/set/getObserver and pass it here. 
-    // Note that it's probably for the best, as passing the behavior is an overhead 
+    // This means we can't capture the behavior in property get/set/getObserver and pass it here.
+    // Note that it's probably for the best, as passing the behavior is an overhead
     // that is only useful in the very first call of the first property of the instance.
     let ctor = Object.getPrototypeOf(instance).constructor; // Playing safe here, user could have written to instance.constructor.
     let behavior = metadata.get(metadata.resource, ctor);
@@ -27,6 +29,14 @@ function getObserver(instance, name) {
   return lookup[name];
 }
 
+export type BindablePropertyConfig = {
+  defaultBindingMode?: bindingMode,
+  reflectToAttribute?: boolean | {(el: Element, name: string, newVal, oldVal): any},
+  name?: string,
+  attribute?: any,
+  changeHandler?: string
+}
+
 /**
 * Represents a bindable property on a behavior.
 */
@@ -35,13 +45,7 @@ export class BindableProperty {
   * Creates an instance of BindableProperty.
   * @param nameOrConfig The name of the property or a cofiguration object.
   */
-  constructor(nameOrConfig: string | {
-    defaultBindingMode?: number,
-    reflect?: boolean | {(el: Element, name: string, newVal, oldVal): any},
-    name?: string,
-    attribute?: any,
-    changeHandler?: string
-  }) {
+  constructor(nameOrConfig: string | BindablePropertyConfig) {
     if (typeof nameOrConfig === 'string') {
       this.name = nameOrConfig;
     } else {
@@ -64,13 +68,14 @@ export class BindableProperty {
   * @param descriptor The property descriptor for this property.
   */
   registerWith(target: Function, behavior: HtmlBehaviorResource, descriptor?: Object): void {
-    let { reflect } = this;
+    let { reflectToAttribute } = this;
+
     behavior.properties.push(this);
     behavior.attributes[this.attribute] = this;
     this.owner = behavior;
 
-    if (reflect) {
-      behavior._registerReflection(this.name, typeof reflect === 'function' ? reflect : propToAttr);
+    if (reflectToAttribute) {
+      behavior._registerReflection(this.name, typeof reflectToAttribute === 'function' ? reflectToAttribute : propToAttr);
       this._configureReflection(target);
     }
 
@@ -81,37 +86,36 @@ export class BindableProperty {
 
     return undefined;
   }
-  
+
   _configureReflection(target) {
-    if (target.__reflectionConfigured__) return;
+    if (target[reflectionConfigured]) return;
 
     let method = 'propertyChanged';
     let onChanged = target.prototype[method];
     let hasHandler = !!onChanged;
-    
+
     let alteredHandler;
     if (hasHandler) { // avoid ternary to make it consisten with the rest ?
       alteredHandler = function propertyChanged(name, newVal, oldVal) {
         onChanged.call(this, name, newVal, oldVal);
-        let { __element__, __reflections__ } = this.__observers__;
-        if (!__element__) return;
-        __reflections__[name].call(this, __element__, name, newVal, oldVal)
-      }
+        callRefelection(this, name, newVal, oldVal);
+      };
     } else {
       alteredHandler = function propertyChanged(name, newVal, oldVal) {
-        let { __element__, __reflections__ } = this.__observers__;
-        if (!__element__) return;
-        __reflections__[name].call(this, __element__, name, newVal, oldVal);
-      }
+        callRefelection(this, name, newVal, oldVal);
+      };
     }
-  
+
+    // Reflect has better performance on chrome https://jsfiddle.net/bm792m4e/7/
+    // Also helps to avoid put try catch in the scope.
+    // Though Chrome no longer suffers much from it, it still impacts
     if (!Reflect.defineProperty(target.prototype, method, {
       configurable: true,
       value: alteredHandler
     })) {
-      throw new Error(`Cannot setup property reflection on <${this.name}/> for ${target.name}`);
-    };
-    target.__reflectionConfigured__ = true;
+      throw new Error(`Cannot setup property [${this.name}] reflection for ${target.name}`);
+    }
+    target[reflectionConfigured] = true;
   }
 
   _configureDescriptor(descriptor: Object): Object {
@@ -294,16 +298,25 @@ export class BindableProperty {
 }
 
 /**
+ * @param instance the view model instance
+ * @param propertyName name of property changed
+ * @param newValue
+ * @param oldValue
+ */
+function callRefelection(instance: Object, propertyName: string, newValue, oldValue) {
+  let { __element__, __reflections__ } = instance.__observers__;
+  if (!__element__) return;
+  __reflections__[propertyName].call(instance, __element__, propertyName, newVal, oldVal);
+}
+
+/**
  * @private
  * Used for avoid creating mapping function multiple times
- * @param {Element} element 
- * @param {string} propertyName 
- * @param {any} newValue 
  */
-function propToAttr(element, propertyName, newValue) {
-  if (newValue == null) {
-    element.removeAttribute(propertyName);
+function propToAttr(element: Element, propertyName: string, newValue: any) {
+  if (newValue === null || newValue === void 0) {
+    element.removeAttribute(_hyphenate(propertyName));
   } else {
-    element.setAttribute(propertyName, newValue);
+    element.setAttribute(_hyphenate(propertyName), newValue);
   }
 }

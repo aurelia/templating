@@ -66,19 +66,19 @@ describe('html-behavior', () => {
       let Target = class {};
 
       var prop1 = new BindableProperty({
-        reflect: true,
+        reflectToAttribute: true,
         name: 'prop1'
       });
       prop1.registerWith(Target, resource);
 
       var prop2 = new BindableProperty({
-        reflect() {},
+        reflectToAttribute() {},
         name: 'prop2'
       });
       prop2.registerWith(Target, resource);
 
       expect(typeof resource.reflections.prop1).toBe('function');
-      expect(resource.reflections.prop2).toBe(prop2.reflect);
+      expect(resource.reflections.prop2).toBe(prop2.reflectToAttribute);
     });
   });
 });
