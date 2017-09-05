@@ -5,7 +5,7 @@ import {BindableProperty} from './bindable-property';
 import {ElementConfigResource} from './element-config';
 import {ViewLocator, RelativeViewStrategy, NoViewStrategy, InlineViewStrategy} from './view-strategy';
 import {HtmlBehaviorResource} from './html-behavior';
-import {mapCoerceForClass, classCoerceMap} from './behavior-property-observer';
+import {mapCoerceForClass, coerceFunctionMap} from './behavior-property-observer';
 import {_hyphenate} from './util';
 
 function validateBehaviorName(name, type) {
@@ -82,6 +82,17 @@ export function templateController(target?): any {
   return target ? deco(target) : deco;
 }
 
+let _usePropertyType = false;
+
+/**
+ * 
+ * @param {boolean} shouldUsePropertyType Used to allow user to automatically pickup property type
+ * Can be used with typescript emit metadata in compiler settings, or with `Reflect.metadata('design:type', Class)` decorator
+ */
+export function usePropertyType(shouldUsePropertyType) {
+  _usePropertyType = shouldUsePropertyType;
+}
+
 /**
 * Decorator: Specifies that a property is bindable through HTML.
 * @param nameOrConfigOrTarget The name of the property, or a configuration object.
@@ -102,12 +113,12 @@ export function bindable(nameOrConfigOrTarget?: string | Object, key?, descripto
       nameOrConfigOrTarget.name = key2;
       /**
        * Support for Typescript decorator, with metadata on property type.
-       * Will check for typing only when user didn't explicitly set coerce
+       * Will check for typing only when user didn't explicitly set coerce + turn on the options
        */
-      if (!nameOrConfigOrTarget.coerce) {
+      if (nameOrConfigOrTarget.coerce !== undefined && _usePropertyType) {
         propType = metadata.getOwn(metadata.propertyType, target, key2);
         if (propType) {
-          nameOrConfigOrTarget = classCoerceMap.get(propType) || 'none';
+          nameOrConfigOrTarget.coerce = coerceFunctionMap.get(propType) || 'none';
         }
       }
     }
@@ -143,12 +154,77 @@ export function bindable(nameOrConfigOrTarget?: string | Object, key?, descripto
   }
 
   /**
-   * placed on a class
+   * placed on a class with parens and config
    * @example
-   * @bindable class MyViewModel {}
+   * @bindable({ ... })
+   * class MyViewModel {}
    */
   return deco;
 }
+
+
+/**
+ * Create a new fluent syntax bindable decorator  ex: builtin: `@bindable.string`, custom: `@bindable.customType`
+ * Need to use together with setting the type in `coerceFunctions`:
+ * 
+ * ```js
+ * import {
+ *  createTypedBindable,
+ *  coerceFunctions
+ * } from 'aurelia-framework'
+ * 
+ * // create the typed bindable
+ * createTypedBindable('point'); // => enable `@bindable.point`
+ * // Set the instruction
+ * coerceFunctions.point = function(value: string) {
+ *   // convert to point from value
+ * }
+ * ```
+ * 
+ * @param {string} type The type to added to bindable for fluent syntax.
+ */
+export function createTypedBindable(type) {
+  /**
+   * There no attempts to protect user from mis-using the decorators.
+   * ex. @observable({}, accidentParam) class SomeClass {}
+   * If we have some flag to use in if block, which can be remove at build time, it would be great.
+   */
+  return bindable[type] = function(targetOrConfig, key, descriptor) {
+    if (targetOrConfig === undefined) {
+      /**
+       * MyClass {
+       *   @bindable.number() num
+       * }
+       */
+      return bindable({ coerce: type });
+    }
+    if (key === undefined) {
+      /**
+       * @bindable.number('num')
+       * class MyClass {}
+       * 
+       * @bindable.number({...})
+       * class MyClass
+       * 
+       * class MyClass {
+       *   @bindable.number({...})
+       *   num
+       * }
+       */
+      targetOrConfig = typeof targetOrConfig === 'string' ? { name: targetOrConfig } : targetOrConfig;
+      targetOrConfig.coerce = type;
+      return bindable(targetOrConfig);
+    }
+    /**
+     * class MyClass {
+     *   @bindable.number num
+     * }
+     */
+    return bindable({ coerce: type })(targetOrConfig, key, descriptor);
+  }
+}
+
+['string', 'number', 'boolean', 'date'].forEach(createTypedBindable);
 
 /**
 * Decorator: Specifies that the decorated custom attribute has options that

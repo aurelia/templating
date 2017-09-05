@@ -2,7 +2,7 @@ import * as LogManager from 'aurelia-logging';
 import {subscriberCollection} from 'aurelia-binding';
 import {TaskQueue} from 'aurelia-task-queue';
 
-type CoerceInstruction = 'none' | 'string' | 'number' | 'boolean' | 'date' | { (value: any): any }
+type CoerceInstruction = string | { (value: any): any }
 
 /**
 * An implementation of Aurelia's Observer interface that is used to back bindable properties defined on a behavior.
@@ -26,7 +26,7 @@ export class BehaviorPropertyObserver {
     this.publishing = false;
     this.selfSubscriber = selfSubscriber;
     this.currentValue = this.oldValue = initialValue;
-    if (typeof coerce !== 'undefined') {
+    if (coerce !== undefined) {
       this.setCoerce(coerce);
     }
   }
@@ -36,14 +36,14 @@ export class BehaviorPropertyObserver {
     case 'function':
       c = coerce; break;
     case 'string':
-      c = coerces[coerce]; break;
+      c = coerceFunctions[coerce]; break;
     default: break;
     }
-    if (!c) {
+    if (c === undefined) {
       LogManager
         .getLogger('behavior-property-observer')
-        .warn(`Invalid coerce instruction. Should be either one of ${Object.keys(coerces)} or a function.`);
-      c = coerces.none;
+        .warn(`Invalid coerce instruction. Should be either one of ${Object.keys(coerceFunctions)} or a function.`);
+      return;
     }
     this.coerce = c;
   }
@@ -60,12 +60,12 @@ export class BehaviorPropertyObserver {
   * @param newValue The new value to set.
   */
   setValue(newValue: any): void {
-    let oldValue = this.currentValue;
-    let realNewValue = this.coerce ? this.coerce(newValue) : newValue;
+    const oldValue = this.currentValue;
+    const coercedValue = this.coerce !== undefined ? this.coerce(newValue) : newValue;
 
-    if (oldValue !== realNewValue) {
+    if (oldValue !== coercedValue) {
       this.oldValue = oldValue;
-      this.currentValue = realNewValue;
+      this.currentValue = coercedValue;
 
       if (this.publishing && this.notqueued) {
         if (this.taskQueue.flushing) {
@@ -118,18 +118,13 @@ export class BehaviorPropertyObserver {
   }
 }
 
-const numCons = Number;
-const dateCons = Date;
-const _isFinite = isFinite;
-const _isNaN = isNaN;
-
-export const coerces = {
+export const coerceFunctions = {
   none(a) {
     return a;
   },
   number(a) {
-    var val = numCons(a);
-    return !_isNaN(val) && _isFinite(val) ? val : 0;
+    const val = Number(a);
+    return !isNaN(val) && isFinite(val) ? val : 0;
   },
   string(a) {
     return '' + a;
@@ -138,12 +133,11 @@ export const coerces = {
     return !!a;
   },
   date(a) {
-    return new dateCons(a);
+    return new Date(a);
   }
 };
 
-/**@type {Map<Function, string>} */
-export const classCoerceMap = new Map([
+export const coerceFunctionMap: Map<{ new(): any }, string> = new Map([
   [Number, 'number'],
   [String, 'string'],
   [Boolean, 'boolean'],
@@ -152,16 +146,16 @@ export const classCoerceMap = new Map([
 
 /**
  * Map a class to a string for typescript property coerce
- * @param Class {Function} the property class to register
- * @param strType {string} the string that represents class in the lookup
- * @param converter {function(val)} coerce function tobe registered with @param strType
+ * @param Class the property class to register
+ * @param strType the string that represents class in the lookup
+ * @param converter coerce function to register with @param strType
  */
-export function mapCoerceForClass(Class, strType, coerce) {
-  if (typeof strType !== 'string' || typeof coerce !== 'function') {
+export function mapCoerceFunction(type: { new(): any; }, strType: string, coerceFunction: (val: string) => any) {
+  if (typeof strType !== 'string' || typeof coerceFunction !== 'function') {
     LogManager
       .getLogger('behavior-property-observer')
-      .warn(`Bad attempt at mapping coerce for class: ${Class.name} to type: ${strType}`);
+      .warn(`Bad attempt at mapping coerce function for type: ${type.name} to: ${strType}`);
   }
-  coerces[strType] = coerce;
-  coerceClassMap.set(Class, strType);
+  coerceFunctions[strType] = coerceFunction;
+  coerceFunctionMap.set(type, strType);
 }
