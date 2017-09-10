@@ -59,26 +59,4 @@ describe('html-behavior', () => {
 
     expect(resource.attributes['test'].defaultBindingMode).toBe(bindingMode.twoWay);
   });
-
-  describe('Prop to attribute reflection', () => {
-    it('should have reflections when bindable properties are registered with `reflect`', () => {
-      let resource = new HtmlBehaviorResource();
-      let Target = class {};
-
-      var prop1 = new BindableProperty({
-        reflectToAttribute: true,
-        name: 'prop1'
-      });
-      prop1.registerWith(Target, resource);
-
-      var prop2 = new BindableProperty({
-        reflectToAttribute() {},
-        name: 'prop2'
-      });
-      prop2.registerWith(Target, resource);
-
-      expect(typeof resource.reflections.prop1).toBe('function');
-      expect(resource.reflections.prop2).toBe(prop2.reflectToAttribute);
-    });
-  });
 });

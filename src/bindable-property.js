@@ -75,8 +75,7 @@ export class BindableProperty {
     this.owner = behavior;
 
     if (reflectToAttribute) {
-      behavior._registerReflection(this.name, typeof reflectToAttribute === 'function' ? reflectToAttribute : propToAttr);
-      this._configureReflection(target);
+      behavior.hasReflections = true;
     }
 
     if (descriptor) {
@@ -85,37 +84,6 @@ export class BindableProperty {
     }
 
     return undefined;
-  }
-
-  _configureReflection(target) {
-    if (target[reflectionConfigured]) return;
-
-    let method = 'propertyChanged';
-    let onChanged = target.prototype[method];
-    let hasHandler = !!onChanged;
-
-    let alteredHandler;
-    if (hasHandler) { // avoid ternary to make it consisten with the rest ?
-      alteredHandler = function propertyChanged(name, newVal, oldVal) {
-        onChanged.call(this, name, newVal, oldVal);
-        callRefelection(this, name, newVal, oldVal);
-      };
-    } else {
-      alteredHandler = function propertyChanged(name, newVal, oldVal) {
-        callRefelection(this, name, newVal, oldVal);
-      };
-    }
-
-    // Reflect has better performance on chrome https://jsfiddle.net/bm792m4e/7/
-    // Also helps to avoid put try catch in the scope.
-    // Though Chrome no longer suffers much from it, it still impacts
-    if (!Reflect.defineProperty(target.prototype, method, {
-      configurable: true,
-      value: alteredHandler
-    })) {
-      throw new Error(`Cannot setup property [${this.name}] reflection for ${target.name}`);
-    }
-    target[reflectionConfigured] = true;
   }
 
   _configureDescriptor(descriptor: Object): Object {
@@ -182,25 +150,62 @@ export class BindableProperty {
     let defaultValue = this.defaultValue;
     let changeHandlerName = this.changeHandler;
     let name = this.name;
+    let reflectToAttribute = this.reflectToAttribute;
     let initialValue;
+    let attrName;
+    let reflectFunction;
 
     if (this.hasOptions) {
       return undefined;
     }
 
+    if (reflectToAttribute) {
+      attrName = this.attribute === undefined ? _hyphenate(name) : this.attribute;
+      reflectFunction = typeof reflectToAttribute === 'function' ? reflectToAttribute : reflectFunctions[reflectToAttribute];
+    }
+
     if (changeHandlerName in viewModel) {
       if ('propertyChanged' in viewModel) {
+        if (reflectFunction !== undefined) {
+          selfSubscriber = (newValue, oldValue) => {
+            callReflection(viewModel, reflectFunction, attrName, newValue);
+            viewModel[changeHandlerName](newValue, oldValue);
+            viewModel.propertyChanged(name, newValue, oldValue);
+          };
+        } else {
+          selfSubscriber = (newValue, oldValue) => {
+            viewModel[changeHandlerName](newValue, oldValue);
+            viewModel.propertyChanged(name, newValue, oldValue);
+          };
+        }
+      } else {
+        if (reflectFunction !== undefined) {
+          selfSubscriber = (newValue, oldValue) => {
+            callReflection(viewModel, reflectFunction, attrName, newValue);
+            viewModel[changeHandlerName](newValue, oldValue);
+          };
+        } else {
+          selfSubscriber = (newValue, oldValue) => viewModel[changeHandlerName](newValue, oldValue);
+        }
+      }
+    } else if ('propertyChanged' in viewModel) {
+      if (reflectFunction !== undefined) {
         selfSubscriber = (newValue, oldValue) => {
-          viewModel[changeHandlerName](newValue, oldValue);
+          callReflection(viewModel, reflectFunction, attrName, newValue);
           viewModel.propertyChanged(name, newValue, oldValue);
         };
       } else {
-        selfSubscriber = (newValue, oldValue) => viewModel[changeHandlerName](newValue, oldValue);
+        selfSubscriber = (newValue, oldValue) => viewModel.propertyChanged(name, newValue, oldValue);
       }
-    } else if ('propertyChanged' in viewModel) {
-      selfSubscriber = (newValue, oldValue) => viewModel.propertyChanged(name, newValue, oldValue);
     } else if (changeHandlerName !== null) {
       throw new Error(`Change handler ${changeHandlerName} was specified but not declared on the class.`);
+    }
+
+    /**
+     * When view model doesn't have change handler but this property has reflection
+     */
+    if (selfSubscriber === null && reflectFunction !== undefined) {
+      selfSubscriber = (newValue, oldValue) => callReflection(viewModel, reflectFunction, attrName, newValue);
     }
 
     if (defaultValue !== undefined) {
@@ -298,25 +303,24 @@ export class BindableProperty {
 }
 
 /**
- * @param instance the view model instance
- * @param propertyName name of property changed
+ * @param viewModel the view model instance
+ * @param attrName name of attribute will be set on the element
  * @param newValue
- * @param oldValue
  */
-function callRefelection(instance: Object, propertyName: string, newValue, oldValue) {
-  let { __element__, __reflections__ } = instance.__observers__;
-  if (!__element__) return;
-  __reflections__[propertyName].call(instance, __element__, propertyName, newVal, oldVal);
+function callReflection(viewModel: Object, reflectFunction: (element: Element, attrName: string, val) => any, attrName: string, newValue) {
+  let { __element__ } = viewModel.__observers__;
+  reflectFunction(__element__, attrName, newValue);
 }
 
-/**
- * @private
- * Used for avoid creating mapping function multiple times
- */
-function propToAttr(element: Element, propertyName: string, newValue: any) {
-  if (newValue === null || newValue === void 0) {
-    element.removeAttribute(_hyphenate(propertyName));
-  } else {
-    element.setAttribute(_hyphenate(propertyName), newValue);
+const reflectFunctions = {
+  string(element, attrName, newValue) {
+    element.setAttribute(attrName, newValue);
+  },
+  boolean(element, attrName, newValue) {
+    if (newValue) {
+      element.setAttribute(attrName, '');
+    } else {
+      element.removeAttribute(attrName);
+    }
   }
-}
+};

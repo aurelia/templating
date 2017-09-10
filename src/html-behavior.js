@@ -46,6 +46,7 @@ export class HtmlBehaviorResource {
     this.attributes = {};
     this.isInitialized = false;
     this.primaryProperty = null;
+    this.hasReflections = false;
   }
 
   /**
@@ -330,8 +331,8 @@ export class HtmlBehaviorResource {
     let childBindings = this.childBindings;
     let viewFactory;
 
-    if (element !== null) {
-      this._setupReflections(element, viewModel);
+    if (element !== null && this.hasReflections) {
+      this.observerLocator.getOrCreateObserversLookup(viewModel).__element__ = element;
     }
 
     if (this.liftsContent) {
@@ -403,30 +404,6 @@ export class HtmlBehaviorResource {
     }
 
     return controller;
-  }
-
-  /**
-   * Allow a bindable property on custom element to register how to reflect prop value to attribute
-   * @param {string} propertyName
-   * @param {{(element: Element, name: string, newVal, oldVal) => any}} instruction A function with suitable parameters to react for setting attribute on the element
-   */
-  _registerReflection(propertyName, instruction) {
-    let reflections = this.reflections || (this.reflections = {});
-    if (propertyName in reflections) {
-      throw new Error(`Reflection for ${propertyName} was already registered`);
-    }
-    reflections[propertyName] = instruction;
-  }
-
-  /**
-   * @param {Element} element
-   * @param {object} viewModel
-   */
-  _setupReflections(element, viewModel) {
-    if (!this.reflections) return;
-    let lookup = this.observerLocator.getOrCreateObserversLookup(viewModel);
-    lookup.__reflections__ = this.reflections;
-    lookup.__element__ = element;
   }
 
   _ensurePropertiesDefined(instance: Object, lookup: Object) {
