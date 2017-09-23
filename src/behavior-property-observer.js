@@ -31,21 +31,17 @@ export class BehaviorPropertyObserver {
     }
   }
   setCoerce(coerce) {
-    let c;
     switch (typeof coerce) {
     case 'function':
-      c = coerce; break;
+      this.coerce = coerce; break;
     case 'string':
-      c = coerceFunctions[coerce]; break;
-    default: break;
-    }
-    if (c === undefined) {
+      this.coerce = coerceFunctions[coerce]; break;
+    default:
       LogManager
         .getLogger('behavior-property-observer')
         .warn(`Invalid coerce instruction. Should be either one of ${Object.keys(coerceFunctions)} or a function.`);
-      return;
+      break;
     }
-    this.coerce = c;
   }
 
   /**
@@ -61,7 +57,7 @@ export class BehaviorPropertyObserver {
   */
   setValue(newValue: any): void {
     const oldValue = this.currentValue;
-    const coercedValue = this.coerce !== undefined ? this.coerce(newValue) : newValue;
+    const coercedValue = this.coerce === undefined ? newValue : this.coerce(newValue);
 
     if (oldValue !== coercedValue) {
       this.oldValue = oldValue;
@@ -146,9 +142,9 @@ export const coerceFunctionMap: Map<{ new(): any }, string> = new Map([
 
 /**
  * Map a class to a string for typescript property coerce
- * @param Class the property class to register
+ * @param type the property class to register
  * @param strType the string that represents class in the lookup
- * @param converter coerce function to register with @param strType
+ * @param coerceFunction coerce function to register with @param strType
  */
 export function mapCoerceFunction(type: { new(): any; }, strType: string, coerceFunction: (val: string) => any) {
   if (typeof strType !== 'string' || typeof coerceFunction !== 'function') {

@@ -100,7 +100,7 @@ export function usePropertyType(shouldUsePropertyType) {
 export function bindable(nameOrConfigOrTarget?: string | Object, key?, descriptor?): any {
   let deco = function(target, key2, descriptor2) {
     /**
-     * key2 = truthy => decorated on a class instance
+     * key2 = truthy => decorated on a class field
      * key2 = falsy => decorated on a class
      */
     let actualTarget = key2 ? target.constructor : target;
@@ -115,7 +115,7 @@ export function bindable(nameOrConfigOrTarget?: string | Object, key?, descripto
        * Support for Typescript decorator, with metadata on property type.
        * Will check for typing only when user didn't explicitly set coerce + turn on the options
        */
-      if (nameOrConfigOrTarget.coerce !== undefined && _usePropertyType) {
+      if (nameOrConfigOrTarget.coerce === undefined && _usePropertyType) {
         propType = metadata.getOwn(metadata.propertyType, target, key2);
         if (propType) {
           nameOrConfigOrTarget.coerce = coerceFunctionMap.get(propType) || 'none';
