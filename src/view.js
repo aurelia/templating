@@ -54,6 +54,11 @@ export class View {
   overrideContext: Object;
 
   /**
+  * The Controller instance that owns this View.
+  */
+  controller: Controller;
+
+  /**
   * Creates a View instance.
   * @param container The container from which the view was created.
   * @param viewFactory The factory that created this view.
