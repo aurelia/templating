@@ -1671,6 +1671,21 @@ export declare class BehaviorPropertyObserver {
   unsubscribe(context: any, callable: Function): void;
 }
 
+export declare type CoerceInstruction = string | { (val: any): any }
+
+export declare interface BindablePropertyConfig {
+  // Name of the bindable property
+  name?: string
+  // Name of change handler method that will be call after the property value changed
+  changeHandler?: string
+  // instruction of how to convert incoming value
+  coerce?: CoerceInstruction
+  // Binding mode that will be used in `bind` binding command
+  defaultBindingMode?: bindingMode
+  //
+  attribute?: string
+}
+
 /**
 * Represents a bindable property on a behavior.
 */
@@ -1680,7 +1695,7 @@ export declare class BindableProperty {
     * Creates an instance of BindableProperty.
     * @param nameOrConfig The name of the property or a cofiguration object.
     */
-  constructor(nameOrConfig: string | Object);
+  constructor(nameOrConfig: string | BindablePropertyConfig);
   
   /**
     * Registers this bindable property with particular Class and Behavior instance.
@@ -1892,9 +1907,35 @@ export declare function templateController(target?: any): any;
 
 /**
 * Decorator: Specifies that a property is bindable through HTML.
-* @param nameOrConfigOrTarget The name of the property, or a configuration object.
+* 
 */
-export declare function bindable(nameOrConfigOrTarget?: string | Object, key?: any, descriptor?: any): any;
+export declare interface bindable {
+  /**
+   * @param nameOrConfigOrTarget The name of the property, or a configuration object.
+   */
+  (nameOrConfigOrTarget?: string | BindablePropertyConfig, key?: any, descriptor?: any): any;
+  /**
+   * @param nameOrConfigOrTarget The name of the property, or a configuration object.
+   */
+  string(nameOrConfigOrTarget?: string | BindablePropertyConfig, key?: string, descriptor?: PropertyDescriptor): any
+  /**
+   * @param nameOrConfigOrTarget The name of the property, or a configuration object.
+   */
+  boolean(nameOrConfigOrTarget?: string | BindablePropertyConfig, key?: string, descriptor?: PropertyDescriptor): any
+  /**
+   * @param nameOrConfigOrTarget The name of the property, or a configuration object.
+   */
+  date(nameOrConfigOrTarget?: string | BindablePropertyConfig, key?: string, descriptor?: PropertyDescriptor): any
+  /**
+   * @param nameOrConfigOrTarget The name of the property, or a configuration object.
+   */
+  number(nameOrConfigOrTarget?: string | BindablePropertyConfig, key?: string, descriptor?: PropertyDescriptor): any
+}
+
+/**
+ * Decorator: Creates a new bindable decorator that can be used for fluent syntax purpose
+ */
+export declare function createTypedBindable(name: string): (nameOrConfigOrTarget?: string | BindablePropertyConfig, key?: string, descriptor?: PropertyDescriptor) => any;
 
 /**
 * Decorator: Specifies that the decorated custom attribute has options that
