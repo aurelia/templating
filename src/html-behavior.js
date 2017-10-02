@@ -155,8 +155,8 @@ export class HtmlBehaviorResource {
       for (i = 0, ii = properties.length; i < ii; ++i) {
         properties[i].defineOn(target, this);
       }
-      // Because how inherited properties would interact with the default 'value' property 
-      // in a custom attribute is not well defined yet, we only inherit properties on 
+      // Because how inherited properties would interact with the default 'value' property
+      // in a custom attribute is not well defined yet, we only inherit properties on
       // custom elements, where it's not a problem.
       this._copyInheritedProperties(container, target);
     }
@@ -424,12 +424,14 @@ export class HtmlBehaviorResource {
   }
 
   _copyInheritedProperties(container: Container, target: Function) {
-    // This methods enables inherited @bindable properties.    
-    // We look for the first base class with metadata, make sure it's initialized 
-    // and copy its properties. 
+    // This methods enables inherited @bindable properties.
+    // We look for the first base class with metadata, make sure it's initialized
+    // and copy its properties.
     // We don't need to walk further than the first parent with metadata because
     // it had also inherited properties during its own initialization.
-    let behavior, derived = target;
+    let behavior;
+    let derived = target;
+
     while (true) {
       let proto = Object.getPrototypeOf(target.prototype);
       target = proto && proto.constructor;
@@ -441,7 +443,7 @@ export class HtmlBehaviorResource {
         break;
       }
     }
-    behavior.initialize(container, target);    
+    behavior.initialize(container, target);
     for (let i = 0, ii = behavior.properties.length; i < ii; ++i) {
       let prop = behavior.properties[i];
       // Check that the property metadata was not overriden or re-defined in this class
@@ -451,6 +453,6 @@ export class HtmlBehaviorResource {
       // We don't need to call .defineOn() for those properties because it was done
       // on the parent prototype during initialization.
       new BindableProperty(prop).registerWith(derived, this);
-    }    
+    }
   }
 }

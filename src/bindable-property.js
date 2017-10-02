@@ -8,11 +8,11 @@ function getObserver(instance, name) {
   let lookup = instance.__observers__;
 
   if (lookup === undefined) {
-    // We need to lookup the actual behavior for this instance, 
-    // as it might be a derived class (and behavior) rather than 
+    // We need to lookup the actual behavior for this instance,
+    // as it might be a derived class (and behavior) rather than
     // the class (and behavior) that declared the property calling getObserver().
-    // This means we can't capture the behavior in property get/set/getObserver and pass it here. 
-    // Note that it's probably for the best, as passing the behavior is an overhead 
+    // This means we can't capture the behavior in property get/set/getObserver and pass it here.
+    // Note that it's probably for the best, as passing the behavior is an overhead
     // that is only useful in the very first call of the first property of the instance.
     let ctor = Object.getPrototypeOf(instance).constructor; // Playing safe here, user could have written to instance.constructor.
     let behavior = metadata.get(metadata.resource, ctor);
