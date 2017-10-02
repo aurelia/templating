@@ -1,3 +1,24 @@
+<a name="1.5.0"></a>
+# [1.5.0](https://github.com/aurelia/templating/compare/1.4.2...v1.5.0) (2017-10-02)
+
+
+### Bug Fixes
+
+* **primaryProperty:** infinite recursion when used with template controller ([5b5ed56](https://github.com/aurelia/templating/commit/5b5ed56))
+* **view-engine:** use .address in case of RegistryEntry ([ab1064c](https://github.com/aurelia/templating/commit/ab1064c))
+
+
+### Features
+
+* **html-behavior:** Allow inheritance of bindable properties for custom elements ([1209aa6](https://github.com/aurelia/templating/commit/1209aa6))
+
+
+### Performance Improvements
+
+* **view-engine:** simplify entry url acquisition ([f57cff9](https://github.com/aurelia/templating/commit/f57cff9))
+
+
+
 <a name="1.4.1"></a>
 ## [1.4.1](https://github.com/aurelia/templating/compare/1.4.0...v1.4.1) (2017-04-05)
 

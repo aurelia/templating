@@ -612,7 +612,7 @@ export let ViewLocator = (_temp2 = _class7 = class ViewLocator {
 }, _class7.viewStrategyMetadataKey = 'aurelia:view-strategy', _temp2);
 
 function mi(name) {
-  throw new Error(`BindingLanguage must implement ${name}().`);
+  throw new Error(`BindingLanguage must implement ${ name }().`);
 }
 
 export let BindingLanguage = class BindingLanguage {
@@ -1042,7 +1042,7 @@ function register(lookup, name, resource, type) {
   let existing = lookup[name];
   if (existing) {
     if (existing !== resource) {
-      throw new Error(`Attempted to register ${type} when one with the same name already exists. Name: ${name}.`);
+      throw new Error(`Attempted to register ${ type } when one with the same name already exists. Name: ${ name }.`);
     }
 
     return;
@@ -2462,6 +2462,7 @@ export let ViewCompiler = (_dec7 = inject(BindingLanguage, ViewResources), _dec7
     let attr;
     let attrName;
     let attrValue;
+    let originalAttrName;
     let instruction;
     let info;
     let property;
@@ -2475,6 +2476,9 @@ export let ViewCompiler = (_dec7 = inject(BindingLanguage, ViewResources), _dec7
       }
       return node.nextSibling;
     } else if (tagName === 'template') {
+      if (!('content' in node)) {
+        throw new Error('You cannot place a template element within ' + node.namespaceURI + ' namespace');
+      }
       viewFactory = this.compile(node, resources);
       viewFactory.part = node.getAttribute('part');
     } else {
@@ -2488,7 +2492,7 @@ export let ViewCompiler = (_dec7 = inject(BindingLanguage, ViewResources), _dec7
 
     for (i = 0, ii = attributes.length; i < ii; ++i) {
       attr = attributes[i];
-      attrName = attr.name;
+      originalAttrName = attrName = attr.name;
       attrValue = attr.value;
       info = bindingLanguage.inspectAttribute(resources, tagName, attrName, attrValue);
 
@@ -2545,7 +2549,7 @@ export let ViewCompiler = (_dec7 = inject(BindingLanguage, ViewResources), _dec7
             this._configureProperties(instruction, resources);
 
             if (type.liftsContent) {
-              instruction.originalAttrName = attrName;
+              instruction.originalAttrName = originalAttrName;
               liftingInstruction = instruction;
               break;
             } else {
@@ -2563,7 +2567,7 @@ export let ViewCompiler = (_dec7 = inject(BindingLanguage, ViewResources), _dec7
           instruction.attributes[resources.mapAttribute(attrName)] = attrValue;
 
           if (type.liftsContent) {
-            instruction.originalAttrName = attrName;
+            instruction.originalAttrName = originalAttrName;
             liftingInstruction = instruction;
             break;
           } else {
@@ -2920,9 +2924,11 @@ export let ViewEngine = (_dec8 = inject(Loader, Container, ViewCompiler, ModuleA
     loadContext = loadContext || new ResourceLoadContext();
 
     return ensureRegistryEntry(this.loader, urlOrRegistryEntry).then(registryEntry => {
+      const url = registryEntry.address;
+
       if (registryEntry.onReady) {
-        if (!loadContext.hasDependency(urlOrRegistryEntry)) {
-          loadContext.addDependency(urlOrRegistryEntry);
+        if (!loadContext.hasDependency(url)) {
+          loadContext.addDependency(url);
           return registryEntry.onReady;
         }
 
@@ -2933,7 +2939,7 @@ export let ViewEngine = (_dec8 = inject(Loader, Container, ViewCompiler, ModuleA
         return Promise.resolve(new ProxyViewFactory(registryEntry.onReady));
       }
 
-      loadContext.addDependency(urlOrRegistryEntry);
+      loadContext.addDependency(url);
 
       registryEntry.onReady = this.loadTemplateResources(registryEntry, compileInstruction, loadContext, target).then(resources => {
         registryEntry.resources = resources;
@@ -2964,7 +2970,7 @@ export let ViewEngine = (_dec8 = inject(Loader, Container, ViewCompiler, ModuleA
 
     importIds = dependencies.map(x => x.src);
     names = dependencies.map(x => x.name);
-    logger.debug(`importing resources for ${registryEntry.address}`, importIds);
+    logger.debug(`importing resources for ${ registryEntry.address }`, importIds);
 
     if (target) {
       let viewModelRequires = metadata.get(ViewEngine.viewModelRequireMetadataKey, target);
@@ -2979,7 +2985,7 @@ export let ViewEngine = (_dec8 = inject(Loader, Container, ViewCompiler, ModuleA
             names.push(req.as);
           }
         }
-        logger.debug(`importing ViewModel resources for ${compileInstruction.associatedModuleId}`, importIds.slice(templateImportCount));
+        logger.debug(`importing ViewModel resources for ${ compileInstruction.associatedModuleId }`, importIds.slice(templateImportCount));
       }
     }
 
@@ -2992,7 +2998,7 @@ export let ViewEngine = (_dec8 = inject(Loader, Container, ViewCompiler, ModuleA
       let resourceModule = this.moduleAnalyzer.analyze(normalizedId, viewModelModule, moduleMember);
 
       if (!resourceModule.mainResource) {
-        throw new Error(`No view model found in module "${moduleImport}".`);
+        throw new Error(`No view model found in module "${ moduleImport }".`);
       }
 
       resourceModule.initialize(this.container);
@@ -3408,7 +3414,7 @@ export let BindableProperty = class BindableProperty {
     } else if ('propertyChanged' in viewModel) {
       selfSubscriber = (newValue, oldValue) => viewModel.propertyChanged(name, newValue, oldValue);
     } else if (changeHandlerName !== null) {
-      throw new Error(`Change handler ${changeHandlerName} was specified but not declared on the class.`);
+      throw new Error(`Change handler ${ changeHandlerName } was specified but not declared on the class.`);
     }
 
     if (defaultValue !== undefined) {
@@ -3850,8 +3856,9 @@ export let HtmlBehaviorResource = class HtmlBehaviorResource {
   }
 
   _copyInheritedProperties(container, target) {
-    let behavior,
-        derived = target;
+    let behavior;
+    let derived = target;
+
     while (true) {
       let proto = Object.getPrototypeOf(target.prototype);
       target = proto && proto.constructor;
@@ -4310,7 +4317,7 @@ export let ElementConfigResource = class ElementConfigResource {
 function validateBehaviorName(name, type) {
   if (/[A-Z]/.test(name)) {
     let newName = _hyphenate(name);
-    LogManager.getLogger('templating').warn(`'${name}' is not a valid ${type} name and has been converted to '${newName}'. Upper-case letters are not allowed because the DOM is not case-sensitive.`);
+    LogManager.getLogger('templating').warn(`'${ name }' is not a valid ${ type } name and has been converted to '${ newName }'. Upper-case letters are not allowed because the DOM is not case-sensitive.`);
     return newName;
   }
   return name;

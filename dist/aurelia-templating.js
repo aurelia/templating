@@ -899,7 +899,7 @@ export class TemplateRegistryViewStrategy {
 }
 
 /**
-* A view strategy that allows the component authore to inline the html for the view.
+* A view strategy that allows the component author to inline the html for the view.
 */
 @viewStrategy()
 export class InlineViewStrategy {
@@ -1831,6 +1831,11 @@ export class View {
   * The override context which contains properties capable of overriding those found on the binding context.
   */
   overrideContext: Object;
+
+  /**
+  * The Controller instance that owns this View.
+  */
+  controller: Controller;
 
   /**
   * Creates a View instance.
@@ -3394,6 +3399,7 @@ export class ViewCompiler {
     let attr;
     let attrName;
     let attrValue;
+    let originalAttrName;
     let instruction;
     let info;
     let property;
@@ -3407,6 +3413,9 @@ export class ViewCompiler {
       }
       return node.nextSibling;
     } else if (tagName === 'template') {
+      if (!('content' in node)) {
+        throw new Error('You cannot place a template element within ' + node.namespaceURI + ' namespace');
+      }
       viewFactory = this.compile(node, resources);
       viewFactory.part = node.getAttribute('part');
     } else {
@@ -3420,7 +3429,7 @@ export class ViewCompiler {
 
     for (i = 0, ii = attributes.length; i < ii; ++i) {
       attr = attributes[i];
-      attrName = attr.name;
+      originalAttrName = attrName = attr.name;
       attrValue = attr.value;
       info = bindingLanguage.inspectAttribute(resources, tagName, attrName, attrValue);
 
@@ -3481,7 +3490,7 @@ export class ViewCompiler {
             this._configureProperties(instruction, resources);
 
             if (type.liftsContent) { //template controller
-              instruction.originalAttrName = attrName;
+              instruction.originalAttrName = originalAttrName;
               liftingInstruction = instruction;
               break;
             } else { //attached behavior
@@ -3499,7 +3508,7 @@ export class ViewCompiler {
           instruction.attributes[resources.mapAttribute(attrName)] = attrValue;
 
           if (type.liftsContent) { //template controller
-            instruction.originalAttrName = attrName;
+            instruction.originalAttrName = originalAttrName;
             liftingInstruction = instruction;
             break;
           } else { //attached behavior
@@ -3967,9 +3976,11 @@ export class ViewEngine {
     loadContext = loadContext || new ResourceLoadContext();
 
     return ensureRegistryEntry(this.loader, urlOrRegistryEntry).then(registryEntry => {
+      const url = registryEntry.address;
+
       if (registryEntry.onReady) {
-        if (!loadContext.hasDependency(urlOrRegistryEntry)) {
-          loadContext.addDependency(urlOrRegistryEntry);
+        if (!loadContext.hasDependency(url)) {
+          loadContext.addDependency(url);
           return registryEntry.onReady;
         }
 
@@ -3981,7 +3992,7 @@ export class ViewEngine {
         return Promise.resolve(new ProxyViewFactory(registryEntry.onReady));
       }
 
-      loadContext.addDependency(urlOrRegistryEntry);
+      loadContext.addDependency(url);
 
       registryEntry.onReady = this.loadTemplateResources(registryEntry, compileInstruction, loadContext, target).then(resources => {
         registryEntry.resources = resources;
@@ -4461,11 +4472,11 @@ function getObserver(instance, name) {
   let lookup = instance.__observers__;
 
   if (lookup === undefined) {
-    // We need to lookup the actual behavior for this instance, 
-    // as it might be a derived class (and behavior) rather than 
+    // We need to lookup the actual behavior for this instance,
+    // as it might be a derived class (and behavior) rather than
     // the class (and behavior) that declared the property calling getObserver().
-    // This means we can't capture the behavior in property get/set/getObserver and pass it here. 
-    // Note that it's probably for the best, as passing the behavior is an overhead 
+    // This means we can't capture the behavior in property get/set/getObserver and pass it here.
+    // Note that it's probably for the best, as passing the behavior is an overhead
     // that is only useful in the very first call of the first property of the instance.
     let ctor = Object.getPrototypeOf(instance).constructor; // Playing safe here, user could have written to instance.constructor.
     let behavior = metadata.get(metadata.resource, ctor);
@@ -4845,8 +4856,8 @@ export class HtmlBehaviorResource {
       for (i = 0, ii = properties.length; i < ii; ++i) {
         properties[i].defineOn(target, this);
       }
-      // Because how inherited properties would interact with the default 'value' property 
-      // in a custom attribute is not well defined yet, we only inherit properties on 
+      // Because how inherited properties would interact with the default 'value' property
+      // in a custom attribute is not well defined yet, we only inherit properties on
       // custom elements, where it's not a problem.
       this._copyInheritedProperties(container, target);
     }
@@ -5114,12 +5125,14 @@ export class HtmlBehaviorResource {
   }
 
   _copyInheritedProperties(container: Container, target: Function) {
-    // This methods enables inherited @bindable properties.    
-    // We look for the first base class with metadata, make sure it's initialized 
-    // and copy its properties. 
+    // This methods enables inherited @bindable properties.
+    // We look for the first base class with metadata, make sure it's initialized
+    // and copy its properties.
     // We don't need to walk further than the first parent with metadata because
     // it had also inherited properties during its own initialization.
-    let behavior, derived = target;
+    let behavior;
+    let derived = target;
+
     while (true) {
       let proto = Object.getPrototypeOf(target.prototype);
       target = proto && proto.constructor;
@@ -5131,7 +5144,7 @@ export class HtmlBehaviorResource {
         break;
       }
     }
-    behavior.initialize(container, target);    
+    behavior.initialize(container, target);
     for (let i = 0, ii = behavior.properties.length; i < ii; ++i) {
       let prop = behavior.properties[i];
       // Check that the property metadata was not overriden or re-defined in this class
@@ -5141,7 +5154,7 @@ export class HtmlBehaviorResource {
       // We don't need to call .defineOn() for those properties because it was done
       // on the parent prototype during initialization.
       new BindableProperty(prop).registerWith(derived, this);
-    }    
+    }
   }
 }
 
