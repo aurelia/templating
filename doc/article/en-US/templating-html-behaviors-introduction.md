@@ -114,7 +114,7 @@ The path you supply in the `from` attribute can take one of two forms: It can be
 <code-listing heading="Relative Paths for External Resources">
   <source-code lang="HTML">
     <template>
-      <require from="./my-custom-element"></require>
+      <require from="./my-custom-element-one"></require>
       <require from="../another-dir/my-custom-attribute"></require>
 
       <my-custom-element-one></my-custom-element-one>
