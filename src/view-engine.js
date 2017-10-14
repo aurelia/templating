@@ -75,6 +75,7 @@ export class ViewEngine {
 
     let auSlotBehavior = new HtmlBehaviorResource();
     auSlotBehavior.attributeName = 'au-slot';
+    metadata.define(metadata.resource, auSlotBehavior, SlotCustomAttribute);
     auSlotBehavior.initialize(container, SlotCustomAttribute);
     auSlotBehavior.register(appResources);
   }
