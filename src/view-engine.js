@@ -47,6 +47,8 @@ class ProxyViewFactory {
   }
 }
 
+let auSlotBehavior = null;
+
 /**
 * Controls the view resource loading pipeline.
 */
@@ -73,9 +75,12 @@ export class ViewEngine {
     this.appResources = appResources;
     this._pluginMap = {};
 
-    let auSlotBehavior = new HtmlBehaviorResource();
-    auSlotBehavior.attributeName = 'au-slot';
-    metadata.define(metadata.resource, auSlotBehavior, SlotCustomAttribute);
+    if (auSlotBehavior === null) {
+      auSlotBehavior  = new HtmlBehaviorResource();
+      auSlotBehavior.attributeName = 'au-slot';
+      metadata.define(metadata.resource, auSlotBehavior, SlotCustomAttribute);
+    }
+
     auSlotBehavior.initialize(container, SlotCustomAttribute);
     auSlotBehavior.register(appResources);
   }
