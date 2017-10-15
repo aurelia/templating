@@ -422,6 +422,8 @@ export class ViewCompiler {
       auTargetID = makeIntoInstructionTarget(node);
       instructions[auTargetID] = TargetInstruction.lifting(parentInjectorId, liftingInstruction);
     } else {
+      let skipContentProcessing = false;
+
       if (expressions.length || behaviorInstructions.length) {
         injectorId = behaviorInstructions.length ? getNextInjectorId() : false;
 
@@ -429,6 +431,7 @@ export class ViewCompiler {
           instruction = behaviorInstructions[i];
           instruction.type.compile(this, resources, node, instruction, parentNode);
           providers.push(instruction.type.target);
+          skipContentProcessing = skipContentProcessing || instruction.skipContentProcessing;
         }
 
         for (i = 0, ii = expressions.length; i < ii; ++i) {
@@ -449,7 +452,7 @@ export class ViewCompiler {
         );
       }
 
-      if (elementInstruction && elementInstruction.skipContentProcessing) {
+      if (skipContentProcessing) {
         return node.nextSibling;
       }
 

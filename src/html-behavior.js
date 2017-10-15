@@ -288,6 +288,8 @@ export class HtmlBehaviorResource {
       } else {
         instruction.skipContentProcessing = true;
       }
+    } else if (!this.processContent(compiler, resources, node, instruction)) {
+      instruction.skipContentProcessing = true;
     }
 
     return node;
