@@ -2772,6 +2772,8 @@ export var ViewCompiler = (_dec7 = inject(BindingLanguage, ViewResources), _dec7
       auTargetID = makeIntoInstructionTarget(node);
       instructions[auTargetID] = TargetInstruction.lifting(parentInjectorId, liftingInstruction);
     } else {
+      var skipContentProcessing = false;
+
       if (expressions.length || behaviorInstructions.length) {
         injectorId = behaviorInstructions.length ? getNextInjectorId() : false;
 
@@ -2779,6 +2781,7 @@ export var ViewCompiler = (_dec7 = inject(BindingLanguage, ViewResources), _dec7
           instruction = behaviorInstructions[i];
           instruction.type.compile(this, resources, node, instruction, parentNode);
           providers.push(instruction.type.target);
+          skipContentProcessing = skipContentProcessing || instruction.skipContentProcessing;
         }
 
         for (i = 0, ii = expressions.length; i < ii; ++i) {
@@ -2792,7 +2795,7 @@ export var ViewCompiler = (_dec7 = inject(BindingLanguage, ViewResources), _dec7
         instructions[auTargetID] = TargetInstruction.normal(injectorId, parentInjectorId, providers, behaviorInstructions, expressions, elementInstruction);
       }
 
-      if (elementInstruction && elementInstruction.skipContentProcessing) {
+      if (skipContentProcessing) {
         return node.nextSibling;
       }
 
@@ -3111,6 +3114,8 @@ var ProxyViewFactory = function () {
   return ProxyViewFactory;
 }();
 
+var auSlotBehavior = null;
+
 export var ViewEngine = (_dec8 = inject(Loader, Container, ViewCompiler, ModuleAnalyzer, ViewResources), _dec8(_class14 = (_temp4 = _class15 = function () {
   function ViewEngine(loader, container, viewCompiler, moduleAnalyzer, appResources) {
     
@@ -3122,8 +3127,12 @@ export var ViewEngine = (_dec8 = inject(Loader, Container, ViewCompiler, ModuleA
     this.appResources = appResources;
     this._pluginMap = {};
 
-    var auSlotBehavior = new HtmlBehaviorResource();
-    auSlotBehavior.attributeName = 'au-slot';
+    if (auSlotBehavior === null) {
+      auSlotBehavior = new HtmlBehaviorResource();
+      auSlotBehavior.attributeName = 'au-slot';
+      metadata.define(metadata.resource, auSlotBehavior, SlotCustomAttribute);
+    }
+
     auSlotBehavior.initialize(container, SlotCustomAttribute);
     auSlotBehavior.register(appResources);
   }
@@ -3989,6 +3998,8 @@ export var HtmlBehaviorResource = function () {
       } else {
         instruction.skipContentProcessing = true;
       }
+    } else if (!this.processContent(compiler, resources, node, instruction)) {
+      instruction.skipContentProcessing = true;
     }
 
     return node;

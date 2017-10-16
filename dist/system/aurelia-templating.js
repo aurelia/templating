@@ -3,7 +3,7 @@
 System.register(['aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aurelia-path', 'aurelia-loader', 'aurelia-dependency-injection', 'aurelia-binding', 'aurelia-task-queue'], function (_export, _context) {
   "use strict";
 
-  var LogManager, metadata, Origin, protocol, DOM, PLATFORM, FEATURE, relativeToFile, TemplateRegistryEntry, Loader, inject, Container, resolver, Binding, createOverrideContext, ValueConverterResource, BindingBehaviorResource, subscriberCollection, bindingMode, ObserverLocator, EventManager, TaskQueue, _createClass, _class, _temp, _dec, _class2, _dec2, _class3, _dec3, _class4, _dec4, _class5, _dec5, _class6, _class7, _temp2, _dec6, _class8, _class9, _temp3, _class11, _dec7, _class13, _dec8, _class14, _class15, _temp4, _dec9, _class16, _dec10, _class17, _dec11, _class18, _typeof, animationEvent, Animator, CompositionTransactionNotifier, CompositionTransactionOwnershipToken, CompositionTransaction, capitalMatcher, ViewEngineHooksResource, ElementEvents, ResourceLoadContext, ViewCompileInstruction, BehaviorInstruction, TargetInstruction, viewStrategy, RelativeViewStrategy, ConventionalViewStrategy, NoViewStrategy, TemplateRegistryViewStrategy, InlineViewStrategy, ViewLocator, BindingLanguage, noNodes, SlotCustomAttribute, PassThroughSlot, ShadowSlot, ShadowDOM, ViewResources, View, ViewSlot, ProviderResolver, providerResolverInstance, BoundViewFactory, ViewFactory, nextInjectorId, lastAUTargetID, ViewCompiler, ResourceModule, ResourceDescription, ModuleAnalyzer, logger, ProxyViewFactory, ViewEngine, Controller, BehaviorPropertyObserver, BindableProperty, lastProviderId, HtmlBehaviorResource, ChildObserver, noMutations, ChildObserverBinder, SwapStrategies, CompositionEngine, ElementConfigResource, defaultShadowDOMOptions, TemplatingEngine;
+  var LogManager, metadata, Origin, protocol, DOM, PLATFORM, FEATURE, relativeToFile, TemplateRegistryEntry, Loader, inject, Container, resolver, Binding, createOverrideContext, ValueConverterResource, BindingBehaviorResource, subscriberCollection, bindingMode, ObserverLocator, EventManager, TaskQueue, _createClass, _class, _temp, _dec, _class2, _dec2, _class3, _dec3, _class4, _dec4, _class5, _dec5, _class6, _class7, _temp2, _dec6, _class8, _class9, _temp3, _class11, _dec7, _class13, _dec8, _class14, _class15, _temp4, _dec9, _class16, _dec10, _class17, _dec11, _class18, _typeof, animationEvent, Animator, CompositionTransactionNotifier, CompositionTransactionOwnershipToken, CompositionTransaction, capitalMatcher, ViewEngineHooksResource, ElementEvents, ResourceLoadContext, ViewCompileInstruction, BehaviorInstruction, TargetInstruction, viewStrategy, RelativeViewStrategy, ConventionalViewStrategy, NoViewStrategy, TemplateRegistryViewStrategy, InlineViewStrategy, ViewLocator, BindingLanguage, noNodes, SlotCustomAttribute, PassThroughSlot, ShadowSlot, ShadowDOM, ViewResources, View, ViewSlot, ProviderResolver, providerResolverInstance, BoundViewFactory, ViewFactory, nextInjectorId, lastAUTargetID, ViewCompiler, ResourceModule, ResourceDescription, ModuleAnalyzer, logger, ProxyViewFactory, auSlotBehavior, ViewEngine, Controller, BehaviorPropertyObserver, BindableProperty, lastProviderId, HtmlBehaviorResource, ChildObserver, noMutations, ChildObserverBinder, SwapStrategies, CompositionEngine, ElementConfigResource, defaultShadowDOMOptions, TemplatingEngine;
 
   
 
@@ -3239,6 +3239,8 @@ System.register(['aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aurelia-
             auTargetID = makeIntoInstructionTarget(node);
             instructions[auTargetID] = TargetInstruction.lifting(parentInjectorId, liftingInstruction);
           } else {
+            var skipContentProcessing = false;
+
             if (expressions.length || behaviorInstructions.length) {
               injectorId = behaviorInstructions.length ? getNextInjectorId() : false;
 
@@ -3246,6 +3248,7 @@ System.register(['aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aurelia-
                 instruction = behaviorInstructions[i];
                 instruction.type.compile(this, resources, node, instruction, parentNode);
                 providers.push(instruction.type.target);
+                skipContentProcessing = skipContentProcessing || instruction.skipContentProcessing;
               }
 
               for (i = 0, ii = expressions.length; i < ii; ++i) {
@@ -3259,7 +3262,7 @@ System.register(['aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aurelia-
               instructions[auTargetID] = TargetInstruction.normal(injectorId, parentInjectorId, providers, behaviorInstructions, expressions, elementInstruction);
             }
 
-            if (elementInstruction && elementInstruction.skipContentProcessing) {
+            if (skipContentProcessing) {
               return node.nextSibling;
             }
 
@@ -3578,6 +3581,8 @@ System.register(['aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aurelia-
         return ProxyViewFactory;
       }();
 
+      auSlotBehavior = null;
+
       _export('ViewEngine', ViewEngine = (_dec8 = inject(Loader, Container, ViewCompiler, ModuleAnalyzer, ViewResources), _dec8(_class14 = (_temp4 = _class15 = function () {
         function ViewEngine(loader, container, viewCompiler, moduleAnalyzer, appResources) {
           
@@ -3589,8 +3594,12 @@ System.register(['aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aurelia-
           this.appResources = appResources;
           this._pluginMap = {};
 
-          var auSlotBehavior = new HtmlBehaviorResource();
-          auSlotBehavior.attributeName = 'au-slot';
+          if (auSlotBehavior === null) {
+            auSlotBehavior = new HtmlBehaviorResource();
+            auSlotBehavior.attributeName = 'au-slot';
+            metadata.define(metadata.resource, auSlotBehavior, SlotCustomAttribute);
+          }
+
           auSlotBehavior.initialize(container, SlotCustomAttribute);
           auSlotBehavior.register(appResources);
         }
@@ -4438,6 +4447,8 @@ System.register(['aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aurelia-
             } else {
               instruction.skipContentProcessing = true;
             }
+          } else if (!this.processContent(compiler, resources, node, instruction)) {
+            instruction.skipContentProcessing = true;
           }
 
           return node;

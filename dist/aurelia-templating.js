@@ -3528,6 +3528,8 @@ export class ViewCompiler {
       auTargetID = makeIntoInstructionTarget(node);
       instructions[auTargetID] = TargetInstruction.lifting(parentInjectorId, liftingInstruction);
     } else {
+      let skipContentProcessing = false;
+
       if (expressions.length || behaviorInstructions.length) {
         injectorId = behaviorInstructions.length ? getNextInjectorId() : false;
 
@@ -3535,6 +3537,7 @@ export class ViewCompiler {
           instruction = behaviorInstructions[i];
           instruction.type.compile(this, resources, node, instruction, parentNode);
           providers.push(instruction.type.target);
+          skipContentProcessing = skipContentProcessing || instruction.skipContentProcessing;
         }
 
         for (i = 0, ii = expressions.length; i < ii; ++i) {
@@ -3555,7 +3558,7 @@ export class ViewCompiler {
         );
       }
 
-      if (elementInstruction && elementInstruction.skipContentProcessing) {
+      if (skipContentProcessing) {
         return node.nextSibling;
       }
 
@@ -3921,6 +3924,8 @@ class ProxyViewFactory {
   }
 }
 
+let auSlotBehavior = null;
+
 /**
 * Controls the view resource loading pipeline.
 */
@@ -3947,8 +3952,12 @@ export class ViewEngine {
     this.appResources = appResources;
     this._pluginMap = {};
 
-    let auSlotBehavior = new HtmlBehaviorResource();
-    auSlotBehavior.attributeName = 'au-slot';
+    if (auSlotBehavior === null) {
+      auSlotBehavior  = new HtmlBehaviorResource();
+      auSlotBehavior.attributeName = 'au-slot';
+      metadata.define(metadata.resource, auSlotBehavior, SlotCustomAttribute);
+    }
+
     auSlotBehavior.initialize(container, SlotCustomAttribute);
     auSlotBehavior.register(appResources);
   }
@@ -4989,6 +4998,8 @@ export class HtmlBehaviorResource {
       } else {
         instruction.skipContentProcessing = true;
       }
+    } else if (!this.processContent(compiler, resources, node, instruction)) {
+      instruction.skipContentProcessing = true;
     }
 
     return node;

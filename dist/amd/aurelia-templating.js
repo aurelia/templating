@@ -2828,6 +2828,8 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
         auTargetID = makeIntoInstructionTarget(node);
         instructions[auTargetID] = TargetInstruction.lifting(parentInjectorId, liftingInstruction);
       } else {
+        var skipContentProcessing = false;
+
         if (expressions.length || behaviorInstructions.length) {
           injectorId = behaviorInstructions.length ? getNextInjectorId() : false;
 
@@ -2835,6 +2837,7 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
             instruction = behaviorInstructions[i];
             instruction.type.compile(this, resources, node, instruction, parentNode);
             providers.push(instruction.type.target);
+            skipContentProcessing = skipContentProcessing || instruction.skipContentProcessing;
           }
 
           for (i = 0, ii = expressions.length; i < ii; ++i) {
@@ -2848,7 +2851,7 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
           instructions[auTargetID] = TargetInstruction.normal(injectorId, parentInjectorId, providers, behaviorInstructions, expressions, elementInstruction);
         }
 
-        if (elementInstruction && elementInstruction.skipContentProcessing) {
+        if (skipContentProcessing) {
           return node.nextSibling;
         }
 
@@ -3167,6 +3170,8 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
     return ProxyViewFactory;
   }();
 
+  var auSlotBehavior = null;
+
   var ViewEngine = exports.ViewEngine = (_dec8 = (0, _aureliaDependencyInjection.inject)(_aureliaLoader.Loader, _aureliaDependencyInjection.Container, ViewCompiler, ModuleAnalyzer, ViewResources), _dec8(_class14 = (_temp4 = _class15 = function () {
     function ViewEngine(loader, container, viewCompiler, moduleAnalyzer, appResources) {
       
@@ -3178,8 +3183,12 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
       this.appResources = appResources;
       this._pluginMap = {};
 
-      var auSlotBehavior = new HtmlBehaviorResource();
-      auSlotBehavior.attributeName = 'au-slot';
+      if (auSlotBehavior === null) {
+        auSlotBehavior = new HtmlBehaviorResource();
+        auSlotBehavior.attributeName = 'au-slot';
+        _aureliaMetadata.metadata.define(_aureliaMetadata.metadata.resource, auSlotBehavior, SlotCustomAttribute);
+      }
+
       auSlotBehavior.initialize(container, SlotCustomAttribute);
       auSlotBehavior.register(appResources);
     }
@@ -4046,6 +4055,8 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
         } else {
           instruction.skipContentProcessing = true;
         }
+      } else if (!this.processContent(compiler, resources, node, instruction)) {
+        instruction.skipContentProcessing = true;
       }
 
       return node;

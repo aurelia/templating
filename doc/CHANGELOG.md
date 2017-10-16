@@ -1,3 +1,19 @@
+<a name="1.6.0"></a>
+# [1.6.0](https://github.com/aurelia/templating/compare/1.5.0...v1.6.0) (2017-10-16)
+
+
+### Bug Fixes
+
+* **view-engine:** define metadata for SlotCustomAttribute ([e3474bb](https://github.com/aurelia/templating/commit/e3474bb)), closes [#566](https://github.com/aurelia/templating/issues/566)
+* **view-engine:** singleton instance of auSlotBehavior ([c08db20](https://github.com/aurelia/templating/commit/c08db20))
+
+
+### Features
+
+* **html-behavior:** enable processContent via custom attributes ([7096e66](https://github.com/aurelia/templating/commit/7096e66))
+
+
+
 <a name="1.5.0"></a>
 # [1.5.0](https://github.com/aurelia/templating/compare/1.4.2...v1.5.0) (2017-10-02)
 
