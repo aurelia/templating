@@ -56,12 +56,12 @@ export class ViewSlot {
 
     if (animatableElement !== null) {
       switch (direction) {
-      case 'enter':
-        return this.animator.enter(animatableElement);
-      case 'leave':
-        return this.animator.leave(animatableElement);
-      default:
-        throw new Error('Invalid animation direction: ' + direction);
+        case 'enter':
+          return this.animator.enter(animatableElement);
+        case 'leave':
+          return this.animator.leave(animatableElement);
+        default:
+          throw new Error('Invalid animation direction: ' + direction);
       }
     }
   }
@@ -355,6 +355,40 @@ export class ViewSlot {
     }
 
     return removeAction();
+  }
+
+  /**
+  * Hides or shows all views in the slot.
+  * @param hide If the views should be hidden.
+  * @param skipAnimation Should the removal animation be skipped?
+  * @return May return a promise if the view removals triggered an animation.
+  */
+  hide(hide_: boolean, skipAnimation?: boolean): void | Promise<any> {
+    let children = this.children;
+    let rmPromises = [];
+
+    children.forEach(child => {
+      if (skipAnimation) {
+        child.hide(hide_);
+      }
+
+      let animation = this.animateView(child, (hide_ ? 'leave' : 'enter'));
+      if (animation) {
+        if (hide_) {
+          rmPromises.push(animation.then(() => child.hide(hide_)));
+        }
+        else {
+          child.hide(hide_);
+          rmPromises.push(animation);
+        }
+      } else {
+        child.hide(hide_);
+      }
+    });
+
+    // if (rmPromises.length > 0) {
+      return Promise.all(rmPromises);
+    // }
   }
 
   /**

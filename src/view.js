@@ -315,4 +315,18 @@ export class View {
       }
     }
   }
+
+  /**
+  * Hides or shows view
+  * @param hide If the view should be hidden
+  */
+  hide(hide_: boolean): void {
+    let current = this.firstChild;
+    while (current) {
+      if (current.style) {
+        current.style.display = hide_ ? 'none' : '';
+      }
+      current = current.nextSibling;
+    }
+  }
 }
