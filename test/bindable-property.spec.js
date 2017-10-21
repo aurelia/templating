@@ -1,6 +1,5 @@
-import {bindingMode} from 'aurelia-binding';
+import {bindingMode, coerceFunctions} from 'aurelia-binding';
 import {BindableProperty} from '../src/bindable-property';
-import {coerces} from '../src/behavior-property-observer';
 
 describe('BindableProperty', () => {
   it('configures default binding mode', () => {
@@ -29,12 +28,12 @@ describe('BindableProperty', () => {
     
     bindableProperty = new BindableProperty({ name: 'test', coerce: null });
     bindableProperty.owner = {};
-    expect(bindableProperty.createObserver({}).coerce).toBe(coerces.none);
+    expect(bindableProperty.createObserver({}).coerce).toBe(undefined);
   
     ['none', 'string', 'boolean', 'number', 'date'].forEach(type => {
       bindableProperty = new BindableProperty({ name: 'test', coerce: type });
       bindableProperty.owner = {};
-      expect(bindableProperty.createObserver({}).coerce).toBe(coerces[type]);
+      expect(bindableProperty.createObserver({}).coerce).toBe(coerceFunctions[type]);
     });
   
     const testFn = a => a;

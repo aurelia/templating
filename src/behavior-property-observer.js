@@ -1,14 +1,13 @@
 import * as LogManager from 'aurelia-logging';
-import {subscriberCollection} from 'aurelia-binding';
+import {subscriberCollection, mapCoerceFunction, coerceFunctions} from 'aurelia-binding';
 import {TaskQueue} from 'aurelia-task-queue';
-
-type CoerceInstruction = string | { (value: any): any }
 
 /**
 * An implementation of Aurelia's Observer interface that is used to back bindable properties defined on a behavior.
 */
 @subscriberCollection()
 export class BehaviorPropertyObserver {
+
   /**
   * Creates an instance of BehaviorPropertyObserver.
   * @param taskQueue The task queue used to schedule change notifications.
@@ -18,19 +17,23 @@ export class BehaviorPropertyObserver {
   * @param initialValue The initial value of the property.
   * @param coerce Instruction on how to convert value in setter
   */
-  constructor(taskQueue: TaskQueue, obj: Object, propertyName: string, selfSubscriber: Function, initialValue: any, coerce?: CoerceInstruction) {
+  constructor(taskQueue: TaskQueue, obj: Object, propertyName: string, selfSubscriber: Function, initialValue: any, coerce?: string | {(val: any): any}) {
     this.taskQueue = taskQueue;
     this.obj = obj;
     this.propertyName = propertyName;
     this.notqueued = true;
     this.publishing = false;
     this.selfSubscriber = selfSubscriber;
-    this.currentValue = this.oldValue = initialValue;
     if (coerce !== undefined) {
       this.setCoerce(coerce);
     }
+    this.currentValue = this.oldValue = this.coerce === undefined ? initialValue : this.coerce(initialValue);
   }
-  setCoerce(coerce) {
+  
+  /**
+   * Set the coerce function for this property observer.
+   */
+  setCoerce(coerce: string | {(val: any): any}) {
     switch (typeof coerce) {
     case 'function':
       this.coerce = coerce; break;
@@ -112,46 +115,4 @@ export class BehaviorPropertyObserver {
   unsubscribe(context: any, callable: Function): void {
     this.removeSubscriber(context, callable);
   }
-}
-
-export const coerceFunctions = {
-  none(a) {
-    return a;
-  },
-  number(a) {
-    const val = Number(a);
-    return !isNaN(val) && isFinite(val) ? val : 0;
-  },
-  string(a) {
-    return '' + a;
-  },
-  boolean(a) {
-    return !!a;
-  },
-  date(a) {
-    return new Date(a);
-  }
-};
-
-export const coerceFunctionMap: Map<{ new(): any }, string> = new Map([
-  [Number, 'number'],
-  [String, 'string'],
-  [Boolean, 'boolean'],
-  [Date, 'date']
-]);
-
-/**
- * Map a class to a string for typescript property coerce
- * @param type the property class to register
- * @param strType the string that represents class in the lookup
- * @param coerceFunction coerce function to register with @param strType
- */
-export function mapCoerceFunction(type: { new(): any; }, strType: string, coerceFunction: (val: string) => any) {
-  if (typeof strType !== 'string' || typeof coerceFunction !== 'function') {
-    LogManager
-      .getLogger('behavior-property-observer')
-      .warn(`Bad attempt at mapping coerce function for type: ${type.name} to: ${strType}`);
-  }
-  coerceFunctions[strType] = coerceFunction;
-  coerceFunctionMap.set(type, strType);
 }

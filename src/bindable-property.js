@@ -4,6 +4,19 @@ import {bindingMode} from 'aurelia-binding';
 import {Container} from 'aurelia-dependency-injection';
 import {metadata} from 'aurelia-metadata';
 
+/**
+ * @typedef {string | {(val: any): any}} CoerceInstruction
+ */
+
+/**
+ * @typedef BindablePropertyConfig
+ * @prop {string} name
+ * @prop {string} changeHandler
+ * @prop {CoerceInstruction} coerce
+ * @prop {bindingMode} defaultBindingMode
+ * @prop {string} attribute 
+ */
+
 function getObserver(instance, name) {
   let lookup = instance.__observers__;
 
@@ -35,7 +48,7 @@ export class BindableProperty {
   * Creates an instance of BindableProperty.
   * @param nameOrConfig The name of the property or a cofiguration object.
   */
-  constructor(nameOrConfig: string | Object) {
+  constructor(nameOrConfig: string | Object | BindablePropertyConfig) {
     if (typeof nameOrConfig === 'string') {
       this.name = nameOrConfig;
     } else {
