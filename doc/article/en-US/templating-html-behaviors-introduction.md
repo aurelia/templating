@@ -297,7 +297,232 @@ The `@bindable` decorator isn't used when doing single value binding with a Cust
 
 Aurelia will call the `valueChanged` callback whenever the bound value changes. This gives the attribute a chance to change the background color of the element. In this example, we don't even need to use the `value` property that Aurelia has set for us.
 
-## [Inheritance with HTML Behaviors](aurelia-doc://section/7/version/1.0.0)
+## [Converting value with bindable properties](aurelia-doc://section/7/version/1.0.0)
+
+Aurelia binding system also provides a way to coerce value for bindable properties, to help simplify some scenarios. We can call them `typed bindable`. Consider a number input field, for example:
+
+<code-listing heading="number-field${context.language.fileExtension}">
+  <source-code lang="ES 2015">
+    export class NumberField {
+      @bindable label = 'Field Value'
+      @bindable.number value
+    }
+  </source-code>
+</code-listing>
+
+<code-listing heading="number-field.html">
+  <source-code lang="HTML">
+    <template>
+      <label>${label}
+        <input type='number' value.bind='value' />
+      </label>
+    </template>
+  </source-code>
+</code-listing>
+
+Notice the `@bindable.number`, it helps ensure whenever input element receives input, its value will be picked up and converted to number and then assigned to bound view-model. By default, there are 4 types of `typed bindable` decorators provided: `@bindable.string`, `@bindable.number`, `@bindable.date`, `@bindable.boolean`.
+
+`@bindable.number` is the simplified form of `@bindable({ coerce: 'number' })`. Which is designed to bring both simplicity and extendability to its usages. The equivalent of above usage with `coerce` is:
+
+<code-listing heading="number-field${context.language.fileExtension}">
+  <source-code lang="ES 2015">
+    export class NumberField {
+      @bindable label
+      @bindable({ coerce: 'number' }) value
+    }
+  </source-code>
+</code-listing>
+
+As you have noticed, `coerce` property is used to tell the decorator to find the right coercion function to convert incoming value. It can also be a function if you prefer:
+
+<code-listing heading="number-field${context.language.fileExtension}">
+  <source-code lang="ES 2015">
+    export class NumberField {
+      @bindable label
+      @bindable({ coerce: val => Number(val) }) value
+    }
+  </source-code>
+</code-listing>
+
+The `typed bindable` decorators can also help to ensure correctness of view model propertie values. Consider a video player custom element with a `playing` bindable property, for example.
+
+<code-listing heading="video-player${context.language.fileExtension}">
+  <source-code lang="ES 2015">
+    export class VideoPlayer {
+      @bindable playing
+    }
+  </source-code>
+</code-listing>
+
+When this video player custom element is used inside another element, we expect all the following will be equivalent to true
+
+<code-listing heading="app.html">
+  <source-code lang="HTML">
+    <video-player playing></video-player>
+    <video-player playing=''></video-player>
+    <video-player playing='yes'></video-player>
+    <video-player playing='playing'></video-player>
+  </source-code>
+</code-listing>
+
+Without coercing incoming value, by default value is assigned as is, which means video player `playing` custom element will have on of the values `'', 'yes', 'playing'`. What we actually want to assigned to the video player view model is when the icoming value is in one of those values, set `playing` to `true`. This is where `typed bindable` can help. We can enable this capability, which is the same with built-in boolean attributes like `disabled`, `required`, `hidden` etc by:
+
+<code-listing heading="video-player${context.language.fileExtension}">
+  <source-code lang="ES 2015">
+    export class VideoPlayer {
+      @bindable({
+        coerce(val) {
+          // Convert any truthy value or an empty string to true
+          if (val || val === '') {
+            return true;
+          }
+          // The rest to false
+          return false;
+        }
+      })
+      playing
+    }
+  </source-code>
+</code-listing>
+
+#### Extending typed bindable / Modifying built-in typed bindable
+
+From examples above, we see that `coerce` is how we tell a `bindable` decorator how to convert incoming value. All `coerce`s are registered at export `coerceFunctions` of the `aurelia-binding`. So to modify a built-in coerce:
+
+<code-listing heading="extend-coerce">
+  <source-code lang="ES 2015">
+    // import from 'aurelia-binding' if you are writing a plugin
+    // import from 'aurelia-framework' if you are writing an application
+    import {coerceFunctions} from 'aurelia-framework';
+
+    // Modify built-in coerce:
+    // We want to treat null and undefined as empty string
+    coerceFunctions.string = function(incomingValue) {
+      return incomingValue === null || incomingValue === undefined ? '' : incomingValue.toString();
+    }
+  </source-code>
+</code-listing>
+
+To add your own `coerce`:
+
+<code-listing heading="extend-coerce">
+  <source-code lang="ES 2015">
+    // import from 'aurelia-binding' if you are writing a plugin
+    // import from 'aurelia-framework' if you are writing an application
+    import {coerceFunctions} from 'aurelia-framework';
+
+    // We will add coerce for a point, which supposed to have x and y
+    // Assume all incoming values are strings that look like this '5.1 6.2'
+    coerceFunctions.point = function(incomingValue) {
+      return incomingValue.split(' ').map(parseFloat);
+    };
+  </source-code>
+</code-listing>
+
+#### Usage with metadata for Typescript
+
+Typescript compiler has an option emit class fields with their types in metadata. `bindable` decorator can work with this via `usePropertyType` function, which is a property of `bindable` decorator:
+
+<code-listing heading="extend-coerce">
+  <source-code lang="ES 2015">
+    bindable.usePropertyType(true);
+  </source-code>
+</code-listing>
+
+After doing this, all of the type in metadata emitted by Typescript will be used to resolve to its equivalent property in `coerceFunctions` above. By default, there are 4 mappings:
+
+  * `Number` to `'number'`
+  * `String` to `'string'`
+  * `Boolean` to `'boolean'`
+  * `Date` to `'date'`
+
+You can extend / modify this via export `coerceFunctionMap` of `aurelia-binding`:
+
+<code-listing heading="extend-coerce">
+  <source-code lang="TypeScript">
+    // import from 'aurelia-binding' if you are writing a plugin
+    // import from 'aurelia-framework' if you are writing an application
+    import {coerceFunctions, coerceFunctionMap} from 'aurelia-framework';
+
+    // Add `point` coerce function
+    coerceFunctions.point = function(incomingValue) {
+      return incomingValue.split(' ').map(parseFloat);
+    };
+
+    // Register a class to be used with coerce
+    coerceFunctionMap.set(Point, 'point');
+
+    // then we can simply have
+    export class Line {
+      @bindable point1: Point
+      @bindable point2: Point
+    }
+  </source-code>
+</code-listing>
+
+In above example, `bindable` decorator auto picks up the type, set proper coerce function for `point1` and `point2`.
+
+JavaScript user can also leverage this pattern via `Reflect.metadata` decorator by decorating property with correct metadata for `propertyType` before decorating it with `bindable`, for example:
+
+<code-listing heading="extend-coerce">
+  <source-code lang="ES 2015">
+    // import from 'aurelia-binding' if you are writing a plugin
+    // import from 'aurelia-framework' if you are writing an application
+    import {coerceFunctions, coerceFunctionMap} from 'aurelia-framework';
+    import {metadata} from 'aurelia-metadata';
+
+    // Add `point` coerce function
+    coerceFunctions.point = function(incomingValue) {
+      return incomingValue.split(' ').map(parseFloat);
+    };
+
+    // Register a class to be used with coerce
+    coerceFunctionMap.set(Point, 'point');
+
+    // then we can simply have
+    export class Line {
+      @bindable
+      @Reflect.metadata(metadata.propertyType, Point)
+      point1
+      
+      @bindable
+      @Reflect.metadata(metadata.propertyType, Point)
+      point2
+    }
+  </source-code>
+</code-listing>
+
+In above example, `bindable` decorator auto picks up the type, set proper coerce function for `point1` and `point2`.
+
+#### Fluent syntax
+
+If you scroll back top a bit, you will notice we had fluent syntax decorator: `@bindable.number`. This, as described above, is a simplified and more expressive form of `coerce: 'number'`. Aurelia also provides a way to build your own fluent syntax `bindable` decorator. You can do this by:
+
+<code-listing heading="extend-coerce">
+  <source-code lang="ES 2015">
+    import {coerceFunctions, coerceFunctionMap, createTypedBindable} from 'aurelia-framework';
+    
+    // This is to enable `@bindable.point`
+    createTypedBindable('point');
+
+    // Register a class to be used with coerce
+    coerceFunctionMap.set(Point, 'point');
+
+    // Add `point` coerce function
+    coerceFunctions.point = function(incomingValue) {
+      return incomingValue.split(' ').map(parseFloat);
+    };
+
+    // then we can have
+    export class Line {
+      @bindable.point point1
+      
+      @bindable.point point2
+    }
+  </source-code>
+</code-listing>
+
+## [Inheritance with HTML Behaviors](aurelia-doc://section/8/version/1.0.0)
 
 For developers who want to leverage inheritance, bindable properties can be inherited through the class hierarchy for custom elements only (not custom attributes).
 
@@ -307,10 +532,10 @@ In the following example we create a generic icon button component, `icon-button
   <source-code lang="ES 2015">
     import {bindable} from 'aurelia-templating';
 
-    export class IconButton{
+    export class IconButton {
       @bindable icon = 'ban';
 
-      onClick(){
+      onClick() {
         alert("Default method");
       }
     }
@@ -367,7 +592,7 @@ First, notice that in the above example, we declared `@useView('./icon-button.ht
   </source-code>
 </code-listing>
 
-## [HTML-Only Custom Elements](aurelia-doc://section/8/version/1.0.0)
+## [HTML-Only Custom Elements](aurelia-doc://section/9/version/1.0.0)
 
 Earlier, we said that there is one exception to the rule that all HTML Behaviors must have a JavaScript class to act as a ViewModel, but we never explained just what that exception is. The exception is HTML Only Custom Elements. Aurelia provides you with the ability to create Custom Elements without needing to create a ViewModel class. This is great for those cases where you want to encapsulate something in to its own Custom Element, but whatever you are encapsulating isn't complex enough to need any complex logic and doesn't have any dependencies like data services.
 
@@ -391,7 +616,7 @@ Creating an HTML Only Custom Element is as simple as creating an HTML view file 
   </source-code>
 </code-listing>
 
-## [HTML Behavior Lifecycle](aurelia-doc://section/9/version/1.0.0)
+## [HTML Behavior Lifecycle](aurelia-doc://section/10/version/1.0.0)
 
 All HTML Behaviors have a well defined lifecycle. Using this lifecycle, you can tap in and trigger code to run when appropriate. Below is a listing of the standard lifecycle callbacks:
 
@@ -460,7 +685,7 @@ Tapping into a lifecycle event is as simple as implementing any of the above met
   </source-code>
 </code-listing>
 
-## [Conclusion](aurelia-doc://section/10/version/1.0.0)
+## [Conclusion](aurelia-doc://section/11/version/1.0.0)
 
 If you've made it this far, you should have the basics down of creating HTML Behaviors. HTML Behaviors in Aurelia can be a Custom Element or a Custom Attribute. Both of these have ViewModels, while only Custom Elements can have Views. There is no need to use jQuery or `document.querySelector` to get the DOM Element your behavior is associated with, as you can simply have Aurelia inject it in to your ViewModel. You must make sure that an HTML Behavior is accessible to the template you are using it in, either by using the `require` element or by making the behavior a global resource. When doing either of these, you do not provide a file extension in the path for the behavior, unless you are specifying an HTML Only Custom Element.
 
