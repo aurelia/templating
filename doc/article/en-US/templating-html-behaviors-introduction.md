@@ -365,7 +365,7 @@ When this video player custom element is used inside another element, we expect 
   </source-code>
 </code-listing>
 
-Without coercing incoming value, by default value is assigned as is, which means video player `playing` custom element will have on of the values `'', 'yes', 'playing'`. What we actually want to assigned to the video player view model is when the icoming value is in one of those values, set `playing` to `true`. This is where `typed bindable` can help. We can enable this capability, which is the same with built-in boolean attributes like `disabled`, `required`, `hidden` etc by:
+Without coercing incoming value, by default value is assigned as is, which means video player `playing` custom element will have one of the values `'', 'yes', 'playing'`. What we actually want to assigned to the video player view model is when the icoming value is in one of those values, set `playing` to `true`. This is where `typed bindable` can help. We can enable this capability, which is the same with built-in boolean attributes like `disabled`, `required`, `hidden` etc by:
 
 <code-listing heading="video-player${context.language.fileExtension}">
   <source-code lang="ES 2015">
@@ -387,12 +387,10 @@ Without coercing incoming value, by default value is assigned as is, which means
 
 #### Extending typed bindable / Modifying built-in typed bindable
 
-From examples above, we see that `coerce` is how we tell a `bindable` decorator how to convert incoming value. All `coerce`s are registered at export `coerceFunctions` of the `aurelia-binding`. So to modify a built-in coerce:
+From examples above, we see that `coerce` is how we tell a `bindable` decorator how to convert incoming value. All `coerce`s are registered at export `coerceFunctions` of the `aurelia-binding` module. So to modify a built-in coerce:
 
 <code-listing heading="extend-coerce">
   <source-code lang="ES 2015">
-    // import from 'aurelia-binding' if you are writing a plugin
-    // import from 'aurelia-framework' if you are writing an application
     import {coerceFunctions} from 'aurelia-framework';
 
     // Modify built-in coerce:
@@ -407,8 +405,6 @@ To add your own `coerce`:
 
 <code-listing heading="extend-coerce">
   <source-code lang="ES 2015">
-    // import from 'aurelia-binding' if you are writing a plugin
-    // import from 'aurelia-framework' if you are writing an application
     import {coerceFunctions} from 'aurelia-framework';
 
     // We will add coerce for a point, which supposed to have x and y
@@ -421,7 +417,7 @@ To add your own `coerce`:
 
 #### Usage with metadata for Typescript
 
-Typescript compiler has an option emit class fields with their types in metadata. `bindable` decorator can work with this via `usePropertyType` function, which is a property of `bindable` decorator:
+Typescript compiler has an option to emit class fields with their types in metadata in generated code. `bindable` decorator can work with this via `usePropertyType` function, which is a property of `bindable` decorator:
 
 <code-listing heading="extend-coerce">
   <source-code lang="ES 2015">
@@ -440,9 +436,7 @@ You can extend / modify this via export `coerceFunctionMap` of `aurelia-binding`
 
 <code-listing heading="extend-coerce">
   <source-code lang="TypeScript">
-    // import from 'aurelia-binding' if you are writing a plugin
-    // import from 'aurelia-framework' if you are writing an application
-    import {coerceFunctions, coerceFunctionMap} from 'aurelia-framework';
+    import {coerceFunctions, coerceFunctionMap, bindable} from 'aurelia-framework';
 
     // Add `point` coerce function
     coerceFunctions.point = function(incomingValue) {
@@ -462,14 +456,11 @@ You can extend / modify this via export `coerceFunctionMap` of `aurelia-binding`
 
 In above example, `bindable` decorator auto picks up the type, set proper coerce function for `point1` and `point2`.
 
-JavaScript user can also leverage this pattern via `Reflect.metadata` decorator by decorating property with correct metadata for `propertyType` before decorating it with `bindable`, for example:
+JavaScript user can also leverage this via `Reflect.metadata` decorator by decorating property with correct metadata for `propertyType` before decorating it with `bindable`, for example:
 
 <code-listing heading="extend-coerce">
   <source-code lang="ES 2015">
-    // import from 'aurelia-binding' if you are writing a plugin
-    // import from 'aurelia-framework' if you are writing an application
-    import {coerceFunctions, coerceFunctionMap} from 'aurelia-framework';
-    import {metadata} from 'aurelia-metadata';
+    import {metadata, coerceFunctions, coerceFunctionMap, bindable} from 'aurelia-framework';
 
     // Add `point` coerce function
     coerceFunctions.point = function(incomingValue) {
@@ -500,7 +491,7 @@ If you scroll back top a bit, you will notice we had fluent syntax decorator: `@
 
 <code-listing heading="extend-coerce">
   <source-code lang="ES 2015">
-    import {coerceFunctions, coerceFunctionMap, createTypedBindable} from 'aurelia-framework';
+    import {coerceFunctions, coerceFunctionMap, createTypedBindable, bindable} from 'aurelia-framework';
     
     // This is to enable `@bindable.point`
     createTypedBindable('point');
