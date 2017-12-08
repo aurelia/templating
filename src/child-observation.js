@@ -238,6 +238,12 @@ class ChildObserverBinder {
 
       if (this.all) {
         let items = (this.viewModel[this.property] || (this.viewModel[this.property] = []));
+
+        if (this.selector === '*') {
+          items.push(value);
+          return true;
+        }
+        
         let index = 0;
         let prev = element.previousElementSibling;
 
