@@ -1,4 +1,4 @@
-import {bindingMode} from 'aurelia-binding';
+import {bindingMode, coerceFunctions} from 'aurelia-binding';
 import {BindableProperty} from '../src/bindable-property';
 
 describe('BindableProperty', () => {
@@ -12,5 +12,33 @@ describe('BindableProperty', () => {
     expect(new BindableProperty({ name: 'test', defaultBindingMode: twoWay }).defaultBindingMode).toBe(twoWay);
     expect(new BindableProperty({ name: 'test', defaultBindingMode: null }).defaultBindingMode).toBe(oneWay);
     expect(new BindableProperty({ name: 'test', defaultBindingMode: undefined }).defaultBindingMode).toBe(oneWay);
+  });
+
+  it('configures coerces corretly', () => {
+  
+    let bindableProperty;
+  
+    bindableProperty = new BindableProperty('test');
+    bindableProperty.owner = {};
+    expect(bindableProperty.createObserver({}).coerce).toBe(undefined);
+  
+    bindableProperty = new BindableProperty({ name: 'test', coerce: undefined });
+    bindableProperty.owner = {};
+    expect(bindableProperty.createObserver({}).coerce).toBe(undefined);
+    
+    bindableProperty = new BindableProperty({ name: 'test', coerce: null });
+    bindableProperty.owner = {};
+    expect(bindableProperty.createObserver({}).coerce).toBe(undefined);
+  
+    ['none', 'string', 'boolean', 'number', 'date'].forEach(type => {
+      bindableProperty = new BindableProperty({ name: 'test', coerce: type });
+      bindableProperty.owner = {};
+      expect(bindableProperty.createObserver({}).coerce).toBe(coerceFunctions[type]);
+    });
+  
+    const testFn = a => a;
+    bindableProperty = new BindableProperty({ name: 'test', coerce: testFn });
+    bindableProperty.owner = {};
+    expect(bindableProperty.createObserver({}).coerce).toBe(testFn);
   });
 });

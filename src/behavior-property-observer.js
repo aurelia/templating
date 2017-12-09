@@ -1,4 +1,5 @@
-import {subscriberCollection} from 'aurelia-binding';
+import * as LogManager from 'aurelia-logging';
+import {subscriberCollection, mapCoerceFunction, coerceFunctions} from 'aurelia-binding';
 import {TaskQueue} from 'aurelia-task-queue';
 
 /**
@@ -6,6 +7,7 @@ import {TaskQueue} from 'aurelia-task-queue';
 */
 @subscriberCollection()
 export class BehaviorPropertyObserver {
+
   /**
   * Creates an instance of BehaviorPropertyObserver.
   * @param taskQueue The task queue used to schedule change notifications.
@@ -13,15 +15,36 @@ export class BehaviorPropertyObserver {
   * @param propertyName The name of the property.
   * @param selfSubscriber The callback function that notifies the object which defines the properties, if present.
   * @param initialValue The initial value of the property.
+  * @param coerce Instruction on how to convert value in setter
   */
-  constructor(taskQueue: TaskQueue, obj: Object, propertyName: string, selfSubscriber: Function, initialValue: any) {
+  constructor(taskQueue: TaskQueue, obj: Object, propertyName: string, selfSubscriber: Function, initialValue: any, coerce?: string | {(val: any): any}) {
     this.taskQueue = taskQueue;
     this.obj = obj;
     this.propertyName = propertyName;
     this.notqueued = true;
     this.publishing = false;
     this.selfSubscriber = selfSubscriber;
-    this.currentValue = this.oldValue = initialValue;
+    if (coerce !== undefined) {
+      this.setCoerce(coerce);
+    }
+    this.currentValue = this.oldValue = this.coerce === undefined ? initialValue : this.coerce(initialValue);
+  }
+  
+  /**
+   * Set the coerce function for this property observer.
+   */
+  setCoerce(coerce: string | {(val: any): any}) {
+    switch (typeof coerce) {
+    case 'function':
+      this.coerce = coerce; break;
+    case 'string':
+      this.coerce = coerceFunctions[coerce]; break;
+    default:
+      LogManager
+        .getLogger('behavior-property-observer')
+        .warn(`Invalid coerce instruction. Should be either one of ${Object.keys(coerceFunctions)} or a function.`);
+      break;
+    }
   }
 
   /**
@@ -36,11 +59,12 @@ export class BehaviorPropertyObserver {
   * @param newValue The new value to set.
   */
   setValue(newValue: any): void {
-    let oldValue = this.currentValue;
+    const oldValue = this.currentValue;
+    const coercedValue = this.coerce === undefined ? newValue : this.coerce(newValue);
 
-    if (oldValue !== newValue) {
+    if (oldValue !== coercedValue) {
       this.oldValue = oldValue;
-      this.currentValue = newValue;
+      this.currentValue = coercedValue;
 
       if (this.publishing && this.notqueued) {
         if (this.taskQueue.flushing) {
