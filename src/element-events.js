@@ -13,7 +13,7 @@ interface EventHandler {
  * @param element
  */
 export class ElementEvents {
-  constructor(element: Element | EventTarget) {
+  constructor(element: EventTarget) {
     this.element = element;
     this.subscriptions = {};
   }
@@ -129,6 +129,6 @@ class EventHandlerImpl {
   dispose() {
     this.owner.element.removeEventListener(this.eventName, this, this.captureOrOptions);
     this.owner._dequeueHandler(this);
-    this.owner = null;
+    this.owner = this.handler = null;
   }
 }
