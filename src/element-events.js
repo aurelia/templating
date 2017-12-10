@@ -3,6 +3,7 @@ import {DOM} from 'aurelia-pal';
 interface EventHandler {
   eventName: string;
   bubbles: boolean;
+  capture: boolean;
   dispose: Function;
   handler: Function;
 }
@@ -12,7 +13,7 @@ interface EventHandler {
  * @param element
  */
 export class ElementEvents {
-  constructor(element: Element) {
+  constructor(element: Element | EventTarget) {
     this.element = element;
     this.subscriptions = {};
   }
@@ -48,23 +49,12 @@ export class ElementEvents {
 
   /**
    * Adds and Event Listener on the context element.
-   * @param eventName
-   * @param handler
-   * @param bubbles
    * @return Returns the eventHandler containing a dispose method
    */
-  subscribe(eventName: string, handler: Function, bubbles?: boolean = true): EventHandler {
-    if (handler && typeof handler === 'function') {
-      handler.eventName = eventName;
-      handler.handler = handler;
-      handler.bubbles = bubbles;
-      handler.dispose = () => {
-        this.element.removeEventListener(eventName, handler, bubbles);
-        this._dequeueHandler(handler);
-      };
-      this.element.addEventListener(eventName, handler, bubbles);
-      this._enqueueHandler(handler);
-      return handler;
+  subscribe(eventName: string, handler: Function, captureOrOptions?: boolean | AddEventListenerOptions = true): EventHandler {
+    if (typeof handler === 'function') {
+      const eventHandler = new EventHandlerImpl(this, eventName, handler, captureOrOptions, false);
+      return eventHandler;
     }
 
     return undefined;
@@ -72,18 +62,12 @@ export class ElementEvents {
 
   /**
    * Adds an Event Listener on the context element, that will be disposed on the first trigger.
-   * @param eventName
-   * @param handler
-   * @param bubbles
    * @return Returns the eventHandler containing a dispose method
    */
-  subscribeOnce(eventName: String, handler: Function, bubbles?: Boolean = true): EventHandler {
-    if (handler && typeof handler === 'function') {
-      let _handler = (event) => {
-        handler(event);
-        _handler.dispose();
-      };
-      return this.subscribe(eventName, _handler, bubbles);
+  subscribeOnce(eventName: String, handler: Function, captureOrOptions?: boolean | AddEventListenerOptions = true): EventHandler {
+    if (typeof handler === 'function') {
+      const eventHandler = new EventHandlerImpl(this, eventName, handler, captureOrOptions, true);
+      return eventHandler;
     }
 
     return undefined;
@@ -116,5 +100,35 @@ export class ElementEvents {
     for (let key in this.subscriptions) {
       this.dispose(key);
     }
+  }
+}
+
+class EventHandlerImpl {
+  constructor(owner: ElementEvents, eventName: string, handler: Function, captureOrOptions: boolean | AddEventListenerOptions, once: boolean) {
+    this.owner = owner;
+    this.eventName = eventName;
+    this.handler = handler;
+    // For compat with interface
+    this.capture = typeof captureOrOptions === 'boolean' ? captureOrOptions : captureOrOptions.capture;
+    this.bubbles = !this.capture;
+    this.captureOrOptions = captureOrOptions;
+    this.once = once;
+    owner.element.addEventListener(eventName, this, captureOrOptions);
+    owner._enqueueHandler(this);
+  }
+
+  handleEvent(e) {
+    // To keep `undefined` as context, same as the old way
+    const fn = this.handler;
+    fn(e);
+    if (this.once) {
+      this.dispose();
+    }
+  }
+
+  dispose() {
+    this.owner.element.removeEventListener(this.eventName, this, this.captureOrOptions);
+    this.owner._dequeueHandler(this);
+    this.owner = null;
   }
 }
