@@ -110,7 +110,7 @@ export class ElementEvents {
       } else {
         handler = handlerOrOptions.handler;
         listenerOptions = handlerOrOptions;
-        _once = handlerOrOptions.once === true;
+        _once = handlerOrOptions.once === undefined ? _once : !!handlerOrOptions.once;
       }
       subscriptions[eventName] = new EventHandlerImpl(this, eventName, handler, listenerOptions, _once);
     }
