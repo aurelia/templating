@@ -34,6 +34,53 @@ describe('ElementEvents', () => {
     expect(callCount).toBe(1);
   });
 
+  it('should batch subscribe', () => {
+    let value;
+    let callCount = 0;
+
+    const subscriptions = elementEvents.subscribe({
+      input: () => {
+        callCount++;
+        value = input.value;
+      },
+      blur: () => {
+        callCount++;
+      },
+      focus: {
+        handler: () => {
+          callCount++;
+        },
+        once: true
+      }
+    });
+
+    const newValue = 1234;
+    input.value = newValue;
+    input.dispatchEvent(new CustomEvent('input'));
+
+    expect(value === newValue.toString()).toBe(true);
+    expect(callCount).toBe(1);
+
+    subscriptions.input.dispose();
+
+    input.dispatchEvent(new CustomEvent('input'));
+    expect(callCount).toBe(1);
+
+    input.dispatchEvent(new CustomEvent('blur'));
+    expect(callCount).toBe(2);
+    
+    input.dispatchEvent(new CustomEvent('focus'));
+    expect(callCount).toBe(3);
+
+    input.dispatchEvent(new CustomEvent('focus'));
+    expect(callCount).toBe(3);
+
+    elementEvents.disposeAll();
+
+    input.dispatchEvent(new CustomEvent('blur'));
+    expect(callCount).toBe(3);
+  })
+
   it('should subscribe once', () => {
     let value;
     let callCount = 0;

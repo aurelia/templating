@@ -34,12 +34,6 @@ import {
 import {
   TaskQueue
 } from 'aurelia-task-queue';
-export declare interface EventHandler {
-  eventName: string;
-  bubbles: boolean;
-  dispose: Function;
-  handler: Function;
-}
 
 /**
 * Specifies how a view should be created.
@@ -472,10 +466,29 @@ export declare class ViewEngineHooksResource {
 }
 export declare function viewEngineHooks(target?: any): any;
 
-/**
- * Dispatches subscribets to and publishes events in the DOM.
- * @param element
- */
+
+export declare interface EventHandler {
+  eventName: string;
+  bubbles: boolean;
+  dispose: Function;
+  handler: Function;
+}
+
+export declare interface SubscriptionHandlerConfig {
+  handler: Function
+  capture?: boolean
+  passive?: boolean
+  once?: boolean
+}
+
+export declare interface BatchSubscriptionConfig {
+  [eventName: string]: Function | SubscriptionHandlerConfig
+}
+
+export declare interface EventSubscriptions {
+  [eventName: string]: EventHandler
+}
+
 /**
  * Dispatches subscribets to and publishes events in the DOM.
  * @param element
@@ -484,41 +497,44 @@ export declare class ElementEvents {
   constructor(element: EventTarget);
 
   /**
-     * Dispatches an Event on the context element.
-     * @param eventName
-     * @param detail
-     * @param bubbles
-     * @param cancelable
-     */
+   * Dispatches an Event on the context element.
+   * @param eventName
+   * @param detail
+   * @param bubbles
+   * @param cancelable
+   */
   publish(eventName: string, detail?: Object, bubbles?: boolean, cancelable?: boolean): any;
 
   /**
-     * Adds and Event Listener on the context element.
-     * @param eventName
-     * @param handler
-     * @param bubbles
-     * @return Returns the eventHandler containing a dispose method
-     */
-  subscribe(eventName: string, handler: Function, bubbles?: boolean): EventHandler;
+   * Adds and Event Listener on the context element.
+   * @return Returns the eventHandler containing a dispose method
+   */
+  subscribe(events: TEvents): EventSubscriptions;
+  subscribe(eventName: string, handler: Function, captureOrOptions?: boolean | AddEventListenerOptions = true): EventHandler;
+  subscribe(configOrEventName: string | BatchSubscriptionConfig, handler?: Function, bubbles?: Boolean): EventHandler | EventSubscriptions;
 
   /**
-     * Adds an Event Listener on the context element, that will be disposed on the first trigger.
-     * @param eventName
-     * @param handler
-     * @param bubbles
-     * @return Returns the eventHandler containing a dispose method
-     */
-  subscribeOnce(eventName: String, handler: Function, bubbles?: Boolean): EventHandler;
+   * Adds an Event Listener on the context element, that will be disposed on the first trigger.
+   * @return Returns the eventHandler containing a dispose method
+   */
+  subscribeOnce(events: BatchSubscriptionConfig): EventSubscriptions;
+  subscribeOnce(eventName: string, handler: Function, captureOrOptions?: boolean | AddEventListenerOptions = true): EventHandler;
+  subscribeOnce(configOrEventName: string | BatchSubscriptionConfig, handler?: Function, bubbles?: Boolean): EventHandler | EventSubscriptions;
 
   /**
-     * Removes all events that are listening to the specified eventName.
-     * @param eventName
-     */
+   * Add multiple event listeners at once, with option to specify once over the whole set
+   */
+  batchSubscribe(events: BatchSubscriptionConfig, once?: boolean): EventSubscriptions
+
+  /**
+   * Removes all events that are listening to the specified eventName.
+   * @param eventName
+   */
   dispose(eventName: string): void;
 
   /**
-     * Removes all event handlers.
-     */
+   * Removes all event handlers.
+   */
   disposeAll(): any;
 }
 

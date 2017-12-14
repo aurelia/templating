@@ -8,6 +8,22 @@ interface EventHandler {
   handler: Function;
 }
 
+// Don't extends AddEventListenerOptions, make explicit for readability
+interface SubscriptionHandlerConfig {
+  handler: Function;
+  capture?: boolean;
+  passive?: boolean;
+  once?: boolean;
+}
+
+interface BatchSubscriptionConfig {
+  [eventName: string]: Function | SubscriptionHandlerConfig
+}
+
+interface EventSubscriptions {
+  [eventName: string]: EventHandler
+}
+
 /**
  * Dispatches subscribets to and publishes events in the DOM.
  * @param element
@@ -51,26 +67,54 @@ export class ElementEvents {
    * Adds and Event Listener on the context element.
    * @return Returns the eventHandler containing a dispose method
    */
-  subscribe(eventName: string, handler: Function, captureOrOptions?: boolean | AddEventListenerOptions = true): EventHandler {
-    if (typeof handler === 'function') {
-      const eventHandler = new EventHandlerImpl(this, eventName, handler, captureOrOptions, false);
-      return eventHandler;
-    }
+  subscribe(configOrEventName: string | BatchSubscriptionConfig, handler: Function, captureOrOptions?: boolean | AddEventListenerOptions = true): EventSubscriptions | EventHandler {
+    if (typeof configOrEventName === 'string') {
+      if (typeof handler === 'function') {
+        const eventHandler = new EventHandlerImpl(this, configOrEventName, handler, captureOrOptions, false);
+        return eventHandler;
+      }
 
-    return undefined;
+      return undefined;
+    } else {
+      return this.batchSubscribe(configOrEventName, false);
+    }
   }
 
   /**
    * Adds an Event Listener on the context element, that will be disposed on the first trigger.
    * @return Returns the eventHandler containing a dispose method
    */
-  subscribeOnce(eventName: String, handler: Function, captureOrOptions?: boolean | AddEventListenerOptions = true): EventHandler {
-    if (typeof handler === 'function') {
-      const eventHandler = new EventHandlerImpl(this, eventName, handler, captureOrOptions, true);
-      return eventHandler;
-    }
+  subscribeOnce(configOrEventName: string | BatchSubscriptionConfig, handler: Function, captureOrOptions?: boolean | AddEventListenerOptions = true): EventSubscriptions | EventHandler {
+    if (typeof configOrEventName === 'string') {
+      if (typeof handler === 'function') {
+        const eventHandler = new EventHandlerImpl(this, configOrEventName, handler, captureOrOptions, true);
+        return eventHandler;
+      }
 
-    return undefined;
+      return undefined;
+    } else {
+      return this.batchSubscribe(configOrEventName, true);
+    }
+  }
+
+  batchSubscribe(config: BatchSubscriptionConfig, once: boolean = false): EventSubscriptions {
+    const subscriptions: EventSubscriptions = {};
+    for (let eventName in config) {
+      let handlerOrOptions = config[eventName];
+      let handler: Function;
+      let listenerOptions: boolean | AddEventListenerOptions;
+      let _once = once;
+      if (typeof handlerOrOptions === 'function') {
+        handler = handlerOrOptions;
+        listenerOptions = false;
+      } else {
+        handler = handlerOrOptions.handler;
+        listenerOptions = handlerOrOptions;
+        _once = !!handlerOrOptions.once;
+      }
+      subscriptions[eventName] = new EventHandlerImpl(this, eventName, handler, listenerOptions, _once);
+    }
+    return subscriptions;
   }
 
   /**
