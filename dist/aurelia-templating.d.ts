@@ -510,7 +510,7 @@ export declare class ElementEvents {
    * @return Returns the eventHandler containing a dispose method
    */
   subscribe(events: TEvents): EventSubscriptions;
-  subscribe(eventName: string, handler: Function, captureOrOptions?: boolean | AddEventListenerOptions = true): EventHandler;
+  subscribe(eventName: string, handler: Function, captureOrOptions?: boolean | AddEventListenerOptions): EventHandler;
   subscribe(configOrEventName: string | BatchSubscriptionConfig, handler?: Function, bubbles?: Boolean): EventHandler | EventSubscriptions;
 
   /**
@@ -518,7 +518,7 @@ export declare class ElementEvents {
    * @return Returns the eventHandler containing a dispose method
    */
   subscribeOnce(events: BatchSubscriptionConfig): EventSubscriptions;
-  subscribeOnce(eventName: string, handler: Function, captureOrOptions?: boolean | AddEventListenerOptions = true): EventHandler;
+  subscribeOnce(eventName: string, handler: Function, captureOrOptions?: boolean | AddEventListenerOptions): EventHandler;
   subscribeOnce(configOrEventName: string | BatchSubscriptionConfig, handler?: Function, bubbles?: Boolean): EventHandler | EventSubscriptions;
 
   /**
