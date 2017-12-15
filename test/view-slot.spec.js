@@ -35,7 +35,7 @@ describe('view-slot', () => {
     let factory;
 
     beforeEach(() => {
-      compilerInstructions = {};
+      compilerInstructions = { letExpressions: [] };
       resources = container.get(ViewResources);
       factory = new ViewFactory(parent, compilerInstructions, resources);
       view = factory.create();
@@ -102,7 +102,7 @@ describe('view-slot', () => {
     let factory;
 
     beforeEach(() => {
-      compilerInstructions = {};
+      compilerInstructions = { letExpressions: [] };
       resources = container.get(ViewResources);
       factory = new ViewFactory(parent, compilerInstructions, resources);
       view = factory.create();

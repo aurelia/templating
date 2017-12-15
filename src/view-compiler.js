@@ -6,6 +6,23 @@ import {inject} from 'aurelia-dependency-injection';
 import {DOM, FEATURE} from 'aurelia-pal';
 import {ShadowDOM} from './shadow-dom';
 
+interface LetExpression {
+  createBinding(): LetBinding
+}
+
+interface LetBinding {
+  updateSource(): any;
+  call(context): any;
+  bind(source?: any): any;
+  unbind(): any;
+  connect(): any;
+}
+
+interface ViewFactoryInstructions {
+  [x: number]: TargetInstruction,
+  letExpressions: LetExpression[]
+}
+
 let nextInjectorId = 0;
 function getNextInjectorId() {
   return ++nextInjectorId;
@@ -94,7 +111,7 @@ export class ViewCompiler {
     compileInstruction.targetShadowDOM = compileInstruction.targetShadowDOM && FEATURE.shadowDOM;
     resources._invokeHook('beforeCompile', content, resources, compileInstruction);
 
-    let instructions = {};
+    let instructions = { letExpressions: [] };
     this._compileNode(content, resources, instructions, source, 'root', !compileInstruction.targetShadowDOM);
 
     let firstChild = content.firstChild;
@@ -275,7 +292,7 @@ export class ViewCompiler {
     return null;
   }
 
-  _compileElement(node, resources, instructions, parentNode, parentInjectorId, targetLightDOM) {
+  _compileElement(node: Node, resources: ViewResources, instructions: ViewFactoryInstructions, parentNode: Node, parentInjectorId: number, targetLightDOM: boolean) {
     let tagName = node.tagName.toLowerCase();
     let attributes = node.attributes;
     let expressions = [];
@@ -300,12 +317,22 @@ export class ViewCompiler {
     let knownAttribute;
     let auTargetID;
     let injectorId;
+    let nextSib;
 
     if (tagName === 'slot') {
       if (targetLightDOM) {
         node = makeShadowSlot(this, resources, node, instructions, parentInjectorId);
       }
       return node.nextSibling;
+    } else if (tagName === 'let') {
+      bindingLanguage.createLetExpressions(
+        resources,
+        node,
+        instructions.letExpressions
+      );
+      nextSib = node.nextSibling;
+      DOM.removeNode(node);
+      return nextSib;
     } else if (tagName === 'template') {
       if (!('content' in node)) {
         throw new Error('You cannot place a template element within ' + node.namespaceURI + ' namespace');

@@ -9,6 +9,12 @@ class MockBindingLanguage {
   createAttributeInstruction(resources, element, info, existingInstruction) {
   }
 
+  createLetExpressions(resources, element, existingExpressions) {
+    existingExpressions = existingExpressions || [];
+    existingExpressions.push({ createBinding() {} });
+    return existingExpressions;
+  }
+
   inspectTextContent(resources, value) {
   }
 }
@@ -127,6 +133,22 @@ describe('ViewCompiler', () => {
 
       viewCompiler._compileNode(node, resources, instructions, parentNode, parentInjectorId, targetLightDOM);
       expect(node.className).toBe('foo bar baz au-target');
+    });
+
+    it('compiles let element by extracting bindings and remove the element', () => {
+      let instructions = { letExpressions: [] };
+      let parentInjectorId = 'root';
+      let targetLightDOM = true;
+
+      let node = document.createElement('let');
+      let parentNode = document.createElement('div');
+
+      parentNode.appendChild(node);
+      node.setAttribute('foo', 'bar');
+
+      viewCompiler._compileNode(node, resources, instructions, parentNode, 'root', true);
+      expect(parentNode.hasChildNodes()).toBe(false);
+      expect(instructions.letExpressions.length).toBe(1);
     });
 
   });
