@@ -109,6 +109,7 @@ export class HtmlBehaviorResource {
     this.target = target;
     this.usesShadowDOM = this.targetShadowDOM && FEATURE.shadowDOM;
     this.handlesCreated = ('created' in proto);
+    this.handlesAssigned = ('assigned' in proto);
     this.handlesBind = ('bind' in proto);
     this.handlesUnbind = ('unbind' in proto);
     this.handlesAttached = ('attached' in proto);
@@ -449,7 +450,15 @@ export class HtmlBehaviorResource {
     for (let i = 0, ii = behavior.properties.length; i < ii; ++i) {
       let prop = behavior.properties[i];
       // Check that the property metadata was not overriden or re-defined in this class
-      if (this.properties.some(p => p.name === prop.name)) {
+      let hasOverrideProp = false;
+      let currentProps = this.properties;
+      for (let j = 0, jj = currentProps.length; jj > j; ++j) {
+        if (currentProps[j].name === prop.name) {
+          hasOverrideProp = true;
+          break;
+        }
+      }
+      if (hasOverrideProp) {
         continue;
       }
       // We don't need to call .defineOn() for those properties because it was done
