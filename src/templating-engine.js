@@ -85,7 +85,7 @@ export class TemplatingEngine {
       instruction = { element: instruction };
     }
 
-    let compilerInstructions = {};
+    let compilerInstructions = { letExpressions: [] };
     let resources = instruction.resources || this._container.get(ViewResources);
 
     this._viewCompiler._compileNode(instruction.element, resources, compilerInstructions, instruction.element.parentNode, 'root', true);

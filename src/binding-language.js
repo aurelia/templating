@@ -2,6 +2,18 @@ function mi(name) {
   throw new Error(`BindingLanguage must implement ${name}().`);
 }
 
+export interface LetExpression {
+  createBinding(): LetBinding
+}
+
+export interface LetBinding {
+  updateSource(): any;
+  call(context): any;
+  bind(source?: any): any;
+  unbind(): any;
+  connect(): any;
+}
+
 /**
 * An abstract base class for implementations of a binding language.
 */
@@ -28,6 +40,17 @@ export class BindingLanguage {
   */
   createAttributeInstruction(resources: ViewResources, element: Element, info: Object, existingInstruction?: Object): BehaviorInstruction {
     mi('createAttributeInstruction');
+  }
+
+  /**
+   * Creates let expressions from a <let/> element
+   * @param resources The ViewResources for the view being compiled
+   * @param element the let element in the view template
+   * @param existingExpressions the array that will hold compiled let expressions from the let element
+   * @return the expression array created from the <let/> element
+   */
+  createLetExpressions(resources: ViewResources, element: Element, existingExpressions?: LetExpression[]): LetExpession[] {
+    mi('createLetExpressions');
   }
 
   /**

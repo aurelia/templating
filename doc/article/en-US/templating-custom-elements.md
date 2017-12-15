@@ -128,7 +128,7 @@ Before we move on, let's discuss just how easy it is to create a custom element 
 
 ## Bindable Properties
 
-Any properties or functions of the VM class may be used for binding within the custom element's view; however, a custom element must specify the properties that will be bindable as attributes on the custom element. This is done by decorating each bindable property with the `bindable` decorator. The default binding mode for bindable properties is one-way. This means that a property value can be bound *in* to your custom element, but any changes the custom element makes to the property value will not be propogated *out* of the custom element. This default may be overridden, if needed, by passing a settings object to the `bindable` decorator with a property named `defaultBindingMode` set. This property should be set to one of the three `bindingMode` options: `oneTime`, `oneWay`, or `twoWay`. Both `bindable` and `bindingMode` may be imported from the `aurelia-framework` module. Let's look at an example custom element with a bindable property that defaults to two-way binding.
+Any properties or functions of the VM class may be used for binding within the custom element's view; however, a custom element must specify the properties that will be bindable as attributes on the custom element. This is done by decorating each bindable property with the `bindable` decorator. The default binding mode for bindable properties is one-way. This means that a property value can be bound *in* to your custom element, but any changes the custom element makes to the property value will not be propogated *out* of the custom element. This default may be overridden, if needed, by passing a settings object to the `bindable` decorator with a property named `defaultBindingMode` set. This property should be set to one of the four `bindingMode` options: `oneTime`, `fromView`, `toView` / `oneWay`, or `twoWay`. Both `bindable` and `bindingMode` may be imported from the `aurelia-framework` module. Let's look at an example custom element with a bindable property that defaults to two-way binding.
 
  <code-listing heading="secret-message${context.language.fileExtension}">
   <source-code lang="ES 2016">
@@ -222,7 +222,145 @@ In this example, the `secret-message` custom element will check every ten second
 
 Whether a secret message that is only shown to the person who writes the message is very useful is for you to decide.
 
-## Surrogate Behaviors
+## [Declarative computed value]
+
+As your application grows, custom elements get complicated and often values that are computed based on other values start to appear. It can be done either via getter in your custom element view model, or via aurelia `let` element. Think about it like a declaration in a JavaScript expression. For instance, a name tag form example would consist of two input fields with value bound to view model properties `firstName` and `lastName`, like the following example:
+
+<code-listing heading="declarative-computed${context.language.fileExtension}">
+  <source-code lang="HTML">
+    <div>
+      First name:
+      <input value.bind="firstName" />
+      Last name:
+      <input value.bind="lastName" />
+    </div>
+    Full name is: "${firstName} ${lastName}"
+  </source-code>
+</code-listing>
+
+Notice the expression `${firstName} ${lastName}`, what if we want to use it somewhere else, or give it a more meaningful name like `fullName`? We have option to go with react on change of either `firstName` or `lastName` and re-compute `fullName` in view model, or declare a getter that return the combination of those values like the following examples:
+
+<code-listing heading="declarative-computed${context.language.fileExtension}">
+  <source-code lang="ES 2016">
+    export class App {
+      @bindable firstName
+      @bindable lastName
+
+      // Aurelia convention, called after firstName has changed
+      firstNameChanged(newFirstName: string) {
+        this.fullName = `${newFirstName} ${this.lastName}`
+      }
+      // Aurelia convention, called after firstName has changed
+      lastNameChanged(newLastName: string) {
+        this.fullName = `${this.firstName} ${newLastName}`
+      }
+    }
+
+    // Or with getter and `computedFrom` decorator
+    export class App {
+      @bindable firstName
+      @bindable lastName
+
+      @computedFrom('firstName', 'lastName')
+      get fullName() {
+        return `${this.firstName} ${this.lastName}`;
+      }
+    }
+  </source-code>
+  <source-code lang="Typescript">
+    export class App {
+      @bindable firstName: string
+      @bindable lastName: string
+
+      fullName: string
+
+      // Aurelia convention, called after firstName has changed
+      firstNameChanged(newFirstName: string) {
+        this.fullName = `${newFirstName} ${this.lastName}`
+      }
+      // Aurelia convention, called after firstName has changed
+      lastNameChanged(newLastName: string) {
+        this.fullName = `${this.firstName} ${newLastName}`
+      }
+    }
+
+    // Or with getter and `computedFrom` decorator
+    export class App {
+      @bindable firstName: string
+      @bindable lastName: string
+
+      @computedFrom('firstName', 'lastName')
+      get fullName() {
+        return `${this.firstName} ${this.lastName}`;
+      }
+    }
+  </source-code>
+</code-listing>
+
+Aurelia provides a simpler way to achieve the above result, with more declarative form via `let` element. Using the `let` element, the above example would be rewritten as:
+
+Either using interpolation:
+
+<code-listing heading="declarative-computed${context.language.fileExtension}">
+  <source-code lang="HTML">
+    <let full-name="${firstName} ${lastName}">
+    <div>
+      First name:
+      <input value.bind="firstName" />
+      Last name:
+      <input value.bind="lastName" />
+    </div>
+    Full name is: "${fullName}"
+  </source-code>
+</code-listing>
+
+Or an expression:
+
+<code-listing heading="declarative-computed${context.language.fileExtension}">
+  <source-code lang="HTML">
+    <let full-name.bind="firstName + ' ' + lastName">
+    <div>
+      First name:
+      <input value.bind="firstName" />
+      Last name:
+      <input value.bind="lastName" />
+    </div>
+    Full name is: "${fullName}"
+  </source-code>
+</code-listing>
+
+And now after either `firstName` or `lastName` has changed, `fullName` is recomputed automatically and is ready to be used in other part of the view model. Now instead of reacting to changes on both `firstName` and `lastName`, we only need to care about `fullName` like the following example
+
+<code-listing heading="declarative-computed${context.language.fileExtension}">
+  <source-code lang="ES 2016">
+    export class App {
+      @bindable firstName
+      @bindable lastName
+
+      @bindable fullName
+
+      // Aurelia convention, called after fullName has changed
+      fullNameNameChanged(fullName) {
+        // Do stuff with new full name
+      }
+    }
+  </source-code>
+  <source-code lang="Typescript">
+    export class App {
+      @bindable firstName: string
+      @bindable lastName: string
+
+      @bindable fullName: string
+
+      // Aurelia convention, called after fullName has changed
+      fullNameNameChanged(fullName: string) {
+        // Do stuff with new full name
+      }
+    }
+  </source-code>
+</code-listing>
+
+## [Surrogate Behaviors]
 
 Surrogate behaviors allow you to add attributes, event handlers, and bindings on the template element for a custom element. This can be extremely useful in many cases, but one particular area that it is helpful is with dealing with `aria` attributes to help add accessibility to your custom elements. When using surrogate behaviors, you add attributes to the template element for your custom element. These attributes will be placed on the custom element itself at runtime. For example, consider the view for a `my-button` custom element:
 
