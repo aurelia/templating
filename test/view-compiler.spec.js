@@ -42,6 +42,25 @@ describe('ViewCompiler', () => {
 
       expect(compileFunc).toThrow();
     });
+
+    it('removes binding commands and `ref`, `as-element`', () => {
+
+      let node = document.createDocumentFragment();
+      let input = node.appendChild(document.createElement('input'));
+      input.className = 'au-target';
+      input.setAttribute('value.bind', 'value');
+      input.setAttribute('ref', 'input');
+
+      let el = node.appendChild(document.createElement('div'));
+      el.className = 'au-target';
+      el.setAttribute('as-element', 'row');
+
+      viewCompiler._removeCommands(node);
+
+      expect(input.hasAttribute('value.bind')).toBe(false);
+      expect(input.hasAttribute('ref')).toBe(false);
+      expect(el.hasAttribute('as-element')).toBe(false);
+    });
   });
 
   describe('compileNode', () => {
