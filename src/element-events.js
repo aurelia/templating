@@ -51,7 +51,7 @@ export class ElementEvents {
    * Adds and Event Listener on the context element.
    * @return Returns the eventHandler containing a dispose method
    */
-  subscribe(eventName: string, handler: Function, captureOrOptions?: boolean | AddEventListenerOptions = true): EventHandler {
+  subscribe(eventName: string, handler: Function, captureOrOptions?: boolean = true): EventHandler {
     if (typeof handler === 'function') {
       const eventHandler = new EventHandlerImpl(this, eventName, handler, captureOrOptions, false);
       return eventHandler;
@@ -64,7 +64,7 @@ export class ElementEvents {
    * Adds an Event Listener on the context element, that will be disposed on the first trigger.
    * @return Returns the eventHandler containing a dispose method
    */
-  subscribeOnce(eventName: String, handler: Function, captureOrOptions?: boolean | AddEventListenerOptions = true): EventHandler {
+  subscribeOnce(eventName: string, handler: Function, captureOrOptions?: boolean = true): EventHandler {
     if (typeof handler === 'function') {
       const eventHandler = new EventHandlerImpl(this, eventName, handler, captureOrOptions, true);
       return eventHandler;
@@ -104,7 +104,7 @@ export class ElementEvents {
 }
 
 class EventHandlerImpl {
-  constructor(owner: ElementEvents, eventName: string, handler: Function, captureOrOptions: boolean | AddEventListenerOptions, once: boolean) {
+  constructor(owner: ElementEvents, eventName: string, handler: Function, captureOrOptions: boolean, once: boolean) {
     this.owner = owner;
     this.eventName = eventName;
     this.handler = handler;
