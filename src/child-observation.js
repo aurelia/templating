@@ -243,7 +243,7 @@ class ChildObserverBinder {
           items.push(value);
           return true;
         }
-        
+
         let index = 0;
         let prev = element.previousElementSibling;
 
