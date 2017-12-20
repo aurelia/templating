@@ -203,30 +203,19 @@ export let ElementEvents = class ElementEvents {
     this.element.dispatchEvent(event);
   }
 
-  subscribe(eventName, handler, bubbles = true) {
-    if (handler && typeof handler === 'function') {
-      handler.eventName = eventName;
-      handler.handler = handler;
-      handler.bubbles = bubbles;
-      handler.dispose = () => {
-        this.element.removeEventListener(eventName, handler, bubbles);
-        this._dequeueHandler(handler);
-      };
-      this.element.addEventListener(eventName, handler, bubbles);
-      this._enqueueHandler(handler);
-      return handler;
+  subscribe(eventName, handler, captureOrOptions = true) {
+    if (typeof handler === 'function') {
+      const eventHandler = new EventHandlerImpl(this, eventName, handler, captureOrOptions, false);
+      return eventHandler;
     }
 
     return undefined;
   }
 
-  subscribeOnce(eventName, handler, bubbles = true) {
-    if (handler && typeof handler === 'function') {
-      let _handler = event => {
-        handler(event);
-        _handler.dispose();
-      };
-      return this.subscribe(eventName, _handler, bubbles);
+  subscribeOnce(eventName, handler, captureOrOptions = true) {
+    if (typeof handler === 'function') {
+      const eventHandler = new EventHandlerImpl(this, eventName, handler, captureOrOptions, true);
+      return eventHandler;
     }
 
     return undefined;
@@ -252,6 +241,35 @@ export let ElementEvents = class ElementEvents {
     for (let key in this.subscriptions) {
       this.dispose(key);
     }
+  }
+};
+
+let EventHandlerImpl = class EventHandlerImpl {
+  constructor(owner, eventName, handler, captureOrOptions, once) {
+    this.owner = owner;
+    this.eventName = eventName;
+    this.handler = handler;
+
+    this.capture = typeof captureOrOptions === 'boolean' ? captureOrOptions : captureOrOptions.capture;
+    this.bubbles = !this.capture;
+    this.captureOrOptions = captureOrOptions;
+    this.once = once;
+    owner.element.addEventListener(eventName, this, captureOrOptions);
+    owner._enqueueHandler(this);
+  }
+
+  handleEvent(e) {
+    const fn = this.handler;
+    fn(e);
+    if (this.once) {
+      this.dispose();
+    }
+  }
+
+  dispose() {
+    this.owner.element.removeEventListener(this.eventName, this, this.captureOrOptions);
+    this.owner._dequeueHandler(this);
+    this.owner = this.handler = null;
   }
 };
 
@@ -2376,7 +2394,7 @@ export let ViewCompiler = (_dec7 = inject(BindingLanguage, ViewResources), _dec7
 
             if (info.command && info.command !== 'options' && type.primaryProperty) {
               const primaryProperty = type.primaryProperty;
-              attrName = info.attrName = primaryProperty.name;
+              attrName = info.attrName = primaryProperty.attribute;
 
               info.defaultBindingMode = primaryProperty.defaultBindingMode;
             }
@@ -2517,7 +2535,7 @@ export let ViewCompiler = (_dec7 = inject(BindingLanguage, ViewResources), _dec7
 
             if (info.command && info.command !== 'options' && type.primaryProperty) {
               const primaryProperty = type.primaryProperty;
-              attrName = info.attrName = primaryProperty.name;
+              attrName = info.attrName = primaryProperty.attribute;
 
               info.defaultBindingMode = primaryProperty.defaultBindingMode;
             }
@@ -4126,6 +4144,12 @@ let ChildObserverBinder = class ChildObserverBinder {
 
       if (this.all) {
         let items = this.viewModel[this.property] || (this.viewModel[this.property] = []);
+
+        if (this.selector === '*') {
+          items.push(value);
+          return true;
+        }
+
         let index = 0;
         let prev = element.previousElementSibling;
 

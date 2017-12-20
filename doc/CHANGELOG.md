@@ -1,3 +1,13 @@
+<a name="1.7.0"></a>
+# [1.7.0](https://github.com/aurelia/templating/compare/1.6.0...v1.7.0) (2017-12-20)
+
+
+### Bug Fixes
+
+* **view-compiler:** use attribute name ([5a2276c](https://github.com/aurelia/templating/commit/5a2276c)), closes [#575](https://github.com/aurelia/templating/issues/575)
+
+
+
 <a name="1.6.0"></a>
 # [1.6.0](https://github.com/aurelia/templating/compare/1.5.0...v1.6.0) (2017-10-16)
 

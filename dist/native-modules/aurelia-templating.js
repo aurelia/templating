@@ -1,8 +1,8 @@
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _class, _temp, _dec, _class2, _dec2, _class3, _dec3, _class4, _dec4, _class5, _dec5, _class6, _class7, _temp2, _dec6, _class8, _class9, _temp3, _class11, _dec7, _class13, _dec8, _class14, _class15, _temp4, _dec9, _class16, _dec10, _class17, _dec11, _class18;
-
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+var _class, _temp, _dec, _class2, _dec2, _class3, _dec3, _class4, _dec4, _class5, _dec5, _class6, _class7, _temp2, _dec6, _class8, _class9, _temp3, _class11, _dec7, _class13, _dec8, _class14, _class15, _temp4, _dec9, _class16, _dec10, _class17, _dec11, _class18;
 
 
 
@@ -240,43 +240,22 @@ export var ElementEvents = function () {
   };
 
   ElementEvents.prototype.subscribe = function subscribe(eventName, handler) {
-    var _this2 = this;
+    var captureOrOptions = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
 
-    var bubbles = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
-
-    if (handler && typeof handler === 'function') {
-      handler.eventName = eventName;
-      handler.handler = handler;
-      handler.bubbles = bubbles;
-      handler.dispose = function () {
-        _this2.element.removeEventListener(eventName, handler, bubbles);
-        _this2._dequeueHandler(handler);
-      };
-      this.element.addEventListener(eventName, handler, bubbles);
-      this._enqueueHandler(handler);
-      return handler;
+    if (typeof handler === 'function') {
+      var eventHandler = new EventHandlerImpl(this, eventName, handler, captureOrOptions, false);
+      return eventHandler;
     }
 
     return undefined;
   };
 
   ElementEvents.prototype.subscribeOnce = function subscribeOnce(eventName, handler) {
-    var _this3 = this;
+    var captureOrOptions = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
 
-    var bubbles = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
-
-    if (handler && typeof handler === 'function') {
-      var _ret = function () {
-        var _handler = function _handler(event) {
-          handler(event);
-          _handler.dispose();
-        };
-        return {
-          v: _this3.subscribe(eventName, _handler, bubbles)
-        };
-      }();
-
-      if ((typeof _ret === 'undefined' ? 'undefined' : _typeof(_ret)) === "object") return _ret.v;
+    if (typeof handler === 'function') {
+      var eventHandler = new EventHandlerImpl(this, eventName, handler, captureOrOptions, true);
+      return eventHandler;
     }
 
     return undefined;
@@ -305,6 +284,39 @@ export var ElementEvents = function () {
   };
 
   return ElementEvents;
+}();
+
+var EventHandlerImpl = function () {
+  function EventHandlerImpl(owner, eventName, handler, captureOrOptions, once) {
+    
+
+    this.owner = owner;
+    this.eventName = eventName;
+    this.handler = handler;
+
+    this.capture = typeof captureOrOptions === 'boolean' ? captureOrOptions : captureOrOptions.capture;
+    this.bubbles = !this.capture;
+    this.captureOrOptions = captureOrOptions;
+    this.once = once;
+    owner.element.addEventListener(eventName, this, captureOrOptions);
+    owner._enqueueHandler(this);
+  }
+
+  EventHandlerImpl.prototype.handleEvent = function handleEvent(e) {
+    var fn = this.handler;
+    fn(e);
+    if (this.once) {
+      this.dispose();
+    }
+  };
+
+  EventHandlerImpl.prototype.dispose = function dispose() {
+    this.owner.element.removeEventListener(this.eventName, this, this.captureOrOptions);
+    this.owner._dequeueHandler(this);
+    this.owner = this.handler = null;
+  };
+
+  return EventHandlerImpl;
 }();
 
 export var ResourceLoadContext = function () {
@@ -1707,7 +1719,7 @@ export var ViewSlot = function () {
   };
 
   ViewSlot.prototype.removeMany = function removeMany(viewsToRemove, returnToCache, skipAnimation) {
-    var _this4 = this;
+    var _this2 = this;
 
     var children = this.children;
     var ii = viewsToRemove.length;
@@ -1720,7 +1732,7 @@ export var ViewSlot = function () {
         return;
       }
 
-      var animation = _this4.animateView(child, 'leave');
+      var animation = _this2.animateView(child, 'leave');
       if (animation) {
         rmPromises.push(animation.then(function () {
           return child.removeNodes();
@@ -1731,7 +1743,7 @@ export var ViewSlot = function () {
     });
 
     var removeAction = function removeAction() {
-      if (_this4.isAttached) {
+      if (_this2.isAttached) {
         for (i = 0; i < ii; ++i) {
           viewsToRemove[i].detached();
         }
@@ -1761,16 +1773,16 @@ export var ViewSlot = function () {
   };
 
   ViewSlot.prototype.removeAt = function removeAt(index, returnToCache, skipAnimation) {
-    var _this5 = this;
+    var _this3 = this;
 
     var view = this.children[index];
 
     var removeAction = function removeAction() {
-      index = _this5.children.indexOf(view);
+      index = _this3.children.indexOf(view);
       view.removeNodes();
-      _this5.children.splice(index, 1);
+      _this3.children.splice(index, 1);
 
-      if (_this5.isAttached) {
+      if (_this3.isAttached) {
         view.detached();
       }
 
@@ -1794,7 +1806,7 @@ export var ViewSlot = function () {
   };
 
   ViewSlot.prototype.removeAll = function removeAll(returnToCache, skipAnimation) {
-    var _this6 = this;
+    var _this4 = this;
 
     var children = this.children;
     var ii = children.length;
@@ -1807,7 +1819,7 @@ export var ViewSlot = function () {
         return;
       }
 
-      var animation = _this6.animateView(child, 'leave');
+      var animation = _this4.animateView(child, 'leave');
       if (animation) {
         rmPromises.push(animation.then(function () {
           return child.removeNodes();
@@ -1818,7 +1830,7 @@ export var ViewSlot = function () {
     });
 
     var removeAction = function removeAction() {
-      if (_this6.isAttached) {
+      if (_this4.isAttached) {
         for (i = 0; i < ii; ++i) {
           children[i].detached();
         }
@@ -1834,7 +1846,7 @@ export var ViewSlot = function () {
         }
       }
 
-      _this6.children = [];
+      _this4.children = [];
     };
 
     if (rmPromises.length > 0) {
@@ -1881,7 +1893,7 @@ export var ViewSlot = function () {
   };
 
   ViewSlot.prototype.projectTo = function projectTo(slots) {
-    var _this7 = this;
+    var _this5 = this;
 
     this.projectToSlots = slots;
     this.add = this._projectionAdd;
@@ -1892,7 +1904,7 @@ export var ViewSlot = function () {
     this.removeMany = this._projectionRemoveMany;
     this.removeAll = this._projectionRemoveAll;
     this.children.forEach(function (view) {
-      return ShadowDOM.distributeView(view, slots, _this7);
+      return ShadowDOM.distributeView(view, slots, _this5);
     });
   };
 
@@ -1956,10 +1968,10 @@ export var ViewSlot = function () {
   };
 
   ViewSlot.prototype._projectionRemoveMany = function _projectionRemoveMany(viewsToRemove, returnToCache) {
-    var _this8 = this;
+    var _this6 = this;
 
     viewsToRemove.forEach(function (view) {
-      return _this8.remove(view, returnToCache);
+      return _this6.remove(view, returnToCache);
     });
   };
 
@@ -2563,7 +2575,7 @@ export var ViewCompiler = (_dec7 = inject(BindingLanguage, ViewResources), _dec7
 
             if (info.command && info.command !== 'options' && type.primaryProperty) {
               var primaryProperty = type.primaryProperty;
-              attrName = info.attrName = primaryProperty.name;
+              attrName = info.attrName = primaryProperty.attribute;
 
               info.defaultBindingMode = primaryProperty.defaultBindingMode;
             }
@@ -2704,7 +2716,7 @@ export var ViewCompiler = (_dec7 = inject(BindingLanguage, ViewResources), _dec7
 
             if (info.command && info.command !== 'options' && type.primaryProperty) {
               var primaryProperty = type.primaryProperty;
-              attrName = info.attrName = primaryProperty.name;
+              attrName = info.attrName = primaryProperty.attribute;
 
               info.defaultBindingMode = primaryProperty.defaultBindingMode;
             }
@@ -3079,12 +3091,12 @@ function ensureRegistryEntry(loader, urlOrRegistryEntry) {
 
 var ProxyViewFactory = function () {
   function ProxyViewFactory(promise) {
-    var _this9 = this;
+    var _this7 = this;
 
     
 
     promise.then(function (x) {
-      return _this9.viewFactory = x;
+      return _this7.viewFactory = x;
     });
   }
 
@@ -3144,7 +3156,7 @@ export var ViewEngine = (_dec8 = inject(Loader, Container, ViewCompiler, ModuleA
   };
 
   ViewEngine.prototype.loadViewFactory = function loadViewFactory(urlOrRegistryEntry, compileInstruction, loadContext, target) {
-    var _this10 = this;
+    var _this8 = this;
 
     loadContext = loadContext || new ResourceLoadContext();
 
@@ -3166,14 +3178,14 @@ export var ViewEngine = (_dec8 = inject(Loader, Container, ViewCompiler, ModuleA
 
       loadContext.addDependency(url);
 
-      registryEntry.onReady = _this10.loadTemplateResources(registryEntry, compileInstruction, loadContext, target).then(function (resources) {
+      registryEntry.onReady = _this8.loadTemplateResources(registryEntry, compileInstruction, loadContext, target).then(function (resources) {
         registryEntry.resources = resources;
 
         if (registryEntry.template === null) {
           return registryEntry.factory = null;
         }
 
-        var viewFactory = _this10.viewCompiler.compile(registryEntry.template, resources, compileInstruction);
+        var viewFactory = _this8.viewCompiler.compile(registryEntry.template, resources, compileInstruction);
         return registryEntry.factory = viewFactory;
       });
 
@@ -3222,30 +3234,30 @@ export var ViewEngine = (_dec8 = inject(Loader, Container, ViewCompiler, ModuleA
   };
 
   ViewEngine.prototype.importViewModelResource = function importViewModelResource(moduleImport, moduleMember) {
-    var _this11 = this;
+    var _this9 = this;
 
     return this.loader.loadModule(moduleImport).then(function (viewModelModule) {
       var normalizedId = Origin.get(viewModelModule).moduleId;
-      var resourceModule = _this11.moduleAnalyzer.analyze(normalizedId, viewModelModule, moduleMember);
+      var resourceModule = _this9.moduleAnalyzer.analyze(normalizedId, viewModelModule, moduleMember);
 
       if (!resourceModule.mainResource) {
         throw new Error('No view model found in module "' + moduleImport + '".');
       }
 
-      resourceModule.initialize(_this11.container);
+      resourceModule.initialize(_this9.container);
 
       return resourceModule.mainResource;
     });
   };
 
   ViewEngine.prototype.importViewResources = function importViewResources(moduleIds, names, resources, compileInstruction, loadContext) {
-    var _this12 = this;
+    var _this10 = this;
 
     loadContext = loadContext || new ResourceLoadContext();
     compileInstruction = compileInstruction || ViewCompileInstruction.normal;
 
     moduleIds = moduleIds.map(function (x) {
-      return _this12._applyLoaderPlugin(x);
+      return _this10._applyLoaderPlugin(x);
     });
 
     return this.loader.loadAllModules(moduleIds).then(function (imports) {
@@ -3255,8 +3267,8 @@ export var ViewEngine = (_dec8 = inject(Loader, Container, ViewCompiler, ModuleA
       var normalizedId = void 0;
       var current = void 0;
       var associatedModule = void 0;
-      var container = _this12.container;
-      var moduleAnalyzer = _this12.moduleAnalyzer;
+      var container = _this10.container;
+      var moduleAnalyzer = _this10.moduleAnalyzer;
       var allAnalysis = new Array(imports.length);
 
       for (i = 0, ii = imports.length; i < ii; ++i) {
@@ -3896,14 +3908,14 @@ export var HtmlBehaviorResource = function () {
   };
 
   HtmlBehaviorResource.prototype.register = function register(registry, name) {
-    var _this13 = this;
+    var _this11 = this;
 
     if (this.attributeName !== null) {
       registry.registerAttribute(name || this.attributeName, this, this.attributeName);
 
       if (Array.isArray(this.aliases)) {
         this.aliases.forEach(function (alias) {
-          registry.registerAttribute(alias, _this13, _this13.attributeName);
+          registry.registerAttribute(alias, _this11, _this11.attributeName);
         });
       }
     }
@@ -3914,7 +3926,7 @@ export var HtmlBehaviorResource = function () {
   };
 
   HtmlBehaviorResource.prototype.load = function load(container, target, loadContext, viewStrategy, transientView) {
-    var _this14 = this;
+    var _this12 = this;
 
     var options = void 0;
 
@@ -3927,8 +3939,8 @@ export var HtmlBehaviorResource = function () {
       }
 
       return viewStrategy.loadViewFactory(container.get(ViewEngine), options, loadContext, target).then(function (viewFactory) {
-        if (!transientView || !_this14.viewFactory) {
-          _this14.viewFactory = viewFactory;
+        if (!transientView || !_this12.viewFactory) {
+          _this12.viewFactory = viewFactory;
         }
 
         return viewFactory;
@@ -4123,7 +4135,7 @@ export var HtmlBehaviorResource = function () {
   };
 
   HtmlBehaviorResource.prototype._copyInheritedProperties = function _copyInheritedProperties(container, target) {
-    var _this15 = this;
+    var _this13 = this;
 
     var behavior = void 0;
     var derived = target;
@@ -4144,19 +4156,19 @@ export var HtmlBehaviorResource = function () {
     var _loop = function _loop(_i8, _ii8) {
       var prop = behavior.properties[_i8];
 
-      if (_this15.properties.some(function (p) {
+      if (_this13.properties.some(function (p) {
         return p.name === prop.name;
       })) {
         return 'continue';
       }
 
-      new BindableProperty(prop).registerWith(derived, _this15);
+      new BindableProperty(prop).registerWith(derived, _this13);
     };
 
     for (var _i8 = 0, _ii8 = behavior.properties.length; _i8 < _ii8; ++_i8) {
-      var _ret2 = _loop(_i8, _ii8);
+      var _ret = _loop(_i8, _ii8);
 
-      if (_ret2 === 'continue') continue;
+      if (_ret === 'continue') continue;
     }
   };
 
@@ -4399,6 +4411,12 @@ var ChildObserverBinder = function () {
 
       if (this.all) {
         var items = this.viewModel[this.property] || (this.viewModel[this.property] = []);
+
+        if (this.selector === '*') {
+          items.push(value);
+          return true;
+        }
+
         var index = 0;
         var prev = element.previousElementSibling;
 
@@ -4486,27 +4504,27 @@ export var CompositionEngine = (_dec10 = inject(ViewEngine, ViewLocator), _dec10
   };
 
   CompositionEngine.prototype._createControllerAndSwap = function _createControllerAndSwap(context) {
-    var _this16 = this;
+    var _this14 = this;
 
     return this.createController(context).then(function (controller) {
       controller.automate(context.overrideContext, context.owningView);
 
       if (context.compositionTransactionOwnershipToken) {
         return context.compositionTransactionOwnershipToken.waitForCompositionComplete().then(function () {
-          return _this16._swap(context, controller.view);
+          return _this14._swap(context, controller.view);
         }).then(function () {
           return controller;
         });
       }
 
-      return _this16._swap(context, controller.view).then(function () {
+      return _this14._swap(context, controller.view).then(function () {
         return controller;
       });
     });
   };
 
   CompositionEngine.prototype.createController = function createController(context) {
-    var _this17 = this;
+    var _this15 = this;
 
     var childContainer = void 0;
     var viewModel = void 0;
@@ -4519,7 +4537,7 @@ export var CompositionEngine = (_dec10 = inject(ViewEngine, ViewLocator), _dec10
       viewModelResource = context.viewModelResource;
       m = viewModelResource.metadata;
 
-      var viewStrategy = _this17.viewLocator.getViewStrategy(context.view || viewModel);
+      var viewStrategy = _this15.viewLocator.getViewStrategy(context.view || viewModel);
 
       if (context.viewResources) {
         viewStrategy.makeRelativeTo(context.viewResources.viewUrl);
@@ -4559,7 +4577,7 @@ export var CompositionEngine = (_dec10 = inject(ViewEngine, ViewLocator), _dec10
   };
 
   CompositionEngine.prototype.compose = function compose(context) {
-    var _this18 = this;
+    var _this16 = this;
 
     context.childContainer = context.childContainer || context.container.createChild();
     context.view = this.viewLocator.getViewStrategy(context.view);
@@ -4586,13 +4604,13 @@ export var CompositionEngine = (_dec10 = inject(ViewEngine, ViewLocator), _dec10
 
         if (context.compositionTransactionOwnershipToken) {
           return context.compositionTransactionOwnershipToken.waitForCompositionComplete().then(function () {
-            return _this18._swap(context, result);
+            return _this16._swap(context, result);
           }).then(function () {
             return result;
           });
         }
 
-        return _this18._swap(context, result).then(function () {
+        return _this16._swap(context, result).then(function () {
           return result;
         });
       });
