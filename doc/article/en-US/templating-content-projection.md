@@ -1,17 +1,7 @@
 ---
-{
-  "name": "Templating: Content Projection",
-  "culture": "en-US",
-  "description": "An overview of the Aurelia templating engine's custom element content projection functionality.",
-  "engines" : { "aurelia-doc" : "^1.0.0" },
-  "author": {
-    "name": "Ashley Grant",
-    "url": "http://www.ashleygrant.com"
-  },
-  "contributors": [],
-  "translators": [],
-  "keywords": ["JavaScript", "Templating", "Custom Elements", "Content Projection", "slot"]
-}
+name: "Templating: Content Projection"
+description: An overview of the Aurelia templating engine's custom element content projection functionality.
+author: Ashley Grant (http://www.ashleygrant.com)
 ---
 ## [Introduction](aurelia-doc://section/1/version/1.0.0)
 

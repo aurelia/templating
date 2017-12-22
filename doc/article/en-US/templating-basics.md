@@ -1,17 +1,7 @@
 ---
-{
-  "name": "Templating: Basics",
-  "culture": "en-US",
-  "description": "A basic guide to using Aurelia's templating engine.",
-  "engines" : { "aurelia-doc" : "^1.0.0" },
-  "author": {
-   	"name": "Scott Jackson",
-	"url": "http://www.scottmmjackson.com"
-  },
-  "contributors": [],
-  "translators": [],
-  "keywords": ["JavaScript", "Templating", "Custom Attributes"]
-}
+name: "Templating: Basics"
+description: A basic guide to using Aurelia's templating engine.
+author: Scott Jackson (http://www.scottmmjackson.com)
 ---
 
 ## [Introduction](aurelia-doc://section/1/version/1.0.0)

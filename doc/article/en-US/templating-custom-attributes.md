@@ -1,17 +1,7 @@
 ---
-{
-  "name": "Templating: Custom Attributes",
-  "culture": "en-US",
-  "description": "An overview of the Aurelia templating engine's custom attribute functionality. Custom Attributes are used to add custom behaviors to DOM elements.",
-  "engines" : { "aurelia-doc" : "^1.0.0" },
-  "author": {
-  	"name": "Ashley Grant",
-  	"url": "http://www.ashleygrant.com"
-  },
-  "contributors": [],
-  "translators": [],
-  "keywords": ["JavaScript", "Templating", "Custom Attributes"]
-}
+name: "Templating: Custom Attributes"
+description: An overview of the Aurelia templating engine's custom attribute functionality. Custom Attributes are used to add custom behaviors to DOM elements.
+author: Ashley Grant (http://www.ashleygrant.com)
 ---
 ## [Introduction](aurelia-doc://section/1/version/1.0.0)
 
@@ -234,7 +224,7 @@ Options binding provides a custom attribute the ability to have multiple bindabl
 
 ## [Default Option](aurelia-doc://section/6/version/1.0.0)
 
-A single bindable property can be made the default among all the options in an options binding.  Thus, when you use a custom attribute that would otherwise require using the options HTML syntax, and you want to provide a value or binding only for the default property, then you can use the simpler HTML syntax of a single value binding. 
+A single bindable property can be made the default among all the options in an options binding.  Thus, when you use a custom attribute that would otherwise require using the options HTML syntax, and you want to provide a value or binding only for the default property, then you can use the simpler HTML syntax of a single value binding.
 
 With options bindings each bindable property must be decorated with the `bindable` decorator.  To specify that you want a bindable property to be the default among all the other bindable properties, use the `primaryProperty` configuration parameter of the `bindable` decorator, as shown below:
 
@@ -270,7 +260,7 @@ Then when you use the custom attribute, instead of this:
 
 <code-listing heading="Usage when Binding a Single Property using the Options Syntax">
   <source-code lang="HTML">
-    <div square="color.bind: squareColor"></div> 
+    <div square="color.bind: squareColor"></div>
  </source-code>
 </code-listing>
 
@@ -278,7 +268,7 @@ You can do this:
 
 <code-listing heading="Usage with Simpler Binding Syntax on a Default Bindable Property">
   <source-code lang="HTML">
-      <div square.bind="squareColor"></div> 
+      <div square.bind="squareColor"></div>
 </source-code>
 </code-listing>
 
@@ -286,7 +276,7 @@ Or if you don't care about binding, then this:
 
 <code-listing heading="Usage with Simpler Syntax on a Default Bindable Property">
   <source-code lang="HTML">
-      <div square="#123456"></div> 
+      <div square="#123456"></div>
 </source-code>
 </code-listing>
 
@@ -359,4 +349,3 @@ Utilizing dynamic options, a custom attribute may deal with bindable properties 
 ## [Globally Accessible Custom Attributes](aurelia-doc://section/8/version/1.0.0)
 
 In all of our examples, we've been using the `require` element to import custom attributes we need into our view.  There's an easier way.  If you have some commonly used custom attributes that you'd like to make globally available, use Aurelia's `globalResources` function to register them.  This will eliminate the need to `require` elements at the top of every view.
-

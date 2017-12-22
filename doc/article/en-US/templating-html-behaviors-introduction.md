@@ -1,17 +1,7 @@
 ---
-{
-  "name": "Templating: HTML Behaviors Introduction",
-  "culture": "en-US",
-  "description": "An overview of the Aurelia templating engine's custom attribute and custom element functionality, including not only how to create basic versions, but how to use them both locally and globally in your application.",
-  "engines" : { "aurelia-doc" : "^1.0.0" },
-  "author": {
-  	"name": "Ashley Grant",
-  	"url": "http://www.ashleygrant.com"
-  },
-  "contributors": [],
-  "translators": [],
-  "keywords": ["JavaScript", "Templating", "Introduction", "HTML Behaviors", "Custom Elements", "Custom Attributes"]
-}
+name: "Templating: HTML Behaviors Introduction"
+description: An overview of the Aurelia templating engine's custom attribute and custom element functionality, including not only how to create basic versions, but how to use them both locally and globally in your application.
+author: Ashley Grant (http://www.ashleygrant.com)
 ---
 ## [Introduction](aurelia-doc://section/1/version/1.0.0)
 

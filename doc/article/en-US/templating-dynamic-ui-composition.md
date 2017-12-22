@@ -1,17 +1,7 @@
 ---
-{
-  "name": "Templating: Dynamic UI Composition",
-  "culture": "en-US",
-  "description": "An overview of Aurelia's dynamic template composition functionality.",
-  "engines" : { "aurelia-doc" : "^1.0.0" },
-  "author": {
-    "name": "Dwayne Charrington",
-    "url": "http://www.ilikekillnerds.com"
-  },
-  "contributors": [],
-  "translators": [],
-  "keywords": ["JavaScript", "Templating", "Composition", "Dynamic", "Compose", "UI"]
-}
+name: "Templating: Dynamic UI Composition"
+description: An overview of Aurelia's dynamic template composition functionality.
+author: Dwayne Charrington (http://www.ilikekillnerds.com)
 ---
 
 ## [Introduction](aurelia-doc://section/1/version/1.0.0)
