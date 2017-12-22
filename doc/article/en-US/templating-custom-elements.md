@@ -3,11 +3,11 @@ name: "Templating: Custom Elements Basics"
 description: An overview of the Aurelia templating engine's custom element functionality basics. Custom Elements are used to add custom components to Aurelia applications.
 author: Ashley Grant (http://www.ashleygrant.com)
 ---
-## [Introduction](aurelia-doc://section/1/version/1.0.0)
+## Introduction
 
 Custom elements are the primary tool an Aurelia application developer will utilize for componentizing an application.
 
-## [HTML Only Custom Element](aurelia-doc://section/2/version/1.0.0)
+## HTML Only Custom Element
 
 The simplest way to create an Aurelia custom element is to create an Aurelia view template in an HTML file and then require it in to another Aurelia view template. HTML only custom elements are a highly useful strategy for dealing with functionality that has no need for ViewModel logic but is likely to be reused. The element name will be the same as the HTML file name, without the extension. When requiring an HTML only custom element in to a view, you must include the `.html` extension.  It is even possible to create bindable properties for an HTML only custom element by putting a comma separated list of property names on the `bindable` attribute of the `template` element. The Aurelia convention of converting camelCase bindable properties to dash-case applies to properties provided to the `bindable` attribute, as shown in the following example.
 
@@ -75,7 +75,7 @@ The following example shows an Aurelia view utilizing two-way databinding to an 
   </source-code>
 </code-listing>
 
-## [Custom Element Basics](aurelia-doc://section/3/version/1.0.0)
+## Custom Element Basics
 
  Creating custom elements using Aurelia is extremely simple. Simply creating a JavaScript and HTML file pair with the same name is all that is necessary to create an Aurelia custom element. The HTML file must contain an Aurelia template wrapped in a `template` element. The JavaScript file must export a JavaScript class. Aurelia's standard naming convention for custom element VM classes is to append `CustomElement` to the end of the class name, e.g. `SecretMessageCustomElement`. Aurelia will take the JavaScript class name, strip `CustomElement` from the end, and convert it from InitCaps to dash-case for the custom element's name. Note that this means it is possible for the custom element name to not match the file name. Thus, it is recommended to name your custom element files to match the custom element name. It is acceptable to export more than one class from the JavaScript file for a custom element. Aurelia will use the first class exported from the file as the custom element's view-model (VM). Note that each instance of a custom element will receive its own separate VM instance.
 
@@ -126,7 +126,7 @@ Aurelia custom elements do not need to follow the naming conventions for Web Com
 
 Before we move on, let's discuss just how easy it is to create a custom element in Aurelia and the impact it has on Aurelia's naming conventions for custom element view-model classes. One capability of the Aurelia framework is that it can take components that were originally created for use as a page in an application and use them as custom elements. When this happens, Aurelia will use the component's VM class name, dash-case it and use that as the custom element's name. Let's say there is an Aurelia application that provides various pages, one of which is the `Contact` page. All it takes to use the `Contact` page as a custom element on any page in the application is to `require` it in to the view. At that point, it is available as the `contact` custom element in that view. It is even possible to provide bindable properties for the page that can be used when using the page as a custom element. This means that, if you wish, you may ignore the Aurelia naming convention for your custom elements. In the example above, we could have simply named the class `SecretMessage`. The custom element would still be named `secret-message`. Given this capability, it might be considered wise to utilize Aurelia's naming convention for custom elements or use the `customElement` decorator to be explicit when creating a component that is only meant to be used as a custom element and not as a standalone page.
 
-## [Bindable Properties](aurelia-doc://section/4/version/1.0.0)
+## Bindable Properties
 
 Any properties or functions of the VM class may be used for binding within the custom element's view; however, a custom element must specify the properties that will be bindable as attributes on the custom element. This is done by decorating each bindable property with the `bindable` decorator. The default binding mode for bindable properties is one-way. This means that a property value can be bound *in* to your custom element, but any changes the custom element makes to the property value will not be propogated *out* of the custom element. This default may be overridden, if needed, by passing a settings object to the `bindable` decorator with a property named `defaultBindingMode` set. This property should be set to one of the three `bindingMode` options: `oneTime`, `oneWay`, or `twoWay`. Both `bindable` and `bindingMode` may be imported from the `aurelia-framework` module. Let's look at an example custom element with a bindable property that defaults to two-way binding.
 
@@ -222,7 +222,7 @@ In this example, the `secret-message` custom element will check every ten second
 
 Whether a secret message that is only shown to the person who writes the message is very useful is for you to decide.
 
-## [Surrogate Behaviors](aurelia-doc://section/5/version/1.0.0)
+## Surrogate Behaviors
 
 Surrogate behaviors allow you to add attributes, event handlers, and bindings on the template element for a custom element. This can be extremely useful in many cases, but one particular area that it is helpful is with dealing with `aria` attributes to help add accessibility to your custom elements. When using surrogate behaviors, you add attributes to the template element for your custom element. These attributes will be placed on the custom element itself at runtime. For example, consider the view for a `my-button` custom element:
 
@@ -257,7 +257,7 @@ The `role="button"` attribute will automatically be set on the `my-button` eleme
 
 It is important to note that Surrogate Behaviors cannot be used with a custom element that is using the `@containerless` decorator discussed below as this decorator removes the wrapping custom element from the DOM, and thus there is nowhere for the Surrogate Behaviors to be placed.
 
-## [Basic Content Projection](aurelia-doc://section/6/version/1.0.0)
+## Basic Content Projection
 
 So far, we've only talked about custom elements that look like `<custom-element attr.bind="vmProp"></custom-element>`. Now it's time to look at creating custom elements that have content inside them. Let's create a name tag custom element. When the `name-tag` element is used, it will take the name it will display as content in the element.
 
@@ -286,7 +286,7 @@ Aurelia custom elements utilize the "slot based" content projection standard fro
 
 Aurelia will project the element's content in to the template where the `<slot></slot>` element is located.
 
-## [Decorators for Customizing Aurelia Custom Element Processing](aurelia-doc://section/7/version/1.0.0)
+## Decorators for Customizing Aurelia Custom Element Processing
 
 There are lots of options that allow you to change how custom elements work. These are expressed by decorators added to the custom element's viewmodel or properties on the viewmodel.
 

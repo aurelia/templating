@@ -4,7 +4,7 @@ description: An overview of Aurelia's dynamic template composition functionality
 author: Dwayne Charrington (http://www.ilikekillnerds.com)
 ---
 
-## [Introduction](aurelia-doc://section/1/version/1.0.0)
+## Introduction
 
 In this section, we are going to be learning how you can dynamically render components in your applications by utilizing Aurelia's dynamic composition functionality.
 
@@ -12,7 +12,7 @@ In many respects, dynamic composition closely resembles that of how Aurelia's ro
 
 When using Aurelia's `<compose>` element, inside of the view-model being used, you have access to all of Aurelia's standard view lifecycle events, such as `attached`, as well as the other callback hooks.
 
-## [Basic Composition](aurelia-doc://section/2/version/1.0.0)
+## Basic Composition
 
 Using the `<compose>` element, we are going to be dynamically composing a view.
 
@@ -43,7 +43,7 @@ Inside of our `hello-world.html` template, we are using the `<compose>` element 
 
 Because Aurelia is a convention based framework, the `<compose>` element knows to use the default convention of loading the matching view for our view-model of the same name.
 
-## [Composing Without a View-Model](aurelia-doc://section/3/version/1.0.0)
+## Composing Without a View-Model
 
 If you're wanting to dynamically compose just a view template without specifying a view-model, all you need to do is omit the `view-model` property and supply a `view`. The result will be that the current view-model will be used as the binding context for our view, allowing you to create HTML partials that take the current properties and methods.
 
@@ -65,7 +65,7 @@ If you're wanting to dynamically compose just a view template without specifying
 
 For the `view` property, we need to specify a file extension, unlike the view-model property, which does not have an extension. The above example will work the same way as our first example, except we're not supplying our own view-model, it's inheriting the binding context from where the `compose` element is used.
 
-## [Passing Through Data](aurelia-doc://section/4/version/1.0.0)
+## Passing Through Data
 
 Using what we learned above, we can dynamically compose view-models and views and pass through additional data via the `model` property on the `<compose>` element.
 

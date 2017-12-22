@@ -3,7 +3,7 @@ name: "Templating: Custom Attributes"
 description: An overview of the Aurelia templating engine's custom attribute functionality. Custom Attributes are used to add custom behaviors to DOM elements.
 author: Ashley Grant (http://www.ashleygrant.com)
 ---
-## [Introduction](aurelia-doc://section/1/version/1.0.0)
+## Introduction
 
 Custom attributes are a category of view resource, just like value converters, binding behaviors and custom elements.  Custom attributes provide the ability to alter the behavior or add functionality to any DOM element.
 
@@ -11,7 +11,7 @@ Custom attributes may work by simply being added to a DOM element, or they may r
 
 Many custom attributes will work directly on the DOM element they are attached to. It is not necessary to search the DOM for the element a custom attribute is attached to. This is accomplished simply by requesting the element be injected into the attribute by Aurelia's Dependency Injection system. Simply request for an object of type `Element` to be injected in to your attribute. Aurelia will ensure you are provided with the DOM element the attribute has been attached to.
 
-## [Simple Custom Attribute](aurelia-doc://section/2/version/1.0.0)
+## Simple Custom Attribute
 
 The simplest custom attribute to create is one that changes the behavior of an element merely by being added to the element. The following attribute will make an HTML element be displayed as a 100 pixel square with a red background.
 
@@ -51,7 +51,7 @@ The simplest custom attribute to create is one that changes the behavior of an e
 
 The attribute name is inferred via an Aurelia convention. This convention is `\${Name}CustomAttribute` for the ECMAScript class name. The class name is in "init caps" format. Aurelia converts this to "dash-case" format for use in HTML. Thus, `RedSquareCustomAttribute` becomes `red-square`.
 
-## [Explicit Attribute Naming](aurelia-doc://section/3/version/1.0.0)
+## Explicit Attribute Naming
 
 Overriding the default naming convention is possible by utilizing the `@customAttribute` decorator. Provide this decorator with the exact name for your attribute as below. Note that Aurelia does not convert from "init caps" to "dash-case" when using this decorator. It uses the exact value passed to the decorator.
 
@@ -67,7 +67,7 @@ Overriding the default naming convention is possible by utilizing the `@customAt
 </code-listing>
 
 
-## [Single Value Binding](aurelia-doc://section/4/version/1.0.0)
+## Single Value Binding
 
 Aurelia custom attributes support three different types of binding: single value binding, options binding, and dynamic options binding. The simplest of the three binding types is single value binding. Aurelia will automatically set the `value` property on the attribute's view-model. Note that this property is not set until databinding is complete. This means the `value` property will not be set in the custom attribute's constructor or in its `created` lifecycle event. It is available in the `bind` and later lifecycle events.
 
@@ -164,7 +164,7 @@ Note that in the above code sample, the color of the square will not be updated,
 
 When the user updates the value of the `color` property via the textbox, Aurelia will call the `valueChanged` method on the custom attribute to alert the custom attribute to the change.
 
-## [Options Binding](aurelia-doc://section/5/version/1.0.0)
+## Options Binding
 
 Options binding provides a custom attribute the ability to have multiple bindable properties. Each bindable property must be specified using the `bindable` decorator. The attribute view-model may implement an optional `\${propertyName}Changed(newValue, oldValue)` callback function for each bindable property. When binding to these options, separate each option with a semicolon and supply a binding command or literal value as in the example below. It is important to note that bindable properties are converted to dash-case when used in the DOM, while the VM property they are bound to are kept with their original casing.
 
@@ -222,7 +222,7 @@ Options binding provides a custom attribute the ability to have multiple bindabl
   </source-code>
 </code-listing>
 
-## [Default Option](aurelia-doc://section/6/version/1.0.0)
+## Default Option
 
 A single bindable property can be made the default among all the options in an options binding.  Thus, when you use a custom attribute that would otherwise require using the options HTML syntax, and you want to provide a value or binding only for the default property, then you can use the simpler HTML syntax of a single value binding.
 
@@ -280,7 +280,7 @@ Or if you don't care about binding, then this:
 </source-code>
 </code-listing>
 
-## [Dynamic Options Binding](aurelia-doc://section/7/version/1.0.0)
+## Dynamic Options Binding
 
 Utilizing dynamic options, a custom attribute may deal with bindable properties where the name of the property is not known when creating the attribute. Simply decorate the attribute's view-model with the `dynamicOptions` decorator and implement the `propertyChanged(name, newValue, oldValue)` callback function. Aurelia will provide the name of the option that has changed along with new and old values for the option. Binding to a dynamic options attribute works exactly the same as binding to an options attribute in the DOM.
 
@@ -346,6 +346,6 @@ Utilizing dynamic options, a custom attribute may deal with bindable properties 
   </source-code>
 </code-listing>
 
-## [Globally Accessible Custom Attributes](aurelia-doc://section/8/version/1.0.0)
+## Globally Accessible Custom Attributes
 
 In all of our examples, we've been using the `require` element to import custom attributes we need into our view.  There's an easier way.  If you have some commonly used custom attributes that you'd like to make globally available, use Aurelia's `globalResources` function to register them.  This will eliminate the need to `require` elements at the top of every view.

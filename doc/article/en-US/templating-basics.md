@@ -4,13 +4,13 @@ description: A basic guide to using Aurelia's templating engine.
 author: Scott Jackson (http://www.scottmmjackson.com)
 ---
 
-## [Introduction](aurelia-doc://section/1/version/1.0.0)
+## Introduction
 
 Aurelia's templating system is simple to learn, and yet powerful enough to build even the most complex applications.
 This article will walk you through the construction of a static template, importing that template into parent
 templates, binding and manipulating data through the view-model, and the use of conditionals, repeaters, and events.
 
-## [A Simple Template](aurelia-doc://section/2/version/1.0.0)
+## A Simple Template
 
 All Aurelia templates must be wrapped with a `<template>` element. The most basic template is a component that prints
 "Hello World":
@@ -94,7 +94,7 @@ But don't worry, there is no dirty-checking. Aurelia uses an observable-based bi
 as they happen without having to do dirty-checking. This means that Aurelia doesn't slow down as you add more complex
  functionality to your template and view-model.
 
-## [Binding](aurelia-doc://section/3/version/1.0.0)
+## Binding
 
 Binding in Aurelia allows data from the view-model to drive template behavior. The most basic example of binding
 is linking a text box to the view model using `value.bind`. What if we let the user decide who they want to greet,
@@ -199,7 +199,7 @@ We can also declare that certain parts of our markup will be referencing propert
 
 Using `with` is basically shorthand for "I'm working on properties of this object", which lets you reuse code as necessary.
 
-## [Composition](aurelia-doc://section/4/version/1.0.0)
+## Composition
 
 In order to live by the DRY (Don't Repeat Yourself) Principle, we don't necessarily want to rely on tight coupling
 between our view and view-model pairs. Wouldn't it be great if there was a custom element that would arbitrarily combine
@@ -236,7 +236,7 @@ an HTML template, a view-model, and maybe even some initialization data for us? 
 
 Note that the view-model we're composing into has an `activate` method. When we use `model.bind`, the contents are passed to `activate`. We then pull the exact value that we need out of the passed model and assign it.
 
-## [The as-element Attribute](aurelia-doc://section/5/version/1.0.0)
+## The as-element Attribute
 
 In some cases, especially when creating table rows out of Aurelia custom elements, you may need to have a custom element masquerade as a standard HTML element. For example, if you're trying to fill table rows with data, you may need your custom element to appear as a `<tr>` row or `<td>` cell. This is where the `as-element` attribute comes in handy:
 
@@ -262,7 +262,7 @@ In some cases, especially when creating table rows out of Aurelia custom element
 
 The `as-element` attribute tells Aurelia that we want the content of the table row to be exactly what our `hello-row` template wraps. The way different browsers render tables means this may be necessary sometimes.
 
-## [The View Resource Pipeline](aurelia-doc://section/6/version/1.0.0)
+## The View Resource Pipeline
 
 The basic idea behind the View Resource Pipeline is that we're not limited to HTML or JavaScript. A basic example would be pulling in Bootstrap:
 
@@ -278,7 +278,7 @@ The basic idea behind the View Resource Pipeline is that we're not limited to HT
 
 Here, the `<require>` tag is taking a CSS file, instead of html or a view model. The View Resource Pipeline is the part of Aurelia that's responsible for recognizing that it's CSS, and handling it appropriately. One of the most powerful features of Aurelia is that the View Resource Pipeline is completely extensible, allowing you to define your own handler for any type of view resource you might want to define!
 
-## [View and Compilation Spies](aurelia-doc://section/7/version/1.0.0)
+## View and Compilation Spies
 
 If you've installed the `aurelia-testing` plugin, you have access to two special templating behaviors:
 
@@ -292,7 +292,7 @@ If you've installed the `aurelia-testing` plugin, you have access to two special
 
 `view-spy` drops Aurelia's copy of the View object into the console, while `compile-spy` emits the compiler's TargetInstruction. This is especially useful for debugging any new View Resources you've created using the View Resource Pipeline.
 
-## [Conditionals](aurelia-doc://section/8/version/1.0.0)
+## Conditionals
 
 Aurelia has two major tools for conditional display: `if`, and `show`. The difference is that `if` removes the element
 entirely from the DOM, and `show` toggles the `aurelia-hide` CSS class which controls the element's visibility.
@@ -368,7 +368,7 @@ because the data is one-time bound. Why don't we use `show.one-time`? If we thin
 really make sense. We're saying we want a CSS class to be applied that will hide an element, and that it will never
 change. In most cases, we want `if` to refuse to create an element we'll never use.
 
-## [Repeaters](aurelia-doc://section/9/version/1.0.0)
+## Repeaters
 
 Repeaters can be used on any element, including custom elements, and template elements too! Here are a few different data types that can be iterated with a repeater.
 
