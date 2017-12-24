@@ -5,6 +5,7 @@ import {TemplatingEngine} from '../src/templating-engine';
 import {View} from '../src/view';
 import {ViewResources} from '../src/view-resources';
 import {ViewFactory} from '../src/view-factory';
+import {ShadowDOM} from '../src/shadow-dom'
 import {DOM} from 'aurelia-pal';
 
 describe('view-slot', () => {
@@ -186,6 +187,62 @@ describe('view-slot', () => {
     });
 
     describe('.remove', () => {
+      it('removes a view from children', () => {
+        viewSlot.add(view);
+        expect(viewSlot.children.length).toEqual(1);
+        viewSlot.remove(view);
+        expect(viewSlot.children.length).toEqual(0);
+      });
+
+      it('calls detached if already attached when removed', () => {
+        spyOn(view, 'detached');
+        viewSlot.add(view);
+        viewSlot.attached();
+        viewSlot.remove(view);
+        expect(view.detached).toHaveBeenCalled();
+      });
+
+      describe('doesnt call return to cache when returnToCache', () => {
+
+        it('is set to false', () => {
+          spyOn(view, 'returnToCache');
+          viewSlot.add(view);
+          viewSlot.remove(view, false);
+          expect(view.returnToCache).not.toHaveBeenCalled();
+        });
+
+        it('is not set', () => {
+          spyOn(view, 'returnToCache');
+          viewSlot.add(view);
+          viewSlot.remove(view);
+          expect(view.returnToCache).not.toHaveBeenCalled();
+        });
+      });
+
+      it('calls return to cache when returnToCache is true', () => {
+        spyOn(view, 'returnToCache');
+        viewSlot.add(view);
+        viewSlot.remove(view, true);
+        expect(view.returnToCache).toHaveBeenCalled();
+      });
+    });
+    
+
+    describe('.remove with ShadowDOM', () => {
+      let { distributeView, undistributeAll, undistributeView } = ShadowDOM;
+      beforeAll(() => {
+        ShadowDOM.distributeView = ShadowDOM.undistributeView = ShadowDOM.undistributeAll = () => {};
+      });
+      afterAll(() => {
+        ShadowDOM.distributeView = distributeView;
+        ShadowDOM.undistributeView = undistributeView;
+        ShadowDOM.undistributeAll = undistributeAll;
+      });
+
+      beforeEach(() => {
+        viewSlot.projectTo({ _default_: {} });
+      });
+
       it('removes a view from children', () => {
         viewSlot.add(view);
         expect(viewSlot.children.length).toEqual(1);

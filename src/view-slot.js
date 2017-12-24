@@ -455,6 +455,9 @@ export class ViewSlot {
     if (this.isAttached) {
       view.detached();
     }
+    if (returnToCache) {
+      view.returnToCache();
+    }
   }
 
   _projectionRemoveAt(index, returnToCache) {
@@ -466,6 +469,9 @@ export class ViewSlot {
     if (this.isAttached) {
       view.detached();
     }
+    if (returnToCache) {
+      view.returnToCache();
+    }
   }
 
   _projectionRemoveMany(viewsToRemove, returnToCache?) {
@@ -476,10 +482,15 @@ export class ViewSlot {
     ShadowDOM.undistributeAll(this.projectToSlots, this);
 
     let children = this.children;
+    let ii = children.length;
 
     if (this.isAttached) {
-      for (let i = 0, ii = children.length; i < ii; ++i) {
-        children[i].detached();
+      for (let i = 0; i < ii; ++i) {
+        if (returnToCache) {
+          children[i].returnToCache();
+        } else {
+          children[i].detached();
+        }
       }
     }
 
