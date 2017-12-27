@@ -178,7 +178,9 @@ class ChildObserverBinder {
         if (!items) {
           items = viewModel[this.property] = [];
         } else {
-          items.length = 0;
+          // The existing array may alread be observed in other bindings
+          // Setting length to 0 will not work properly, unless we intercept it
+          items.splice(0);
         }
 
         while (current) {
@@ -273,6 +275,7 @@ class ChildObserverBinder {
     if (this.viewHost.__childObserver__) {
       this.viewHost.__childObserver__.disconnect();
       this.viewHost.__childObserver__ = null;
+      this.viewModel[this.property] = null;
     }
   }
 }
