@@ -320,7 +320,7 @@ In the following example we create a generic icon button component, `icon-button
 The next component extends the generic button, setting its default icon as well as a different `onClick` behavior.
 
 <code-listing heading="add-button.js">
-  <source-code lang="ES 2015"/>
+  <source-code lang="ES 2015">
     import {useView, customElement} from 'aurelia-templating';
     import {IconButton} from './icon-button';
 
@@ -391,6 +391,9 @@ All HTML Behaviors have a well defined lifecycle. Using this lifecycle, you can 
 4. `attached()` - Next, the component is attached to the DOM (in document). If the view-model has an `attached` callback, it will be invoked at this time.
 5. `detached()` - At some point in the future, the component may be removed from the DOM. If/When this happens, and if the view-model has a `detached` callback, this is when it will be invoked.
 6. `unbind()` - After a component is detached, it's usually unbound. If your view-model has the `unbind` callback, it will be invoked during this process.
+
+> Info: Bind callback stops initial "Changed" callbacks
+> It should be noted that when the view-model has implemented the `bind` callback, the databinding framework will not invoke the changed handlers for the view-model's bindable properties until the "next" time those properties are updated. If you need to perform specific post-processing on your bindable properties, when implementing the `bind` callback, you should do so manually within the callback itself. For example, if you have a bindable property `foo`, implement the `fooChanged` callback, and you want `fooChanged` to be called on initial binding, then you will need to call it from within your `bind()` callback.
 
 Tapping into a lifecycle event is as simple as implementing any of the above methods on the behavior's view-model class. Here's an example of a custom attribute that uses the attached and detached callbacks, something common when wrapping jQuery plugins:
 
