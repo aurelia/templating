@@ -89,4 +89,8 @@ interface BindablePropertyConfig {
   * The name of the property.
   */
   name?: string;
+  /**
+  * A default value for the property.
+  */
+  defaultValue?: any
 }
