@@ -82,7 +82,11 @@ interface BindablePropertyConfig {
   */
   changeHandler?: string;
   /**
-   * The name of the property.
+  * Designates the property as the default bindable property among all the other bindable properties when used in a custom attribute with multiple bindable properties.
+  */
+  primaryProperty?: boolean;
+  /**
+  * The name of the property.
   */
   name?: string;
 }
