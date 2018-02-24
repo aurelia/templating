@@ -432,6 +432,10 @@ As mentioned before, we can also use the template element as our repeater - but 
   </source-code>
 </code-listing>
 
+Note that Aurelia will not be able to observe changes to arrays using the `array[index] = value` syntax. To ensure that
+Aurelia can observe the changes on your array, make use of the Array methods: `Array.prototype.push`, `Array.prototype.pop` and
+`Array.prototype.splice`.
+
 ### Range
 
 We can also iterate over a numerical range:
