@@ -368,6 +368,24 @@ because the data is one-time bound. Why don't we use `show.one-time`? If we thin
 really make sense. We're saying we want a CSS class to be applied that will hide an element, and that it will never
 change. In most cases, we want `if` to refuse to create an element we'll never use.
 
+Complementing `if`, there is `else`. Used in conjunction with `if`, `else` will render its content when `if` does
+not evaluate to true.
+
+<code-listing heading="if-else-template.html">
+  <source-code lang="HTML">
+    <template>
+      <div if.bind="showMessage">
+        <span>${message}</span>
+      </div>
+      <div else>
+        <span>Nothing to see here</span>
+      </div>
+    </template>
+  </source-code>
+</code-listing>
+
+Elements using the `else` template modifier must follow an `if` bound element to make contextual sense and function properly.
+
 ## Repeaters
 
 Repeaters can be used on any element, including custom elements, and template elements too! Here are a few different data types that can be iterated with a repeater.
