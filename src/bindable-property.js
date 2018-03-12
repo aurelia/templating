@@ -219,11 +219,11 @@ export class BindableProperty {
     }
 
     observer = observerLookup[name] = new BehaviorPropertyObserver(
-      this.owner.taskQueue,
-      viewModel,
-      name,
-      selfSubscriber
-    );
+        this.owner.taskQueue,
+        viewModel,
+        name,
+        selfSubscriber
+        );
 
     Object.defineProperty(viewModel, name, {
       configurable: true,
