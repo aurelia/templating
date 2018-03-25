@@ -253,3 +253,105 @@ export class InlineViewStrategy {
     return viewEngine.loadViewFactory(entry, compileInstruction, loadContext, target);
   }
 }
+
+@viewStrategy()
+export class StaticViewStrategy {
+  constructor(config) {
+    this.template = config.template;
+    this.resources = config.resources;
+    this.imports = config.imports;
+    this.moduleId = config.moduleId || '';
+    this.factoryIsReady = false;
+  }
+
+  /**
+  * Loads a view factory.
+  * @param viewEngine The view engine to use during the load process.
+  * @param compileInstruction Additional instructions to use during compilation of the view.
+  * @param loadContext The loading context used for loading all resources and dependencies.
+  * @param target A class from which to extract metadata of additional resources to load.
+  * @return A promise for the view factory that is produced by this strategy.
+  */
+  loadViewFactory(viewEngine, compileInstruction, loadContext, target) {
+    if (this.factoryIsReady) {
+      return Promise.resolve(this.factory);
+    }
+    let importResources;
+    let promise;
+    if (typeof this.imports === 'function') {
+      promise = Promise.resolve(this.imports());
+    }
+    else {
+      promise = Promise.resolve({});
+    }
+    return promise.then(importedResources => {
+      const imported = Object.keys(importedResources).map(i => importedResources[i]);
+      const resources = this.resources.concat(imported);
+      let template;
+      const container = viewEngine.container;
+      const appResources = viewEngine.appResources;
+      const viewCompiler = viewEngine.viewCompiler;
+      const viewResources = new ViewResources(appResources);
+      let resource;
+      let resourceTypeMeta;
+      // entry = this.entry = new TemplateRegistryEntry(this.moduleId);
+      template = /*entry.template =*/ typeof this.template === 'string' ? DOM.createTemplateFromMarkup(this.template) : this.template;
+      if (template.tagName !== 'TEMPLATE') {
+          throw new Error('Custom element template should be wrapped inside a <template> element.');
+      }
+      const requires = template.querySelectorAll('require');
+      if (requires.length > 0) {
+          for (var i = 0, ii = requires.length; ii > i; ++i) {
+          }
+          console.log("<require /> not supported in Static View Strategy yet");
+      }
+      const elDeps = [];
+      if (Array.isArray(resources)) {
+        for (var i = 0, ii = resources.length; ii > i; ++i) {
+          resource = resources[i];
+          resourceTypeMeta = metadata.get(metadata.resource, resource);
+          if (resourceTypeMeta) {
+            if (resourceTypeMeta instanceof HtmlBehaviorResource) {
+              if (resourceTypeMeta.attributeName === null && resourceTypeMeta.elementName === null) {
+                //no customeElement or customAttribute but behavior added by other metadata
+                HtmlBehaviorResource.convention(resource.name, resourceTypeMeta);
+              }
+              if (resourceTypeMeta.attributeName === null && resourceTypeMeta.elementName === null) {
+                //no convention and no customeElement or customAttribute but behavior added by other metadata
+                resourceTypeMeta.elementName = _hyphenate(resource.name);
+              }
+            }
+          } else {
+            if (resourceTypeMeta = HtmlBehaviorResource.convention(resource.name)) {
+              // either custom element / custom attribute
+              metadata.define(metadata.resource, resourceTypeMeta, resource);
+            } else if (resourceTypeMeta = ValueConverterResource.convention(resource.name)
+              || BindingBehaviorResource.convention(resource.name)
+              || ViewEngineHooksResource.convention(resource.name)) {
+              // something else that is not custom element / attribute
+              metadata.define(metadata.resource, resourceTypeMeta, resource);
+            } else {
+              // doesn't match any convention, and is an exported value => custom element
+              resourceTypeMeta = new HtmlBehaviorResource();
+              resourceTypeMeta.elementName = _hyphenate(resource.name);
+              metadata.define(metadata.resource, resourceTypeMeta, resource);
+            }
+          }
+          if ((resourceTypeMeta instanceof HtmlBehaviorResource) && resourceTypeMeta.elementName !== null) {
+            elDeps.push(resourceTypeMeta);
+          }
+          resourceTypeMeta.initialize(container, resource);
+          resourceTypeMeta.register(viewResources);
+        }
+      }
+      compileInstruction.associatedModuleId = this.moduleId;
+      return Promise.all(elDeps.map(el => el.load(container, el.target))).then(() => {
+        const factory = viewCompiler.compile(this.template, viewResources, compileInstruction);
+        // entry.factory = factory;
+        this.factoryIsReady = true;
+        this.factory = factory;
+        return factory;
+      });
+    });
+  }
+}
