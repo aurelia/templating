@@ -393,7 +393,11 @@ export class ViewCompiler {
           } else if (elementProperty) { //custom element attribute
             elementInstruction.attributes[info.attrName].targetProperty = elementProperty.name;
           } else { //standard attribute binding
-            expressions.push(instruction.attributes[instruction.attrName]);
+            if (typeof instruction.attributes[instruction.attrName] == 'undefined') {
+              console.log('Fatal error in attribute',instruction.attrName)
+            } else {
+              expressions.push(instruction.attributes[instruction.attrName]);
+            }
           }
         }
       } else { //NO BINDINGS
