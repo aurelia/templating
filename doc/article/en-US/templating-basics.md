@@ -437,6 +437,20 @@ As mentioned before, we can also use the template element as our repeater - but 
 Aurelia can observe the changes on your array, make use of the Array methods: `Array.prototype.push`, `Array.prototype.pop` and
 `Array.prototype.splice`.
 
+Two-way binding with arrays requires a special syntax due to the nature of the `for-of` loop in javascript. Do not use `repeat.for="item of dataArray"`;doing so will result in one-way binding only - values typed into an input will not be bound back. Instead use the following syntax:
+
+<code-listing heading="repeater-template-input.html">
+  <source-code lang="HTML">
+	<template>		
+		<div repeat.for="i of dataArray.length">
+		<input type="text" value.bind="$parent.dataArray[i]">
+		</div>
+	</template>
+  </source-code>
+</code-listing>
+
+
+
 ### Range
 
 We can also iterate over a numerical range:
