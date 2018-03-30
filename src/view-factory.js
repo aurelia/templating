@@ -104,6 +104,10 @@ function setAttribute(name, value) {
   this._element.setAttribute(name, value);
 }
 
+function removeAttribute(name) {
+  this._element.removeAttribute(name);
+}
+
 function makeElementIntoAnchor(element, elementInstruction) {
   let anchor = DOM.createComment('anchor');
 
@@ -119,6 +123,7 @@ function makeElementIntoAnchor(element, elementInstruction) {
     anchor.hasAttribute = hasAttribute;
     anchor.getAttribute = getAttribute;
     anchor.setAttribute = setAttribute;
+    anchor.removeAttribute = removeAttribute;
   }
 
   DOM.replaceNode(anchor, element);

@@ -3,6 +3,7 @@ import {Container} from 'aurelia-dependency-injection';
 import {ObserverLocator, bindingMode} from 'aurelia-binding';
 import {TaskQueue} from 'aurelia-task-queue';
 import {HtmlBehaviorResource} from '../src/html-behavior';
+import {BindableProperty} from '../src/bindable-property';
 import {ViewResources} from '../src/view-resources';
 
 describe('html-behavior', () => {

@@ -4,6 +4,8 @@ import {bindingMode} from 'aurelia-binding';
 import {Container} from 'aurelia-dependency-injection';
 import {metadata} from 'aurelia-metadata';
 
+const reflectionConfigured = Symbol('reflection');
+
 function getObserver(instance, name) {
   let lookup = instance.__observers__;
 
@@ -27,6 +29,14 @@ function getObserver(instance, name) {
   return lookup[name];
 }
 
+export type BindablePropertyConfig = {
+  defaultBindingMode?: bindingMode,
+  reflectToAttribute?: boolean | {(el: Element, name: string, newVal, oldVal): any},
+  name?: string,
+  attribute?: any,
+  changeHandler?: string
+}
+
 /**
 * Represents a bindable property on a behavior.
 */
@@ -35,7 +45,7 @@ export class BindableProperty {
   * Creates an instance of BindableProperty.
   * @param nameOrConfig The name of the property or a cofiguration object.
   */
-  constructor(nameOrConfig: string | Object) {
+  constructor(nameOrConfig: string | BindablePropertyConfig) {
     if (typeof nameOrConfig === 'string') {
       this.name = nameOrConfig;
     } else {
@@ -58,9 +68,15 @@ export class BindableProperty {
   * @param descriptor The property descriptor for this property.
   */
   registerWith(target: Function, behavior: HtmlBehaviorResource, descriptor?: Object): void {
+    let { reflectToAttribute } = this;
+
     behavior.properties.push(this);
     behavior.attributes[this.attribute] = this;
     this.owner = behavior;
+
+    if (reflectToAttribute) {
+      behavior.hasReflections = true;
+    }
 
     if (descriptor) {
       this.descriptor = descriptor;
@@ -134,25 +150,62 @@ export class BindableProperty {
     let defaultValue = this.defaultValue;
     let changeHandlerName = this.changeHandler;
     let name = this.name;
+    let reflectToAttribute = this.reflectToAttribute;
     let initialValue;
+    let attrName;
+    let reflectFunction;
 
     if (this.hasOptions) {
       return undefined;
     }
 
+    if (reflectToAttribute) {
+      attrName = this.attribute === undefined ? _hyphenate(name) : this.attribute;
+      reflectFunction = typeof reflectToAttribute === 'function' ? reflectToAttribute : reflectFunctions[reflectToAttribute];
+    }
+
     if (changeHandlerName in viewModel) {
       if ('propertyChanged' in viewModel) {
+        if (reflectFunction !== undefined) {
+          selfSubscriber = (newValue, oldValue) => {
+            callReflection(viewModel, reflectFunction, attrName, newValue);
+            viewModel[changeHandlerName](newValue, oldValue);
+            viewModel.propertyChanged(name, newValue, oldValue);
+          };
+        } else {
+          selfSubscriber = (newValue, oldValue) => {
+            viewModel[changeHandlerName](newValue, oldValue);
+            viewModel.propertyChanged(name, newValue, oldValue);
+          };
+        }
+      } else {
+        if (reflectFunction !== undefined) {
+          selfSubscriber = (newValue, oldValue) => {
+            callReflection(viewModel, reflectFunction, attrName, newValue);
+            viewModel[changeHandlerName](newValue, oldValue);
+          };
+        } else {
+          selfSubscriber = (newValue, oldValue) => viewModel[changeHandlerName](newValue, oldValue);
+        }
+      }
+    } else if ('propertyChanged' in viewModel) {
+      if (reflectFunction !== undefined) {
         selfSubscriber = (newValue, oldValue) => {
-          viewModel[changeHandlerName](newValue, oldValue);
+          callReflection(viewModel, reflectFunction, attrName, newValue);
           viewModel.propertyChanged(name, newValue, oldValue);
         };
       } else {
-        selfSubscriber = (newValue, oldValue) => viewModel[changeHandlerName](newValue, oldValue);
+        selfSubscriber = (newValue, oldValue) => viewModel.propertyChanged(name, newValue, oldValue);
       }
-    } else if ('propertyChanged' in viewModel) {
-      selfSubscriber = (newValue, oldValue) => viewModel.propertyChanged(name, newValue, oldValue);
     } else if (changeHandlerName !== null) {
       throw new Error(`Change handler ${changeHandlerName} was specified but not declared on the class.`);
+    }
+
+    /**
+     * When view model doesn't have change handler but this property has reflection
+     */
+    if (selfSubscriber === null && reflectFunction !== undefined) {
+      selfSubscriber = (newValue, oldValue) => callReflection(viewModel, reflectFunction, attrName, newValue);
     }
 
     if (defaultValue !== undefined) {
@@ -248,3 +301,26 @@ export class BindableProperty {
     observer.selfSubscriber = selfSubscriber;
   }
 }
+
+/**
+ * @param viewModel the view model instance
+ * @param attrName name of attribute will be set on the element
+ * @param newValue
+ */
+function callReflection(viewModel: Object, reflectFunction: (element: Element, attrName: string, val) => any, attrName: string, newValue) {
+  let { __element__ } = viewModel.__observers__;
+  reflectFunction(__element__, attrName, newValue);
+}
+
+const reflectFunctions = {
+  string(element, attrName, newValue) {
+    element.setAttribute(attrName, newValue);
+  },
+  boolean(element, attrName, newValue) {
+    if (newValue) {
+      element.setAttribute(attrName, '');
+    } else {
+      element.removeAttribute(attrName);
+    }
+  }
+};

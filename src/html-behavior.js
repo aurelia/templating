@@ -46,6 +46,7 @@ export class HtmlBehaviorResource {
     this.attributes = {};
     this.isInitialized = false;
     this.primaryProperty = null;
+    this.hasReflections = false;
   }
 
   /**
@@ -331,6 +332,10 @@ export class HtmlBehaviorResource {
     let controller = new Controller(this, instruction, viewModel, container);
     let childBindings = this.childBindings;
     let viewFactory;
+
+    if (element !== null && this.hasReflections) {
+      this.observerLocator.getOrCreateObserversLookup(viewModel).__element__ = element;
+    }
 
     if (this.liftsContent) {
       //template controller
