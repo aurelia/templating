@@ -46,12 +46,12 @@ export declare interface EventHandler {
 * Specifies how a view should be created.
 */
 export declare interface ViewCreateInstruction {
-  
+
   /**
     * Indicates that the view is being created by enhancing existing DOM.
     */
   enhance?: boolean;
-  
+
   /**
     * Specifies a key/value lookup of part replacements for the view being created.
     */
@@ -62,7 +62,7 @@ export declare interface ViewCreateInstruction {
 * Implemented by classes that describe how a view factory should be loaded.
 */
 export declare interface ViewStrategy {
-  
+
   /**
     * Loads a view factory.
     * @param viewEngine The view engine to use during the load process.
@@ -78,7 +78,7 @@ export declare interface ViewStrategy {
 * View engine hooks that enable a view resource to provide custom processing during the compilation or creation of a view.
 */
 export declare interface ViewEngineHooks {
-  
+
   /**
     * Invoked before a template is compiled.
     * @param content The DocumentFragment to compile.
@@ -86,13 +86,13 @@ export declare interface ViewEngineHooks {
     * @param instruction The compilation instruction associated with the compilation process.
     */
   beforeCompile?: (content: DocumentFragment, resources: ViewResources, instruction: ViewCompileInstruction) => void;
-  
+
   /**
     * Invoked after a template is compiled.
     * @param viewFactory The view factory that was produced from the compilation process.
     */
   afterCompile?: (viewFactory: ViewFactory) => void;
-  
+
   /**
     * Invoked before a view is created.
     * @param viewFactory The view factory that will be used to create the view.
@@ -101,19 +101,19 @@ export declare interface ViewEngineHooks {
     * @param instruction The view creation instruction associated with this creation process.
     */
   beforeCreate?: (viewFactory: ViewFactory, container: Container, content: DocumentFragment, instruction: ViewCreateInstruction) => void;
-  
+
   /**
     * Invoked after a view is created.
     * @param view The view that was created by the factory.
     */
   afterCreate?: (view: View) => void;
-  
+
   /**
     * Invoked after the bindingContext and overrideContext are configured on the view but before the view is bound.
     * @param view The view that was created by the factory.
     */
   beforeBind?: (view: View) => void;
-  
+
   /**
     * Invoked before the view is unbind. The bindingContext and overrideContext are still available on the view.
     * @param view The view that was created by the factory.
@@ -126,24 +126,24 @@ export declare interface ViewEngineHooks {
 * Represents a node in the view hierarchy.
 */
 export declare interface ViewNode {
-  
+
   /**
     * Binds the node and it's children.
     * @param bindingContext The binding context to bind to.
     * @param overrideContext A secondary binding context that can override the standard context.
     */
   bind(bindingContext: Object, overrideContext?: Object): void;
-  
+
   /**
     * Triggers the attach for the node and its children.
     */
   attached(): void;
-  
+
   /**
     * Triggers the detach for the node and its children.
     */
   detached(): void;
-  
+
   /**
     * Unbinds the node and its children.
     */
@@ -154,7 +154,7 @@ export declare interface ViewNode {
 * An optional interface describing the created convention.
 */
 export declare interface ComponentCreated {
-  
+
   /**
       * Implement this hook if you want to perform custom logic after the constructor has been called.
       * At this point in time, the view has also been created and both the view-model and the view
@@ -172,7 +172,7 @@ export declare interface ComponentCreated {
 * An optional interface describing the bind convention.
 */
 export declare interface ComponentBind {
-  
+
   /**
       * Implement this hook if you want to perform custom logic when databinding is activated on the view and view-model.
       * The "binding context" to which the component is being bound will be passed first.
@@ -189,7 +189,7 @@ export declare interface ComponentBind {
 * An optional interface describing the attached convention.
 */
 export declare interface ComponentAttached {
-  
+
   /**
       * Implement this hook if you want to perform custom logic when the component is attached to the DOM (in document).
       */
@@ -203,7 +203,7 @@ export declare interface ComponentAttached {
 * An optional interface describing the detached convention.
 */
 export declare interface ComponentDetached {
-  
+
   /**
       * Implement this hook if you want to perform custom logic if/when the component is removed from the the DOM.
       */
@@ -217,7 +217,7 @@ export declare interface ComponentDetached {
 * An optional interface describing the unbind convention.
 */
 export declare interface ComponentUnbind {
-  
+
   /**
       * Implement this hook if you want to perform custom logic after the component is detached and unbound.
       */
@@ -231,7 +231,7 @@ export declare interface ComponentUnbind {
 * An optional interface describing the getViewStrategy convention for dynamic components (used with the compose element or the router).
 */
 export declare interface DynamicComponentGetViewStrategy {
-  
+
   /**
       * Implement this hook if you want to provide custom view strategy when this component is used with the compose element or the router.
       */
@@ -242,67 +242,67 @@ export declare interface DynamicComponentGetViewStrategy {
 * Instructs the composition engine how to dynamically compose a component.
 */
 export declare interface CompositionContext {
-  
+
   /**
     * The parent Container for the component creation.
     */
   container: Container;
-  
+
   /**
     * The child Container for the component creation. One will be created from the parent if not provided.
     */
   childContainer?: Container;
-  
+
   /**
     * The context in which the view model is executed in.
     */
   bindingContext: any;
-  
+
   /**
     * A secondary binding context that can override the standard context.
     */
   overrideContext?: any;
-  
+
   /**
     * The view model url or instance for the component.
     */
   viewModel?: any;
-  
+
   /**
     * Data to be passed to the "activate" hook on the view model.
     */
   model?: any;
-  
+
   /**
     * The HtmlBehaviorResource for the component.
     */
   viewModelResource?: HtmlBehaviorResource;
-  
+
   /**
     * The view resources for the view in which the component should be created.
     */
   viewResources: ViewResources;
-  
+
   /**
     * The view inside which this composition is happening.
     */
   owningView?: View;
-  
+
   /**
     * The view url or view strategy to override the default view location convention.
     */
   view?: string | ViewStrategy;
-  
+
   /**
     * The slot to push the dynamically composed component into.
     */
   viewSlot: ViewSlot;
-  
+
   /**
     * Should the composition system skip calling the "activate" hook on the view model.
     */
   skipActivation?: boolean;
-  
+
   /**
     * The element that will parent the dynamic component.
     * It will be registered in the child container of this composition.
@@ -314,27 +314,27 @@ export declare interface CompositionContext {
 * Instructs the framework in how to enhance an existing DOM structure.
 */
 export declare interface EnhanceInstruction {
-  
+
   /**
     * The DI container to use as the root for UI enhancement.
     */
   container?: Container;
-  
+
   /**
     * The element to enhance.
     */
   element: Element;
-  
+
   /**
     * The resources available for enhancement.
     */
   resources?: ViewResources;
-  
+
   /**
     * A binding context for the enhancement.
     */
   bindingContext?: Object;
-  
+
   /**
     * A secondary binding context that can override the standard context.
     */
@@ -350,21 +350,21 @@ export declare const animationEvent: any;
  * An abstract class representing a mechanism for animating the DOM during various DOM state transitions.
  */
 export declare class Animator {
-  
+
   /**
      * Execute an 'enter' animation on an element
      * @param element Element to animate
      * @returns Resolved when the animation is done
      */
   enter(element: HTMLElement): Promise<boolean>;
-  
+
   /**
      * Execute a 'leave' animation on an element
      * @param element Element to animate
      * @returns Resolved when the animation is done
      */
   leave(element: HTMLElement): Promise<boolean>;
-  
+
   /**
      * Add a class to an element to trigger an animation.
      * @param element Element to animate
@@ -372,7 +372,7 @@ export declare class Animator {
      * @returns Resolved when the animation is done
      */
   removeClass(element: HTMLElement, className: string): Promise<boolean>;
-  
+
   /**
      * Add a class to an element to trigger an animation.
      * @param element Element to animate
@@ -380,7 +380,7 @@ export declare class Animator {
      * @returns Resolved when the animation is done
      */
   addClass(element: HTMLElement, className: string): Promise<boolean>;
-  
+
   /**
      * Execute a single animation.
      * @param element Element to animate
@@ -389,7 +389,7 @@ export declare class Animator {
      * @returns Resolved when the animation is done
      */
   animate(element: HTMLElement | Array<HTMLElement>, className: string): Promise<boolean>;
-  
+
   /**
      * Run a sequence of animations one after the other.
      * for example: animator.runSequence("fadeIn","callout")
@@ -397,14 +397,14 @@ export declare class Animator {
      * @returns Resolved when all animations are done
      */
   runSequence(animations: Array<any>): Promise<boolean>;
-  
+
   /**
      * Register an effect (for JS based animators)
      * @param effectName identifier of the effect
      * @param properties Object with properties for the effect
      */
   registerEffect(effectName: string, properties: Object): void;
-  
+
   /**
      * Unregister an effect (for JS based animators)
      * @param effectName identifier of the effect
@@ -417,7 +417,7 @@ export declare class Animator {
 */
 export declare class CompositionTransactionNotifier {
   constructor(owner?: any);
-  
+
   /**
     * Notifies the owning transaction that its work is done.
     */
@@ -429,13 +429,13 @@ export declare class CompositionTransactionNotifier {
 */
 export declare class CompositionTransactionOwnershipToken {
   constructor(owner?: any);
-  
+
   /**
     * Allows the transaction owner to wait for the completion of all child compositions.
     * @return A promise that resolves when all child compositions are done.
     */
   waitForCompositionComplete(): Promise<void>;
-  
+
   /**
     * Used internall to resolve the composition complete promise.
     */
@@ -446,18 +446,18 @@ export declare class CompositionTransactionOwnershipToken {
 * Enables an initiator of a view composition to track any internal async rendering processes for completion.
 */
 export declare class CompositionTransaction {
-  
+
   /**
     * Creates an instance of CompositionTransaction.
     */
   constructor();
-  
+
   /**
     * Attempt to take ownership of the composition transaction.
     * @return An ownership token if successful, otherwise null.
     */
   tryCapture(): CompositionTransactionOwnershipToken;
-  
+
   /**
     * Enlist an async render operation into the transaction.
     * @return A completion notifier.
@@ -483,7 +483,7 @@ export declare function viewEngineHooks(target?: any): any;
  */
 export declare class ElementEvents {
   constructor(element: EventTarget);
-  
+
   /**
      * Dispatches an Event on the context element.
      * @param eventName
@@ -492,25 +492,25 @@ export declare class ElementEvents {
      * @param cancelable
      */
   publish(eventName: string, detail?: Object, bubbles?: boolean, cancelable?: boolean): any;
-  
+
   /**
      * Adds and Event Listener on the context element.
      * @return Returns the eventHandler containing a dispose method
      */
   subscribe(eventName: string, handler: Function, captureOrOptions?: boolean): EventHandler;
-  
+
   /**
      * Adds an Event Listener on the context element, that will be disposed on the first trigger.
      * @return Returns the eventHandler containing a dispose method
      */
   subscribeOnce(eventName: string, handler: Function, captureOrOptions?: boolean): EventHandler;
-  
+
   /**
      * Removes all events that are listening to the specified eventName.
      * @param eventName
      */
   dispose(eventName: string): void;
-  
+
   /**
      * Removes all event handlers.
      */
@@ -522,18 +522,18 @@ export declare class ElementEvents {
 */
 export declare class ResourceLoadContext {
   dependencies: Object;
-  
+
   /**
     * Creates an instance of ResourceLoadContext.
     */
   constructor();
-  
+
   /**
     * Tracks a dependency that is being loaded.
     * @param url The url of the dependency.
     */
   addDependency(url: string): void;
-  
+
   /**
     * Checks if the current context includes a load of the specified url.
     * @return True if the url is being loaded in the context; false otherwise.
@@ -548,12 +548,12 @@ export declare class ViewCompileInstruction {
   targetShadowDOM: boolean;
   compileSurrogate: boolean;
   associatedModuleId: any;
-  
+
   /**
     * The normal configuration for view compilation.
     */
   static normal: ViewCompileInstruction;
-  
+
   /**
     * Creates an instance of ViewCompileInstruction.
     * @param targetShadowDOM Should the compilation target the Shadow DOM.
@@ -583,18 +583,18 @@ export declare class BehaviorInstruction {
   type: HtmlBehaviorResource;
   attrName: string;
   inheritBindingContext: boolean;
-  
+
   /**
     * A default behavior used in scenarios where explicit configuration isn't available.
     */
   static normal: BehaviorInstruction;
-  
+
   /**
     * Creates an instruction for element enhancement.
     * @return The created instruction.
     */
   static enhance(): BehaviorInstruction;
-  
+
   /**
     * Creates an instruction for unit testing.
     * @param type The HtmlBehaviorResource to create.
@@ -602,7 +602,7 @@ export declare class BehaviorInstruction {
     * @return The created instruction.
     */
   static unitTest(type: HtmlBehaviorResource, attributes: Object): BehaviorInstruction;
-  
+
   /**
     * Creates a custom element instruction.
     * @param node The node that represents the custom element.
@@ -610,7 +610,7 @@ export declare class BehaviorInstruction {
     * @return The created instruction.
     */
   static element(node: Node, type: HtmlBehaviorResource): BehaviorInstruction;
-  
+
   /**
     * Creates a custom attribute instruction.
     * @param attrName The name of the attribute.
@@ -618,7 +618,7 @@ export declare class BehaviorInstruction {
     * @return The created instruction.
     */
   static attribute(attrName: string, type?: HtmlBehaviorResource): BehaviorInstruction;
-  
+
   /**
     * Creates a dynamic component instruction.
     * @param host The element that will parent the dynamic component.
@@ -627,7 +627,7 @@ export declare class BehaviorInstruction {
     * @return The created instruction.
     */
   static dynamic(host: Element, viewModel: Object, viewFactory: ViewFactory): BehaviorInstruction;
-  
+
   /**
     * Creates an instance of BehaviorInstruction.
     */
@@ -652,26 +652,26 @@ export declare class TargetInstruction {
   elementInstruction: BehaviorInstruction;
   lifting: boolean;
   values: Object;
-  
+
   /**
     * An empty array used to represent a target with no binding expressions.
     */
   static noExpressions: any;
-  
+
   /**
     * Creates an instruction that represents a shadow dom slot.
     * @param parentInjectorId The id of the parent dependency injection container.
     * @return The created instruction.
     */
   static shadowSlot(parentInjectorId: number): TargetInstruction;
-  
+
   /**
     * Creates an instruction that represents a binding expression in the content of an element.
     * @param expression The binding expression.
     * @return The created instruction.
     */
   static contentExpression(expression?: any): TargetInstruction;
-  
+
   /**
     * Creates an instruction that represents content that was lifted out of the DOM and into a ViewFactory.
     * @param parentInjectorId The id of the parent dependency injection container.
@@ -679,7 +679,7 @@ export declare class TargetInstruction {
     * @return The created instruction.
     */
   static lifting(parentInjectorId: number, liftingInstruction: BehaviorInstruction): TargetInstruction;
-  
+
   /**
     * Creates an instruction that represents an element with behaviors and bindings.
     * @param injectorId The id of the dependency injection container.
@@ -691,7 +691,7 @@ export declare class TargetInstruction {
     * @return The created instruction.
     */
   static normal(injectorId: number, parentInjectorId: number, providers: Array<Function>, behaviorInstructions: Array<BehaviorInstruction>, expressions: Array<Object>, elementInstruction: BehaviorInstruction): TargetInstruction;
-  
+
   /**
     * Creates an instruction that represents the surrogate behaviors and bindings for an element.
     * @param providers The types which will provide behavior for this element.
@@ -701,7 +701,7 @@ export declare class TargetInstruction {
     * @return The created instruction.
     */
   static surrogate(providers: Array<Function>, behaviorInstructions: Array<BehaviorInstruction>, expressions: Array<Object>, values: Object): TargetInstruction;
-  
+
   /**
     * Creates an instance of TargetInstruction.
     */
@@ -720,13 +720,13 @@ export declare const viewStrategy: Function;
 * A view strategy that loads a view relative to its associated view-model.
 */
 export declare class RelativeViewStrategy {
-  
+
   /**
     * Creates an instance of RelativeViewStrategy.
     * @param path The relative path to the view.
     */
   constructor(path: string);
-  
+
   /**
     * Loads a view factory.
     * @param viewEngine The view engine to use during the load process.
@@ -736,7 +736,7 @@ export declare class RelativeViewStrategy {
     * @return A promise for the view factory that is produced by this strategy.
     */
   loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext, target?: any): Promise<ViewFactory>;
-  
+
   /**
     * Makes the view loaded by this strategy relative to the provided file path.
     * @param file The path to load the view relative to.
@@ -748,14 +748,14 @@ export declare class RelativeViewStrategy {
 * A view strategy based on naming conventions.
 */
 export declare class ConventionalViewStrategy {
-  
+
   /**
     * Creates an instance of ConventionalViewStrategy.
     * @param viewLocator The view locator service for conventionally locating the view.
     * @param origin The origin of the view model to conventionally load the view for.
     */
   constructor(viewLocator: ViewLocator, origin: Origin);
-  
+
   /**
     * Loads a view factory.
     * @param viewEngine The view engine to use during the load process.
@@ -772,14 +772,14 @@ export declare class ConventionalViewStrategy {
 * Typically used when the component author wishes to take over fine-grained rendering control.
 */
 export declare class NoViewStrategy {
-  
+
   /**
     * Creates an instance of NoViewStrategy.
     * @param dependencies A list of view resource dependencies of this view.
     * @param dependencyBaseUrl The base url for the view dependencies.
     */
   constructor(dependencies?: Array<string | Function | Object>, dependencyBaseUrl?: string);
-  
+
   /**
     * Loads a view factory.
     * @param viewEngine The view engine to use during the load process.
@@ -795,14 +795,14 @@ export declare class NoViewStrategy {
 * A view strategy created directly from the template registry entry.
 */
 export declare class TemplateRegistryViewStrategy {
-  
+
   /**
     * Creates an instance of TemplateRegistryViewStrategy.
     * @param moduleId The associated moduleId of the view to be loaded.
     * @param entry The template registry entry used in loading the view factory.
     */
   constructor(moduleId: string, entry: TemplateRegistryEntry);
-  
+
   /**
     * Loads a view factory.
     * @param viewEngine The view engine to use during the load process.
@@ -818,7 +818,7 @@ export declare class TemplateRegistryViewStrategy {
 * A view strategy that allows the component author to inline the html for the view.
 */
 export declare class InlineViewStrategy {
-  
+
   /**
     * Creates an instance of InlineViewStrategy.
     * @param markup The markup for the view. Be sure to include the wrapping template tag.
@@ -826,7 +826,7 @@ export declare class InlineViewStrategy {
     * @param dependencyBaseUrl The base url for the view dependencies.
     */
   constructor(markup: string, dependencies?: Array<string | Function | Object>, dependencyBaseUrl?: string);
-  
+
   /**
     * Loads a view factory.
     * @param viewEngine The view engine to use during the load process.
@@ -842,19 +842,19 @@ export declare class InlineViewStrategy {
 * Locates a view for an object.
 */
 export declare class ViewLocator {
-  
+
   /**
     * The metadata key for storing/finding view strategies associated with an class/object.
     */
   static viewStrategyMetadataKey: any;
-  
+
   /**
     * Gets the view strategy for the value.
     * @param value The value to locate the view strategy for.
     * @return The located ViewStrategy instance.
     */
   getViewStrategy(value: any): ViewStrategy;
-  
+
   /**
     * Creates a fallback View Strategy. Used when unable to locate a configured strategy.
     * The default implementation returns and instance of ConventionalViewStrategy.
@@ -862,7 +862,7 @@ export declare class ViewLocator {
     * @return The fallback ViewStrategy.
     */
   createFallbackViewStrategy(origin: Origin): ViewStrategy;
-  
+
   /**
     * Conventionally converts a view model origin to a view url.
     * Used by the ConventionalViewStrategy.
@@ -876,7 +876,7 @@ export declare class ViewLocator {
 * An abstract base class for implementations of a binding language.
 */
 export declare class BindingLanguage {
-  
+
   /**
     * Inspects an attribute for bindings.
     * @param resources The ViewResources for the view being compiled.
@@ -886,7 +886,7 @@ export declare class BindingLanguage {
     * @return An info object with the results of the inspection.
     */
   inspectAttribute(resources: ViewResources, elementName: string, attrName: string, attrValue: string): Object;
-  
+
   /**
     * Creates an attribute behavior instruction.
     * @param resources The ViewResources for the view being compiled.
@@ -896,7 +896,7 @@ export declare class BindingLanguage {
     * @return The instruction instance.
     */
   createAttributeInstruction(resources: ViewResources, element: Element, info: Object, existingInstruction?: Object): BehaviorInstruction;
-  
+
   /**
     * Parses the text for bindings.
     * @param resources The ViewResources for the view being compiled.
@@ -955,66 +955,66 @@ export declare class ShadowDOM {
 * Represents a collection of resources used during the compilation of a view.
 */
 export declare class ViewResources {
-  
+
   /**
     * A custom binding language used in the view.
     */
   bindingLanguage: any;
-  
+
   /**
     * Creates an instance of ViewResources.
     * @param parent The parent resources. This resources can override them, but if a resource is not found, it will be looked up in the parent.
     * @param viewUrl The url of the view to which these resources apply.
     */
   constructor(parent?: ViewResources, viewUrl?: string);
-  
+
   /**
     * Registers view engine hooks for the view.
     * @param hooks The hooks to register.
     */
   registerViewEngineHooks(hooks: ViewEngineHooks): void;
-  
+
   /**
     * Gets the binding language associated with these resources, or return the provided fallback implementation.
     * @param bindingLanguageFallback The fallback binding language implementation to use if no binding language is configured locally.
     * @return The binding language.
     */
   getBindingLanguage(bindingLanguageFallback: BindingLanguage): BindingLanguage;
-  
+
   /**
     * Patches an immediate parent into the view resource resolution hierarchy.
     * @param newParent The new parent resources to patch in.
     */
   patchInParent(newParent: ViewResources): void;
-  
+
   /**
     * Maps a path relative to the associated view's origin.
     * @param path The relative path.
     * @return The calcualted path.
     */
   relativeToView(path: string): string;
-  
+
   /**
     * Registers an HTML element.
     * @param tagName The name of the custom element.
     * @param behavior The behavior of the element.
     */
   registerElement(tagName: string, behavior: HtmlBehaviorResource): void;
-  
+
   /**
     * Gets an HTML element behavior.
     * @param tagName The tag name to search for.
     * @return The HtmlBehaviorResource for the tag name or null.
     */
   getElement(tagName: string): HtmlBehaviorResource;
-  
+
   /**
     * Gets the known attribute name based on the local attribute name.
     * @param attribute The local attribute name to lookup.
     * @return The known name.
     */
   mapAttribute(attribute: string): string;
-  
+
   /**
     * Registers an HTML attribute.
     * @param attribute The name of the attribute.
@@ -1022,88 +1022,97 @@ export declare class ViewResources {
     * @param knownAttribute The well-known name of the attribute (in lieu of the local name).
     */
   registerAttribute(attribute: string, behavior: HtmlBehaviorResource, knownAttribute: string): void;
-  
+
   /**
     * Gets an HTML attribute behavior.
     * @param attribute The name of the attribute to lookup.
     * @return The HtmlBehaviorResource for the attribute or null.
     */
   getAttribute(attribute: string): HtmlBehaviorResource;
-  
+
   /**
     * Registers a value converter.
     * @param name The name of the value converter.
     * @param valueConverter The value converter instance.
     */
   registerValueConverter(name: string, valueConverter: Object): void;
-  
+
   /**
     * Gets a value converter.
     * @param name The name of the value converter.
     * @return The value converter instance.
     */
   getValueConverter(name: string): Object;
-  
+
   /**
     * Registers a binding behavior.
     * @param name The name of the binding behavior.
     * @param bindingBehavior The binding behavior instance.
     */
   registerBindingBehavior(name: string, bindingBehavior: Object): void;
-  
+
   /**
     * Gets a binding behavior.
     * @param name The name of the binding behavior.
     * @return The binding behavior instance.
     */
   getBindingBehavior(name: string): Object;
-  
+
   /**
     * Registers a value.
     * @param name The name of the value.
     * @param value The value.
     */
   registerValue(name: string, value: any): void;
-  
+
   /**
     * Gets a value.
     * @param name The name of the value.
     * @return The value.
     */
   getValue(name: string): any;
+
+  /**
+   * @internal
+   * Not supported for public use. Can be changed without warning.
+   * 
+   * Register a class as a resource.
+   * Automatically infer the resource type based on convention
+   */
+  autoRegister(container: Container, impl: Function): HtmlBehaviorResource | ValueConverterResource | BindingBehaviorResource | ViewEngineHooksResource;
 }
 export declare class View {
-  
+
   /**
     * The Dependency Injection Container that was used to create this View instance.
     */
   container: Container;
-  
+
   /**
     * The ViewFactory that built this View instance.
     */
   viewFactory: ViewFactory;
-  
+
   /**
     * Contains the DOM Nodes which represent this View. If the view was created via the "enhance" API, this will be an Element, otherwise it will be a DocumentFragment. If not created via "enhance" then the fragment will only contain nodes when the View is detached from the DOM.
     */
   fragment: DocumentFragment | Element;
-  
+
   /**
     * The primary binding context that this view is data-bound to.
     */
   bindingContext: Object;
-  
+
   /**
     * The override context which contains properties capable of overriding those found on the binding context.
     */
   overrideContext: Object;
-  
+
   /**
     * The Controller instance that owns this View.
     */
   controller: Controller;
-  
+
   /**
     * Creates a View instance.
     * @param container The container from which the view was created.
@@ -1114,57 +1123,57 @@ export declare class View {
     * @param children The children of this view.
     */
   constructor(container: Container, viewFactory: ViewFactory, fragment: DocumentFragment, controllers: Controller[], bindings: Binding[], children: ViewNode[], slots: Object);
-  
+
   /**
     * Returns this view to the appropriate view cache.
     */
   returnToCache(): void;
-  
+
   /**
     * Triggers the created callback for this view and its children.
     */
   created(): void;
-  
+
   /**
     * Binds the view and it's children.
     * @param bindingContext The binding context to bind to.
     * @param overrideContext A secondary binding context that can override the standard context.
     */
   bind(bindingContext: Object, overrideContext?: Object, _systemUpdate?: boolean): void;
-  
+
   /**
     * Adds a binding instance to this view.
     * @param binding The binding instance.
     */
   addBinding(binding: Object): void;
-  
+
   /**
     * Unbinds the view and its children.
     */
   unbind(): void;
-  
+
   /**
     * Inserts this view's nodes before the specified DOM node.
     * @param refNode The node to insert this view's nodes before.
     */
   insertNodesBefore(refNode: Node): void;
-  
+
   /**
     * Appends this view's to the specified DOM node.
     * @param parent The parent element to append this view's nodes to.
     */
   appendNodesTo(parent: Element): void;
-  
+
   /**
     * Removes this view's nodes from the DOM.
     */
   removeNodes(): void;
-  
+
   /**
     * Triggers the attach for the view and its children.
     */
   attached(): void;
-  
+
   /**
     * Triggers the detach for the view and its children.
     */
@@ -1176,7 +1185,7 @@ export declare class View {
 * Manages the view lifecycle for its children.
 */
 export declare class ViewSlot {
-  
+
   /**
     * Creates an instance of ViewSlot.
     * @param anchor The DOM node which will server as the anchor or container for insertion.
@@ -1184,7 +1193,7 @@ export declare class ViewSlot {
     * @param animator The animator that will controll enter/leave transitions for this slot.
     */
   constructor(anchor: Node, anchorIsContainer: boolean, animator?: Animator);
-  
+
   /**
      *   Runs the animator against the first animatable element found within the view's fragment
      *   @param  view       The view to use when searching for the element.
@@ -1192,32 +1201,32 @@ export declare class ViewSlot {
      *   @returns An animation complete Promise or undefined if no animation was run.
      */
   animateView(view: View, direction?: string): void | Promise<any>;
-  
+
   /**
     * Takes the child nodes of an existing element that has been converted into a ViewSlot
     * and makes those nodes into a View within the slot.
     */
   transformChildNodesIntoView(): void;
-  
+
   /**
     * Binds the slot and it's children.
     * @param bindingContext The binding context to bind to.
     * @param overrideContext A secondary binding context that can override the standard context.
     */
   bind(bindingContext: Object, overrideContext: Object): void;
-  
+
   /**
     * Unbinds the slot and its children.
     */
   unbind(): void;
-  
+
   /**
     * Adds a view to the slot.
     * @param view The view to add.
     * @return May return a promise if the view addition triggered an animation.
     */
   add(view: View): void | Promise<any>;
-  
+
   /**
     * Inserts a view into the slot.
     * @param index The index to insert the view at.
@@ -1225,14 +1234,14 @@ export declare class ViewSlot {
     * @return May return a promise if the view insertion triggered an animation.
     */
   insert(index: number, view: View): void | Promise<any>;
-  
+
   /**
      * Moves a view across the slot.
      * @param sourceIndex The index the view is currently at.
      * @param targetIndex The index to insert the view at.
      */
   move(sourceIndex?: any, targetIndex?: any): any;
-  
+
   /**
     * Removes a view from the slot.
     * @param view The view to remove.
@@ -1241,7 +1250,7 @@ export declare class ViewSlot {
     * @return May return a promise if the view removal triggered an animation.
     */
   remove(view: View, returnToCache?: boolean, skipAnimation?: boolean): void | Promise<View>;
-  
+
   /**
     * Removes many views from the slot.
     * @param viewsToRemove The array of views to remove.
@@ -1250,7 +1259,7 @@ export declare class ViewSlot {
     * @return May return a promise if the view removal triggered an animation.
     */
   removeMany(viewsToRemove: View[], returnToCache?: boolean, skipAnimation?: boolean): void | Promise<View>;
-  
+
   /**
     * Removes a view an a specified index from the slot.
     * @param index The index to remove the view at.
@@ -1259,7 +1268,7 @@ export declare class ViewSlot {
     * @return May return a promise if the view removal triggered an animation.
     */
   removeAt(index: number, returnToCache?: boolean, skipAnimation?: boolean): View | Promise<View>;
-  
+
   /**
     * Removes all views from the slot.
     * @param returnToCache Should the view be returned to the view cache?
@@ -1267,12 +1276,12 @@ export declare class ViewSlot {
     * @return May return a promise if the view removals triggered an animation.
     */
   removeAll(returnToCache?: boolean, skipAnimation?: boolean): void | Promise<any>;
-  
+
   /**
     * Triggers the attach for the slot and its children.
     */
   attached(): void;
-  
+
   /**
     * Triggers the detach for the slot and its children.
     */
@@ -1284,7 +1293,7 @@ export declare class ViewSlot {
 * A factory capable of creating View instances, bound to a location within another view hierarchy.
 */
 export declare class BoundViewFactory {
-  
+
   /**
     * Creates an instance of BoundViewFactory.
     * @param parentContainer The parent DI container.
@@ -1292,31 +1301,31 @@ export declare class BoundViewFactory {
     * @param partReplacements Part replacement overrides for the internal factory.
     */
   constructor(parentContainer: Container, viewFactory: ViewFactory, partReplacements?: Object);
-  
+
   /**
     * Creates a view or returns one from the internal cache, if available.
     * @return The created view.
     */
   create(): View;
-  
+
   /**
     * Indicates whether this factory is currently using caching.
     */
   isCaching: any;
-  
+
   /**
     * Sets the cache size for this factory.
     * @param size The number of views to cache or "*" to cache all.
     * @param doNotOverrideIfAlreadySet Indicates that setting the cache should not override the setting if previously set.
     */
   setCacheSize(size: number | string, doNotOverrideIfAlreadySet: boolean): void;
-  
+
   /**
     * Gets a cached view if available...
     * @return A cached view or null if one isn't available.
     */
   getCachedView(): View;
-  
+
   /**
     * Returns a view to the cache.
     * @param view The view to return to the cache if space is available.
@@ -1328,12 +1337,12 @@ export declare class BoundViewFactory {
 * A factory capable of creating View instances.
 */
 export declare class ViewFactory {
-  
+
   /**
     * Indicates whether this factory is currently using caching.
     */
   isCaching: any;
-  
+
   /**
     * Creates an instance of ViewFactory.
     * @param template The document fragment that serves as a template for the view to be created.
@@ -1341,26 +1350,26 @@ export declare class ViewFactory {
     * @param resources The resources used to compile this factory.
     */
   constructor(template: DocumentFragment, instructions: Object, resources: ViewResources);
-  
+
   /**
     * Sets the cache size for this factory.
     * @param size The number of views to cache or "*" to cache all.
     * @param doNotOverrideIfAlreadySet Indicates that setting the cache should not override the setting if previously set.
     */
   setCacheSize(size: number | string, doNotOverrideIfAlreadySet: boolean): void;
-  
+
   /**
     * Gets a cached view if available...
     * @return A cached view or null if one isn't available.
     */
   getCachedView(): View;
-  
+
   /**
     * Returns a view to the cache.
     * @param view The view to return to the cache if space is available.
     */
   returnViewToCache(view: View): void;
-  
+
   /**
     * Creates a view or returns one from the internal cache, if available.
     * @param container The container to create the view from.
@@ -1375,14 +1384,14 @@ export declare class ViewFactory {
 * Compiles html templates, dom fragments and strings into ViewFactory instances, capable of instantiating Views.
 */
 export declare class ViewCompiler {
-  
+
   /**
     * Creates an instance of ViewCompiler.
     * @param bindingLanguage The default data binding language and syntax used during view compilation.
     * @param resources The global resources used during compilation when none are provided for compilation.
     */
   constructor(bindingLanguage: BindingLanguage, resources: ViewResources);
-  
+
   /**
     * Compiles an html template, dom fragment or string into ViewFactory instances, capable of instantiating Views.
     * @param source The template, fragment or string to compile.
@@ -1397,26 +1406,26 @@ export declare class ViewCompiler {
 * Represents a module with view resources.
 */
 export declare class ResourceModule {
-  
+
   /**
     * Creates an instance of ResourceModule.
     * @param moduleId The id of the module that contains view resources.
     */
   constructor(moduleId: string);
-  
+
   /**
     * Initializes the resources within the module.
     * @param container The dependency injection container usable during resource initialization.
     */
   initialize(container: Container): void;
-  
+
   /**
     * Registers the resources in the module with the view resources.
     * @param registry The registry of view resources to regiser within.
     * @param name The name to use in registering the default resource.
     */
   register(registry: ViewResources, name?: string): void;
-  
+
   /**
     * Loads any dependencies of the resources within this module.
     * @param container The DI container to use during dependency resolution.
@@ -1430,7 +1439,7 @@ export declare class ResourceModule {
 * Represents a single view resource with a ResourceModule.
 */
 export declare class ResourceDescription {
-  
+
   /**
     * Creates an instance of ResourceDescription.
     * @param key The key that the resource was exported as.
@@ -1438,20 +1447,20 @@ export declare class ResourceDescription {
     * @param resourceTypeMeta The metadata located on the resource.
     */
   constructor(key: string, exportedValue: any, resourceTypeMeta?: Object);
-  
+
   /**
     * Initializes the resource.
     * @param container The dependency injection container usable during resource initialization.
     */
   initialize(container: Container): void;
-  
+
   /**
     * Registrers the resource with the view resources.
     * @param registry The registry of view resources to regiser within.
     * @param name The name to use in registering the resource.
     */
   register(registry: ViewResources, name?: string): void;
-  
+
   /**
     * Loads any dependencies of the resource.
     * @param container The DI container to use during dependency resolution.
@@ -1465,19 +1474,19 @@ export declare class ResourceDescription {
 * Analyzes a module in order to discover the view resources that it exports.
 */
 export declare class ModuleAnalyzer {
-  
+
   /**
     * Creates an instance of ModuleAnalyzer.
     */
   constructor();
-  
+
   /**
     * Retrieves the ResourceModule analysis for a previously analyzed module.
     * @param moduleId The id of the module to lookup.
     * @return The ResouceModule if found, undefined otherwise.
     */
   getAnalysis(moduleId: string): ResourceModule;
-  
+
   /**
     * Analyzes a module.
     * @param moduleId The id of the module to analyze.
@@ -1492,12 +1501,12 @@ export declare class ModuleAnalyzer {
 * Controls the view resource loading pipeline.
 */
 export declare class ViewEngine {
-  
+
   /**
     * The metadata key for storing requires declared in a ViewModel.
     */
   static viewModelRequireMetadataKey: any;
-  
+
   /**
     * Creates an instance of ViewEngine.
     * @param loader The module loader.
@@ -1507,14 +1516,14 @@ export declare class ViewEngine {
     * @param appResources The app-level global resources.
     */
   constructor(loader: Loader, container: Container, viewCompiler: ViewCompiler, moduleAnalyzer: ModuleAnalyzer, appResources: ViewResources);
-  
+
   /**
     * Adds a resource plugin to the resource loading pipeline.
     * @param extension The file extension to match in require elements.
     * @param implementation The plugin implementation that handles the resource type.
     */
   addResourcePlugin(extension: string, implementation: Object): void;
-  
+
   /**
     * Loads and compiles a ViewFactory from a url or template registry entry.
     * @param urlOrRegistryEntry A url or template registry entry to generate the view factory for.
@@ -1524,7 +1533,7 @@ export declare class ViewEngine {
     * @return A promise for the compiled view factory.
     */
   loadViewFactory(urlOrRegistryEntry: string | TemplateRegistryEntry, compileInstruction?: ViewCompileInstruction, loadContext?: ResourceLoadContext, target?: any): Promise<ViewFactory>;
-  
+
   /**
     * Loads all the resources specified by the registry entry.
     * @param registryEntry The template registry entry to load the resources for.
@@ -1534,7 +1543,7 @@ export declare class ViewEngine {
     * @return A promise of ViewResources for the registry entry.
     */
   loadTemplateResources(registryEntry: TemplateRegistryEntry, compileInstruction?: ViewCompileInstruction, loadContext?: ResourceLoadContext, target?: any): Promise<ViewResources>;
-  
+
   /**
     * Loads a view model as a resource.
     * @param moduleImport The module to import.
@@ -1542,7 +1551,7 @@ export declare class ViewEngine {
     * @return A promise for the ResourceDescription.
     */
   importViewModelResource(moduleImport: string, moduleMember: string): Promise<ResourceDescription>;
-  
+
   /**
     * Imports the specified resources with the specified names into the view resources object.
     * @param moduleIds The modules to load.
@@ -1558,23 +1567,23 @@ export declare class ViewEngine {
 * Controls a view model (and optionally its view), according to a particular behavior and by following a set of instructions.
 */
 export declare class Controller {
-  
+
   /**
     * The HtmlBehaviorResource that provides the base behavior for this controller.
     */
   behavior: HtmlBehaviorResource;
-  
+
   /**
     * The developer's view model instance which provides the custom behavior for this controller.
     */
   viewModel: Object;
-  
+
   /**
     * The view associated with the component being controlled by this controller.
     * Note: Not all components will have a view, so the value may be null.
     */
   view: View;
-  
+
   /**
     * Creates an instance of Controller.
     * @param behavior The HtmlBehaviorResource that provides the base behavior for this controller.
@@ -1583,13 +1592,13 @@ export declare class Controller {
     * @param container The container that the controller's view was created from.
     */
   constructor(behavior: HtmlBehaviorResource, instruction: BehaviorInstruction, viewModel: Object, container: Container);
-  
+
   /**
     * Invoked when the view which contains this controller is created.
     * @param owningView The view inside which this controller resides.
     */
   created(owningView: View): void;
-  
+
   /**
     * Used to automate the proper binding of this controller and its view. Used by the composition engine for dynamic component creation.
     * This should be considered a semi-private API and is subject to change without notice, even across minor or patch releases.
@@ -1597,23 +1606,23 @@ export declare class Controller {
     * @param owningView The view inside which this controller resides.
     */
   automate(overrideContext?: Object, owningView?: View): void;
-  
+
   /**
     * Binds the controller to the scope.
     * @param scope The binding scope.
     */
   bind(scope: Object): void;
-  
+
   /**
     * Unbinds the controller.
     */
   unbind(): void;
-  
+
   /**
     * Attaches the controller.
     */
   attached(): void;
-  
+
   /**
     * Detaches the controller.
     */
@@ -1624,7 +1633,7 @@ export declare class Controller {
 * An implementation of Aurelia's Observer interface that is used to back bindable properties defined on a behavior.
 */
 export declare class BehaviorPropertyObserver {
-  
+
   /**
     * Creates an instance of BehaviorPropertyObserver.
     * @param taskQueue The task queue used to schedule change notifications.
@@ -1634,30 +1643,30 @@ export declare class BehaviorPropertyObserver {
     * @param initialValue The initial value of the property.
     */
   constructor(taskQueue: TaskQueue, obj: Object, propertyName: string, selfSubscriber: Function, initialValue: any);
-  
+
   /**
     * Gets the property's value.
     */
   getValue(): any;
-  
+
   /**
     * Sets the property's value.
     * @param newValue The new value to set.
     */
   setValue(newValue: any): void;
-  
+
   /**
     * Invoked by the TaskQueue to publish changes to subscribers.
     */
   call(): void;
-  
+
   /**
     * Subscribes to the observerable.
     * @param context A context object to pass along to the subscriber when it's called.
     * @param callable A function or object with a "call" method to be invoked for delivery of changes.
     */
   subscribe(context: any, callable: Function): void;
-  
+
   /**
     * Unsubscribes from the observerable.
     * @param context The context object originally subscribed with.
@@ -1670,13 +1679,13 @@ export declare class BehaviorPropertyObserver {
 * Represents a bindable property on a behavior.
 */
 export declare class BindableProperty {
-  
+
   /**
     * Creates an instance of BindableProperty.
     * @param nameOrConfig The name of the property or a cofiguration object.
     */
   constructor(nameOrConfig: string | Object);
-  
+
   /**
     * Registers this bindable property with particular Class and Behavior instance.
     * @param target The class to register this behavior with.
@@ -1684,14 +1693,14 @@ export declare class BindableProperty {
     * @param descriptor The property descriptor for this property.
     */
   registerWith(target: Function, behavior: HtmlBehaviorResource, descriptor?: Object): void;
-  
+
   /**
     * Defines this property on the specified class and behavior.
     * @param target The class to define the property on.
     * @param behavior The behavior to define the property on.
     */
   defineOn(target: Function, behavior: HtmlBehaviorResource): void;
-  
+
   /**
     * Creates an observer for this property.
     * @param viewModel The view model instance on which to create the observer.
@@ -1705,25 +1714,25 @@ export declare class BindableProperty {
 * attribute functionality.
 */
 export declare class HtmlBehaviorResource {
-  
+
   /**
     * Creates an instance of HtmlBehaviorResource.
     */
   constructor();
-  
+
   /**
     * Checks whether the provided name matches any naming conventions for HtmlBehaviorResource.
     * @param name The name of the potential resource.
     * @param existing An already existing resource that may need a convention name applied.
     */
   static convention(name: string, existing?: HtmlBehaviorResource): HtmlBehaviorResource;
-  
+
   /**
     * Adds a binding expression to the component created by this resource.
     * @param behavior The binding expression.
     */
   addChildBinding(behavior: Object): void;
-  
+
   /**
     * Provides an opportunity for the resource to initialize iteself.
     * @param container The dependency injection container from which the resource
@@ -1731,7 +1740,7 @@ export declare class HtmlBehaviorResource {
     * @param target The class to which this resource metadata is attached.
     */
   initialize(container: Container, target: Function): void;
-  
+
   /**
     * Allows the resource to be registered in the view resources for the particular
     * view into which it was required.
@@ -1740,7 +1749,7 @@ export declare class HtmlBehaviorResource {
     * particular view it's being used.
     */
   register(registry: ViewResources, name?: string): void;
-  
+
   /**
     * Enables the resource to asynchronously load additional resources.
     * @param container The dependency injection container from which the resource
@@ -1752,7 +1761,7 @@ export declare class HtmlBehaviorResource {
     * permanently tied to this component.
     */
   load(container: Container, target: Function, loadContext?: ResourceLoadContext, viewStrategy?: ViewStrategy, transientView?: boolean): Promise<HtmlBehaviorResource>;
-  
+
   /**
     * Plugs into the compiler and enables custom processing of the node on which this behavior is located.
     * @param compiler The compiler that is currently compiling the view that this behavior exists within.
@@ -1763,7 +1772,7 @@ export declare class HtmlBehaviorResource {
     * @return The current node.
     */
   compile(compiler: ViewCompiler, resources: ViewResources, node: Node, instruction: BehaviorInstruction, parentNode?: Node): Node;
-  
+
   /**
     * Creates an instance of this behavior.
     * @param container The DI container to create the instance in.
@@ -1790,27 +1799,27 @@ export declare const SwapStrategies: any;
 * Used to dynamically compose components.
 */
 export declare class CompositionEngine {
-  
+
   /**
     * Creates an instance of the CompositionEngine.
     * @param viewEngine The ViewEngine used during composition.
     */
   constructor(viewEngine: ViewEngine, viewLocator: ViewLocator);
-  
+
   /**
     * Creates a controller instance for the component described in the context.
     * @param context The CompositionContext that describes the component.
     * @return A Promise for the Controller.
     */
   createController(context: CompositionContext): Promise<Controller>;
-  
+
   /**
     * Ensures that the view model and its resource are loaded for this context.
     * @param context The CompositionContext to load the view model and its resource for.
     * @return A Promise for the context.
     */
   ensureViewModel(context: CompositionContext): Promise<CompositionContext>;
-  
+
   /**
     * Dynamically composes a component.
     * @param context The CompositionContext providing information on how the composition should occur.
@@ -1825,7 +1834,7 @@ export declare class CompositionEngine {
 * to Web Components.
 */
 export declare class ElementConfigResource {
-  
+
   /**
     * Provides an opportunity for the resource to initialize iteself.
     * @param container The dependency injection container from which the resource
@@ -1833,7 +1842,7 @@ export declare class ElementConfigResource {
     * @param target The class to which this resource metadata is attached.
     */
   initialize(container: Container, target: Function): void;
-  
+
   /**
     * Allows the resource to be registered in the view resources for the particular
     * view into which it was required.
@@ -1842,7 +1851,7 @@ export declare class ElementConfigResource {
     * particular view it's being used.
     */
   register(registry: ViewResources, name?: string): void;
-  
+
   /**
     * Enables the resource to asynchronously load additional resources.
     * @param container The dependency injection container from which the resource
@@ -1972,7 +1981,7 @@ export declare function viewResources(...resources: any[]): any;
 * A facade of the templating engine capabilties which provides a more user friendly API for common use cases.
 */
 export declare class TemplatingEngine {
-  
+
   /**
     * Creates an instance of TemplatingEngine.
     * @param container The root DI container.
@@ -1981,13 +1990,13 @@ export declare class TemplatingEngine {
     * @param compositionEngine The composition engine used during dynamic component composition.
     */
   constructor(container: Container, moduleAnalyzer: ModuleAnalyzer, viewCompiler: ViewCompiler, compositionEngine: CompositionEngine);
-  
+
   /**
      * Configures the default animator.
      * @param animator The animator instance.
      */
   configureAnimator(animator: Animator): void;
-  
+
   /**
      * Dynamically composes components and views.
      * @param context The composition context to use.
@@ -1995,7 +2004,7 @@ export declare class TemplatingEngine {
      * are responsible for enforcing the Controller/View lifecycle.
      */
   compose(context: CompositionContext): Promise<View | Controller>;
-  
+
   /**
      * Enhances existing DOM with behaviors and bindings.
      * @param instruction The element to enhance or a set of instructions for the enhancement process.
