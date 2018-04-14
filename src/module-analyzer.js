@@ -263,7 +263,14 @@ export class ModuleAnalyzer {
       } else if (exportedValue instanceof TemplateRegistryEntry) {
         vs = new TemplateRegistryViewStrategy(moduleId, exportedValue);
       } else {
-        if (conventional = HtmlBehaviorResource.convention(key)) {
+        if (conventional = ViewResources.convention(exportedValue)) {
+          if (conventional.elementName !== null && !mainResource) {
+            mainResource = new ResourceDescription(key, exportedValue, conventional);
+          } else {
+            resources.push(new ResourceDescription(key, exportedValue, conventional));
+          }
+          metadata.define(metadata.resource, conventional, exportedValue);
+        } else if (conventional = HtmlBehaviorResource.convention(key)) {
           if (conventional.elementName !== null && !mainResource) {
             mainResource = new ResourceDescription(key, exportedValue, conventional);
           } else {

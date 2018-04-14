@@ -1,7 +1,12 @@
 import {relativeToFile} from 'aurelia-path';
+import {metadata} from 'aurelia-metadata';
 import {HtmlBehaviorResource} from './html-behavior';
 import {BindingLanguage} from './binding-language';
 import {ViewCompileInstruction, ViewCreateInstruction} from './instructions';
+import { Container } from 'aurelia-dependency-injection';
+import { _hyphenate } from './util'
+import { ValueConverterResource, BindingBehaviorResource, camelCase } from 'aurelia-binding';
+import { ViewEngineHooksResource } from './view-engine-hooks-resource';
 
 function register(lookup, name, resource, type) {
   if (!name) {
@@ -67,6 +72,65 @@ interface ViewEngineHooks {
 * Represents a collection of resources used during the compilation of a view.
 */
 export class ViewResources {
+
+  static convention(target: Function) {
+    let config = target.resource;
+    let resource;
+    if (config) {
+      if (typeof config === 'string') {
+        // it's a custom element, with name is the resource variable
+        resource = new HtmlBehaviorResource();
+        resource.elementName = config;
+      } else {
+        if (typeof config === 'function') {
+          // static resource() {  }
+          config = config();
+        }
+        if (typeof config === 'string') {
+          // static resource() { return 'my-custom-element-name' }
+          config = { name: config };
+        }
+        // no type specified = custom element
+        let resourceType = config.type || 'element';
+        switch (resourceType) {
+          case 'element': case 'attribute':
+            resource = new HtmlBehaviorResource();
+            if (resourceType === 'element') {
+              resource.elementName = _hyphenate(config.name || target.name);
+            } else {
+              resource.attributeName = _hyphenate(config.name || target.name);
+            }
+            // just copy over. Devs are responsible for what they specify in the config. good luck!.
+            Object.assign(resource, config);
+            break;
+          case 'valueConverter':
+            resource = new ValueConverterResource(camelCase(config.name || target.name)); break;
+          case 'bindingBehavior':
+            resource = new BindingBehaviorResource(camelCase(config.name || target.name)); break;
+          case 'viewEngineHooks':
+            resource = new ViewEngineHooksResource(); break;
+        }
+      }
+      // check for bindable registration
+      let bindables = typeof config === 'string' ? undefined : config.bindables;
+      if (bindables !== undefined && resource instanceof HtmlBehaviorResource) {
+        for (let i = 0, ii = bindables.length; ii > i; ++i) {
+          let config = bindables[i];
+          if (!config) {
+            // bindables: { value: false } ... why
+            continue;
+          }
+          // bindables: { value: true } || bindables: { value: { defaultBindingMode: 1 } }
+          config = typeof config === 'boolean' ? {} : config;
+          config.name = prop;
+          let bindable = new BindableProperty(config)
+          bindable.registerWith(target, resource);
+        }
+      }
+    }
+    return resource;
+  }
+
   /**
   * A custom binding language used in the view.
   */
@@ -140,7 +204,7 @@ export class ViewResources {
   * Registers view engine hooks for the view.
   * @param hooks The hooks to register.
   */
-  registerViewEngineHooks(hooks:ViewEngineHooks): void {
+  registerViewEngineHooks(hooks: ViewEngineHooks): void {
     this._tryAddHook(hooks, 'beforeCompile');
     this._tryAddHook(hooks, 'afterCompile');
     this._tryAddHook(hooks, 'beforeCreate');
@@ -282,5 +346,46 @@ export class ViewResources {
   */
   getValue(name: string): any {
     return this.values[name] || (this.hasParent ? this.parent.getValue(name) : null);
+  }
+
+  /**
+   * @internal
+   * Not supported for public use. Can be changed without warning.
+   * 
+   * Auto register a resources based on its metadata or convention
+   * Will fallback to custom element if no metadata found and all conventions fail
+   * @param {Container} container
+   * @param {Function} impl
+   * @returns {HtmlBehaviorResource | ValueConverterResource | BindingBehaviorResource | ViewEngineHooksResource}
+   */
+  autoRegister(container, impl) {
+    let resourceTypeMeta = metadata.get(metadata.resource, impl);
+    if (resourceTypeMeta) {
+      if (resourceTypeMeta instanceof HtmlBehaviorResource) {
+        if (resourceTypeMeta.attributeName === null && resourceTypeMeta.elementName === null) {
+          //no customeElement or customAttribute but behavior added by other metadata
+          HtmlBehaviorResource.convention(impl.name, resourceTypeMeta);
+        }
+        if (resourceTypeMeta.attributeName === null && resourceTypeMeta.elementName === null) {
+          //no convention and no customeElement or customAttribute but behavior added by other metadata
+          resourceTypeMeta.elementName = _hyphenate(impl.name);
+        }
+      }
+    } else {
+      resourceTypeMeta = ViewResources.convention(impl)
+        || HtmlBehaviorResource.convention(impl.name)
+        || ValueConverterResource.convention(impl.name)
+        || BindingBehaviorResource.convention(impl.name)
+        || ViewEngineHooksResource.convention(impl.name);
+      if (!resourceTypeMeta) {
+        // doesn't match any convention, and is an exported value => custom element
+        resourceTypeMeta = new HtmlBehaviorResource();
+        resourceTypeMeta.elementName = _hyphenate(impl.name);
+      }
+      metadata.define(metadata.resource, resourceTypeMeta, impl);
+    }
+    resourceTypeMeta.initialize(container, impl);
+    resourceTypeMeta.register(this);
+    return resourceTypeMeta;
   }
 }
