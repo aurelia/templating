@@ -54,6 +54,9 @@ export class ViewLocator {
     if (value.view) {
       let c = value.view;
       c = typeof c === 'function' ? c() : c;
+      if (c === null) {
+        return new NoViewStrategy();
+      }
       let view = c instanceof StaticViewStrategy ? c : new StaticViewStrategy(c);
       metadata.define(ViewLocator.viewStrategyMetadataKey, view, value);
       return view;

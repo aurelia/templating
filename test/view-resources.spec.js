@@ -1,6 +1,6 @@
 import './setup';
 import {metadata} from 'aurelia-metadata';
-import {bindingMode, valueConverter, bindingBehavior} from 'aurelia-binding';
+import {bindingMode, valueConverter, bindingBehavior, ValueConverterResource, BindingBehaviorResource} from 'aurelia-binding';
 import {Container} from 'aurelia-dependency-injection';
 import { customElement, customAttribute } from '../src/decorators';
 import {ViewResources} from '../src/view-resources';
@@ -18,6 +18,56 @@ describe('ViewResources', () => {
     resources = new ViewResources();
   });
 
+  describe('convention', () => {
+    it('recognizes convention', () => {
+      class El {
+        static resource() {
+          return 'el1';
+        }
+      }
+  
+      let meta = ViewResources.convention(El);
+      expect(meta.elementName).toBe('el1');
+  
+      class A {
+        static resource = {
+          type: 'attribute',
+        }
+      }
+  
+      meta = ViewResources.convention(A);
+      expect(meta.attributeName).toBe('a');
+  
+      class ElOrA {
+        static resource = {
+          type: 'element',
+          bindables: ['b', 'c', { name: 'd', defaultBindingMode: 'twoWay' }]
+        }
+      }
+      meta = ViewResources.convention(ElOrA);
+      expect(meta.properties.length).toBe(3);
+      expect(meta.attributes.d.defaultBindingMode).toBe(bindingMode.twoWay);
+
+      class Vc {
+        static resource = {
+          type: 'valueConverter'
+        }
+      }
+      meta = ViewResources.convention(Vc);
+      expect(meta instanceof ValueConverterResource).toBe(true);
+      expect(meta.name).toBe('vc');
+
+      class Bb {
+        static resource = {
+          type: 'bindingBehavior'
+        }
+      }
+      meta = ViewResources.convention(Bb);
+      expect(meta instanceof BindingBehaviorResource).toBe(true);
+      expect(meta.name).toBe('bb');
+    });
+  });
+ 
   it('auto register', () => {
     let resourceMetaType;
     class El {}
@@ -98,5 +148,16 @@ describe('ViewResources', () => {
     expect(resources.afterCompile).toBe(true);
     expect(resources.beforeCompile1).toBeDefined();
     expect(resources.beforeCompile2).toBeDefined();
+
+  });
+
+  it('auto register with static `resource` convention ', () => {
+    let container = new Container();
+    let resources = new ViewResources();
+    class El3 {
+      static resource = 'el3'
+    }
+    resources.autoRegister(container, El3);
+    expect(resources.getElement('el3').target).toBe(El3);
   });
 });

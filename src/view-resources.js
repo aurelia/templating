@@ -1,5 +1,6 @@
 import {relativeToFile} from 'aurelia-path';
 import {metadata} from 'aurelia-metadata';
+import {BindableProperty} from './bindable-property';
 import {HtmlBehaviorResource} from './html-behavior';
 import {BindingLanguage} from './binding-language';
 import {ViewCompileInstruction, ViewCreateInstruction} from './instructions';
@@ -113,18 +114,13 @@ export class ViewResources {
       }
       // check for bindable registration
       let bindables = typeof config === 'string' ? undefined : config.bindables;
-      if (bindables !== undefined && resource instanceof HtmlBehaviorResource) {
+      if (Array.isArray(bindables) && resource instanceof HtmlBehaviorResource) {
         for (let i = 0, ii = bindables.length; ii > i; ++i) {
-          let config = bindables[i];
-          if (!config) {
-            // bindables: { value: false } ... why
-            continue;
+          let prop = bindables[i];
+          if (!prop || (typeof prop !== 'string' && !prop.name)) {
+            throw new Error('Invalid bindable property. Expected either a string or an object with "name" property.');
           }
-          // bindables: { value: true } || bindables: { value: { defaultBindingMode: 1 } }
-          config = typeof config === 'boolean' ? {} : config;
-          config.name = prop;
-          let bindable = new BindableProperty(config)
-          bindable.registerWith(target, resource);
+          new BindableProperty(prop).registerWith(target, resource);
         }
       }
     }
