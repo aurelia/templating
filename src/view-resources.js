@@ -80,6 +80,7 @@ export class ViewResources {
     if (config) {
       if (typeof config === 'string') {
         // it's a custom element, with name is the resource variable
+        // static resource = 'my-element'
         resource = new HtmlBehaviorResource();
         resource.elementName = config;
       } else {
@@ -91,6 +92,8 @@ export class ViewResources {
           // static resource() { return 'my-custom-element-name' }
           config = { name: config };
         }
+        // after normalization, copy to another obj
+        config = Object.assign({}, config);
         // no type specified = custom element
         let resourceType = config.type || 'element';
         switch (resourceType) {
@@ -100,6 +103,15 @@ export class ViewResources {
               resource.elementName = _hyphenate(config.name || target.name);
             } else {
               resource.attributeName = _hyphenate(config.name || target.name);
+            }
+            if (config.templateController) {
+              config.liftsContent = config.templateController;
+              delete config.templateController;
+            }
+            // one time default binding mode is 0, cannot check for falsy value ... T_T
+            if ('defaultBindingMode' in config) {
+              config.attributeDefaultBindingMode = config.defaultBindingMode;
+              delete config.defaultBindingMode;
             }
             // just copy over. Devs are responsible for what they specify in the config. good luck!.
             Object.assign(resource, config);

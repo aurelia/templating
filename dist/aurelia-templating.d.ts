@@ -948,13 +948,67 @@ export declare class ShadowDOM {
   static distributeNodes(view?: any, nodes?: any, slots?: any, projectionSource?: any, index?: any, destinationOverride?: any): any;
 }
 
-/**
-* Represents a collection of resources used during the compilation of a view.
-*/
+export declare interface IStaticResourceConfig {
+  /**
+   * Resource type of this class, omit equals to custom element
+   */
+  type?: 'element' | 'attribute' | 'valueConverter' | 'bindingBehavior' | 'viewEngineHooks';
+  /**
+   * Name of this resource. Reccommended to explicitly set to works better with minifier
+   */
+  name?: string;
+  /**
+   * Used to tell if a custom attribute is a template controller
+   */
+  templateController?: boolean;
+  /**
+   * Used to set default binding mode of default custom attribute view model "value" property
+   */
+  defaultBindingMode?: bindingMode | keyof typeof bindingMode;
+  /**
+   * Flags a custom attribute has dynamic options
+   */
+  hasDynamicOptions?: boolean;
+  /**
+   * Flag if this custom element uses native shadow dom instead of emulation
+   */
+  usesShadowDOM?: boolean;
+  /**
+   * Options that will be used if the element is flagged with usesShadowDOM
+   */
+  shadowDOMOptions?: ShadowRootInit;
+  /**
+   * Flag a custom element as containerless. Which will remove their render target
+   */
+  containerless?: boolean;
+  /**
+   * Custom processing of the attributes on an element before the framework inspects them.
+   */
+  processAttributes?(viewCompiler: ViewCompiler, resources: ViewResources, node: Element, attributes: NamedNodeMap, elementInstruction: BehaviorInstruction): void;
+  /**
+   * Enables custom processing of the content that is places inside the custom element by its consumer.
+   * Pass a boolean to direct the template compiler to not process
+   * the content placed inside this element. Alternatively, pass a function which
+   * can provide custom processing of the content. This function should then return
+   * a boolean indicating whether the compiler should also process the content.
+   */
+  processContent?(viewCompiler: ViewCompiler, resources: ViewResources, node: Element, instruction: BehaviorInstruction): boolean;
+  /**
+   * List of bindable properties of this custom element / custom attribute, by name or full config object
+   */
+  bindables?: (string | IBindablePropertyConfig)[];
+}
+
+export declare class TargetResource extends Function {
+  static resource?: string | IStaticResourceConfig | { (): string | IStaticResourceConfig };
+}
+
 /**
 * Represents a collection of resources used during the compilation of a view.
 */
 export declare class ViewResources {
+
+  static convention(target: TargetResource): HtmlBehaviorResource | ValueConverterResource | BindingBehaviorResource | ViewEngineHooksResource | undefined;
 
   /**
     * A custom binding language used in the view.
@@ -1673,6 +1727,32 @@ export declare class BehaviorPropertyObserver {
     * @param callable The callable that was originally subscribed with.
     */
   unsubscribe(context: any, callable: Function): void;
+}
+
+export interface IBindablePropertyConfig {
+  /**
+  * The name of the property.
+  */
+  name?: string;
+  attribute?: string;
+  /**
+   * The default binding mode of the property. If given string, will use to lookup
+   */
+  defaultBindingMode?: bindingMode | keyof typeof bindingMode;
+  /**
+   * The name of a view model method to invoke when the property is updated.
+   */
+  changeHandler?: string;
+  /**
+   * A default value for the property.
+   */
+  defaultValue?: any;
+  /**
+   * Designates the property as the default bindable property among all the other bindable properties when used in a custom attribute with multiple bindable properties.
+   */
+  primaryProperty?: boolean;
+  // For compatibility and future extension
+  [key: string]: any;
 }
 
 /**
