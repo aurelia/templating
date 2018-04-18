@@ -5,7 +5,7 @@ import {HtmlBehaviorResource} from './html-behavior';
 import {BindingLanguage} from './binding-language';
 import {ViewCompileInstruction, ViewCreateInstruction} from './instructions';
 import { Container } from 'aurelia-dependency-injection';
-import { _hyphenate } from './util'
+import { _hyphenate } from './util';
 import { ValueConverterResource, BindingBehaviorResource, camelCase } from 'aurelia-binding';
 import { ViewEngineHooksResource } from './view-engine-hooks-resource';
 
@@ -96,32 +96,32 @@ export class ViewResources {
         config = Object.assign({}, config);
         // no type specified = custom element
         let resourceType = config.type || 'element';
-        switch (resourceType) {
-          case 'element': case 'attribute':
-            resource = new HtmlBehaviorResource();
-            if (resourceType === 'element') {
-              resource.elementName = _hyphenate(config.name || target.name);
-            } else {
-              resource.attributeName = _hyphenate(config.name || target.name);
-            }
-            if (config.templateController) {
-              config.liftsContent = config.templateController;
-              delete config.templateController;
-            }
-            // one time default binding mode is 0, cannot check for falsy value ... T_T
-            if ('defaultBindingMode' in config) {
-              config.attributeDefaultBindingMode = config.defaultBindingMode;
-              delete config.defaultBindingMode;
-            }
-            // just copy over. Devs are responsible for what they specify in the config. good luck!.
-            Object.assign(resource, config);
-            break;
-          case 'valueConverter':
-            resource = new ValueConverterResource(camelCase(config.name || target.name)); break;
-          case 'bindingBehavior':
-            resource = new BindingBehaviorResource(camelCase(config.name || target.name)); break;
-          case 'viewEngineHooks':
-            resource = new ViewEngineHooksResource(); break;
+        switch (resourceType) { // eslint-disable-line default-case
+        case 'element': case 'attribute':
+          resource = new HtmlBehaviorResource();
+          if (resourceType === 'element') {
+            resource.elementName = _hyphenate(config.name || target.name);
+          } else {
+            resource.attributeName = _hyphenate(config.name || target.name);
+          }
+          if (config.templateController) {
+            config.liftsContent = config.templateController;
+            delete config.templateController;
+          }
+          // one time default binding mode is 0, cannot check for falsy value ... T_T
+          if ('defaultBindingMode' in config) {
+            config.attributeDefaultBindingMode = config.defaultBindingMode;
+            delete config.defaultBindingMode;
+          }
+          // just copy over. Devs are responsible for what they specify in the config. good luck!.
+          Object.assign(resource, config);
+          break;
+        case 'valueConverter':
+          resource = new ValueConverterResource(camelCase(config.name || target.name)); break;
+        case 'bindingBehavior':
+          resource = new BindingBehaviorResource(camelCase(config.name || target.name)); break;
+        case 'viewEngineHooks':
+          resource = new ViewEngineHooksResource(); break;
         }
       }
       // check for bindable registration
@@ -359,7 +359,7 @@ export class ViewResources {
   /**
    * @internal
    * Not supported for public use. Can be changed without warning.
-   * 
+   *
    * Auto register a resources based on its metadata or convention
    * Will fallback to custom element if no metadata found and all conventions fail
    * @param {Container} container
