@@ -43,8 +43,12 @@ export class BindableProperty {
     }
 
     this.attribute = this.attribute || _hyphenate(this.name);
-    if (this.defaultBindingMode === null || this.defaultBindingMode === undefined) {
+    let defaultBindingMode = this.defaultBindingMode;
+    if (defaultBindingMode === null || defaultBindingMode === undefined) {
       this.defaultBindingMode = bindingMode.oneWay;
+    } else if (typeof defaultBindingMode === 'string') {
+      // to avoid import from aurelia
+      this.defaultBindingMode = bindingMode[defaultBindingMode] || bindingMode.oneWay;
     }
     this.changeHandler = this.changeHandler || null;
     this.owner = null;

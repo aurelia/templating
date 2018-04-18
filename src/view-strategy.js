@@ -2,6 +2,7 @@ import {Origin, protocol} from 'aurelia-metadata';
 import {relativeToFile} from 'aurelia-path';
 import {TemplateRegistryEntry} from 'aurelia-loader';
 import {ViewEngine} from './view-engine';
+import { ViewResources } from './view-resources';
 import {ResourceLoadContext, ViewCompileInstruction} from './instructions';
 import {DOM, PLATFORM} from 'aurelia-pal';
 
@@ -251,5 +252,79 @@ export class InlineViewStrategy {
 
     compileInstruction.associatedModuleId = this.moduleId;
     return viewEngine.loadViewFactory(entry, compileInstruction, loadContext, target);
+  }
+}
+
+@viewStrategy()
+export class StaticViewStrategy {
+
+  template: string | HTMLTemplateElement;
+  dependencies: Function[] | { (): Function[] | (Function | Promise<Function[] | Record<string, Function>>)[] };
+  factoryIsReady: boolean;
+  factory: ViewFactory;
+  onReady: Promsie<any>;
+
+  constructor(config: string | HTMLTemplateElement | { template: string; dependencies?: any } ) {
+    if (typeof config === 'string' || config instanceof HTMLTemplateElement) {
+      config = {
+        template: config
+      };
+    }
+    this.template = config.template;
+    this.dependencies = config.dependencies || [];
+    this.factoryIsReady = false;
+    this.onReady = null;
+  }
+
+  /**
+  * Loads a view factory.
+  * @param viewEngine The view engine to use during the load process.
+  * @param compileInstruction Additional instructions to use during compilation of the view.
+  * @param loadContext The loading context used for loading all resources and dependencies.
+  * @param target A class from which to extract metadata of additional resources to load.
+  * @return A promise for the view factory that is produced by this strategy.
+  */
+  loadViewFactory(viewEngine: ViewEngine, compileInstruction: IViewCompileInstruction, loadContext: IResourceLoadContext, target: any): Promise<IViewFactory> {
+    if (this.factoryIsReady) {
+      return Promise.resolve(this.factory);
+    }
+    let deps = this.dependencies;
+    deps = typeof deps === 'function' ? deps() : (deps ? Array.isArray(deps) ? deps : [deps] : []);
+    this.onReady = Promise.all(deps).then((dependencies) => {
+      const container = viewEngine.container;
+      const appResources = viewEngine.appResources;
+      const viewCompiler = viewEngine.viewCompiler;
+      const viewResources = new ViewResources(appResources);
+
+      let resource;
+      let elDeps = [];
+
+      if (target) {
+        // when composing without a view mode, but view specified, target will be undefined
+        viewResources.autoRegister(container, target);
+      }
+
+      for (let dep of dependencies) {
+        if (typeof dep === 'function') {
+          resource = viewResources.autoRegister(container, dep);
+        } else if (dep && typeof dep === 'object') {
+          for (let key in dep) {
+            resource = viewResources.autoRegister(container, dep[key]);
+          }
+        } else {
+          throw new Error(`dependency neither function nor object. Received: "${typeof dep}"`);
+        }
+        if (resource.elementName !== null) {
+          elDeps.push(resource);
+        }
+      }
+      return Promise.all(elDeps.map(el => el.load(container, el.target))).then(() => {
+        const factory = viewCompiler.compile(this.template, viewResources, compileInstruction);
+        this.factoryIsReady = true;
+        this.factory = factory;
+        return factory;
+      });
+    });
+    return this.onReady;
   }
 }
