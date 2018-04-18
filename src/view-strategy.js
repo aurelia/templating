@@ -289,7 +289,9 @@ export class StaticViewStrategy {
       return Promise.resolve(this.factory);
     }
     let deps = this.dependencies;
-    deps = typeof deps === 'function' ? deps() : (deps ? Array.isArray(deps) ? deps : [deps] : []);
+    deps = typeof deps === 'function' ? deps() : deps;
+    deps = deps ? deps : [];
+    deps = Array.isArray(deps) ? deps : [deps];
     this.onReady = Promise.all(deps).then((dependencies) => {
       const container = viewEngine.container;
       const appResources = viewEngine.appResources;
