@@ -1,5 +1,5 @@
 import {metadata, Origin} from 'aurelia-metadata';
-import {RelativeViewStrategy, ConventionalViewStrategy, StaticViewStrategy, viewStrategy} from './view-strategy';
+import {RelativeViewStrategy, ConventionalViewStrategy, StaticViewStrategy, viewStrategy, NoViewStrategy} from './view-strategy';
 
 /**
 * Locates a view for an object.
@@ -51,13 +51,15 @@ export class ViewLocator {
     }
 
     // static view strategy
-    if (value.view) {
-      let c = value.view;
-      c = typeof c === 'function' ? c() : c;
+    if ('$view' in value) {
+      let c = value.$view;
+      let view;
+      c = typeof c === 'function' ? c.call(value) : c;
       if (c === null) {
-        return new NoViewStrategy();
+        view = new NoViewStrategy();
+      } else {
+        view = c instanceof StaticViewStrategy ? c : new StaticViewStrategy(c);
       }
-      let view = c instanceof StaticViewStrategy ? c : new StaticViewStrategy(c);
       metadata.define(ViewLocator.viewStrategyMetadataKey, view, value);
       return view;
     }

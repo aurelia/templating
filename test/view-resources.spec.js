@@ -1,5 +1,6 @@
 import './setup';
 import {metadata} from 'aurelia-metadata';
+import { Logger } from 'aurelia-logging';
 import {bindingMode, valueConverter, bindingBehavior, ValueConverterResource, BindingBehaviorResource} from 'aurelia-binding';
 import {Container} from 'aurelia-dependency-injection';
 import { customElement, customAttribute } from '../src/decorators';
@@ -21,7 +22,7 @@ describe('ViewResources', () => {
   describe('convention', () => {
     it('recognizes convention', () => {
       class El {
-        static resource() {
+        static $resource() {
           return 'el1';
         }
       }
@@ -30,7 +31,7 @@ describe('ViewResources', () => {
       expect(meta.elementName).toBe('el1');
   
       class A {
-        static resource = {
+        static $resource = {
           type: 'attribute',
         }
       }
@@ -39,7 +40,7 @@ describe('ViewResources', () => {
       expect(meta.attributeName).toBe('a');
   
       class ElOrA {
-        static resource = {
+        static $resource = {
           type: 'element',
           bindables: ['b', 'c', { name: 'd', defaultBindingMode: 'twoWay' }]
         }
@@ -49,7 +50,7 @@ describe('ViewResources', () => {
       expect(meta.attributes.d.defaultBindingMode).toBe(bindingMode.twoWay);
 
       class Vc {
-        static resource = {
+        static $resource = {
           type: 'valueConverter'
         }
       }
@@ -58,13 +59,51 @@ describe('ViewResources', () => {
       expect(meta.name).toBe('vc');
 
       class Bb {
-        static resource = {
+        static $resource = {
           type: 'bindingBehavior'
         }
       }
       meta = ViewResources.convention(Bb);
       expect(meta instanceof BindingBehaviorResource).toBe(true);
       expect(meta.name).toBe('bb');
+    });
+
+    it('warns when using uppercase letters in custom element / attribute name', () => {
+      let spy = spyOn(Logger.prototype, 'warn').and.callThrough();
+      class ElEl {
+        static $resource() {
+          return 'ElEl';
+        }
+      }
+  
+      let meta = ViewResources.convention(ElEl);
+      expect(meta.elementName).toBe('el-el');
+      expect(spy).toHaveBeenCalledWith(`'ElEl' is not a valid custom element name and has been converted to 'el-el'. Upper-case letters are not allowed because the DOM is not case-sensitive.`);
+    });
+
+    it('invokes static method with correct context', () => {
+      class Base {
+        static get elName() {
+          return 'base';
+        }
+        static $resource() {
+          return this.elName;
+        }
+      }
+
+      class El extends Base {
+
+      }
+      let meta = ViewResources.convention(El);
+      expect(meta.elementName).toBe('base');
+
+      class El1 extends Base {
+        static get elName() {
+          return 'el';
+        }
+      }
+      meta = ViewResources.convention(El1);
+      expect(meta.elementName).toBe('el');
     });
   });
  
@@ -155,7 +194,7 @@ describe('ViewResources', () => {
     let container = new Container();
     let resources = new ViewResources();
     class El3 {
-      static resource = 'el3'
+      static $resource = 'el3'
     }
     resources.autoRegister(container, El3);
     expect(resources.getElement('el3').target).toBe(El3);

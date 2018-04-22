@@ -1,28 +1,24 @@
 import * as LogManager from 'aurelia-logging';
 import {metadata} from 'aurelia-metadata';
 import {ViewEngine} from './view-engine';
+import {validateBehaviorName} from './view-resources';
 import {BindableProperty} from './bindable-property';
 import {ElementConfigResource} from './element-config';
 import {ViewLocator, RelativeViewStrategy, NoViewStrategy, InlineViewStrategy} from './view-strategy';
 import {HtmlBehaviorResource} from './html-behavior';
-import {_hyphenate} from './util';
-
-function validateBehaviorName(name, type) {
-  if (/[A-Z]/.test(name)) {
-    let newName = _hyphenate(name);
-    LogManager.getLogger('templating').warn(`'${name}' is not a valid ${type} name and has been converted to '${newName}'. Upper-case letters are not allowed because the DOM is not case-sensitive.`);
-    return newName;
-  }
-  return name;
-}
 
 /**
 * Decorator: Specifies a resource instance that describes the decorated class.
-* @param instance The resource instance.
+* @param instanceOrConfig The resource instance.
 */
-export function resource(instance: Object): any {
+export function resource(instanceOrConfig: string | object): any {
   return function(target) {
-    metadata.define(metadata.resource, instance, target);
+    let isConfig = typeof instanceOrConfig === 'string' || Object.getPrototypeOf(instanceOrConfig) === Object.prototype;
+    if (isConfig) {
+      target.$resource = instanceOrConfig;
+    } else {
+      metadata.define(metadata.resource, instanceOrConfig, target);
+    }
   };
 }
 
@@ -246,6 +242,20 @@ export function noView(targetOrDependencies?:Function|Array<any>, dependencyBase
   };
 
   return target ? deco(target) : deco;
+}
+
+interface IStaticViewStrategyConfig {
+  template: string | HTMLTemplateElement;
+  dependencies?: Function[] | { (): (Promise<Record<string, Function>> | Function)[] }
+}
+
+/**
+ * Decorator: Indicates that the element use static view
+ */
+export function view(templateOrConfig:string|HTMLTemplateElement|IStaticViewStrategyConfig): any {
+  return function(target) {
+    target.$view = templateOrConfig;
+  };
 }
 
 /**
