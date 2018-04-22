@@ -117,18 +117,6 @@ and whether to say Hello or Goodbye?
     </template>
   </source-code>
 </code-listing>
-<code-listing heading="hello-dynamic-template${context.language.fileExtension}">
-  <source-code lang="ES2015/ES2016">
-  export class HelloDynamicTemplate {
-    greeting = "Hello, World!"
-  }
-  </source-code>
-  <source-code lang="TypeScript">
-  export class HelloDynamicTemplate {
-    greeting = "Hello, World!"
-  }
-  </source-code>
-</code-listing>
 
 <code-listing heading="greeter${context.language.fileExtension}">
   <source-code lang="ES2015/ES2016/TypeScript">
