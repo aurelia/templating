@@ -1,10 +1,10 @@
-import {Origin, protocol} from 'aurelia-metadata';
-import {relativeToFile} from 'aurelia-path';
-import {TemplateRegistryEntry} from 'aurelia-loader';
-import {ViewEngine} from './view-engine';
+import { TemplateRegistryEntry } from 'aurelia-loader';
+import { Origin, protocol } from 'aurelia-metadata';
+import { DOM, PLATFORM } from 'aurelia-pal';
+import { relativeToFile } from 'aurelia-path';
+import { ResourceLoadContext, ViewCompileInstruction } from './instructions';
+import { ViewEngine } from './view-engine';
 import { ViewResources } from './view-resources';
-import {ResourceLoadContext, ViewCompileInstruction} from './instructions';
-import {DOM, PLATFORM} from 'aurelia-pal';
 
 /**
 * Implemented by classes that describe how a view factory should be loaded.
@@ -255,16 +255,22 @@ export class InlineViewStrategy {
   }
 }
 
+interface IStaticViewConfig {
+  template: string | HTMLTemplateElement;
+  dependencies?: Function[] | (() => Array<Function | Promise<Function | Record<string, Function>>>);
+}
+
 @viewStrategy()
 export class StaticViewStrategy {
 
+  /**@internal */
   template: string | HTMLTemplateElement;
-  dependencies: Function[] | { (): Function[] | (Function | Promise<Function[] | Record<string, Function>>)[] };
+  /**@internal */
+  dependencies: Function[] | (() => Array<Function | Promise<Function | Record<string, Function>>>);
   factoryIsReady: boolean;
   factory: ViewFactory;
-  onReady: Promsie<any>;
 
-  constructor(config: string | HTMLTemplateElement | { template: string; dependencies?: any } ) {
+  constructor(config: string | HTMLTemplateElement | IStaticViewConfig) {
     if (typeof config === 'string' || config instanceof HTMLTemplateElement) {
       config = {
         template: config
@@ -292,7 +298,8 @@ export class StaticViewStrategy {
     deps = typeof deps === 'function' ? deps() : deps;
     deps = deps ? deps : [];
     deps = Array.isArray(deps) ? deps : [deps];
-    this.onReady = Promise.all(deps).then((dependencies) => {
+    // Promise.all() to normalize dependencies into an array of either functions, or records that contain function
+    return Promise.all(deps).then((dependencies) => {
       const container = viewEngine.container;
       const appResources = viewEngine.appResources;
       const viewCompiler = viewEngine.viewCompiler;
@@ -308,10 +315,15 @@ export class StaticViewStrategy {
 
       for (let dep of dependencies) {
         if (typeof dep === 'function') {
+          // dependencies: [class1, class2, import('module').then(m => m.class3)]
           resource = viewResources.autoRegister(container, dep);
         } else if (dep && typeof dep === 'object') {
+          // dependencies: [import('module1'), import('module2')]
           for (let key in dep) {
-            resource = viewResources.autoRegister(container, dep[key]);
+            let exported = dep[key];
+            if (typeof exported === 'function') {
+              resource = viewResources.autoRegister(container, exported);
+            }
           }
         } else {
           throw new Error(`dependency neither function nor object. Received: "${typeof dep}"`);
@@ -320,6 +332,7 @@ export class StaticViewStrategy {
           elDeps.push(resource);
         }
       }
+      // only load custom element as first step.
       return Promise.all(elDeps.map(el => el.load(container, el.target))).then(() => {
         const factory = viewCompiler.compile(this.template, viewResources, compileInstruction);
         this.factoryIsReady = true;
@@ -327,6 +340,5 @@ export class StaticViewStrategy {
         return factory;
       });
     });
-    return this.onReady;
   }
 }

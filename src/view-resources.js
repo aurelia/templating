@@ -1,9 +1,10 @@
-import {relativeToFile} from 'aurelia-path';
-import {metadata} from 'aurelia-metadata';
-import {BindableProperty} from './bindable-property';
-import {HtmlBehaviorResource} from './html-behavior';
-import {BindingLanguage} from './binding-language';
-import {ViewCompileInstruction, ViewCreateInstruction} from './instructions';
+import { relativeToFile } from 'aurelia-path';
+import { metadata } from 'aurelia-metadata';
+import * as LogManager from 'aurelia-logging';
+import { BindableProperty } from './bindable-property';
+import { HtmlBehaviorResource } from './html-behavior';
+import { BindingLanguage } from './binding-language';
+import { ViewCompileInstruction, ViewCreateInstruction } from './instructions';
 import { Container } from 'aurelia-dependency-injection';
 import { _hyphenate } from './util';
 import { ValueConverterResource, BindingBehaviorResource, camelCase } from 'aurelia-binding';
@@ -69,24 +70,112 @@ interface ViewEngineHooks {
   beforeUnbind?: (view: View) => void;
 }
 
+interface IBindablePropertyConfig {
+  /**
+  * The name of the property.
+  */
+  name?: string;
+  attribute?: string;
+  /**
+   * The default binding mode of the property. If given string, will use to lookup
+   */
+  defaultBindingMode?: bindingMode | 'oneTime' | 'oneWay' | 'twoWay' | 'fromView' | 'toView';
+  /**
+   * The name of a view model method to invoke when the property is updated.
+   */
+  changeHandler?: string;
+  /**
+   * A default value for the property.
+   */
+  defaultValue?: any;
+  /**
+   * Designates the property as the default bindable property among all the other bindable properties when used in a custom attribute with multiple bindable properties.
+   */
+  primaryProperty?: boolean;
+  // For compatibility and future extension
+  [key: string]: any;
+}
+
+interface IStaticResourceConfig {
+  /**
+   * Resource type of this class, omit equals to custom element
+   */
+  type?: 'element' | 'attribute' | 'valueConverter' | 'bindingBehavior' | 'viewEngineHooks';
+  /**
+   * Name of this resource. Reccommended to explicitly set to works better with minifier
+   */
+  name?: string;
+  /**
+   * Used to tell if a custom attribute is a template controller
+   */
+  templateController?: boolean;
+  /**
+   * Used to set default binding mode of default custom attribute view model "value" property
+   */
+  defaultBindingMode?: bindingMode | 'oneTime' | 'oneWay' | 'twoWay' | 'fromView' | 'toView';
+  /**
+   * Flags a custom attribute has dynamic options
+   */
+  hasDynamicOptions?: boolean;
+  /**
+   * Flag if this custom element uses native shadow dom instead of emulation
+   */
+  usesShadowDOM?: boolean;
+  /**
+   * Options that will be used if the element is flagged with usesShadowDOM
+   */
+  shadowDOMOptions?: ShadowRootInit;
+  /**
+   * Flag a custom element as containerless. Which will remove their render target
+   */
+  containerless?: boolean;
+  /**
+   * Custom processing of the attributes on an element before the framework inspects them.
+   */
+  processAttributes?: (viewCompiler: ViewCompiler, resources: ViewResources, node: Element, attributes: NamedNodeMap, elementInstruction: BehaviorInstruction) => void;
+  /**
+   * Enables custom processing of the content that is places inside the custom element by its consumer.
+   * Pass a boolean to direct the template compiler to not process
+   * the content placed inside this element. Alternatively, pass a function which
+   * can provide custom processing of the content. This function should then return
+   * a boolean indicating whether the compiler should also process the content.
+   */
+  processContent?: (viewCompiler: ViewCompiler, resources: ViewResources, node: Element, instruction: BehaviorInstruction) => boolean;
+  /**
+   * List of bindable properties of this custom element / custom attribute, by name or full config object
+   */
+  bindables?: (string | IBindablePropertyConfig)[];
+}
+
+export function validateBehaviorName(name: string, type: string) {
+  if (/[A-Z]/.test(name)) {
+    let newName = _hyphenate(name);
+    LogManager
+      .getLogger('templating')
+      .warn(`'${name}' is not a valid ${type} name and has been converted to '${newName}'. Upper-case letters are not allowed because the DOM is not case-sensitive.`);
+    return newName;
+  }
+  return name;
+}
+
 /**
 * Represents a collection of resources used during the compilation of a view.
 */
 export class ViewResources {
 
-  static convention(target: Function) {
-    let config = target.resource;
+  static convention(target: Function): HtmlBehaviorResource | ValueConverterResource | BindingBehaviorResource | ViewEngineHooksResource | undefined {
     let resource;
-    if (config) {
+    if ('$resource' in target) {
+      let config = target.$resource;
       if (typeof config === 'string') {
         // it's a custom element, with name is the resource variable
         // static resource = 'my-element'
         resource = new HtmlBehaviorResource();
-        resource.elementName = config;
+        resource.elementName = validateBehaviorName(config, 'custom element');
       } else {
         if (typeof config === 'function') {
           // static resource() {  }
-          config = config();
+          config = config.call(target);
         }
         if (typeof config === 'string') {
           // static resource() { return 'my-custom-element-name' }
@@ -96,32 +185,40 @@ export class ViewResources {
         config = Object.assign({}, config);
         // no type specified = custom element
         let resourceType = config.type || 'element';
+        let name = config.name;
         switch (resourceType) { // eslint-disable-line default-case
         case 'element': case 'attribute':
           resource = new HtmlBehaviorResource();
           if (resourceType === 'element') {
-            resource.elementName = _hyphenate(config.name || target.name);
+            resource.elementName = name ? validateBehaviorName(name, 'custom element') : _hyphenate(target.name);
           } else {
-            resource.attributeName = _hyphenate(config.name || target.name);
+            resource.attributeName = name ? validateBehaviorName(name, 'custom attribute') : _hyphenate(target.name);
           }
-          if (config.templateController) {
+          if ('templateController' in config) {
+            // map templateController to liftsContent
             config.liftsContent = config.templateController;
             delete config.templateController;
           }
-          // one time default binding mode is 0, cannot check for falsy value ... T_T
           if ('defaultBindingMode' in config) {
+            // map defaultBindingMode to attributeDefaultBinding mode
+            // custom element doesn't have default binding mode
             config.attributeDefaultBindingMode = config.defaultBindingMode;
             delete config.defaultBindingMode;
           }
+          // not bringing over the name.
+          delete config.name;
           // just copy over. Devs are responsible for what they specify in the config. good luck!.
           Object.assign(resource, config);
           break;
         case 'valueConverter':
-          resource = new ValueConverterResource(camelCase(config.name || target.name)); break;
+          resource = new ValueConverterResource(camelCase(name || target.name));
+          break;
         case 'bindingBehavior':
-          resource = new BindingBehaviorResource(camelCase(config.name || target.name)); break;
+          resource = new BindingBehaviorResource(camelCase(name || target.name));
+          break;
         case 'viewEngineHooks':
-          resource = new ViewEngineHooksResource(); break;
+          resource = new ViewEngineHooksResource();
+          break;
         }
       }
       // check for bindable registration
@@ -130,7 +227,7 @@ export class ViewResources {
         for (let i = 0, ii = bindables.length; ii > i; ++i) {
           let prop = bindables[i];
           if (!prop || (typeof prop !== 'string' && !prop.name)) {
-            throw new Error('Invalid bindable property. Expected either a string or an object with "name" property.');
+            throw new Error(`Invalid bindable property at "${i}" for class "${target.name}". Expected either a string or an object with "name" property.`);
           }
           new BindableProperty(prop).registerWith(target, resource);
         }

@@ -1,17 +1,11 @@
-import './setup';
-import { metadata } from 'aurelia-metadata';
-import { bindingMode, valueConverter, bindingBehavior, ValueConverterResource, BindingBehaviorResource } from 'aurelia-binding';
 import { Container } from 'aurelia-dependency-injection';
-import { customElement, customAttribute } from '../src/decorators';
-import { ViewResources } from '../src/view-resources';
-import { HtmlBehaviorResource } from '../src/html-behavior';
-import { viewEngineHooks } from '../src/view-engine-hooks-resource';
-import { ViewLocator } from '../src/view-locator';
-import { StaticViewStrategy } from '../src/view-strategy';
-import { ViewEngine } from '../src/view-engine';
-import { ViewCompiler } from '../src/view-compiler';
 import { BindingLanguage } from '../src/binding-language';
-import { ViewCompileInstruction, ResourceLoadContext } from '../src/instructions';
+import { ResourceLoadContext, ViewCompileInstruction } from '../src/instructions';
+import { ViewCompiler } from '../src/view-compiler';
+import { ViewEngine } from '../src/view-engine';
+import { ViewResources } from '../src/view-resources';
+import { StaticViewStrategy } from '../src/view-strategy';
+import './setup';
 
 describe('ViewLocator', () => {
   /**@type {ViewEngine} */
@@ -49,6 +43,8 @@ describe('ViewLocator', () => {
         .loadViewFactory(viewEngine, ViewCompileInstruction.normal, new ResourceLoadContext(), El)
         .then((factory) => {
           expect(factory.resources.getElement('el').target).toBe(El);
+        }).catch(ex => {
+          expect(ex.message).not.toContain('Cannot determine default view strategy for object.');
         }).then(done);
     });
   });
@@ -57,22 +53,22 @@ describe('ViewLocator', () => {
     class EmmaFrost {
     }
     class AquaMan {
-      static resource = {
+      static $resource = {
         type: 'attribute'
       }
     }
     class VentureCapital {
-      static resource = {
+      static $resource = {
         type: 'valueConverter'
       }
     }
     class BabyBoomer {
-      static resource = {
+      static $resource = {
         type: 'bindingBehavior'
       }
     }
     class BlitzCrank {
-      static resource = {
+      static $resource = {
         type: 'viewEngineHooks'
       }
 
@@ -91,28 +87,30 @@ describe('ViewLocator', () => {
         expect(resources.getValueConverter('ventureCapital') instanceof VentureCapital).toBe(true);
         expect(resources.getBindingBehavior('babyBoomer') instanceof BabyBoomer).toBe(true);
         expect(resources.beforeCompile).toBe(true);
+      }).catch(ex => {
+        expect(ex.message).not.toContain('Cannot determine default view strategy for object.');
       }).then(done);
   });
 
   it('loads async dependencies', done => {
     class Ekko {}
     class AureliaSol {
-      static resource = {
+      static $resource = {
         type: 'attribute'
       }
     }
     class Volibear {
-      static resource = {
+      static $resource = {
         type: 'valueConverter'
       }
     }
     class Braum {
-      static resource = {
+      static $resource = {
         type: 'bindingBehavior'
       }
     }
     class Thresh {
-      static resource = {
+      static $resource = {
         type: 'viewEngineHooks'
       }
       beforeCompile() {}
@@ -140,6 +138,9 @@ describe('ViewLocator', () => {
         expect(resources.getValueConverter('volibear') instanceof Volibear).toBe(true);
         expect(resources.getBindingBehavior('braum') instanceof Braum).toBe(true);
         expect(resources.beforeCompile).toBe(true);
+      })
+      .catch(ex => {
+        expect(ex.message).not.toContain('Cannot determine default view strategy for object.');
       }).then(done);
   });
 });

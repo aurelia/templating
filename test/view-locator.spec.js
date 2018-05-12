@@ -1,13 +1,7 @@
-import './setup';
-import {metadata} from 'aurelia-metadata';
-import {bindingMode, valueConverter, bindingBehavior, ValueConverterResource, BindingBehaviorResource} from 'aurelia-binding';
-import {Container} from 'aurelia-dependency-injection';
-import { customElement, customAttribute } from '../src/decorators';
-import {ViewResources} from '../src/view-resources';
-import { HtmlBehaviorResource } from '../src/html-behavior';
-import { viewEngineHooks } from '../src/view-engine-hooks-resource';
+import { Container } from 'aurelia-dependency-injection';
 import { ViewLocator } from '../src/view-locator';
 import { StaticViewStrategy } from '../src/view-strategy';
+import './setup';
 
 describe('ViewLocator', () => {
   /**@type {Container} */
@@ -20,30 +14,30 @@ describe('ViewLocator', () => {
     viewLocator = new ViewLocator();
   });
 
-  describe('static view strategy', () => {
+  describe('static $view strategy', () => {
     it('works with static field and raw string', () => {
       class El {
-        static view = '<template></template>';
+        static $view = '<template></template>';
       }
       let strategy = viewLocator.getViewStrategy(El);
       expect(strategy instanceof StaticViewStrategy).toBe(true);
-      expect(strategy.template).toBe(El.view);
+      expect(strategy.template).toBe(El.$view);
     });
 
     it('works with static field', () => {
       class El {
-        static view = {
+        static $view = {
           template: '<template></template>'
         }
       }
       let strategy = viewLocator.getViewStrategy(El);
       expect(strategy instanceof StaticViewStrategy).toBe(true);
-      expect(strategy.template).toBe(El.view.template);
+      expect(strategy.template).toBe(El.$view.template);
     });
 
     it('works with static method', () => {
       class El {
-        static view() {
+        static $view() {
           return {
             template: '<template></template>'
           };
@@ -56,13 +50,33 @@ describe('ViewLocator', () => {
 
     it('works with static method and raw string', () => {
       class El {
-        static view() {
+        static $view() {
           return '<template></template>';
         }
       }
       let strategy = viewLocator.getViewStrategy(El);
       expect(strategy instanceof StaticViewStrategy).toBe(true);
       expect(strategy.template).toBe('<template></template>');
-    })
+    });
+
+    it('invokes static method with correct scope', () => {
+      class Base {
+        static template = '<template><div></div></template>';
+        static $view() {
+          return this.template;
+        }
+      }
+      class El extends Base{
+      }
+      let strategy = viewLocator.getViewStrategy(El);
+      expect(strategy instanceof StaticViewStrategy).toBe(true);
+      expect(strategy.template).toBe(Base.template);
+
+      class El1 extends Base {
+        static template = '<template>11</template>';
+      }
+      strategy = viewLocator.getViewStrategy(El1);
+      expect(strategy.template).toBe(El1.template);
+    });
   });
 });
