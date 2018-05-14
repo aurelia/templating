@@ -159,47 +159,80 @@ export function validateBehaviorName(name: string, type: string) {
 }
 
 /**
-* Represents a collection of resources used during the compilation of a view.
-*/
+ * Represents a collection of resources used during the compilation of a view.
+ * Will optinally add information to an existing HtmlBehaviorResource if given
+ */
 export class ViewResources {
 
-  static convention(target: Function): HtmlBehaviorResource | ValueConverterResource | BindingBehaviorResource | ViewEngineHooksResource | undefined {
+  /**
+   * Checks whether the provided class contains any resource conventions
+   * @param target Target class to extract metadata based on convention
+   * @param existing If supplied, all custom element / attribute metadata extracted from convention will be apply to this instance
+   */
+  static convention(target: Function, existing?: HtmlBehaviorResource): HtmlBehaviorResource | ValueConverterResource | BindingBehaviorResource | ViewEngineHooksResource {
     let resource;
     if ('$resource' in target) {
       let config = target.$resource;
+      // 1. check if resource config is a string
       if (typeof config === 'string') {
         // it's a custom element, with name is the resource variable
-        // static resource = 'my-element'
-        resource = new HtmlBehaviorResource();
-        resource.elementName = validateBehaviorName(config, 'custom element');
+        // static $resource = 'my-element'
+        resource = existing || new HtmlBehaviorResource();
+        if (!resource.elementName) {
+          // if element name was not specified before
+          resource.elementName = validateBehaviorName(config, 'custom element');
+        }
       } else {
+        // 2. if static config is not a string, normalize into an config object
         if (typeof config === 'function') {
-          // static resource() {  }
+          // static $resource() {  }
           config = config.call(target);
         }
         if (typeof config === 'string') {
-          // static resource() { return 'my-custom-element-name' }
+          // static $resource() { return 'my-custom-element-name' }
+          // though rare case, still needs to handle properly
           config = { name: config };
         }
         // after normalization, copy to another obj
+        // as the config could come from a static field, which subject to later reuse
+        // it shouldn't be modified
         config = Object.assign({}, config);
         // no type specified = custom element
         let resourceType = config.type || 'element';
+        // cannot do name = config.name || target.name
+        // depends on resource type, it may need to use different strategies to normalize name
         let name = config.name;
         switch (resourceType) { // eslint-disable-line default-case
         case 'element': case 'attribute':
-          resource = new HtmlBehaviorResource();
+          // if a metadata is supplied, use it
+          resource = existing || new HtmlBehaviorResource();
           if (resourceType === 'element') {
-            resource.elementName = name ? validateBehaviorName(name, 'custom element') : _hyphenate(target.name);
+            // if element name was defined before applying convention here
+            // it's a result from `@customElement` call (or manual modification)
+            // need not to redefine name
+            // otherwise, fall into following if
+            if (!resource.elementName) {
+              resource.elementName = name
+                ? validateBehaviorName(name, 'custom element')
+                : _hyphenate(target.name);
+            }
           } else {
-            resource.attributeName = name ? validateBehaviorName(name, 'custom attribute') : _hyphenate(target.name);
+            // attribute name was defined before applying convention here
+            // it's a result from `@customAttribute` call (or manual modification)
+            // need not to redefine name
+            // otherwise, fall into following if
+            if (!resource.attributeName) {
+              resource.attributeName = name
+                ? validateBehaviorName(name, 'custom attribute')
+                : _hyphenate(target.name);
+            }
           }
           if ('templateController' in config) {
             // map templateController to liftsContent
             config.liftsContent = config.templateController;
             delete config.templateController;
           }
-          if ('defaultBindingMode' in config) {
+          if ('defaultBindingMode' in config && resource.attributeDefaultBindingMode !== undefined) {
             // map defaultBindingMode to attributeDefaultBinding mode
             // custom element doesn't have default binding mode
             config.attributeDefaultBindingMode = config.defaultBindingMode;
@@ -207,7 +240,7 @@ export class ViewResources {
           }
           // not bringing over the name.
           delete config.name;
-          // just copy over. Devs are responsible for what they specify in the config. good luck!.
+          // just copy over. Devs are responsible for what specified in the config
           Object.assign(resource, config);
           break;
         case 'valueConverter':
@@ -221,15 +254,22 @@ export class ViewResources {
           break;
         }
       }
-      // check for bindable registration
-      let bindables = typeof config === 'string' ? undefined : config.bindables;
-      if (Array.isArray(bindables) && resource instanceof HtmlBehaviorResource) {
-        for (let i = 0, ii = bindables.length; ii > i; ++i) {
-          let prop = bindables[i];
-          if (!prop || (typeof prop !== 'string' && !prop.name)) {
-            throw new Error(`Invalid bindable property at "${i}" for class "${target.name}". Expected either a string or an object with "name" property.`);
+
+      if (resource instanceof HtmlBehaviorResource) {
+        // check for bindable registration
+        // This will concat bindables specified in static field / method with bindables specified via decorators
+        // Which means if `name` is specified in both decorator and static config, it will be duplicated here
+        // though it will finally resolves to only 1 `name` attribute
+        // Will not break if it's done in that way but probably only happenned in inheritance scenarios.
+        let bindables = typeof config === 'string' ? undefined : config.bindables;
+        if (Array.isArray(bindables)) {
+          for (let i = 0, ii = bindables.length; ii > i; ++i) {
+            let prop = bindables[i];
+            if (!prop || (typeof prop !== 'string' && !prop.name)) {
+              throw new Error(`Invalid bindable property at "${i}" for class "${target.name}". Expected either a string or an object with "name" property.`);
+            }
+            new BindableProperty(prop).registerWith(target, resource);
           }
-          new BindableProperty(prop).registerWith(target, resource);
         }
       }
     }
@@ -464,9 +504,13 @@ export class ViewResources {
    * @returns {HtmlBehaviorResource | ValueConverterResource | BindingBehaviorResource | ViewEngineHooksResource}
    */
   autoRegister(container, impl) {
-    let resourceTypeMeta = metadata.get(metadata.resource, impl);
+    let resourceTypeMeta = metadata.getOwn(metadata.resource, impl);
     if (resourceTypeMeta) {
       if (resourceTypeMeta instanceof HtmlBehaviorResource) {
+        // first use static resource
+        ViewResources.convention(impl, resourceTypeMeta);
+
+        // then fallback to traditional convention
         if (resourceTypeMeta.attributeName === null && resourceTypeMeta.elementName === null) {
           //no customeElement or customAttribute but behavior added by other metadata
           HtmlBehaviorResource.convention(impl.name, resourceTypeMeta);

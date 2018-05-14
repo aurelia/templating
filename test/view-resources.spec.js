@@ -3,7 +3,7 @@ import {metadata} from 'aurelia-metadata';
 import { Logger } from 'aurelia-logging';
 import {bindingMode, valueConverter, bindingBehavior, ValueConverterResource, BindingBehaviorResource} from 'aurelia-binding';
 import {Container} from 'aurelia-dependency-injection';
-import { customElement, customAttribute } from '../src/decorators';
+import { customElement, customAttribute, bindable } from '../src/decorators';
 import {ViewResources} from '../src/view-resources';
 import { HtmlBehaviorResource } from '../src/html-behavior';
 import { viewEngineHooks } from '../src/view-engine-hooks-resource';
@@ -191,12 +191,88 @@ describe('ViewResources', () => {
   });
 
   it('auto register with static `resource` convention ', () => {
-    let container = new Container();
-    let resources = new ViewResources();
     class El3 {
       static $resource = 'el3'
     }
     resources.autoRegister(container, El3);
     expect(resources.getElement('el3').target).toBe(El3);
+  });
+
+  describe('interop', () => {
+    it('uses existing HtmlBehaviorResource metadata for naming', () => {
+
+      @customElement('a')
+      class El {
+        static $resource = 'b'
+      }
+
+      resources.autoRegister(container, El);
+      expect(resources.getElement('a').target).toBe(El);
+
+      @customAttribute('b')
+      class At {
+        static $resource = {
+          type: 'attribute',
+          name: 'c'
+        }
+      }
+      resources.autoRegister(container, At);
+      expect(resources.getAttribute('b').target).toBe(At)
+    });
+
+    it('adds bindables', () => {
+
+      class El {
+        static $resource() {
+          return {
+            bindables: ['name', 'value']
+          }
+        }
+        @bindable() name
+        @bindable() value
+      }
+      resources.autoRegister(container, El);
+      expect(resources.getElement('el').properties.length).toBe(4);
+    });
+
+    describe('with inheritance', () => {
+
+      it('works with base class using static config and derived class using decorator', () => {
+        class Base {
+          static $resource = {
+            bindables: ['name', 'value']
+          }
+        }
+
+        class Field extends Base {
+          @bindable()
+          label;
+        }
+
+        resources.autoRegister(container, Field);
+        expect(resources.getElement('field').properties.length).toBe(3);
+      });
+
+      it('works with base class using decorators and derivde class using static config', () => {
+        class Base {
+          @bindable() name
+          @bindable() value;
+        }
+
+        class Field extends Base {
+          static $resource = {
+            bindables: ['label']
+          }
+        }
+
+        const meta = resources.autoRegister(container, Field);
+        expect(resources.getElement('field').properties.length).toBe(3);
+        // Just a little check to ensure metadata are 
+        expect(resources.getElement('base')).toBeFalsy();
+        expect(meta).toBe(resources.getElement('field'));
+        expect(metadata.getOwn(metadata.resource, Base)).not.toBe(meta);
+      });
+      
+    });
   });
 });

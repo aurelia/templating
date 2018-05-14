@@ -240,17 +240,24 @@ export class ModuleAnalyzer {
         continue;
       }
 
+      // This is an unexpected behavior for inheritance as it will walk through the whole prototype chain
+      // to look for metadata. Should be `getOwn` instead. Though it's subjected to a breaking changes change
       resourceTypeMeta = metadata.get(metadata.resource, exportedValue);
 
       if (resourceTypeMeta) {
-        if (resourceTypeMeta.attributeName === null && resourceTypeMeta.elementName === null) {
-          //no customeElement or customAttribute but behavior added by other metadata
-          HtmlBehaviorResource.convention(key, resourceTypeMeta);
-        }
+        if (resourceTypeMeta instanceof HtmlBehaviorResource) {
+          // first used static resource
+          ViewResources.convention(exportedValue, resourceTypeMeta);
 
-        if (resourceTypeMeta.attributeName === null && resourceTypeMeta.elementName === null) {
-          //no convention and no customeElement or customAttribute but behavior added by other metadata
-          resourceTypeMeta.elementName = _hyphenate(key);
+          if (resourceTypeMeta.attributeName === null && resourceTypeMeta.elementName === null) {
+            //no customeElement or customAttribute but behavior added by other metadata
+            HtmlBehaviorResource.convention(key, resourceTypeMeta);
+          }
+
+          if (resourceTypeMeta.attributeName === null && resourceTypeMeta.elementName === null) {
+            //no convention and no customeElement or customAttribute but behavior added by other metadata
+            resourceTypeMeta.elementName = _hyphenate(key);
+          }
         }
 
         if (!mainResource && resourceTypeMeta instanceof HtmlBehaviorResource && resourceTypeMeta.elementName !== null) {
