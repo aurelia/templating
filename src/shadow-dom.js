@@ -4,8 +4,11 @@ import {_isAllWhitespace} from './util';
 
 let noNodes = Object.freeze([]);
 
-@inject(DOM.Element)
 export class SlotCustomAttribute {
+  static inject() {
+    return [DOM.Element];
+  }
+
   constructor(element) {
     this.element = element;
     this.element.auSlotAttribute = this;
