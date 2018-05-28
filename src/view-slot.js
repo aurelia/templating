@@ -209,7 +209,7 @@ export class ViewSlot {
   * @param skipAnimation Should the removal animation be skipped?
   * @return May return a promise if the view removal triggered an animation.
   */
-  remove(view: View, returnToCache?: boolean, skipAnimation?: boolean): void | Promise<View> {
+  remove(view: View, returnToCache?: boolean, skipAnimation?: boolean): View | Promise<View> {
     return this.removeAt(this.children.indexOf(view), returnToCache, skipAnimation);
   }
 
@@ -220,7 +220,7 @@ export class ViewSlot {
   * @param skipAnimation Should the removal animation be skipped?
   * @return May return a promise if the view removal triggered an animation.
   */
-  removeMany(viewsToRemove: View[], returnToCache?: boolean, skipAnimation?: boolean): void | Promise<View> {
+  removeMany(viewsToRemove: View[], returnToCache?: boolean, skipAnimation?: boolean): void | Promise<void> {
     const children = this.children;
     let ii = viewsToRemove.length;
     let i;
