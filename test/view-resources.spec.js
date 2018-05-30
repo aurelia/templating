@@ -105,6 +105,23 @@ describe('ViewResources', () => {
       meta = ViewResources.convention(El1);
       expect(meta.elementName).toBe('el');
     });
+
+    it('does not reapply convention', () => {
+      class El  {
+        static $resource = {
+          bindables: ['value']
+        }
+      }
+      let meta = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, El);
+      ViewResources.convention(El, meta);
+      expect(meta.elementName).toBe('el');
+      expect(meta.properties.length).toBe(1);
+      expect(meta.__au_resource__).toBe(true);
+
+      El.$resource.bindables.push('name', 'label', 'type');
+      ViewResources.convention(El, meta);
+      expect(meta.properties.length).toBe(1);
+    });
   });
  
   it('auto register', () => {
@@ -220,20 +237,20 @@ describe('ViewResources', () => {
       expect(resources.getAttribute('b').target).toBe(At)
     });
 
-    it('adds bindables', () => {
+    // it('adds bindables', () => {
 
-      class El {
-        static $resource() {
-          return {
-            bindables: ['name', 'value']
-          }
-        }
-        @bindable() name
-        @bindable() value
-      }
-      resources.autoRegister(container, El);
-      expect(resources.getElement('el').properties.length).toBe(4);
-    });
+    //   class El {
+    //     static $resource() {
+    //       return {
+    //         bindables: ['name', 'value']
+    //       }
+    //     }
+    //     @bindable() name
+    //     @bindable() value
+    //   }
+    //   resources.autoRegister(container, El);
+    //   expect(resources.getElement('el').properties.length).toBe(4);
+    // });
 
     describe('with inheritance', () => {
 

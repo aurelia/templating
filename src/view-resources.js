@@ -158,6 +158,8 @@ export function validateBehaviorName(name: string, type: string) {
   return name;
 }
 
+const conventionMark = '__au_resource__';
+
 /**
  * Represents a collection of resources used during the compilation of a view.
  * Will optinally add information to an existing HtmlBehaviorResource if given
@@ -171,6 +173,12 @@ export class ViewResources {
    */
   static convention(target: Function, existing?: HtmlBehaviorResource): HtmlBehaviorResource | ValueConverterResource | BindingBehaviorResource | ViewEngineHooksResource {
     let resource;
+    // Use a simple string to mark that an HtmlBehaviorResource instance
+    // has been applied all resource information from its target view model class
+    // to prevent subsequence call re initialization all info again
+    if (existing && conventionMark in existing) {
+      return existing;
+    }
     if ('$resource' in target) {
       let config = target.$resource;
       // 1. check if resource config is a string
@@ -178,6 +186,7 @@ export class ViewResources {
         // it's a custom element, with name is the resource variable
         // static $resource = 'my-element'
         resource = existing || new HtmlBehaviorResource();
+        resource[conventionMark] = true;
         if (!resource.elementName) {
           // if element name was not specified before
           resource.elementName = validateBehaviorName(config, 'custom element');
@@ -206,6 +215,7 @@ export class ViewResources {
         case 'element': case 'attribute':
           // if a metadata is supplied, use it
           resource = existing || new HtmlBehaviorResource();
+          resource[conventionMark] = true;
           if (resourceType === 'element') {
             // if element name was defined before applying convention here
             // it's a result from `@customElement` call (or manual modification)
@@ -262,13 +272,28 @@ export class ViewResources {
         // though it will finally resolves to only 1 `name` attribute
         // Will not break if it's done in that way but probably only happenned in inheritance scenarios.
         let bindables = typeof config === 'string' ? undefined : config.bindables;
+        let currentProps = resource.properties;
         if (Array.isArray(bindables)) {
           for (let i = 0, ii = bindables.length; ii > i; ++i) {
             let prop = bindables[i];
             if (!prop || (typeof prop !== 'string' && !prop.name)) {
               throw new Error(`Invalid bindable property at "${i}" for class "${target.name}". Expected either a string or an object with "name" property.`);
             }
-            new BindableProperty(prop).registerWith(target, resource);
+            let newProp = new BindableProperty(prop);
+            // Bindable properties defined in $resource convention
+            // shouldn't override existing prop with the same name
+            // as they could be explicitly defined via decorator, thus more trust worthy ?
+            let existed = false;
+            for (let j = 0, jj = currentProps.length; jj > j; ++j) {
+              if (currentProps[j].name === newProp.name) {
+                existed = true;
+                break;
+              }
+            }
+            if (existed) {
+              continue;
+            }
+            newProp.registerWith(target, resource);
           }
         }
       }
