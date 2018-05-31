@@ -128,22 +128,35 @@ export class CompositionEngine {
     let childContainer;
     let viewModel;
     let viewModelResource;
+    /**@type {HtmlBehaviorResource} */
     let m;
 
-    return this.ensureViewModel(context).then(tryActivateViewModel).then(() => {
-      childContainer = context.childContainer;
-      viewModel = context.viewModel;
-      viewModelResource = context.viewModelResource;
-      m = viewModelResource.metadata;
+    return this
+      .ensureViewModel(context)
+      .then(tryActivateViewModel)
+      .then(() => {
+        childContainer = context.childContainer;
+        viewModel = context.viewModel;
+        viewModelResource = context.viewModelResource;
+        m = viewModelResource.metadata;
 
-      let viewStrategy = this.viewLocator.getViewStrategy(context.view || viewModel);
+        let viewStrategy = this.viewLocator.getViewStrategy(context.view || viewModel);
 
-      if (context.viewResources) {
-        viewStrategy.makeRelativeTo(context.viewResources.viewUrl);
-      }
+        if (context.viewResources) {
+          viewStrategy.makeRelativeTo(context.viewResources.viewUrl);
+        }
 
-      return m.load(childContainer, viewModelResource.value, null, viewStrategy, true);
-    }).then(viewFactory => m.create(childContainer, BehaviorInstruction.dynamic(context.host, viewModel, viewFactory)));
+        return m.load(
+          childContainer,
+          viewModelResource.value,
+          null,
+          viewStrategy,
+          true
+        );
+      }).then(viewFactory => m.create(
+        childContainer,
+        BehaviorInstruction.dynamic(context.host, viewModel, viewFactory)
+      ));
   }
 
   /**
@@ -171,12 +184,26 @@ export class CompositionEngine {
         return context;
       });
     }
-
-    let m = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, context.viewModel.constructor);
+    // When viewModel in context is not a module path
+    // only prepare the metadata and ensure the view model instance is ready
+    // if viewModel is a class, instantiate it
+    let isClass = typeof context.viewModel === 'function';
+    let ctor = isClass ? context.viewModel : context.viewModel.constructor;
+    let m = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, ctor);
+    // We don't call ViewResources.prototype.convention here as it should be called later
+    // Just need to prepare the metadata for later usage
     m.elementName = m.elementName || 'dynamic-element';
-    m.initialize(context.container || childContainer, context.viewModel.constructor);
-    context.viewModelResource = { metadata: m, value: context.viewModel.constructor };
-    childContainer.viewModel = context.viewModel;
+    // HtmlBehaviorResource has its own guard to prevent unnecessary subsequent initialization calls
+    // so it's safe to call initialize this way
+    m.initialize(isClass ? childContainer : (context.container || childContainer), ctor);
+    // simulate the metadata of view model, like it was analyzed by module analyzer
+    // Cannot create a ResourceDescription instance here as it does too much
+    context.viewModelResource = { metadata: m, value: ctor };
+    // register the host element in case custom element view model declares it
+    if (context.host) {
+      childContainer.registerInstance(DOM.Element, context.host);
+    }
+    childContainer.viewModel = context.viewModel = isClass ? childContainer.get(ctor) : context.viewModel;
     return Promise.resolve(context);
   }
 
