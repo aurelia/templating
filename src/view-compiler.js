@@ -300,12 +300,13 @@ export class ViewCompiler {
     let knownAttribute;
     let auTargetID;
     let injectorId;
+    const nextSibling = node.nextSibling;
 
     if (tagName === 'slot') {
       if (targetLightDOM) {
         node = makeShadowSlot(this, resources, node, instructions, parentInjectorId);
       }
-      return node.nextSibling;
+      return nextSibling;
     } else if (tagName === 'template') {
       if (!('content' in node)) {
         throw new Error('You cannot place a template element within ' + node.namespaceURI + ' namespace');
@@ -453,7 +454,7 @@ export class ViewCompiler {
       }
 
       if (skipContentProcessing) {
-        return node.nextSibling;
+        return nextSibling;
       }
 
       let currentChild = node.firstChild;
@@ -462,7 +463,7 @@ export class ViewCompiler {
       }
     }
 
-    return node.nextSibling;
+    return nextSibling;
   }
 
   _configureProperties(instruction, resources) {
