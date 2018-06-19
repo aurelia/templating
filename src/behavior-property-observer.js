@@ -38,7 +38,7 @@ export class BehaviorPropertyObserver {
   setValue(newValue: any): void {
     let oldValue = this.currentValue;
 
-    if (Object.is(newValue, oldValue)) {
+    if (!Object.is(newValue, oldValue)) {
       this.oldValue = oldValue;
       this.currentValue = newValue;
 
