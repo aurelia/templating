@@ -290,7 +290,7 @@ export class StaticViewStrategy {
   * @param target A class from which to extract metadata of additional resources to load.
   * @return A promise for the view factory that is produced by this strategy.
   */
-  loadViewFactory(viewEngine: ViewEngine, compileInstruction: IViewCompileInstruction, loadContext: IResourceLoadContext, target: any): Promise<IViewFactory> {
+  loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext: ResourceLoadContext, target: any): Promise<ViewFactory> {
     if (this.factoryIsReady) {
       return Promise.resolve(this.factory);
     }
