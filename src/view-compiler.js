@@ -118,6 +118,7 @@ export class ViewCompiler {
       factory.setCacheSize(cacheSize);
     }
 
+    this._removeCommands(factory.template);
     resources._invokeHook('afterCompile', factory);
 
     return factory;
@@ -489,6 +490,22 @@ export class ViewCompiler {
           value.targetProperty = property.name;
         } else {
           value.targetProperty = key;
+        }
+      }
+    }
+  }
+
+  _removeCommands(template: DocumentFragment) {
+    const auTargets = template.querySelectorAll('.au-target');
+    for (let i = 0, ii = auTargets.length; ii > i; ++i) {
+      const auTarget = auTargets[i];
+      const attrs = auTarget.attributes;
+      for (let j = 0; attrs.length > j; ++j) {
+        const attr = attrs[j];
+        const attrName = attr.name;
+        if (attrName.indexOf('.') !== -1 || attrName === 'ref' || attrName === 'as-element') {
+          auTarget.removeAttribute(attrName);
+          j--;
         }
       }
     }
