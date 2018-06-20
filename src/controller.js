@@ -86,6 +86,7 @@ export class Controller {
   * @param scope The binding scope.
   */
   bind(scope: Object): void {
+    let handlesAssigned = this.behavior.handlesAssigned;
     let skipSelfSubscriber = this.behavior.handlesBind;
     let boundProperties = this.boundProperties;
     let i;
@@ -105,21 +106,40 @@ export class Controller {
     this.isBound = true;
     this.scope = scope;
 
-    for (i = 0, ii = boundProperties.length; i < ii; ++i) {
-      x = boundProperties[i];
-      observer = x.observer;
-      selfSubscriber = observer.selfSubscriber;
-      observer.publishing = false;
+    if (handlesAssigned) {
+      for (i = 0, ii = boundProperties.length; i < ii; ++i) {
+        x = boundProperties[i];
+        observer = x.observer;
+        observer.publishing = false;
 
-      if (skipSelfSubscriber) {
-        observer.selfSubscriber = null;
+        x.binding.bind(scope);
+
+        observer.publishing = true;
       }
 
-      x.binding.bind(scope);
-      observer.call();
+      this.viewModel.assigned();
+    }
+
+    for (i = 0, ii = boundProperties.length; ii > i; ++i) {
+      x = boundProperties[i];
+      observer = x.observer;
+      observer.publishing = false;
+
+      if (!handlesAssigned) {
+        x.binding.bind(scope);
+      }
+
+      if (skipSelfSubscriber) {
+        selfSubscriber = observer.selfSubscriber;          
+        observer.selfSubscriber = null;
+
+        observer.call();
+        observer.selfSubscriber = selfSubscriber;
+      } else {
+        observer.call();
+      }
 
       observer.publishing = true;
-      observer.selfSubscriber = selfSubscriber;
     }
 
     let overrideContext;
@@ -151,7 +171,9 @@ export class Controller {
       // behavior stores a the BoundViewFactory on its viewModel under the name of viewFactory. This is implemented
       // by the replaceable custom attribute.
       if (scope.overrideContext.__parentOverrideContext !== undefined
-        && this.viewModel.viewFactory && this.viewModel.viewFactory.factoryCreateInstruction.partReplacements) {
+        && this.viewModel.viewFactory
+        && this.viewModel.viewFactory.factoryCreateInstruction.partReplacements
+      ) {
         // clone the overrideContext and connect the ambient context.
         overrideContext = Object.assign({}, scope.overrideContext);
         overrideContext.parentOverrideContext = scope.overrideContext.__parentOverrideContext;
