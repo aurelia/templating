@@ -38,7 +38,7 @@ export class BehaviorPropertyObserver {
   setValue(newValue: any): void {
     let oldValue = this.currentValue;
 
-    if (oldValue !== newValue) {
+    if (!Object.is(newValue, oldValue)) {
       this.oldValue = oldValue;
       this.currentValue = newValue;
 
@@ -62,7 +62,7 @@ export class BehaviorPropertyObserver {
 
     this.notqueued = true;
 
-    if (newValue === oldValue) {
+    if (Object.is(newValue, oldValue)) {
       return;
     }
 
