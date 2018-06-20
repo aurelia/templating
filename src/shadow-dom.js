@@ -1,4 +1,3 @@
-import {inject} from 'aurelia-dependency-injection';
 import {DOM} from 'aurelia-pal';
 import {_isAllWhitespace} from './util';
 
