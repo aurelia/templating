@@ -1,12 +1,12 @@
-var _class, _temp, _dec, _class2, _dec2, _class3, _dec3, _class4, _dec4, _class5, _dec5, _class6, _class7, _temp2, _dec6, _class8, _class9, _temp3, _class11, _dec7, _class13, _dec8, _class14, _class15, _temp4, _dec9, _class16, _dec10, _class17, _dec11, _class18;
+var _class, _temp, _dec, _class2, _dec2, _class3, _dec3, _class4, _dec4, _class5, _dec5, _class6, _dec6, _class7, _class8, _temp2, _class9, _temp3, _class11, _dec7, _class13, _dec8, _class14, _class15, _temp4, _dec9, _class16, _dec10, _class17, _dec11, _class18;
 
 import * as LogManager from 'aurelia-logging';
 import { metadata, Origin, protocol } from 'aurelia-metadata';
 import { DOM, PLATFORM, FEATURE } from 'aurelia-pal';
-import { relativeToFile } from 'aurelia-path';
 import { TemplateRegistryEntry, Loader } from 'aurelia-loader';
-import { inject, Container, resolver } from 'aurelia-dependency-injection';
-import { Binding, createOverrideContext, ValueConverterResource, BindingBehaviorResource, subscriberCollection, bindingMode, ObserverLocator, EventManager } from 'aurelia-binding';
+import { relativeToFile } from 'aurelia-path';
+import { Container, resolver, inject } from 'aurelia-dependency-injection';
+import { ValueConverterResource, BindingBehaviorResource, camelCase, Binding, createOverrideContext, subscriberCollection, bindingMode, ObserverLocator, EventManager } from 'aurelia-binding';
 import { TaskQueue } from 'aurelia-task-queue';
 
 export const animationEvent = {
@@ -566,7 +566,71 @@ export let InlineViewStrategy = (_dec5 = viewStrategy(), _dec5(_class6 = class I
   }
 }) || _class6);
 
-export let ViewLocator = (_temp2 = _class7 = class ViewLocator {
+export let StaticViewStrategy = (_dec6 = viewStrategy(), _dec6(_class7 = class StaticViewStrategy {
+
+  constructor(config) {
+    if (typeof config === 'string' || config instanceof HTMLTemplateElement) {
+      config = {
+        template: config
+      };
+    }
+    this.template = config.template;
+    this.dependencies = config.dependencies || [];
+    this.factoryIsReady = false;
+    this.onReady = null;
+  }
+
+  loadViewFactory(viewEngine, compileInstruction, loadContext, target) {
+    if (this.factoryIsReady) {
+      return Promise.resolve(this.factory);
+    }
+    let deps = this.dependencies;
+    deps = typeof deps === 'function' ? deps() : deps;
+    deps = deps ? deps : [];
+    deps = Array.isArray(deps) ? deps : [deps];
+
+    return Promise.all(deps).then(dependencies => {
+      const container = viewEngine.container;
+      const appResources = viewEngine.appResources;
+      const viewCompiler = viewEngine.viewCompiler;
+      const viewResources = new ViewResources(appResources);
+
+      let resource;
+      let elDeps = [];
+
+      if (target) {
+        viewResources.autoRegister(container, target);
+      }
+
+      for (let dep of dependencies) {
+        if (typeof dep === 'function') {
+          resource = viewResources.autoRegister(container, dep);
+        } else if (dep && typeof dep === 'object') {
+          for (let key in dep) {
+            let exported = dep[key];
+            if (typeof exported === 'function') {
+              resource = viewResources.autoRegister(container, exported);
+            }
+          }
+        } else {
+          throw new Error(`dependency neither function nor object. Received: "${typeof dep}"`);
+        }
+        if (resource.elementName !== null) {
+          elDeps.push(resource);
+        }
+      }
+
+      return Promise.all(elDeps.map(el => el.load(container, el.target))).then(() => {
+        const factory = viewCompiler.compile(this.template, viewResources, compileInstruction);
+        this.factoryIsReady = true;
+        this.factory = factory;
+        return factory;
+      });
+    });
+  }
+}) || _class7);
+
+export let ViewLocator = (_temp2 = _class8 = class ViewLocator {
   getViewStrategy(value) {
     if (!value) {
       return null;
@@ -602,6 +666,19 @@ export let ViewLocator = (_temp2 = _class7 = class ViewLocator {
       value = value.constructor;
     }
 
+    if ('$view' in value) {
+      let c = value.$view;
+      let view;
+      c = typeof c === 'function' ? c.call(value) : c;
+      if (c === null) {
+        view = new NoViewStrategy();
+      } else {
+        view = c instanceof StaticViewStrategy ? c : new StaticViewStrategy(c);
+      }
+      metadata.define(ViewLocator.viewStrategyMetadataKey, view, value);
+      return view;
+    }
+
     let origin = Origin.get(value);
     let strategy = metadata.get(ViewLocator.viewStrategyMetadataKey, value);
 
@@ -627,10 +704,10 @@ export let ViewLocator = (_temp2 = _class7 = class ViewLocator {
     let id = moduleId.endsWith('.js') || moduleId.endsWith('.ts') ? moduleId.substring(0, moduleId.length - 3) : moduleId;
     return id + '.html';
   }
-}, _class7.viewStrategyMetadataKey = 'aurelia:view-strategy', _temp2);
+}, _class8.viewStrategyMetadataKey = 'aurelia:view-strategy', _temp2);
 
 function mi(name) {
-  throw new Error(`BindingLanguage must implement ${ name }().`);
+  throw new Error(`BindingLanguage must implement ${name}().`);
 }
 
 export let BindingLanguage = class BindingLanguage {
@@ -649,14 +726,18 @@ export let BindingLanguage = class BindingLanguage {
 
 let noNodes = Object.freeze([]);
 
-export let SlotCustomAttribute = (_dec6 = inject(DOM.Element), _dec6(_class8 = class SlotCustomAttribute {
+export let SlotCustomAttribute = class SlotCustomAttribute {
+  static inject() {
+    return [DOM.Element];
+  }
+
   constructor(element) {
     this.element = element;
     this.element.auSlotAttribute = this;
   }
 
   valueChanged(newValue, oldValue) {}
-}) || _class8);
+};
 
 export let PassThroughSlot = class PassThroughSlot {
   constructor(anchor, name, destinationName, fallbackFactory) {
@@ -1060,7 +1141,7 @@ function register(lookup, name, resource, type) {
   let existing = lookup[name];
   if (existing) {
     if (existing !== resource) {
-      throw new Error(`Attempted to register ${ type } when one with the same name already exists. Name: ${ name }.`);
+      throw new Error(`Attempted to register ${type} when one with the same name already exists. Name: ${name}.`);
     }
 
     return;
@@ -1069,7 +1150,113 @@ function register(lookup, name, resource, type) {
   lookup[name] = resource;
 }
 
+export function validateBehaviorName(name, type) {
+  if (/[A-Z]/.test(name)) {
+    let newName = _hyphenate(name);
+    LogManager.getLogger('templating').warn(`'${name}' is not a valid ${type} name and has been converted to '${newName}'. Upper-case letters are not allowed because the DOM is not case-sensitive.`);
+    return newName;
+  }
+  return name;
+}
+
+const conventionMark = '__au_resource__';
+
 export let ViewResources = class ViewResources {
+  static convention(target, existing) {
+    let resource;
+
+    if (existing && conventionMark in existing) {
+      return existing;
+    }
+    if ('$resource' in target) {
+      let config = target.$resource;
+
+      if (typeof config === 'string') {
+        resource = existing || new HtmlBehaviorResource();
+        resource[conventionMark] = true;
+        if (!resource.elementName) {
+          resource.elementName = validateBehaviorName(config, 'custom element');
+        }
+      } else {
+        if (typeof config === 'function') {
+          config = config.call(target);
+        }
+        if (typeof config === 'string') {
+          config = { name: config };
+        }
+
+        config = Object.assign({}, config);
+
+        let resourceType = config.type || 'element';
+
+        let name = config.name;
+        switch (resourceType) {
+          case 'element':case 'attribute':
+            resource = existing || new HtmlBehaviorResource();
+            resource[conventionMark] = true;
+            if (resourceType === 'element') {
+              if (!resource.elementName) {
+                resource.elementName = name ? validateBehaviorName(name, 'custom element') : _hyphenate(target.name);
+              }
+            } else {
+              if (!resource.attributeName) {
+                resource.attributeName = name ? validateBehaviorName(name, 'custom attribute') : _hyphenate(target.name);
+              }
+            }
+            if ('templateController' in config) {
+              config.liftsContent = config.templateController;
+              delete config.templateController;
+            }
+            if ('defaultBindingMode' in config && resource.attributeDefaultBindingMode !== undefined) {
+              config.attributeDefaultBindingMode = config.defaultBindingMode;
+              delete config.defaultBindingMode;
+            }
+
+            delete config.name;
+
+            Object.assign(resource, config);
+            break;
+          case 'valueConverter':
+            resource = new ValueConverterResource(camelCase(name || target.name));
+            break;
+          case 'bindingBehavior':
+            resource = new BindingBehaviorResource(camelCase(name || target.name));
+            break;
+          case 'viewEngineHooks':
+            resource = new ViewEngineHooksResource();
+            break;
+        }
+      }
+
+      if (resource instanceof HtmlBehaviorResource) {
+        let bindables = typeof config === 'string' ? undefined : config.bindables;
+        let currentProps = resource.properties;
+        if (Array.isArray(bindables)) {
+          for (let i = 0, ii = bindables.length; ii > i; ++i) {
+            let prop = bindables[i];
+            if (!prop || typeof prop !== 'string' && !prop.name) {
+              throw new Error(`Invalid bindable property at "${i}" for class "${target.name}". Expected either a string or an object with "name" property.`);
+            }
+            let newProp = new BindableProperty(prop);
+
+            let existed = false;
+            for (let j = 0, jj = currentProps.length; jj > j; ++j) {
+              if (currentProps[j].name === newProp.name) {
+                existed = true;
+                break;
+              }
+            }
+            if (existed) {
+              continue;
+            }
+            newProp.registerWith(target, resource);
+          }
+        }
+      }
+    }
+    return resource;
+  }
+
   constructor(parent, viewUrl) {
     this.bindingLanguage = null;
 
@@ -1203,6 +1390,32 @@ export let ViewResources = class ViewResources {
 
   getValue(name) {
     return this.values[name] || (this.hasParent ? this.parent.getValue(name) : null);
+  }
+
+  autoRegister(container, impl) {
+    let resourceTypeMeta = metadata.getOwn(metadata.resource, impl);
+    if (resourceTypeMeta) {
+      if (resourceTypeMeta instanceof HtmlBehaviorResource) {
+        ViewResources.convention(impl, resourceTypeMeta);
+
+        if (resourceTypeMeta.attributeName === null && resourceTypeMeta.elementName === null) {
+          HtmlBehaviorResource.convention(impl.name, resourceTypeMeta);
+        }
+        if (resourceTypeMeta.attributeName === null && resourceTypeMeta.elementName === null) {
+          resourceTypeMeta.elementName = _hyphenate(impl.name);
+        }
+      }
+    } else {
+      resourceTypeMeta = ViewResources.convention(impl) || HtmlBehaviorResource.convention(impl.name) || ValueConverterResource.convention(impl.name) || BindingBehaviorResource.convention(impl.name) || ViewEngineHooksResource.convention(impl.name);
+      if (!resourceTypeMeta) {
+        resourceTypeMeta = new HtmlBehaviorResource();
+        resourceTypeMeta.elementName = _hyphenate(impl.name);
+      }
+      metadata.define(metadata.resource, resourceTypeMeta, impl);
+    }
+    resourceTypeMeta.initialize(container, impl);
+    resourceTypeMeta.register(this);
+    return resourceTypeMeta;
   }
 };
 
@@ -1798,6 +2011,9 @@ export let ViewSlot = class ViewSlot {
     if (this.isAttached) {
       view.detached();
     }
+    if (returnToCache) {
+      view.returnToCache();
+    }
   }
 
   _projectionRemoveAt(index, returnToCache) {
@@ -1809,6 +2025,9 @@ export let ViewSlot = class ViewSlot {
     if (this.isAttached) {
       view.detached();
     }
+    if (returnToCache) {
+      view.returnToCache();
+    }
   }
 
   _projectionRemoveMany(viewsToRemove, returnToCache) {
@@ -1819,10 +2038,15 @@ export let ViewSlot = class ViewSlot {
     ShadowDOM.undistributeAll(this.projectToSlots, this);
 
     let children = this.children;
+    let ii = children.length;
 
     if (this.isAttached) {
-      for (let i = 0, ii = children.length; i < ii; ++i) {
-        children[i].detached();
+      for (let i = 0; i < ii; ++i) {
+        if (returnToCache) {
+          children[i].returnToCache();
+        } else {
+          children[i].detached();
+        }
       }
     }
 
@@ -2835,12 +3059,16 @@ export let ModuleAnalyzer = class ModuleAnalyzer {
       resourceTypeMeta = metadata.get(metadata.resource, exportedValue);
 
       if (resourceTypeMeta) {
-        if (resourceTypeMeta.attributeName === null && resourceTypeMeta.elementName === null) {
-          HtmlBehaviorResource.convention(key, resourceTypeMeta);
-        }
+        if (resourceTypeMeta instanceof HtmlBehaviorResource) {
+          ViewResources.convention(exportedValue, resourceTypeMeta);
 
-        if (resourceTypeMeta.attributeName === null && resourceTypeMeta.elementName === null) {
-          resourceTypeMeta.elementName = _hyphenate(key);
+          if (resourceTypeMeta.attributeName === null && resourceTypeMeta.elementName === null) {
+            HtmlBehaviorResource.convention(key, resourceTypeMeta);
+          }
+
+          if (resourceTypeMeta.attributeName === null && resourceTypeMeta.elementName === null) {
+            resourceTypeMeta.elementName = _hyphenate(key);
+          }
         }
 
         if (!mainResource && resourceTypeMeta instanceof HtmlBehaviorResource && resourceTypeMeta.elementName !== null) {
@@ -2853,7 +3081,14 @@ export let ModuleAnalyzer = class ModuleAnalyzer {
       } else if (exportedValue instanceof TemplateRegistryEntry) {
         vs = new TemplateRegistryViewStrategy(moduleId, exportedValue);
       } else {
-        if (conventional = HtmlBehaviorResource.convention(key)) {
+        if (conventional = ViewResources.convention(exportedValue)) {
+          if (conventional.elementName !== null && !mainResource) {
+            mainResource = new ResourceDescription(key, exportedValue, conventional);
+          } else {
+            resources.push(new ResourceDescription(key, exportedValue, conventional));
+          }
+          metadata.define(metadata.resource, conventional, exportedValue);
+        } else if (conventional = HtmlBehaviorResource.convention(key)) {
           if (conventional.elementName !== null && !mainResource) {
             mainResource = new ResourceDescription(key, exportedValue, conventional);
           } else {
@@ -2998,7 +3233,7 @@ export let ViewEngine = (_dec8 = inject(Loader, Container, ViewCompiler, ModuleA
 
     importIds = dependencies.map(x => x.src);
     names = dependencies.map(x => x.name);
-    logger.debug(`importing resources for ${ registryEntry.address }`, importIds);
+    logger.debug(`importing resources for ${registryEntry.address}`, importIds);
 
     if (target) {
       let viewModelRequires = metadata.get(ViewEngine.viewModelRequireMetadataKey, target);
@@ -3013,7 +3248,7 @@ export let ViewEngine = (_dec8 = inject(Loader, Container, ViewCompiler, ModuleA
             names.push(req.as);
           }
         }
-        logger.debug(`importing ViewModel resources for ${ compileInstruction.associatedModuleId }`, importIds.slice(templateImportCount));
+        logger.debug(`importing ViewModel resources for ${compileInstruction.associatedModuleId}`, importIds.slice(templateImportCount));
       }
     }
 
@@ -3026,7 +3261,7 @@ export let ViewEngine = (_dec8 = inject(Loader, Container, ViewCompiler, ModuleA
       let resourceModule = this.moduleAnalyzer.analyze(normalizedId, viewModelModule, moduleMember);
 
       if (!resourceModule.mainResource) {
-        throw new Error(`No view model found in module "${ moduleImport }".`);
+        throw new Error(`No view model found in module "${moduleImport}".`);
       }
 
       resourceModule.initialize(this.container);
@@ -3281,7 +3516,7 @@ export let BehaviorPropertyObserver = (_dec9 = subscriberCollection(), _dec9(_cl
   setValue(newValue) {
     let oldValue = this.currentValue;
 
-    if (oldValue !== newValue) {
+    if (!Object.is(newValue, oldValue)) {
       this.oldValue = oldValue;
       this.currentValue = newValue;
 
@@ -3302,7 +3537,7 @@ export let BehaviorPropertyObserver = (_dec9 = subscriberCollection(), _dec9(_cl
 
     this.notqueued = true;
 
-    if (newValue === oldValue) {
+    if (Object.is(newValue, oldValue)) {
       return;
     }
 
@@ -3349,8 +3584,11 @@ export let BindableProperty = class BindableProperty {
     }
 
     this.attribute = this.attribute || _hyphenate(this.name);
-    if (this.defaultBindingMode === null || this.defaultBindingMode === undefined) {
+    let defaultBindingMode = this.defaultBindingMode;
+    if (defaultBindingMode === null || defaultBindingMode === undefined) {
       this.defaultBindingMode = bindingMode.oneWay;
+    } else if (typeof defaultBindingMode === 'string') {
+      this.defaultBindingMode = bindingMode[defaultBindingMode] || bindingMode.oneWay;
     }
     this.changeHandler = this.changeHandler || null;
     this.owner = null;
@@ -3442,7 +3680,7 @@ export let BindableProperty = class BindableProperty {
     } else if ('propertyChanged' in viewModel) {
       selfSubscriber = (newValue, oldValue) => viewModel.propertyChanged(name, newValue, oldValue);
     } else if (changeHandlerName !== null) {
-      throw new Error(`Change handler ${ changeHandlerName } was specified but not declared on the class.`);
+      throw new Error(`Change handler ${changeHandlerName} was specified but not declared on the class.`);
     }
 
     if (defaultValue !== undefined) {
@@ -4084,7 +4322,7 @@ let ChildObserverBinder = class ChildObserverBinder {
         if (!items) {
           items = viewModel[this.property] = [];
         } else {
-          items.length = 0;
+          items.splice(0);
         }
 
         while (current) {
@@ -4179,6 +4417,7 @@ let ChildObserverBinder = class ChildObserverBinder {
     if (this.viewHost.__childObserver__) {
       this.viewHost.__childObserver__.disconnect();
       this.viewHost.__childObserver__ = null;
+      this.viewModel[this.property] = null;
     }
   }
 };
@@ -4249,6 +4488,7 @@ export let CompositionEngine = (_dec10 = inject(ViewEngine, ViewLocator), _dec10
     let childContainer;
     let viewModel;
     let viewModelResource;
+
     let m;
 
     return this.ensureViewModel(context).then(tryActivateViewModel).then(() => {
@@ -4286,11 +4526,20 @@ export let CompositionEngine = (_dec10 = inject(ViewEngine, ViewLocator), _dec10
       });
     }
 
-    let m = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, context.viewModel.constructor);
+    let isClass = typeof context.viewModel === 'function';
+    let ctor = isClass ? context.viewModel : context.viewModel.constructor;
+    let m = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, ctor);
+
     m.elementName = m.elementName || 'dynamic-element';
-    m.initialize(context.container || childContainer, context.viewModel.constructor);
-    context.viewModelResource = { metadata: m, value: context.viewModel.constructor };
-    childContainer.viewModel = context.viewModel;
+
+    m.initialize(isClass ? childContainer : context.container || childContainer, ctor);
+
+    context.viewModelResource = { metadata: m, value: ctor };
+
+    if (context.host) {
+      childContainer.registerInstance(DOM.Element, context.host);
+    }
+    childContainer.viewModel = context.viewModel = isClass ? childContainer.get(ctor) : context.viewModel;
     return Promise.resolve(context);
   }
 
@@ -4350,18 +4599,14 @@ export let ElementConfigResource = class ElementConfigResource {
   }
 };
 
-function validateBehaviorName(name, type) {
-  if (/[A-Z]/.test(name)) {
-    let newName = _hyphenate(name);
-    LogManager.getLogger('templating').warn(`'${ name }' is not a valid ${ type } name and has been converted to '${ newName }'. Upper-case letters are not allowed because the DOM is not case-sensitive.`);
-    return newName;
-  }
-  return name;
-}
-
-export function resource(instance) {
+export function resource(instanceOrConfig) {
   return function (target) {
-    metadata.define(metadata.resource, instance, target);
+    let isConfig = typeof instanceOrConfig === 'string' || Object.getPrototypeOf(instanceOrConfig) === Object.prototype;
+    if (isConfig) {
+      target.$resource = instanceOrConfig;
+    } else {
+      metadata.define(metadata.resource, instanceOrConfig, target);
+    }
   };
 }
 
@@ -4521,6 +4766,12 @@ export function noView(targetOrDependencies, dependencyBaseUrl) {
   };
 
   return target ? deco(target) : deco;
+}
+
+export function view(templateOrConfig) {
+  return function (target) {
+    target.$view = templateOrConfig;
+  };
 }
 
 export function elementConfig(target) {

@@ -1,3 +1,25 @@
+<a name="1.8.0-rc.1"></a>
+# [1.8.0-rc.1](https://github.com/aurelia/templating/compare/1.7.0...1.8.0-rc.1) (2018-06-20)
+
+
+### Bug Fixes
+
+* **BehaviorPropertyObserver:** use Object.is() for comparison ([bf8ec9a](https://github.com/aurelia/templating/commit/bf8ec9a))
+* **child-observation:** unset property in unbind ([7989015](https://github.com/aurelia/templating/commit/7989015))
+* **ShadowDOM:** unbind view when remove ([b4abe6e](https://github.com/aurelia/templating/commit/b4abe6e))
+* **StaticViewStrategy:** adjust interface for doc ([65aef43](https://github.com/aurelia/templating/commit/65aef43))
+* **view-slot:** fix return type ([66a86de](https://github.com/aurelia/templating/commit/66a86de))
+
+
+### Features
+
+* **CompositionEngine:** compose accepts view model constructor ([524dee4](https://github.com/aurelia/templating/commit/524dee4))
+* **decorators:** add decorators for view / resource config ([2af6b28](https://github.com/aurelia/templating/commit/2af6b28))
+* **resource:** aurelialess aurelia ([e7da973](https://github.com/aurelia/templating/commit/e7da973))
+* **resources:** interop with custom element / attribute decorators ([e06668e](https://github.com/aurelia/templating/commit/e06668e))
+
+
+
 <a name="1.7.0"></a>
 # [1.7.0](https://github.com/aurelia/templating/compare/1.6.0...v1.7.0) (2017-12-20)
 

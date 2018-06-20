@@ -1,10 +1,10 @@
 import * as LogManager from 'aurelia-logging';
 import {metadata,Origin,protocol} from 'aurelia-metadata';
 import {DOM,PLATFORM,FEATURE} from 'aurelia-pal';
-import {relativeToFile} from 'aurelia-path';
 import {TemplateRegistryEntry,Loader} from 'aurelia-loader';
-import {inject,Container,resolver} from 'aurelia-dependency-injection';
-import {Binding,createOverrideContext,ValueConverterResource,BindingBehaviorResource,subscriberCollection,bindingMode,ObserverLocator,EventManager} from 'aurelia-binding';
+import {relativeToFile} from 'aurelia-path';
+import {Container,resolver,inject} from 'aurelia-dependency-injection';
+import {ValueConverterResource,BindingBehaviorResource,camelCase,Binding,createOverrideContext,subscriberCollection,bindingMode,ObserverLocator,EventManager} from 'aurelia-binding';
 import {TaskQueue} from 'aurelia-task-queue';
 
 /**
@@ -965,6 +965,94 @@ export class InlineViewStrategy {
   }
 }
 
+interface IStaticViewConfig {
+  template: string | HTMLTemplateElement;
+  dependencies?: Function[] | (() => Array<Function | Promise<Function | Record<string, Function>>>);
+}
+
+@viewStrategy()
+export class StaticViewStrategy {
+
+  /**@internal */
+  template: string | HTMLTemplateElement;
+  /**@internal */
+  dependencies: Function[] | (() => Array<Function | Promise<Function | Record<string, Function>>>);
+  factoryIsReady: boolean;
+  factory: ViewFactory;
+
+  constructor(config: string | HTMLTemplateElement | IStaticViewConfig) {
+    if (typeof config === 'string' || config instanceof HTMLTemplateElement) {
+      config = {
+        template: config
+      };
+    }
+    this.template = config.template;
+    this.dependencies = config.dependencies || [];
+    this.factoryIsReady = false;
+    this.onReady = null;
+  }
+
+  /**
+  * Loads a view factory.
+  * @param viewEngine The view engine to use during the load process.
+  * @param compileInstruction Additional instructions to use during compilation of the view.
+  * @param loadContext The loading context used for loading all resources and dependencies.
+  * @param target A class from which to extract metadata of additional resources to load.
+  * @return A promise for the view factory that is produced by this strategy.
+  */
+  loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext: ResourceLoadContext, target: any): Promise<ViewFactory> {
+    if (this.factoryIsReady) {
+      return Promise.resolve(this.factory);
+    }
+    let deps = this.dependencies;
+    deps = typeof deps === 'function' ? deps() : deps;
+    deps = deps ? deps : [];
+    deps = Array.isArray(deps) ? deps : [deps];
+    // Promise.all() to normalize dependencies into an array of either functions, or records that contain function
+    return Promise.all(deps).then((dependencies) => {
+      const container = viewEngine.container;
+      const appResources = viewEngine.appResources;
+      const viewCompiler = viewEngine.viewCompiler;
+      const viewResources = new ViewResources(appResources);
+
+      let resource;
+      let elDeps = [];
+
+      if (target) {
+        // when composing without a view mode, but view specified, target will be undefined
+        viewResources.autoRegister(container, target);
+      }
+
+      for (let dep of dependencies) {
+        if (typeof dep === 'function') {
+          // dependencies: [class1, class2, import('module').then(m => m.class3)]
+          resource = viewResources.autoRegister(container, dep);
+        } else if (dep && typeof dep === 'object') {
+          // dependencies: [import('module1'), import('module2')]
+          for (let key in dep) {
+            let exported = dep[key];
+            if (typeof exported === 'function') {
+              resource = viewResources.autoRegister(container, exported);
+            }
+          }
+        } else {
+          throw new Error(`dependency neither function nor object. Received: "${typeof dep}"`);
+        }
+        if (resource.elementName !== null) {
+          elDeps.push(resource);
+        }
+      }
+      // only load custom element as first step.
+      return Promise.all(elDeps.map(el => el.load(container, el.target))).then(() => {
+        const factory = viewCompiler.compile(this.template, viewResources, compileInstruction);
+        this.factoryIsReady = true;
+        this.factory = factory;
+        return factory;
+      });
+    });
+  }
+}
+
 /**
 * Locates a view for an object.
 */
@@ -1012,6 +1100,20 @@ export class ViewLocator {
 
     if (typeof value !== 'function') {
       value = value.constructor;
+    }
+
+    // static view strategy
+    if ('$view' in value) {
+      let c = value.$view;
+      let view;
+      c = typeof c === 'function' ? c.call(value) : c;
+      if (c === null) {
+        view = new NoViewStrategy();
+      } else {
+        view = c instanceof StaticViewStrategy ? c : new StaticViewStrategy(c);
+      }
+      metadata.define(ViewLocator.viewStrategyMetadataKey, view, value);
+      return view;
     }
 
     let origin = Origin.get(value);
@@ -1098,8 +1200,11 @@ export class BindingLanguage {
 
 let noNodes = Object.freeze([]);
 
-@inject(DOM.Element)
 export class SlotCustomAttribute {
+  static inject() {
+    return [DOM.Element];
+  }
+
   constructor(element) {
     this.element = element;
     this.element.auSlotAttribute = this;
@@ -1573,10 +1678,237 @@ interface ViewEngineHooks {
   beforeUnbind?: (view: View) => void;
 }
 
+interface IBindablePropertyConfig {
+  /**
+  * The name of the property.
+  */
+  name?: string;
+  attribute?: string;
+  /**
+   * The default binding mode of the property. If given string, will use to lookup
+   */
+  defaultBindingMode?: bindingMode | 'oneTime' | 'oneWay' | 'twoWay' | 'fromView' | 'toView';
+  /**
+   * The name of a view model method to invoke when the property is updated.
+   */
+  changeHandler?: string;
+  /**
+   * A default value for the property.
+   */
+  defaultValue?: any;
+  /**
+   * Designates the property as the default bindable property among all the other bindable properties when used in a custom attribute with multiple bindable properties.
+   */
+  primaryProperty?: boolean;
+  // For compatibility and future extension
+  [key: string]: any;
+}
+
+interface IStaticResourceConfig {
+  /**
+   * Resource type of this class, omit equals to custom element
+   */
+  type?: 'element' | 'attribute' | 'valueConverter' | 'bindingBehavior' | 'viewEngineHooks';
+  /**
+   * Name of this resource. Reccommended to explicitly set to works better with minifier
+   */
+  name?: string;
+  /**
+   * Used to tell if a custom attribute is a template controller
+   */
+  templateController?: boolean;
+  /**
+   * Used to set default binding mode of default custom attribute view model "value" property
+   */
+  defaultBindingMode?: bindingMode | 'oneTime' | 'oneWay' | 'twoWay' | 'fromView' | 'toView';
+  /**
+   * Flags a custom attribute has dynamic options
+   */
+  hasDynamicOptions?: boolean;
+  /**
+   * Flag if this custom element uses native shadow dom instead of emulation
+   */
+  usesShadowDOM?: boolean;
+  /**
+   * Options that will be used if the element is flagged with usesShadowDOM
+   */
+  shadowDOMOptions?: ShadowRootInit;
+  /**
+   * Flag a custom element as containerless. Which will remove their render target
+   */
+  containerless?: boolean;
+  /**
+   * Custom processing of the attributes on an element before the framework inspects them.
+   */
+  processAttributes?: (viewCompiler: ViewCompiler, resources: ViewResources, node: Element, attributes: NamedNodeMap, elementInstruction: BehaviorInstruction) => void;
+  /**
+   * Enables custom processing of the content that is places inside the custom element by its consumer.
+   * Pass a boolean to direct the template compiler to not process
+   * the content placed inside this element. Alternatively, pass a function which
+   * can provide custom processing of the content. This function should then return
+   * a boolean indicating whether the compiler should also process the content.
+   */
+  processContent?: (viewCompiler: ViewCompiler, resources: ViewResources, node: Element, instruction: BehaviorInstruction) => boolean;
+  /**
+   * List of bindable properties of this custom element / custom attribute, by name or full config object
+   */
+  bindables?: (string | IBindablePropertyConfig)[];
+}
+
+export function validateBehaviorName(name: string, type: string) {
+  if (/[A-Z]/.test(name)) {
+    let newName = _hyphenate(name);
+    LogManager
+      .getLogger('templating')
+      .warn(`'${name}' is not a valid ${type} name and has been converted to '${newName}'. Upper-case letters are not allowed because the DOM is not case-sensitive.`);
+    return newName;
+  }
+  return name;
+}
+
+const conventionMark = '__au_resource__';
+
 /**
-* Represents a collection of resources used during the compilation of a view.
-*/
+ * Represents a collection of resources used during the compilation of a view.
+ * Will optinally add information to an existing HtmlBehaviorResource if given
+ */
 export class ViewResources {
+
+  /**
+   * Checks whether the provided class contains any resource conventions
+   * @param target Target class to extract metadata based on convention
+   * @param existing If supplied, all custom element / attribute metadata extracted from convention will be apply to this instance
+   */
+  static convention(target: Function, existing?: HtmlBehaviorResource): HtmlBehaviorResource | ValueConverterResource | BindingBehaviorResource | ViewEngineHooksResource {
+    let resource;
+    // Use a simple string to mark that an HtmlBehaviorResource instance
+    // has been applied all resource information from its target view model class
+    // to prevent subsequence call re initialization all info again
+    if (existing && conventionMark in existing) {
+      return existing;
+    }
+    if ('$resource' in target) {
+      let config = target.$resource;
+      // 1. check if resource config is a string
+      if (typeof config === 'string') {
+        // it's a custom element, with name is the resource variable
+        // static $resource = 'my-element'
+        resource = existing || new HtmlBehaviorResource();
+        resource[conventionMark] = true;
+        if (!resource.elementName) {
+          // if element name was not specified before
+          resource.elementName = validateBehaviorName(config, 'custom element');
+        }
+      } else {
+        // 2. if static config is not a string, normalize into an config object
+        if (typeof config === 'function') {
+          // static $resource() {  }
+          config = config.call(target);
+        }
+        if (typeof config === 'string') {
+          // static $resource() { return 'my-custom-element-name' }
+          // though rare case, still needs to handle properly
+          config = { name: config };
+        }
+        // after normalization, copy to another obj
+        // as the config could come from a static field, which subject to later reuse
+        // it shouldn't be modified
+        config = Object.assign({}, config);
+        // no type specified = custom element
+        let resourceType = config.type || 'element';
+        // cannot do name = config.name || target.name
+        // depends on resource type, it may need to use different strategies to normalize name
+        let name = config.name;
+        switch (resourceType) { // eslint-disable-line default-case
+        case 'element': case 'attribute':
+          // if a metadata is supplied, use it
+          resource = existing || new HtmlBehaviorResource();
+          resource[conventionMark] = true;
+          if (resourceType === 'element') {
+            // if element name was defined before applying convention here
+            // it's a result from `@customElement` call (or manual modification)
+            // need not to redefine name
+            // otherwise, fall into following if
+            if (!resource.elementName) {
+              resource.elementName = name
+                ? validateBehaviorName(name, 'custom element')
+                : _hyphenate(target.name);
+            }
+          } else {
+            // attribute name was defined before applying convention here
+            // it's a result from `@customAttribute` call (or manual modification)
+            // need not to redefine name
+            // otherwise, fall into following if
+            if (!resource.attributeName) {
+              resource.attributeName = name
+                ? validateBehaviorName(name, 'custom attribute')
+                : _hyphenate(target.name);
+            }
+          }
+          if ('templateController' in config) {
+            // map templateController to liftsContent
+            config.liftsContent = config.templateController;
+            delete config.templateController;
+          }
+          if ('defaultBindingMode' in config && resource.attributeDefaultBindingMode !== undefined) {
+            // map defaultBindingMode to attributeDefaultBinding mode
+            // custom element doesn't have default binding mode
+            config.attributeDefaultBindingMode = config.defaultBindingMode;
+            delete config.defaultBindingMode;
+          }
+          // not bringing over the name.
+          delete config.name;
+          // just copy over. Devs are responsible for what specified in the config
+          Object.assign(resource, config);
+          break;
+        case 'valueConverter':
+          resource = new ValueConverterResource(camelCase(name || target.name));
+          break;
+        case 'bindingBehavior':
+          resource = new BindingBehaviorResource(camelCase(name || target.name));
+          break;
+        case 'viewEngineHooks':
+          resource = new ViewEngineHooksResource();
+          break;
+        }
+      }
+
+      if (resource instanceof HtmlBehaviorResource) {
+        // check for bindable registration
+        // This will concat bindables specified in static field / method with bindables specified via decorators
+        // Which means if `name` is specified in both decorator and static config, it will be duplicated here
+        // though it will finally resolves to only 1 `name` attribute
+        // Will not break if it's done in that way but probably only happenned in inheritance scenarios.
+        let bindables = typeof config === 'string' ? undefined : config.bindables;
+        let currentProps = resource.properties;
+        if (Array.isArray(bindables)) {
+          for (let i = 0, ii = bindables.length; ii > i; ++i) {
+            let prop = bindables[i];
+            if (!prop || (typeof prop !== 'string' && !prop.name)) {
+              throw new Error(`Invalid bindable property at "${i}" for class "${target.name}". Expected either a string or an object with "name" property.`);
+            }
+            let newProp = new BindableProperty(prop);
+            // Bindable properties defined in $resource convention
+            // shouldn't override existing prop with the same name
+            // as they could be explicitly defined via decorator, thus more trust worthy ?
+            let existed = false;
+            for (let j = 0, jj = currentProps.length; jj > j; ++j) {
+              if (currentProps[j].name === newProp.name) {
+                existed = true;
+                break;
+              }
+            }
+            if (existed) {
+              continue;
+            }
+            newProp.registerWith(target, resource);
+          }
+        }
+      }
+    }
+    return resource;
+  }
+
   /**
   * A custom binding language used in the view.
   */
@@ -1650,7 +1982,7 @@ export class ViewResources {
   * Registers view engine hooks for the view.
   * @param hooks The hooks to register.
   */
-  registerViewEngineHooks(hooks:ViewEngineHooks): void {
+  registerViewEngineHooks(hooks: ViewEngineHooks): void {
     this._tryAddHook(hooks, 'beforeCompile');
     this._tryAddHook(hooks, 'afterCompile');
     this._tryAddHook(hooks, 'beforeCreate');
@@ -1792,6 +2124,51 @@ export class ViewResources {
   */
   getValue(name: string): any {
     return this.values[name] || (this.hasParent ? this.parent.getValue(name) : null);
+  }
+
+  /**
+   * @internal
+   * Not supported for public use. Can be changed without warning.
+   *
+   * Auto register a resources based on its metadata or convention
+   * Will fallback to custom element if no metadata found and all conventions fail
+   * @param {Container} container
+   * @param {Function} impl
+   * @returns {HtmlBehaviorResource | ValueConverterResource | BindingBehaviorResource | ViewEngineHooksResource}
+   */
+  autoRegister(container, impl) {
+    let resourceTypeMeta = metadata.getOwn(metadata.resource, impl);
+    if (resourceTypeMeta) {
+      if (resourceTypeMeta instanceof HtmlBehaviorResource) {
+        // first use static resource
+        ViewResources.convention(impl, resourceTypeMeta);
+
+        // then fallback to traditional convention
+        if (resourceTypeMeta.attributeName === null && resourceTypeMeta.elementName === null) {
+          //no customeElement or customAttribute but behavior added by other metadata
+          HtmlBehaviorResource.convention(impl.name, resourceTypeMeta);
+        }
+        if (resourceTypeMeta.attributeName === null && resourceTypeMeta.elementName === null) {
+          //no convention and no customeElement or customAttribute but behavior added by other metadata
+          resourceTypeMeta.elementName = _hyphenate(impl.name);
+        }
+      }
+    } else {
+      resourceTypeMeta = ViewResources.convention(impl)
+        || HtmlBehaviorResource.convention(impl.name)
+        || ValueConverterResource.convention(impl.name)
+        || BindingBehaviorResource.convention(impl.name)
+        || ViewEngineHooksResource.convention(impl.name);
+      if (!resourceTypeMeta) {
+        // doesn't match any convention, and is an exported value => custom element
+        resourceTypeMeta = new HtmlBehaviorResource();
+        resourceTypeMeta.elementName = _hyphenate(impl.name);
+      }
+      metadata.define(metadata.resource, resourceTypeMeta, impl);
+    }
+    resourceTypeMeta.initialize(container, impl);
+    resourceTypeMeta.register(this);
+    return resourceTypeMeta;
   }
 }
 
@@ -2384,7 +2761,7 @@ export class ViewSlot {
   * @param skipAnimation Should the removal animation be skipped?
   * @return May return a promise if the view removal triggered an animation.
   */
-  remove(view: View, returnToCache?: boolean, skipAnimation?: boolean): void | Promise<View> {
+  remove(view: View, returnToCache?: boolean, skipAnimation?: boolean): View | Promise<View> {
     return this.removeAt(this.children.indexOf(view), returnToCache, skipAnimation);
   }
 
@@ -2395,7 +2772,7 @@ export class ViewSlot {
   * @param skipAnimation Should the removal animation be skipped?
   * @return May return a promise if the view removal triggered an animation.
   */
-  removeMany(viewsToRemove: View[], returnToCache?: boolean, skipAnimation?: boolean): void | Promise<View> {
+  removeMany(viewsToRemove: View[], returnToCache?: boolean, skipAnimation?: boolean): void | Promise<void> {
     const children = this.children;
     let ii = viewsToRemove.length;
     let i;
@@ -2630,6 +3007,9 @@ export class ViewSlot {
     if (this.isAttached) {
       view.detached();
     }
+    if (returnToCache) {
+      view.returnToCache();
+    }
   }
 
   _projectionRemoveAt(index, returnToCache) {
@@ -2641,6 +3021,9 @@ export class ViewSlot {
     if (this.isAttached) {
       view.detached();
     }
+    if (returnToCache) {
+      view.returnToCache();
+    }
   }
 
   _projectionRemoveMany(viewsToRemove, returnToCache?) {
@@ -2651,10 +3034,15 @@ export class ViewSlot {
     ShadowDOM.undistributeAll(this.projectToSlots, this);
 
     let children = this.children;
+    let ii = children.length;
 
     if (this.isAttached) {
-      for (let i = 0, ii = children.length; i < ii; ++i) {
-        children[i].detached();
+      for (let i = 0; i < ii; ++i) {
+        if (returnToCache) {
+          children[i].returnToCache();
+        } else {
+          children[i].detached();
+        }
       }
     }
 
@@ -3846,17 +4234,24 @@ export class ModuleAnalyzer {
         continue;
       }
 
+      // This is an unexpected behavior for inheritance as it will walk through the whole prototype chain
+      // to look for metadata. Should be `getOwn` instead. Though it's subjected to a breaking changes change
       resourceTypeMeta = metadata.get(metadata.resource, exportedValue);
 
       if (resourceTypeMeta) {
-        if (resourceTypeMeta.attributeName === null && resourceTypeMeta.elementName === null) {
-          //no customeElement or customAttribute but behavior added by other metadata
-          HtmlBehaviorResource.convention(key, resourceTypeMeta);
-        }
+        if (resourceTypeMeta instanceof HtmlBehaviorResource) {
+          // first used static resource
+          ViewResources.convention(exportedValue, resourceTypeMeta);
 
-        if (resourceTypeMeta.attributeName === null && resourceTypeMeta.elementName === null) {
-          //no convention and no customeElement or customAttribute but behavior added by other metadata
-          resourceTypeMeta.elementName = _hyphenate(key);
+          if (resourceTypeMeta.attributeName === null && resourceTypeMeta.elementName === null) {
+            //no customeElement or customAttribute but behavior added by other metadata
+            HtmlBehaviorResource.convention(key, resourceTypeMeta);
+          }
+
+          if (resourceTypeMeta.attributeName === null && resourceTypeMeta.elementName === null) {
+            //no convention and no customeElement or customAttribute but behavior added by other metadata
+            resourceTypeMeta.elementName = _hyphenate(key);
+          }
         }
 
         if (!mainResource && resourceTypeMeta instanceof HtmlBehaviorResource && resourceTypeMeta.elementName !== null) {
@@ -3869,7 +4264,14 @@ export class ModuleAnalyzer {
       } else if (exportedValue instanceof TemplateRegistryEntry) {
         vs = new TemplateRegistryViewStrategy(moduleId, exportedValue);
       } else {
-        if (conventional = HtmlBehaviorResource.convention(key)) {
+        if (conventional = ViewResources.convention(exportedValue)) {
+          if (conventional.elementName !== null && !mainResource) {
+            mainResource = new ResourceDescription(key, exportedValue, conventional);
+          } else {
+            resources.push(new ResourceDescription(key, exportedValue, conventional));
+          }
+          metadata.define(metadata.resource, conventional, exportedValue);
+        } else if (conventional = HtmlBehaviorResource.convention(key)) {
           if (conventional.elementName !== null && !mainResource) {
             mainResource = new ResourceDescription(key, exportedValue, conventional);
           } else {
@@ -4436,7 +4838,7 @@ export class BehaviorPropertyObserver {
   setValue(newValue: any): void {
     let oldValue = this.currentValue;
 
-    if (oldValue !== newValue) {
+    if (!Object.is(newValue, oldValue)) {
       this.oldValue = oldValue;
       this.currentValue = newValue;
 
@@ -4460,7 +4862,7 @@ export class BehaviorPropertyObserver {
 
     this.notqueued = true;
 
-    if (newValue === oldValue) {
+    if (Object.is(newValue, oldValue)) {
       return;
     }
 
@@ -4530,8 +4932,12 @@ export class BindableProperty {
     }
 
     this.attribute = this.attribute || _hyphenate(this.name);
-    if (this.defaultBindingMode === null || this.defaultBindingMode === undefined) {
+    let defaultBindingMode = this.defaultBindingMode;
+    if (defaultBindingMode === null || defaultBindingMode === undefined) {
       this.defaultBindingMode = bindingMode.oneWay;
+    } else if (typeof defaultBindingMode === 'string') {
+      // to avoid import from aurelia
+      this.defaultBindingMode = bindingMode[defaultBindingMode] || bindingMode.oneWay;
     }
     this.changeHandler = this.changeHandler || null;
     this.owner = null;
@@ -5359,7 +5765,9 @@ class ChildObserverBinder {
         if (!items) {
           items = viewModel[this.property] = [];
         } else {
-          items.length = 0;
+          // The existing array may alread be observed in other bindings
+          // Setting length to 0 will not work properly, unless we intercept it
+          items.splice(0);
         }
 
         while (current) {
@@ -5454,6 +5862,7 @@ class ChildObserverBinder {
     if (this.viewHost.__childObserver__) {
       this.viewHost.__childObserver__.disconnect();
       this.viewHost.__childObserver__ = null;
+      this.viewModel[this.property] = null;
     }
   }
 }
@@ -5606,22 +6015,35 @@ export class CompositionEngine {
     let childContainer;
     let viewModel;
     let viewModelResource;
+    /**@type {HtmlBehaviorResource} */
     let m;
 
-    return this.ensureViewModel(context).then(tryActivateViewModel).then(() => {
-      childContainer = context.childContainer;
-      viewModel = context.viewModel;
-      viewModelResource = context.viewModelResource;
-      m = viewModelResource.metadata;
+    return this
+      .ensureViewModel(context)
+      .then(tryActivateViewModel)
+      .then(() => {
+        childContainer = context.childContainer;
+        viewModel = context.viewModel;
+        viewModelResource = context.viewModelResource;
+        m = viewModelResource.metadata;
 
-      let viewStrategy = this.viewLocator.getViewStrategy(context.view || viewModel);
+        let viewStrategy = this.viewLocator.getViewStrategy(context.view || viewModel);
 
-      if (context.viewResources) {
-        viewStrategy.makeRelativeTo(context.viewResources.viewUrl);
-      }
+        if (context.viewResources) {
+          viewStrategy.makeRelativeTo(context.viewResources.viewUrl);
+        }
 
-      return m.load(childContainer, viewModelResource.value, null, viewStrategy, true);
-    }).then(viewFactory => m.create(childContainer, BehaviorInstruction.dynamic(context.host, viewModel, viewFactory)));
+        return m.load(
+          childContainer,
+          viewModelResource.value,
+          null,
+          viewStrategy,
+          true
+        );
+      }).then(viewFactory => m.create(
+        childContainer,
+        BehaviorInstruction.dynamic(context.host, viewModel, viewFactory)
+      ));
   }
 
   /**
@@ -5649,12 +6071,26 @@ export class CompositionEngine {
         return context;
       });
     }
-
-    let m = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, context.viewModel.constructor);
+    // When viewModel in context is not a module path
+    // only prepare the metadata and ensure the view model instance is ready
+    // if viewModel is a class, instantiate it
+    let isClass = typeof context.viewModel === 'function';
+    let ctor = isClass ? context.viewModel : context.viewModel.constructor;
+    let m = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, ctor);
+    // We don't call ViewResources.prototype.convention here as it should be called later
+    // Just need to prepare the metadata for later usage
     m.elementName = m.elementName || 'dynamic-element';
-    m.initialize(context.container || childContainer, context.viewModel.constructor);
-    context.viewModelResource = { metadata: m, value: context.viewModel.constructor };
-    childContainer.viewModel = context.viewModel;
+    // HtmlBehaviorResource has its own guard to prevent unnecessary subsequent initialization calls
+    // so it's safe to call initialize this way
+    m.initialize(isClass ? childContainer : (context.container || childContainer), ctor);
+    // simulate the metadata of view model, like it was analyzed by module analyzer
+    // Cannot create a ResourceDescription instance here as it does too much
+    context.viewModelResource = { metadata: m, value: ctor };
+    // register the host element in case custom element view model declares it
+    if (context.host) {
+      childContainer.registerInstance(DOM.Element, context.host);
+    }
+    childContainer.viewModel = context.viewModel = isClass ? childContainer.get(ctor) : context.viewModel;
     return Promise.resolve(context);
   }
 
@@ -5745,22 +6181,18 @@ export class ElementConfigResource {
   }
 }
 
-function validateBehaviorName(name, type) {
-  if (/[A-Z]/.test(name)) {
-    let newName = _hyphenate(name);
-    LogManager.getLogger('templating').warn(`'${name}' is not a valid ${type} name and has been converted to '${newName}'. Upper-case letters are not allowed because the DOM is not case-sensitive.`);
-    return newName;
-  }
-  return name;
-}
-
 /**
 * Decorator: Specifies a resource instance that describes the decorated class.
-* @param instance The resource instance.
+* @param instanceOrConfig The resource instance.
 */
-export function resource(instance: Object): any {
+export function resource(instanceOrConfig: string | object): any {
   return function(target) {
-    metadata.define(metadata.resource, instance, target);
+    let isConfig = typeof instanceOrConfig === 'string' || Object.getPrototypeOf(instanceOrConfig) === Object.prototype;
+    if (isConfig) {
+      target.$resource = instanceOrConfig;
+    } else {
+      metadata.define(metadata.resource, instanceOrConfig, target);
+    }
   };
 }
 
@@ -5984,6 +6416,20 @@ export function noView(targetOrDependencies?:Function|Array<any>, dependencyBase
   };
 
   return target ? deco(target) : deco;
+}
+
+interface IStaticViewStrategyConfig {
+  template: string | HTMLTemplateElement;
+  dependencies?: Function[] | { (): (Promise<Record<string, Function>> | Function)[] }
+}
+
+/**
+ * Decorator: Indicates that the element use static view
+ */
+export function view(templateOrConfig:string|HTMLTemplateElement|IStaticViewStrategyConfig): any {
+  return function(target) {
+    target.$view = templateOrConfig;
+  };
 }
 
 /**
