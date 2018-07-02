@@ -1,6 +1,6 @@
 {
   "name": "aurelia-templating",
-  "version": "1.8.0-rc.1",
+  "version": "1.8.0",
   "description": "An extensible HTML templating engine supporting databinding, custom elements, attached behaviors and more.",
   "keywords": [
     "aurelia",
@@ -30,7 +30,7 @@
       "dist": "dist/amd"
     },
     "peerDependencies": {
-      "aurelia-binding": "^1.0.0 || ^2.0.0",
+      "aurelia-binding": "^2.0.0",
       "aurelia-dependency-injection": "^1.0.0",
       "aurelia-loader": "^1.0.0",
       "aurelia-logging": "^1.0.0",
@@ -40,7 +40,7 @@
       "aurelia-task-queue": "^1.1.0"
     },
     "dependencies": {
-      "aurelia-binding": "^1.0.0 || ^2.0.0",
+      "aurelia-binding": "^2.0.0",
       "aurelia-dependency-injection": "^1.0.0",
       "aurelia-loader": "^1.0.0",
       "aurelia-logging": "^1.0.0",
@@ -58,7 +58,7 @@
     }
   },
   "dependencies": {
-    "aurelia-binding": "^1.0.0 || ^2.0.0",
+    "aurelia-binding": "^2.0.0",
     "aurelia-dependency-injection": "^1.0.0",
     "aurelia-loader": "^1.0.0",
     "aurelia-logging": "^1.0.0",
@@ -112,35 +112,5 @@
     "vinyl": "^1.1.1",
     "vinyl-paths": "^2.1.0",
     "yargs": "^4.8.1"
-  },
-  "aurelia": {
-    "documentation": {
-      "articles": [
-        {
-          "title": "Templating: Basics",
-          "href": "doc/article/en-US/templating-basics.md"
-        },
-        {
-          "title": "Templating: HTML Behaviors Introduction",
-          "href": "doc/article/en-US/templating-html-behaviors-introduction.md"
-        },
-        {
-          "title": "Templating: Custom Attributes",
-          "href": "doc/article/en-US/templating-custom-attributes.md"
-        },
-        {
-          "title": "Templating: Custom Elements",
-          "href": "doc/article/en-US/templating-custom-elements.md"
-        },
-        {
-          "title": "Templating: Content Projection",
-          "href": "doc/article/en-US/templating-content-projection.md"
-        },
-        {
-          "title": "Templating: Dynamic UI Composition",
-          "href": "doc/article/en-US/templating-dynamic-ui-composition.md"
-        }
-      ]
-    }
   }
 }
