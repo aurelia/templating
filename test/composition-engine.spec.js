@@ -1,29 +1,32 @@
 import './setup';
 import {Container} from 'aurelia-dependency-injection';
-import {createOverrideContext, OverrideContext} from 'aurelia-binding';
 import {HtmlBehaviorResource} from '../src/html-behavior';
 import {CompositionEngine} from '../src/composition-engine';
-import {TemplatingEngine} from '../src/templating-engine';
-import {inlineView, noView} from '../src/decorators';
 import {ViewResources} from '../src/view-resources';
 import {DOM} from 'aurelia-pal';
 import { ViewSlot } from '../src/view-slot';
 
-describe('enhance', () => {
+describe('CompositionEngine', () => {
   /**@type {Container} */
   let container;
-  let element;
   let mockModule;
   /**@type {CompositionEngine} */
   let compositionEngine;
-  /**@type {CompositionContext} */
-  let compositionContext;
+
+  function createCompositionContext(viewModel) {
+    let host = document.createElement('div');
+    let compositionContext = new CompositionContext({
+      host: host,
+      viewSlot: new ViewSlot(host, true),
+      container: container,
+      viewModel: viewModel
+    });
+    return compositionContext;
+  }
 
   beforeEach(() => {
     container = new Container();
-    element = DOM.createElement('div');
     compositionEngine = container.get(CompositionEngine);
-    compositionContext = new CompositionContext({});
   });
 
   describe('ensureViewModel()', () => {
@@ -36,12 +39,11 @@ describe('enhance', () => {
       mockModule = {
         MyClass: MyClass
       };
-      compositionEngine.viewEngine.loader.loadModule = () => new Promise(resolve => setTimeout(() => resolve(mockModule), 50));
+      spyOn(compositionEngine.viewEngine.loader, 'loadModule')
+        .and
+        .callFake(() => new Promise(resolve => setTimeout(() => resolve(mockModule), 50)));
 
-      compositionContext.host = document.createElement('div');
-      compositionContext.viewSlot = new ViewSlot(compositionContext.host, true);
-      compositionContext.container = container;
-      compositionContext.viewModel = '';
+      let compositionContext = createCompositionContext('');
       container.registerInstance(DOM.Element, compositionContext.host);
 
       compositionEngine.ensureViewModel(compositionContext).then((context) => {
@@ -56,18 +58,35 @@ describe('enhance', () => {
         message = 'My class';
       }
 
-      compositionContext.host = document.createElement('div');
-      compositionContext.viewSlot = new ViewSlot(compositionContext.host, true);
-      compositionContext.container = container;
-      compositionContext.viewModel = MyClass;
+      let compositionContext = createCompositionContext(MyClass);
       container.registerInstance(DOM.Element, compositionContext.host);
 
       compositionEngine.ensureViewModel(compositionContext).then((context) => {
         expect(context).toBe(compositionContext);
-        expect(container.hasResolver(MyClass)).toBe(true);
         expect(context.viewModel instanceof MyClass).toBe(true);
+      }).then(done).catch(done.fail);
+    });
+
+    it('registers instances with the "childContainer" only', done => {
+      // instances are scoped to their own container
+      class MyClass {
+        message = 'My class';
+      }
+
+      Promise.all([
+        compositionEngine.ensureViewModel(createCompositionContext(MyClass)),
+        compositionEngine.ensureViewModel(createCompositionContext(MyClass))
+      ]).then(contexts => {
+        let childContainerOne = contexts[0].childContainer;
+        let childContainerTwo = contexts[1].childContainer;
+        console.log(!!childContainerOne);
+        console.log(!!childContainerTwo);
+        expect(childContainerOne.hasResolver(MyClass)).toBe(true);
+        expect(childContainerTwo.hasResolver(MyClass)).toBe(true);
+        expect(container.hasResolver(MyClass)).toBe(false);
+        expect(childContainerOne.get(MyClass)).not.toBe(childContainerTwo.get(MyClass));
         done();
-      });
+      }).catch(done.fail);
     });
     
     it('ensures view model when view model is an object', done => {
@@ -75,10 +94,7 @@ describe('enhance', () => {
         message = 'My class';
       }
 
-      compositionContext.host = document.createElement('div');
-      compositionContext.viewSlot = new ViewSlot(compositionContext.host, true);
-      compositionContext.container = container;
-      compositionContext.viewModel = new MyClass();
+      let compositionContext = createCompositionContext(new MyClass());
       container.registerInstance(DOM.Element, compositionContext.host);
 
       compositionEngine.ensureViewModel(compositionContext).then((context) => {
