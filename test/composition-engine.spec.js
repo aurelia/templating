@@ -146,6 +146,7 @@ describe('CompositionEngine', () => {
           .compose(createCompositionContext(MyClass))
           .then(controller => {
             CompositionTransactionOwnershipToken.prototype.waitForCompositionComplete = originalWait;
+            expect(track).not.toBe(0);
             done();
           })
           .catch((ex) => {
