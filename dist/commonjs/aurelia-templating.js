@@ -4805,15 +4805,17 @@ var CompositionEngine = exports.CompositionEngine = (_dec10 = (0, _aureliaDepend
     var _this15 = this;
 
     return this.createController(context).then(function (controller) {
-      controller.automate(context.overrideContext, context.owningView);
-
       if (context.compositionTransactionOwnershipToken) {
         return context.compositionTransactionOwnershipToken.waitForCompositionComplete().then(function () {
+          controller.automate(context.overrideContext, context.owningView);
+
           return _this15._swap(context, controller.view);
         }).then(function () {
           return controller;
         });
       }
+
+      controller.automate(context.overrideContext, context.owningView);
 
       return _this15._swap(context, controller.view).then(function () {
         return controller;
@@ -4867,8 +4869,12 @@ var CompositionEngine = exports.CompositionEngine = (_dec10 = (0, _aureliaDepend
       });
     }
 
+    var ctor = context.viewModel.constructor;
     var isClass = typeof context.viewModel === 'function';
-    var ctor = isClass ? context.viewModel : context.viewModel.constructor;
+    if (isClass) {
+      ctor = context.viewModel;
+      childContainer.autoRegister(ctor);
+    }
     var m = _aureliaMetadata.metadata.getOrCreateOwn(_aureliaMetadata.metadata.resource, HtmlBehaviorResource, ctor);
 
     m.elementName = m.elementName || 'dynamic-element';

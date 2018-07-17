@@ -4766,15 +4766,17 @@ export var CompositionEngine = (_dec10 = inject(ViewEngine, ViewLocator), _dec10
     var _this15 = this;
 
     return this.createController(context).then(function (controller) {
-      controller.automate(context.overrideContext, context.owningView);
-
       if (context.compositionTransactionOwnershipToken) {
         return context.compositionTransactionOwnershipToken.waitForCompositionComplete().then(function () {
+          controller.automate(context.overrideContext, context.owningView);
+
           return _this15._swap(context, controller.view);
         }).then(function () {
           return controller;
         });
       }
+
+      controller.automate(context.overrideContext, context.owningView);
 
       return _this15._swap(context, controller.view).then(function () {
         return controller;
@@ -4828,8 +4830,12 @@ export var CompositionEngine = (_dec10 = inject(ViewEngine, ViewLocator), _dec10
       });
     }
 
+    var ctor = context.viewModel.constructor;
     var isClass = typeof context.viewModel === 'function';
-    var ctor = isClass ? context.viewModel : context.viewModel.constructor;
+    if (isClass) {
+      ctor = context.viewModel;
+      childContainer.autoRegister(ctor);
+    }
     var m = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, ctor);
 
     m.elementName = m.elementName || 'dynamic-element';
