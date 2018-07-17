@@ -21,6 +21,9 @@
     "type": "git",
     "url": "http://github.com/aurelia/templating"
   },
+  "scripts": {
+    "test": "karma start"
+  },
   "jspm": {
     "registry": "npm",
     "jspmPackage": true,

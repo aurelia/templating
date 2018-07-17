@@ -2,6 +2,7 @@ import './setup';
 import {Container} from 'aurelia-dependency-injection';
 import {HtmlBehaviorResource} from '../src/html-behavior';
 import {CompositionEngine} from '../src/composition-engine';
+import {CompositionTransactionOwnershipToken} from '../src/composition-transaction';
 import {ViewResources} from '../src/view-resources';
 import {DOM} from 'aurelia-pal';
 import { ViewSlot } from '../src/view-slot';
@@ -79,8 +80,7 @@ describe('CompositionEngine', () => {
       ]).then(contexts => {
         let childContainerOne = contexts[0].childContainer;
         let childContainerTwo = contexts[1].childContainer;
-        console.log(!!childContainerOne);
-        console.log(!!childContainerTwo);
+
         expect(childContainerOne.hasResolver(MyClass)).toBe(true);
         expect(childContainerTwo.hasResolver(MyClass)).toBe(true);
         expect(container.hasResolver(MyClass)).toBe(false);
@@ -103,6 +103,55 @@ describe('CompositionEngine', () => {
         expect(container.hasResolver(MyClass)).toBe(false);
         expect(context.viewModel instanceof MyClass).toBe(true);
         done();
+      });
+    });
+  });
+
+  describe('compose', () => {
+
+    describe('when viewModel is specified', () => {
+      
+      it('composes', done => {
+        class MyClass {
+          static $view = '<template></template>';
+        }
+
+        compositionEngine
+          .compose(createCompositionContext(MyClass))
+          .then(controller => {
+            expect(controller.viewModel instanceof MyClass).toBe(true);
+            done();
+          })
+          .catch(done.fail);
+      });
+
+      it('waits for composition transaction to complete before binding. Fixes https://github.com/aurelia/templating/issues/632', done => {
+        let track = 0;
+
+        const originalWait = CompositionTransactionOwnershipToken.prototype.waitForCompositionComplete;
+        CompositionTransactionOwnershipToken.prototype.waitForCompositionComplete = function() {
+          track = 1;
+          return originalWait.apply(this, arguments);
+        }
+
+        class MyClass {
+          static $view = '<template></template>';
+
+          bind() {
+            expect(track).toBe(1);
+          }
+        }
+
+        compositionEngine
+          .compose(createCompositionContext(MyClass))
+          .then(controller => {
+            CompositionTransactionOwnershipToken.prototype.waitForCompositionComplete = originalWait;
+            done();
+          })
+          .catch((ex) => {
+            CompositionTransactionOwnershipToken.prototype.waitForCompositionComplete = originalWait;
+            done.fail(ex);
+          })
       });
     });
   });

@@ -107,13 +107,18 @@ export class CompositionEngine {
 
   _createControllerAndSwap(context) {
     return this.createController(context).then(controller => {
-      controller.automate(context.overrideContext, context.owningView);
-
       if (context.compositionTransactionOwnershipToken) {
-        return context.compositionTransactionOwnershipToken.waitForCompositionComplete()
-          .then(() => this._swap(context, controller.view))
+        return context.compositionTransactionOwnershipToken
+          .waitForCompositionComplete()
+          .then(() => {
+            controller.automate(context.overrideContext, context.owningView);
+
+            return this._swap(context, controller.view);
+          })
           .then(() => controller);
       }
+
+      controller.automate(context.overrideContext, context.owningView);
 
       return this._swap(context, controller.view).then(() => controller);
     });
