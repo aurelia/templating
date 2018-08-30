@@ -281,6 +281,16 @@ describe('view-slot', () => {
         viewSlot.remove(view, true);
         expect(view.returnToCache).toHaveBeenCalled();
       });
+
+      it('calls return to cache even when detached is true', () => {
+        spyOn(view, 'returnToCache');
+
+        viewSlot.add(view);
+        viewSlot.detached();
+        viewSlot.removeAll(true);
+
+        expect(view.returnToCache).toHaveBeenCalled();
+      });
     });
 
     describe('.removeAll', () => {
