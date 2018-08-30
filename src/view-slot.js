@@ -484,13 +484,11 @@ export class ViewSlot {
     let children = this.children;
     let ii = children.length;
 
-    if (this.isAttached) {
-      for (let i = 0; i < ii; ++i) {
-        if (returnToCache) {
-          children[i].returnToCache();
-        } else {
-          children[i].detached();
-        }
+    for (let i = 0; i < ii; ++i) {
+      if (returnToCache) {
+        children[i].returnToCache();
+      } else if (this.isAttached) {
+        children[i].detached();
       }
     }
 
