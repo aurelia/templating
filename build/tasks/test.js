@@ -27,14 +27,17 @@ gulp.task('cover', function (done) {
   new Karma({
     configFile: __dirname + '/../../karma.conf.js',
     singleRun: true,
-    reporters: ['coverage'],
+    reporters: ['progress', 'coverage'],
     preprocessors: {
       'test/**/*.js': ['babel'],
       'src/**/*.js': ['babel', 'coverage']
     },
     coverageReporter: {
-      type: 'html',
-      dir: 'build/reports/coverage'
+      dir: 'build/reports/coverage',
+      reporters: [
+        { type: 'html', subdir: 'report-html' },
+        { type: 'json', subdir: '.', file: 'coverage-final.json' }
+      ]
     }
   }, done).start();
 });
