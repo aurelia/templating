@@ -88,6 +88,7 @@ export class View {
     this.viewModelScope = null;
     this.animatableElement = undefined;
     this._isUserControlled = false;
+    this._isSlotFallback = false;
     this.contentView = null;
 
     for (let key in slots) {
@@ -166,7 +167,7 @@ export class View {
       children[i].bind(bindingContext, overrideContext, true);
     }
 
-    if (this.hasSlots) {
+    if (this.hasSlots && !this._isSlotFallback) {
       ShadowDOM.distributeView(this.contentView, this.slots);
     }
   }
