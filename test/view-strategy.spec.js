@@ -47,6 +47,11 @@ describe('ViewLocator', () => {
           expect(ex.message).not.toContain('Cannot determine default view strategy for object.');
         }).then(done);
     });
+
+    it('sets formal "moduleId"', () => {
+      const strategy = new StaticViewStrategy('<template><input value.bind="value" /></template>');
+      expect(strategy.moduleId).toBeDefined();
+    });
   });
 
   it('loads dependencies', (done) => {
