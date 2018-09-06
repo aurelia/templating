@@ -280,6 +280,7 @@ export class StaticViewStrategy {
     this.dependencies = config.dependencies || [];
     this.factoryIsReady = false;
     this.onReady = null;
+    this.moduleId = 'undefined';
   }
 
   /**
