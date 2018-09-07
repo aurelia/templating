@@ -1444,6 +1444,7 @@ System.register(['aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aurelia-
           this.dependencies = config.dependencies || [];
           this.factoryIsReady = false;
           this.onReady = null;
+          this.moduleId = 'undefined';
         }
 
         StaticViewStrategy.prototype.loadViewFactory = function loadViewFactory(viewEngine, compileInstruction, loadContext, target) {
@@ -2974,13 +2975,11 @@ System.register(['aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aurelia-
           var children = this.children;
           var ii = children.length;
 
-          if (this.isAttached) {
-            for (var i = 0; i < ii; ++i) {
-              if (returnToCache) {
-                children[i].returnToCache();
-              } else {
-                children[i].detached();
-              }
+          for (var i = 0; i < ii; ++i) {
+            if (returnToCache) {
+              children[i].returnToCache();
+            } else if (this.isAttached) {
+              children[i].detached();
             }
           }
 

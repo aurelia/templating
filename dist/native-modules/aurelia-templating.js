@@ -660,6 +660,7 @@ export var StaticViewStrategy = (_dec6 = viewStrategy(), _dec6(_class7 = functio
     this.dependencies = config.dependencies || [];
     this.factoryIsReady = false;
     this.onReady = null;
+    this.moduleId = 'undefined';
   }
 
   StaticViewStrategy.prototype.loadViewFactory = function loadViewFactory(viewEngine, compileInstruction, loadContext, target) {
@@ -2220,13 +2221,11 @@ export var ViewSlot = function () {
     var children = this.children;
     var ii = children.length;
 
-    if (this.isAttached) {
-      for (var i = 0; i < ii; ++i) {
-        if (returnToCache) {
-          children[i].returnToCache();
-        } else {
-          children[i].detached();
-        }
+    for (var i = 0; i < ii; ++i) {
+      if (returnToCache) {
+        children[i].returnToCache();
+      } else if (this.isAttached) {
+        children[i].detached();
       }
     }
 

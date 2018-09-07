@@ -1,3 +1,13 @@
+<a name="1.8.3"></a>
+## [1.8.3](https://github.com/aurelia/templating/compare/1.8.2...1.8.3) (2018-09-07)
+
+
+### Bug Fixes
+
+* **StaticViewStrategy:** set formal ".moduleId" ([86ea2fd](https://github.com/aurelia/templating/commit/86ea2fd))
+
+
+
 <a name="1.8.2"></a>
 ## [1.8.2](https://github.com/aurelia/templating/compare/1.8.1...1.8.2) (2018-07-17)
 
