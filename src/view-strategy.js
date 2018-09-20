@@ -271,7 +271,7 @@ export class StaticViewStrategy {
   factory: ViewFactory;
 
   constructor(config: string | HTMLTemplateElement | IStaticViewConfig) {
-    if (typeof config === 'string' || config instanceof HTMLTemplateElement) {
+    if (typeof config === 'string' || (config instanceof DOM.Element && config.tagName === 'TEMPLATE')) {
       config = {
         template: config
       };
