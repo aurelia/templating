@@ -6,6 +6,7 @@ import { ViewEngine } from '../src/view-engine';
 import { ViewResources } from '../src/view-resources';
 import { StaticViewStrategy } from '../src/view-strategy';
 import './setup';
+import { ViewEngineHooksResource } from '../src/view-engine-hooks-resource';
 
 describe('ViewLocator', () => {
   /**@type {ViewEngine} */
@@ -36,9 +37,7 @@ describe('ViewLocator', () => {
         template: '<template><input value.bind="value" /></template>',
         dependencies: []
       });
-      class El {
-
-      }
+      class El {}
       strategy
         .loadViewFactory(viewEngine, ViewCompileInstruction.normal, new ResourceLoadContext(), El)
         .then((factory) => {
@@ -46,6 +45,28 @@ describe('ViewLocator', () => {
         }).catch(ex => {
           expect(ex.message).not.toContain('Cannot determine default view strategy for object.');
         }).then(done);
+    });
+
+    it('loads dependencies when template is "null"', (done) => {
+      class HooksViewEngineHooks {}
+      let strategy = new StaticViewStrategy({
+        template: null,
+        dependencies: [HooksViewEngineHooks]
+      });
+      class El {}
+      spyOn(ViewEngineHooksResource.prototype, 'initialize').and.callThrough();
+      spyOn(ViewEngineHooksResource.prototype, 'load').and.callThrough();
+      strategy
+        .loadViewFactory(viewEngine, ViewCompileInstruction.normal, new ResourceLoadContext(), El)
+        .then((factory) => {
+          expect(ViewEngineHooksResource.prototype.initialize)
+            .toHaveBeenCalledWith(viewEngine.container, HooksViewEngineHooks);
+          expect(ViewEngineHooksResource.prototype.load)
+            .toHaveBeenCalledTimes(1);
+          expect(factory).toBe(null);
+          done();
+        })
+        .catch(done.fail);
     });
 
     it('sets formal "moduleId"', () => {
