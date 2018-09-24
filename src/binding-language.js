@@ -1,17 +1,30 @@
+import { Scope } from 'aurelia-binding';
+
 function mi(name) {
   throw new Error(`BindingLanguage must implement ${name}().`);
 }
 
 interface LetExpression {
-  createBinding(): LetBinding
+  createBinding(): LetBinding;
 }
 
 interface LetBinding {
-  updateSource(): any;
-  call(context): any;
-  bind(source?: any): any;
-  unbind(): any;
-  connect(): any;
+  /**
+   * The expression to access/assign/connect the binding source property.
+   */
+  sourceExpression: Expression;
+  /**
+   * Assigns a value to the target.
+   */
+  updateTarget(value: any): void;
+  /**
+   * Connects the binding to a scope.
+   */
+  bind(source: Scope): void;
+  /**
+   * Disconnects the binding from a scope.
+   */
+  unbind(): void;
 }
 
 /**

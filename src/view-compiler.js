@@ -1,4 +1,3 @@
-import {Binding} from 'aurelia-binding';
 import {ViewResources} from './view-resources';
 import {ViewFactory} from './view-factory';
 import {BindingLanguage} from './binding-language';
@@ -6,23 +5,6 @@ import {ViewCompileInstruction, BehaviorInstruction, TargetInstruction} from './
 import {inject} from 'aurelia-dependency-injection';
 import {DOM, FEATURE} from 'aurelia-pal';
 import {ShadowDOM} from './shadow-dom';
-
-interface LetExpression {
-  createBinding(): LetBinding
-}
-
-interface LetBinding extends Binding {
-  updateSource(): any;
-  call(context): any;
-  bind(source?: any): any;
-  unbind(): any;
-  connect(): any;
-}
-
-interface ViewFactoryInstructions {
-  [x: number]: TargetInstruction,
-  letExpressions: LetExpression[]
-}
 
 let nextInjectorId = 0;
 function getNextInjectorId() {
@@ -293,7 +275,7 @@ export class ViewCompiler {
     return null;
   }
 
-  _compileElement(node: Node, resources: ViewResources, instructions: ViewFactoryInstructions, parentNode: Node, parentInjectorId: number, targetLightDOM: boolean) {
+  _compileElement(node: Node, resources: ViewResources, instructions: any, parentNode: Node, parentInjectorId: number, targetLightDOM: boolean) {
     let tagName = node.tagName.toLowerCase();
     let attributes = node.attributes;
     let expressions = [];
