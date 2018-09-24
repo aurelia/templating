@@ -2,11 +2,11 @@ function mi(name) {
   throw new Error(`BindingLanguage must implement ${name}().`);
 }
 
-export interface LetExpression {
+interface LetExpression {
   createBinding(): LetBinding
 }
 
-export interface LetBinding {
+interface LetBinding {
   updateSource(): any;
   call(context): any;
   bind(source?: any): any;
