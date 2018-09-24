@@ -244,6 +244,23 @@ export class TargetInstruction {
   }
 
   /**
+  * Creates an instruction that represents an element with behaviors and bindings.
+  * @param injectorId The id of the dependency injection container.
+  * @param parentInjectorId The id of the parent dependency injection container.
+  * @param providers The types which will provide behavior for this element.
+  * @param behaviorInstructions The instructions for creating behaviors on this element.
+  * @param expressions Bindings, listeners, triggers, etc.
+  * @param elementInstruction The element behavior for this element.
+  * @return The created instruction.
+  */
+  static letElement(expressions: Array<Object>): TargetInstruction {
+    let instruction = new TargetInstruction();
+    instruction.expressions = expressions;
+    instruction.letElement = true;
+    return instruction;
+  }
+
+  /**
   * Creates an instruction that represents content that was lifted out of the DOM and into a ViewFactory.
   * @param parentInjectorId The id of the parent dependency injection container.
   * @param liftingInstruction The behavior instruction of the lifting behavior.

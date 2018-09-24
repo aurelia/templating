@@ -169,7 +169,7 @@ function applyInstructions(containers, element, instruction, controllers, bindin
     return;
   }
 
-  if (instruction.letExpressions) {
+  if (instruction.letElement) {
     for (i = 0, ii = expressions.length; i < ii; ++i) {
       bindings.push(expressions[i].createBinding());
     }
@@ -447,7 +447,6 @@ export class ViewFactory {
     let fragment = createInstruction.enhance ? this.template : this.template.cloneNode(true);
     let instructables = fragment.querySelectorAll('.au-target');
     let instructions = this.instructions;
-    let letExpressions = instructions.letExpressions;
     let resources = this.resources;
     let controllers = [];
     let bindings = [];
@@ -462,10 +461,6 @@ export class ViewFactory {
     let instruction;
 
     this.resources._invokeHook('beforeCreate', this, container, fragment, createInstruction);
-
-    for (i = 0, ii = letExpressions.length; ii > i; ++i) {
-      bindings.push(letExpressions[i].createBinding());
-    }
 
     if (element && this.surrogateInstruction !== null) {
       applySurrogateInstruction(container, element, this.surrogateInstruction, controllers, bindings, children);

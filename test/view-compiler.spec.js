@@ -21,7 +21,7 @@ class MockBindingLanguage {
 
 describe('ViewCompiler', () => {
   var viewCompiler, language, resources;
-  beforeAll(() => {
+  beforeEach(() => {
     language = new MockBindingLanguage();
     viewCompiler = new ViewCompiler(language);
     resources = new ViewResources(new ViewResources(), 'app.html');
@@ -136,19 +136,24 @@ describe('ViewCompiler', () => {
     });
 
     it('compiles let element by extracting bindings and remove the element', () => {
-      let instructions = { letExpressions: [] };
-      let parentInjectorId = 'root';
-      let targetLightDOM = true;
+      let instructions = { };
 
-      let node = document.createElement('let');
+      let letElement = document.createElement('let');
       let parentNode = document.createElement('div');
 
-      parentNode.appendChild(node);
-      node.setAttribute('foo', 'bar');
+      parentNode.appendChild(letElement);
+      letElement.setAttribute('foo', 'bar');
 
-      viewCompiler._compileNode(node, resources, instructions, parentNode, 'root', true);
-      expect(parentNode.hasChildNodes()).toBe(false);
-      expect(instructions.letExpressions.length).toBe(1);
+      viewCompiler._compileNode(letElement, resources, instructions, parentNode, 'root', true);
+      expect(Object.keys(instructions).length).toBe(1, 'It should have had 1 instruction');
+      let instruction;
+      // id in view compiler is universal across instances, cannot reset
+      for (var id in instructions) {
+        instruction = instructions[id];
+      }
+      expect(instruction).toBeDefined('First instruction should have been defined');
+      expect(instruction.letElement).toBe(true, 'Type of instruction should have been letElement');
+      expect(instruction.expressions.length).toBe(1, 'Should have had 1 expression');
     });
 
   });
