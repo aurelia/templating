@@ -126,6 +126,17 @@ function makeElementIntoAnchor(element, elementInstruction) {
   return anchor;
 }
 
+/**
+ * @param {Container[]} containers
+ * @param {Element} element
+ * @param {TargetInstruction} instruction
+ * @param {Controller[]} controllers
+ * @param {Binding[]} bindings
+ * @param {ViewNode[]} children
+ * @param {Record<string, ShadowSlot>} shadowSlots
+ * @param {Record<string, ViewFactory>} partReplacements
+ * @param {ViewResources} resources
+ */
 function applyInstructions(containers, element, instruction, controllers, bindings, children, shadowSlots, partReplacements, resources) {
   let behaviorInstructions = instruction.behaviorInstructions;
   let expressions = instruction.expressions;
@@ -155,6 +166,14 @@ function applyInstructions(containers, element, instruction, controllers, bindin
     DOM.replaceNode(commentAnchor, element);
     shadowSlots[instruction.slotName] = slot;
     controllers.push(slot);
+    return;
+  }
+
+  if (instruction.letExpressions) {
+    for (i = 0, ii = expressions.length; i < ii; ++i) {
+      bindings.push(expressions[i].createBinding());
+    }
+    element.parentNode.removeChild(element);
     return;
   }
 

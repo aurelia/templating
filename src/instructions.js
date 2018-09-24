@@ -161,27 +161,23 @@ export class BehaviorInstruction {
     instruction.inheritBindingContext = true;
     return instruction;
   }
-
-  /**
-  * Creates an instance of BehaviorInstruction.
-  */
-  constructor() {
-    this.initiatedByBehavior = false;
-    this.enhance = false;
-    this.partReplacements = null;
-    this.viewFactory = null;
-    this.originalAttrName = null;
-    this.skipContentProcessing = false;
-    this.contentFactory = null;
-    this.viewModel = null;
-    this.anchorIsContainer = false;
-    this.host = null;
-    this.attributes = null;
-    this.type = null;
-    this.attrName = null;
-    this.inheritBindingContext = false;
-  }
 }
+
+const biProto = BehaviorInstruction.prototype;
+biProto.initiatedByBehavior = false;
+biProto.enhance = false;
+biProto.partReplacements = null;
+biProto.viewFactory = null;
+biProto.originalAttrName = null;
+biProto.skipContentProcessing = false;
+biProto.contentFactory = null;
+biProto.viewModel = null;
+biProto.anchorIsContainer = false;
+biProto.host = null;
+biProto.attributes = null;
+biProto.type = null;
+biProto.attrName = null;
+biProto.inheritBindingContext = false;
 
 BehaviorInstruction.normal = new BehaviorInstruction();
 
@@ -190,26 +186,34 @@ BehaviorInstruction.normal = new BehaviorInstruction();
 */
 export class TargetInstruction {
 
-  injectorId:number;
-  parentInjectorId:number;
+  injectorId: number;
+  parentInjectorId: number;
 
-  shadowSlot:boolean;
-  slotName:string;
-  slotFallbackFactory:any;
+  shadowSlot: boolean;
+  slotName: string;
+  slotFallbackFactory: any;
 
-  contentExpression:any;
+  /**
+   * Indicates if this instruction is targeting a text node
+   */
+  contentExpression: any;
 
-  expressions:Array<Object>;
-  behaviorInstructions:Array<BehaviorInstruction>;
-  providers:Array<Function>;
+  /**
+   * Indicates if this instruction is a let element instruction
+   */
+  letElement: boolean;
 
-  viewFactory:ViewFactory;
+  expressions: Array<Object>;
+  behaviorInstructions: Array<BehaviorInstruction>;
+  providers: Array<Function>;
 
-  anchorIsContainer:boolean;
-  elementInstruction:BehaviorInstruction;
-  lifting:boolean;
+  viewFactory: ViewFactory;
 
-  values:Object;
+  anchorIsContainer: boolean;
+  elementInstruction: BehaviorInstruction;
+  lifting: boolean;
+
+  values: Object;
 
   /**
   * An empty array used to represent a target with no binding expressions.
@@ -294,30 +298,28 @@ export class TargetInstruction {
     instruction.values = values;
     return instruction;
   }
-
-  /**
-  * Creates an instance of TargetInstruction.
-  */
-  constructor() {
-    this.injectorId = null;
-    this.parentInjectorId = null;
-
-    this.shadowSlot = false;
-    this.slotName = null;
-    this.slotFallbackFactory = null;
-
-    this.contentExpression = null;
-
-    this.expressions = null;
-    this.behaviorInstructions = null;
-    this.providers = null;
-
-    this.viewFactory = null;
-
-    this.anchorIsContainer = false;
-    this.elementInstruction = null;
-    this.lifting = false;
-
-    this.values = null;
-  }
 }
+
+const tiProto = TargetInstruction.prototype;
+
+tiProto.injectorId = null;
+tiProto.parentInjectorId = null;
+
+tiProto.shadowSlot = false;
+tiProto.slotName = null;
+tiProto.slotFallbackFactory = null;
+
+tiProto.contentExpression = null;
+tiProto.letElement = false;
+
+tiProto.expressions = null;
+tiProto.expressions = null;
+tiProto.providers = null;
+
+tiProto.viewFactory = null;
+
+tiProto.anchorIsContainer = false;
+tiProto.elementInstruction = null;
+tiProto.lifting = false;
+
+tiProto.values = null;

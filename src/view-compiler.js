@@ -325,14 +325,19 @@ export class ViewCompiler {
       }
       return node.nextSibling;
     } else if (tagName === 'let') {
-      bindingLanguage.createLetExpressions(
-        resources,
-        node,
-        instructions.letExpressions
+      auTargetID = makeIntoInstructionTarget(node);
+      instructions[auTargetID] = TargetInstruction.normal(
+        undefined,
+        undefined,
+        providers,
+        behaviorInstructions,
+        bindingLanguage.createLetExpressions(
+          resources,
+          node,
+          instructions.letExpressions
+        )
       );
-      nextSib = node.nextSibling;
-      DOM.removeNode(node);
-      return nextSib;
+      return node.nextSibling;
     } else if (tagName === 'template') {
       if (!('content' in node)) {
         throw new Error('You cannot place a template element within ' + node.namespaceURI + ' namespace');
