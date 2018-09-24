@@ -1,3 +1,4 @@
+import {Binding} from 'aurelia-binding';
 import {ViewResources} from './view-resources';
 import {ViewFactory} from './view-factory';
 import {BindingLanguage} from './binding-language';
@@ -10,7 +11,7 @@ interface LetExpression {
   createBinding(): LetBinding
 }
 
-interface LetBinding {
+interface LetBinding extends Binding {
   updateSource(): any;
   call(context): any;
   bind(source?: any): any;
@@ -111,7 +112,7 @@ export class ViewCompiler {
     compileInstruction.targetShadowDOM = compileInstruction.targetShadowDOM && FEATURE.shadowDOM;
     resources._invokeHook('beforeCompile', content, resources, compileInstruction);
 
-    let instructions = { letExpressions: [] };
+    let instructions = {};
     this._compileNode(content, resources, instructions, source, 'root', !compileInstruction.targetShadowDOM);
 
     let firstChild = content.firstChild;
@@ -317,7 +318,6 @@ export class ViewCompiler {
     let knownAttribute;
     let auTargetID;
     let injectorId;
-    let nextSib;
 
     if (tagName === 'slot') {
       if (targetLightDOM) {
@@ -326,11 +326,7 @@ export class ViewCompiler {
       return node.nextSibling;
     } else if (tagName === 'let') {
       auTargetID = makeIntoInstructionTarget(node);
-      instructions[auTargetID] = TargetInstruction.normal(
-        undefined,
-        undefined,
-        providers,
-        behaviorInstructions,
+      instructions[auTargetID] = TargetInstruction.letElement(
         bindingLanguage.createLetExpressions(
           resources,
           node,
