@@ -707,7 +707,7 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
     function StaticViewStrategy(config) {
       
 
-      if (typeof config === 'string' || config instanceof HTMLTemplateElement) {
+      if (typeof config === 'string' || config instanceof _aureliaPal.DOM.Element && config.tagName === 'TEMPLATE') {
         config = {
           template: config
         };
@@ -777,7 +777,7 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
         return Promise.all(elDeps.map(function (el) {
           return el.load(container, el.target);
         })).then(function () {
-          var factory = viewCompiler.compile(_this2.template, viewResources, compileInstruction);
+          var factory = _this2.template !== null ? viewCompiler.compile(_this2.template, viewResources, compileInstruction) : null;
           _this2.factoryIsReady = true;
           _this2.factory = factory;
           return factory;

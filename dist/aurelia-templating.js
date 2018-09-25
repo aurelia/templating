@@ -831,7 +831,7 @@ export class NoViewStrategy {
   * @param dependencies A list of view resource dependencies of this view.
   * @param dependencyBaseUrl The base url for the view dependencies.
   */
-  constructor(dependencies?: Array<string|Function|Object>, dependencyBaseUrl?: string) {
+  constructor(dependencies?: Array<string | Function | Object>, dependencyBaseUrl?: string) {
     this.dependencies = dependencies || null;
     this.dependencyBaseUrl = dependencyBaseUrl || '';
   }
@@ -923,7 +923,7 @@ export class InlineViewStrategy {
   * @param dependencies A list of view resource dependencies of this view.
   * @param dependencyBaseUrl The base url for the view dependencies.
   */
-  constructor(markup: string, dependencies?: Array<string|Function|Object>, dependencyBaseUrl?: string) {
+  constructor(markup: string, dependencies?: Array<string | Function | Object>, dependencyBaseUrl?: string) {
     this.markup = markup;
     this.dependencies = dependencies || null;
     this.dependencyBaseUrl = dependencyBaseUrl || '';
@@ -981,7 +981,7 @@ export class StaticViewStrategy {
   factory: ViewFactory;
 
   constructor(config: string | HTMLTemplateElement | IStaticViewConfig) {
-    if (typeof config === 'string' || config instanceof HTMLTemplateElement) {
+    if (typeof config === 'string' || (config instanceof DOM.Element && config.tagName === 'TEMPLATE')) {
       config = {
         template: config
       };
@@ -1045,7 +1045,9 @@ export class StaticViewStrategy {
       }
       // only load custom element as first step.
       return Promise.all(elDeps.map(el => el.load(container, el.target))).then(() => {
-        const factory = viewCompiler.compile(this.template, viewResources, compileInstruction);
+        const factory = this.template !== null
+          ? viewCompiler.compile(this.template, viewResources, compileInstruction)
+          : null;
         this.factoryIsReady = true;
         this.factory = factory;
         return factory;

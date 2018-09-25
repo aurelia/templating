@@ -651,7 +651,7 @@ export var StaticViewStrategy = (_dec6 = viewStrategy(), _dec6(_class7 = functio
   function StaticViewStrategy(config) {
     
 
-    if (typeof config === 'string' || config instanceof HTMLTemplateElement) {
+    if (typeof config === 'string' || config instanceof DOM.Element && config.tagName === 'TEMPLATE') {
       config = {
         template: config
       };
@@ -721,7 +721,7 @@ export var StaticViewStrategy = (_dec6 = viewStrategy(), _dec6(_class7 = functio
       return Promise.all(elDeps.map(function (el) {
         return el.load(container, el.target);
       })).then(function () {
-        var factory = viewCompiler.compile(_this2.template, viewResources, compileInstruction);
+        var factory = _this2.template !== null ? viewCompiler.compile(_this2.template, viewResources, compileInstruction) : null;
         _this2.factoryIsReady = true;
         _this2.factory = factory;
         return factory;

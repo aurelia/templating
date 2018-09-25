@@ -569,7 +569,7 @@ export let InlineViewStrategy = (_dec5 = viewStrategy(), _dec5(_class6 = class I
 export let StaticViewStrategy = (_dec6 = viewStrategy(), _dec6(_class7 = class StaticViewStrategy {
 
   constructor(config) {
-    if (typeof config === 'string' || config instanceof HTMLTemplateElement) {
+    if (typeof config === 'string' || config instanceof DOM.Element && config.tagName === 'TEMPLATE') {
       config = {
         template: config
       };
@@ -622,7 +622,7 @@ export let StaticViewStrategy = (_dec6 = viewStrategy(), _dec6(_class7 = class S
       }
 
       return Promise.all(elDeps.map(el => el.load(container, el.target))).then(() => {
-        const factory = viewCompiler.compile(this.template, viewResources, compileInstruction);
+        const factory = this.template !== null ? viewCompiler.compile(this.template, viewResources, compileInstruction) : null;
         this.factoryIsReady = true;
         this.factory = factory;
         return factory;

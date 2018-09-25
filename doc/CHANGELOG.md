@@ -1,3 +1,14 @@
+<a name="1.9.0"></a>
+# [1.9.0](https://github.com/aurelia/templating/compare/1.8.3...1.9.0) (2018-09-25)
+
+
+### Bug Fixes
+
+* **StaticViewStrategy:** check for null template before compiling ([37d23ea](https://github.com/aurelia/templating/commit/37d23ea))
+* **StaticViewStrategy:** use DOM.Element instead of HTMLTemplateElement ([f9fb639](https://github.com/aurelia/templating/commit/f9fb639))
+
+
+
 <a name="1.8.3"></a>
 ## [1.8.3](https://github.com/aurelia/templating/compare/1.8.2...1.8.3) (2018-09-07)
 
