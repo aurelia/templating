@@ -1,9 +1,12 @@
 import './setup';
 import {ViewCompiler} from '../src/view-compiler';
 import {ViewResources} from '../src/view-resources';
+import { HtmlBehaviorResource } from '../src/html-behavior';
+import { BindingLanguage } from '../src/binding-language';
 
 class MockBindingLanguage {
   inspectAttribute(resources, elementName, attrName, attrValue) {
+    return { attrName, attrValue };
   }
 
   createAttributeInstruction(resources, element, info, existingInstruction) {
@@ -135,27 +138,59 @@ describe('ViewCompiler', () => {
       expect(node.className).toBe('foo bar baz au-target');
     });
 
-    it('compiles let element by extracting bindings and remove the element', () => {
-      let instructions = { };
+    describe('<let/>', () => {
 
-      let letElement = document.createElement('let');
-      let parentNode = document.createElement('div');
+      it('treats like normal element when there is no binding language', () => {
+        const fragment = createFragment('<div><let>');
+        let instructions = { };
+        
+        spyOn(viewCompiler.bindingLanguage, 'createLetExpressions').and.callThrough();
+        viewCompiler._compileNode(fragment, resources, instructions, null, 'root', true);
+        expect(Object.keys(instructions).length).toBe(1, 'It should have had 1 instruction');
+        expect(viewCompiler.bindingLanguage.createLetExpressions).toHaveBeenCalled();
+      });
 
-      parentNode.appendChild(letElement);
-      letElement.setAttribute('foo', 'bar');
+      describe('backward compat', () => {
+        it('does nothing if there is custom <let/> element', () => {
+          let instructions = { };
+          const fragment = createFragment('<div><let foo="bar">');
+          const letMeta = new HtmlBehaviorResource();
+          
+          resources.getElement = name => name === 'let' ? letMeta : null;
 
-      viewCompiler._compileNode(letElement, resources, instructions, parentNode, 'root', true);
-      expect(Object.keys(instructions).length).toBe(1, 'It should have had 1 instruction');
-      let instruction;
-      // id in view compiler is universal across instances, cannot reset
-      for (var id in instructions) {
-        instruction = instructions[id];
-      }
-      expect(instruction).toBeDefined('First instruction should have been defined');
-      expect(instruction.letElement).toBe(true, 'Type of instruction should have been letElement');
-      expect(instruction.expressions.length).toBe(1, 'Should have had 1 expression');
+          viewCompiler._compileNode(fragment, resources, instructions, null, 'root', true);
+          expect(Object.keys(instructions).length).toBe(1, 'It should have had 1 instruction with let ce');
+          let instruction;
+          for (let id in instructions) {
+            instruction = instructions[id];
+            break;
+          }
+          expect(instruction.letElement).toBe(false, 'It should have not been let Element instruction');
+          expect(instruction.behaviorInstructions[0].type).toBe(letMeta, 'It should have been the letMeta instance');
+        });
+
+        it('does nothing if there is no binding language implementation for <let/>', () => {
+          let instructions = { };
+          const fragment = createFragment('<div><let>');
+
+          resources.getBindingLanguage = () => Object.assign(
+            viewCompiler.bindingLanguage,
+            {
+              createLetExpressions: BindingLanguage.prototype.createLetExpressions
+            });
+
+          viewCompiler._compileNode(fragment, resources, instructions, null, 'root', true);
+          expect(Object.keys(instructions).length).toBe(0, 'It should have had no instruction');
+        });
+      });
     });
 
   });
+
+  function createFragment(html) {
+    const parser = document.createElement('div');
+    parser.innerHTML = `<template>${html}</template>`;
+    return parser.firstElementChild.content;
+  }
 
 });

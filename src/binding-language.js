@@ -62,7 +62,7 @@ export class BindingLanguage {
    * @param existingExpressions the array that will hold compiled let expressions from the let element
    * @return the expression array created from the <let/> element
    */
-  createLetExpressions(resources: ViewResources, element: Element, existingExpressions?: LetExpression[]): LetExpession[] {
+  createLetExpressions(resources: ViewResources, element: Element): LetExpession[] {
     mi('createLetExpressions');
   }
 
