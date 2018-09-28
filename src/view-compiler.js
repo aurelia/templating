@@ -52,6 +52,8 @@ function makeShadowSlot(compiler, resources, node, instructions, parentInjectorI
   return auShadowSlot;
 }
 
+const defaultLetHandler = BindingLanguage.prototype.createLetExpressions;
+
 /**
 * Compiles html templates, dom fragments and strings into ViewFactory instances, capable of instantiating Views.
 */
@@ -306,16 +308,6 @@ export class ViewCompiler {
         node = makeShadowSlot(this, resources, node, instructions, parentInjectorId);
       }
       return node.nextSibling;
-    } else if (tagName === 'let') {
-      auTargetID = makeIntoInstructionTarget(node);
-      instructions[auTargetID] = TargetInstruction.letElement(
-        bindingLanguage.createLetExpressions(
-          resources,
-          node,
-          instructions.letExpressions
-        )
-      );
-      return node.nextSibling;
     } else if (tagName === 'template') {
       if (!('content' in node)) {
         throw new Error('You cannot place a template element within ' + node.namespaceURI + ' namespace');
@@ -324,6 +316,19 @@ export class ViewCompiler {
       viewFactory.part = node.getAttribute('part');
     } else {
       type = resources.getElement(node.getAttribute('as-element') || tagName);
+      // Only attempt to process a <let/> when it's not a custom element,
+      // and the binding language has an implementation for it
+      // This is an backward compat move
+      if (tagName === 'let' && !type && bindingLanguage.createLetExpressions !== defaultLetHandler) {
+        auTargetID = makeIntoInstructionTarget(node);
+        instructions[auTargetID] = TargetInstruction.letElement(
+          bindingLanguage.createLetExpressions(
+            resources,
+            node
+          )
+        );
+        return node.nextSibling;
+      }
       if (type) {
         elementInstruction = BehaviorInstruction.element(node, type);
         type.processAttributes(this, resources, node, attributes, elementInstruction);

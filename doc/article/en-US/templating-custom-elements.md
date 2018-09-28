@@ -222,7 +222,7 @@ In this example, the `secret-message` custom element will check every ten second
 
 Whether a secret message that is only shown to the person who writes the message is very useful is for you to decide.
 
-## [Declarative computed value]
+## Declarative computed value
 
 As your application grows, custom elements get complicated and often values that are computed based on other values start to appear. It can be done either via getter in your custom element view model, or via aurelia `let` element. Think about it like a declaration in a JavaScript expression. For instance, a name tag form example would consist of two input fields with value bound to view model properties `firstName` and `lastName`, like the following example:
 
@@ -329,7 +329,22 @@ Or an expression:
   </source-code>
 </code-listing>
 
-And now after either `firstName` or `lastName` has changed, `fullName` is recomputed automatically and is ready to be used in other part of the view model. Now instead of reacting to changes on both `firstName` and `lastName`, we only need to care about `fullName` like the following example
+And now after either `firstName` or `lastName` has changed, `fullName` is recomputed automatically and is ready to be used in other part of the view model.
+
+Additonally, if there is needs to react to changes on both `fullName`, we can specify a special attribute `to-binding-context` on `<let/>` element to notify bindings to assign the value to binding context, which is your view model, instead of override context, which is your view.
+
+<code-listing heading="declarative-computed${context.language.fileExtension}">
+  <source-code lang="HTML">
+    <let to-binding-context full-name="${firstName} ${lastName}">
+    <div>
+      First name:
+      <input value.bind="firstName" />
+      Last name:
+      <input value.bind="lastName" />
+    </div>
+    Full name is: "${fullName}"
+  </source-code>
+</code-listing>
 
 <code-listing heading="declarative-computed${context.language.fileExtension}">
   <source-code lang="ES 2016">
@@ -337,7 +352,7 @@ And now after either `firstName` or `lastName` has changed, `fullName` is recomp
       @bindable firstName
       @bindable lastName
 
-      @bindable fullName
+      @observable fullName
 
       // Aurelia convention, called after fullName has changed
       fullNameNameChanged(fullName) {
@@ -350,7 +365,7 @@ And now after either `firstName` or `lastName` has changed, `fullName` is recomp
       @bindable firstName: string
       @bindable lastName: string
 
-      @bindable fullName: string
+      @observable fullName: string
 
       // Aurelia convention, called after fullName has changed
       fullNameNameChanged(fullName: string) {
