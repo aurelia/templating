@@ -1,4 +1,4 @@
-import { Scope } from 'aurelia-binding';
+import { Scope, Expression } from 'aurelia-binding';
 
 function mi(name) {
   throw new Error(`BindingLanguage must implement ${name}().`);
@@ -62,7 +62,7 @@ export class BindingLanguage {
    * @param existingExpressions the array that will hold compiled let expressions from the let element
    * @return the expression array created from the <let/> element
    */
-  createLetExpressions(resources: ViewResources, element: Element): LetExpession[] {
+  createLetExpressions(resources: ViewResources, element: Element): LetExpression[] {
     mi('createLetExpressions');
   }
 
