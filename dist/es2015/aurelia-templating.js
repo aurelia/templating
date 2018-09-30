@@ -5,8 +5,8 @@ import { metadata, Origin, protocol } from 'aurelia-metadata';
 import { DOM, PLATFORM, FEATURE } from 'aurelia-pal';
 import { TemplateRegistryEntry, Loader } from 'aurelia-loader';
 import { relativeToFile } from 'aurelia-path';
+import { Scope, Expression, ValueConverterResource, BindingBehaviorResource, camelCase, Binding, createOverrideContext, subscriberCollection, bindingMode, ObserverLocator, EventManager } from 'aurelia-binding';
 import { Container, resolver, inject } from 'aurelia-dependency-injection';
-import { ValueConverterResource, BindingBehaviorResource, camelCase, Binding, createOverrideContext, subscriberCollection, bindingMode, ObserverLocator, EventManager } from 'aurelia-binding';
 import { TaskQueue } from 'aurelia-task-queue';
 
 export const animationEvent = {
@@ -336,24 +336,23 @@ export let BehaviorInstruction = class BehaviorInstruction {
     instruction.inheritBindingContext = true;
     return instruction;
   }
-
-  constructor() {
-    this.initiatedByBehavior = false;
-    this.enhance = false;
-    this.partReplacements = null;
-    this.viewFactory = null;
-    this.originalAttrName = null;
-    this.skipContentProcessing = false;
-    this.contentFactory = null;
-    this.viewModel = null;
-    this.anchorIsContainer = false;
-    this.host = null;
-    this.attributes = null;
-    this.type = null;
-    this.attrName = null;
-    this.inheritBindingContext = false;
-  }
 };
+
+const biProto = BehaviorInstruction.prototype;
+biProto.initiatedByBehavior = false;
+biProto.enhance = false;
+biProto.partReplacements = null;
+biProto.viewFactory = null;
+biProto.originalAttrName = null;
+biProto.skipContentProcessing = false;
+biProto.contentFactory = null;
+biProto.viewModel = null;
+biProto.anchorIsContainer = false;
+biProto.host = null;
+biProto.attributes = null;
+biProto.type = null;
+biProto.attrName = null;
+biProto.inheritBindingContext = false;
 
 BehaviorInstruction.normal = new BehaviorInstruction();
 
@@ -368,6 +367,13 @@ export let TargetInstruction = (_temp = _class = class TargetInstruction {
   static contentExpression(expression) {
     let instruction = new TargetInstruction();
     instruction.contentExpression = expression;
+    return instruction;
+  }
+
+  static letElement(expressions) {
+    let instruction = new TargetInstruction();
+    instruction.expressions = expressions;
+    instruction.letElement = true;
     return instruction;
   }
 
@@ -402,30 +408,31 @@ export let TargetInstruction = (_temp = _class = class TargetInstruction {
     instruction.values = values;
     return instruction;
   }
-
-  constructor() {
-    this.injectorId = null;
-    this.parentInjectorId = null;
-
-    this.shadowSlot = false;
-    this.slotName = null;
-    this.slotFallbackFactory = null;
-
-    this.contentExpression = null;
-
-    this.expressions = null;
-    this.behaviorInstructions = null;
-    this.providers = null;
-
-    this.viewFactory = null;
-
-    this.anchorIsContainer = false;
-    this.elementInstruction = null;
-    this.lifting = false;
-
-    this.values = null;
-  }
 }, _class.noExpressions = Object.freeze([]), _temp);
+
+const tiProto = TargetInstruction.prototype;
+
+tiProto.injectorId = null;
+tiProto.parentInjectorId = null;
+
+tiProto.shadowSlot = false;
+tiProto.slotName = null;
+tiProto.slotFallbackFactory = null;
+
+tiProto.contentExpression = null;
+tiProto.letElement = false;
+
+tiProto.expressions = null;
+tiProto.expressions = null;
+tiProto.providers = null;
+
+tiProto.viewFactory = null;
+
+tiProto.anchorIsContainer = false;
+tiProto.elementInstruction = null;
+tiProto.lifting = false;
+
+tiProto.values = null;
 
 export const viewStrategy = protocol.create('aurelia:view-strategy', {
   validate(target) {
@@ -718,6 +725,10 @@ export let BindingLanguage = class BindingLanguage {
 
   createAttributeInstruction(resources, element, info, existingInstruction) {
     mi('createAttributeInstruction');
+  }
+
+  createLetExpressions(resources, element) {
+    mi('createLetExpressions');
   }
 
   inspectTextContent(resources, value) {
@@ -2202,6 +2213,14 @@ function applyInstructions(containers, element, instruction, controllers, bindin
     return;
   }
 
+  if (instruction.letElement) {
+    for (i = 0, ii = expressions.length; i < ii; ++i) {
+      bindings.push(expressions[i].createBinding());
+    }
+    element.parentNode.removeChild(element);
+    return;
+  }
+
   if (behaviorInstructions.length) {
     if (!instruction.anchorIsContainer) {
       element = makeElementIntoAnchor(element, instruction.elementInstruction);
@@ -2484,6 +2503,8 @@ function makeShadowSlot(compiler, resources, node, instructions, parentInjectorI
   return auShadowSlot;
 }
 
+const defaultLetHandler = BindingLanguage.prototype.createLetExpressions;
+
 export let ViewCompiler = (_dec7 = inject(BindingLanguage, ViewResources), _dec7(_class13 = class ViewCompiler {
   constructor(bindingLanguage, resources) {
     this.bindingLanguage = bindingLanguage;
@@ -2724,6 +2745,12 @@ export let ViewCompiler = (_dec7 = inject(BindingLanguage, ViewResources), _dec7
       viewFactory.part = node.getAttribute('part');
     } else {
       type = resources.getElement(node.getAttribute('as-element') || tagName);
+
+      if (tagName === 'let' && !type && bindingLanguage.createLetExpressions !== defaultLetHandler) {
+        auTargetID = makeIntoInstructionTarget(node);
+        instructions[auTargetID] = TargetInstruction.letElement(bindingLanguage.createLetExpressions(resources, node));
+        return node.nextSibling;
+      }
       if (type) {
         elementInstruction = BehaviorInstruction.element(node, type);
         type.processAttributes(this, resources, node, attributes, elementInstruction);
@@ -4818,7 +4845,7 @@ export let TemplatingEngine = (_dec11 = inject(Container, ModuleAnalyzer, ViewCo
       instruction = { element: instruction };
     }
 
-    let compilerInstructions = {};
+    let compilerInstructions = { letExpressions: [] };
     let resources = instruction.resources || this._container.get(ViewResources);
 
     this._viewCompiler._compileNode(instruction.element, resources, compilerInstructions, instruction.element.parentNode, 'root', true);

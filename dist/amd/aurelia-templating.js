@@ -1,4 +1,4 @@
-define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aurelia-loader', 'aurelia-path', 'aurelia-dependency-injection', 'aurelia-binding', 'aurelia-task-queue'], function (exports, _aureliaLogging, _aureliaMetadata, _aureliaPal, _aureliaLoader, _aureliaPath, _aureliaDependencyInjection, _aureliaBinding, _aureliaTaskQueue) {
+define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aurelia-loader', 'aurelia-path', 'aurelia-binding', 'aurelia-dependency-injection', 'aurelia-task-queue'], function (exports, _aureliaLogging, _aureliaMetadata, _aureliaPal, _aureliaLoader, _aureliaPath, _aureliaBinding, _aureliaDependencyInjection, _aureliaTaskQueue) {
   'use strict';
 
   Object.defineProperty(exports, "__esModule", {
@@ -413,6 +413,10 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
   ViewCompileInstruction.normal = new ViewCompileInstruction();
 
   var BehaviorInstruction = exports.BehaviorInstruction = function () {
+    function BehaviorInstruction() {
+      
+    }
+
     BehaviorInstruction.enhance = function enhance() {
       var instruction = new BehaviorInstruction();
       instruction.enhance = true;
@@ -452,31 +456,32 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
       return instruction;
     };
 
-    function BehaviorInstruction() {
-      
-
-      this.initiatedByBehavior = false;
-      this.enhance = false;
-      this.partReplacements = null;
-      this.viewFactory = null;
-      this.originalAttrName = null;
-      this.skipContentProcessing = false;
-      this.contentFactory = null;
-      this.viewModel = null;
-      this.anchorIsContainer = false;
-      this.host = null;
-      this.attributes = null;
-      this.type = null;
-      this.attrName = null;
-      this.inheritBindingContext = false;
-    }
-
     return BehaviorInstruction;
   }();
+
+  var biProto = BehaviorInstruction.prototype;
+  biProto.initiatedByBehavior = false;
+  biProto.enhance = false;
+  biProto.partReplacements = null;
+  biProto.viewFactory = null;
+  biProto.originalAttrName = null;
+  biProto.skipContentProcessing = false;
+  biProto.contentFactory = null;
+  biProto.viewModel = null;
+  biProto.anchorIsContainer = false;
+  biProto.host = null;
+  biProto.attributes = null;
+  biProto.type = null;
+  biProto.attrName = null;
+  biProto.inheritBindingContext = false;
 
   BehaviorInstruction.normal = new BehaviorInstruction();
 
   var TargetInstruction = exports.TargetInstruction = (_temp = _class = function () {
+    function TargetInstruction() {
+      
+    }
+
     TargetInstruction.shadowSlot = function shadowSlot(parentInjectorId) {
       var instruction = new TargetInstruction();
       instruction.parentInjectorId = parentInjectorId;
@@ -487,6 +492,13 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
     TargetInstruction.contentExpression = function contentExpression(expression) {
       var instruction = new TargetInstruction();
       instruction.contentExpression = expression;
+      return instruction;
+    };
+
+    TargetInstruction.letElement = function letElement(expressions) {
+      var instruction = new TargetInstruction();
+      instruction.expressions = expressions;
+      instruction.letElement = true;
       return instruction;
     };
 
@@ -522,33 +534,34 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
       return instruction;
     };
 
-    function TargetInstruction() {
-      
-
-      this.injectorId = null;
-      this.parentInjectorId = null;
-
-      this.shadowSlot = false;
-      this.slotName = null;
-      this.slotFallbackFactory = null;
-
-      this.contentExpression = null;
-
-      this.expressions = null;
-      this.behaviorInstructions = null;
-      this.providers = null;
-
-      this.viewFactory = null;
-
-      this.anchorIsContainer = false;
-      this.elementInstruction = null;
-      this.lifting = false;
-
-      this.values = null;
-    }
-
     return TargetInstruction;
   }(), _class.noExpressions = Object.freeze([]), _temp);
+
+
+  var tiProto = TargetInstruction.prototype;
+
+  tiProto.injectorId = null;
+  tiProto.parentInjectorId = null;
+
+  tiProto.shadowSlot = false;
+  tiProto.slotName = null;
+  tiProto.slotFallbackFactory = null;
+
+  tiProto.contentExpression = null;
+  tiProto.letElement = false;
+
+  tiProto.expressions = null;
+  tiProto.expressions = null;
+  tiProto.providers = null;
+
+  tiProto.viewFactory = null;
+
+  tiProto.anchorIsContainer = false;
+  tiProto.elementInstruction = null;
+  tiProto.lifting = false;
+
+  tiProto.values = null;
+
   var viewStrategy = exports.viewStrategy = _aureliaMetadata.protocol.create('aurelia:view-strategy', {
     validate: function validate(target) {
       if (!(typeof target.loadViewFactory === 'function')) {
@@ -885,6 +898,10 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
 
     BindingLanguage.prototype.createAttributeInstruction = function createAttributeInstruction(resources, element, info, existingInstruction) {
       mi('createAttributeInstruction');
+    };
+
+    BindingLanguage.prototype.createLetExpressions = function createLetExpressions(resources, element) {
+      mi('createLetExpressions');
     };
 
     BindingLanguage.prototype.inspectTextContent = function inspectTextContent(resources, value) {
@@ -2447,6 +2464,14 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
       return;
     }
 
+    if (instruction.letElement) {
+      for (i = 0, ii = expressions.length; i < ii; ++i) {
+        bindings.push(expressions[i].createBinding());
+      }
+      element.parentNode.removeChild(element);
+      return;
+    }
+
     if (behaviorInstructions.length) {
       if (!instruction.anchorIsContainer) {
         element = makeElementIntoAnchor(element, instruction.elementInstruction);
@@ -2740,6 +2765,8 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
     return auShadowSlot;
   }
 
+  var defaultLetHandler = BindingLanguage.prototype.createLetExpressions;
+
   var ViewCompiler = exports.ViewCompiler = (_dec7 = (0, _aureliaDependencyInjection.inject)(BindingLanguage, ViewResources), _dec7(_class13 = function () {
     function ViewCompiler(bindingLanguage, resources) {
       
@@ -2982,6 +3009,12 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
         viewFactory.part = node.getAttribute('part');
       } else {
         type = resources.getElement(node.getAttribute('as-element') || tagName);
+
+        if (tagName === 'let' && !type && bindingLanguage.createLetExpressions !== defaultLetHandler) {
+          auTargetID = makeIntoInstructionTarget(node);
+          instructions[auTargetID] = TargetInstruction.letElement(bindingLanguage.createLetExpressions(resources, node));
+          return node.nextSibling;
+        }
         if (type) {
           elementInstruction = BehaviorInstruction.element(node, type);
           type.processAttributes(this, resources, node, attributes, elementInstruction);
@@ -4683,11 +4716,11 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
         } else {
           while (current) {
             if (this.matches(current)) {
-              var value = current.au && current.au.controller ? current.au.controller.viewModel : current;
-              this.viewModel[this.property] = value;
+              var _value = current.au && current.au.controller ? current.au.controller.viewModel : current;
+              this.viewModel[this.property] = _value;
 
               if (this.changeHandler !== null) {
-                this.viewModel[this.changeHandler](value);
+                this.viewModel[this.changeHandler](_value);
               }
 
               break;
@@ -4701,11 +4734,11 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
 
     ChildObserverBinder.prototype.onRemove = function onRemove(element) {
       if (this.matches(element)) {
-        var value = element.au && element.au.controller ? element.au.controller.viewModel : element;
+        var _value2 = element.au && element.au.controller ? element.au.controller.viewModel : element;
 
         if (this.all) {
           var items = this.viewModel[this.property] || (this.viewModel[this.property] = []);
-          var index = items.indexOf(value);
+          var index = items.indexOf(_value2);
 
           if (index !== -1) {
             items.splice(index, 1);
@@ -4722,13 +4755,13 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
 
     ChildObserverBinder.prototype.onAdd = function onAdd(element) {
       if (this.matches(element)) {
-        var value = element.au && element.au.controller ? element.au.controller.viewModel : element;
+        var _value3 = element.au && element.au.controller ? element.au.controller.viewModel : element;
 
         if (this.all) {
           var items = this.viewModel[this.property] || (this.viewModel[this.property] = []);
 
           if (this.selector === '*') {
-            items.push(value);
+            items.push(_value3);
             return true;
           }
 
@@ -4743,14 +4776,14 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
             prev = prev.previousElementSibling;
           }
 
-          items.splice(index, 0, value);
+          items.splice(index, 0, _value3);
           return true;
         }
 
-        this.viewModel[this.property] = value;
+        this.viewModel[this.property] = _value3;
 
         if (this.changeHandler !== null) {
-          this.viewModel[this.changeHandler](value);
+          this.viewModel[this.changeHandler](_value3);
         }
       }
 
@@ -5197,7 +5230,7 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
         instruction = { element: instruction };
       }
 
-      var compilerInstructions = {};
+      var compilerInstructions = { letExpressions: [] };
       var resources = instruction.resources || this._container.get(ViewResources);
 
       this._viewCompiler._compileNode(instruction.element, resources, compilerInstructions, instruction.element.parentNode, 'root', true);

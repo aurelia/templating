@@ -1,3 +1,21 @@
+<a name="1.10.0"></a>
+# [1.10.0](https://github.com/aurelia/templating/compare/1.9.0...1.10.0) (2018-09-30)
+
+
+### Bug Fixes
+
+* **<let/>:** enable backward compat, fix doc ([90684ed](https://github.com/aurelia/templating/commit/90684ed))
+* **Let:** respect DOM order ([dd4ff67](https://github.com/aurelia/templating/commit/dd4ff67))
+* **test:** remove old implementation fix in test ([88cf718](https://github.com/aurelia/templating/commit/88cf718))
+* **typings:** fix let expression typings ([a756dfe](https://github.com/aurelia/templating/commit/a756dfe))
+
+
+### Features
+
+* **Let:** let element for computed property declaration ([b898ef7](https://github.com/aurelia/templating/commit/b898ef7))
+
+
+
 <a name="1.9.0"></a>
 # [1.9.0](https://github.com/aurelia/templating/compare/1.8.3...1.9.0) (2018-09-25)
 

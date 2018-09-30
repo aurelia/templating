@@ -3,8 +3,8 @@ import {metadata,Origin,protocol} from 'aurelia-metadata';
 import {DOM,PLATFORM,FEATURE} from 'aurelia-pal';
 import {TemplateRegistryEntry,Loader} from 'aurelia-loader';
 import {relativeToFile} from 'aurelia-path';
+import {Scope,Expression,ValueConverterResource,BindingBehaviorResource,camelCase,Binding,createOverrideContext,subscriberCollection,bindingMode,ObserverLocator,EventManager} from 'aurelia-binding';
 import {Container,resolver,inject} from 'aurelia-dependency-injection';
-import {ValueConverterResource,BindingBehaviorResource,camelCase,Binding,createOverrideContext,subscriberCollection,bindingMode,ObserverLocator,EventManager} from 'aurelia-binding';
 import {TaskQueue} from 'aurelia-task-queue';
 
 /**
@@ -555,27 +555,23 @@ export class BehaviorInstruction {
     instruction.inheritBindingContext = true;
     return instruction;
   }
-
-  /**
-  * Creates an instance of BehaviorInstruction.
-  */
-  constructor() {
-    this.initiatedByBehavior = false;
-    this.enhance = false;
-    this.partReplacements = null;
-    this.viewFactory = null;
-    this.originalAttrName = null;
-    this.skipContentProcessing = false;
-    this.contentFactory = null;
-    this.viewModel = null;
-    this.anchorIsContainer = false;
-    this.host = null;
-    this.attributes = null;
-    this.type = null;
-    this.attrName = null;
-    this.inheritBindingContext = false;
-  }
 }
+
+const biProto = BehaviorInstruction.prototype;
+biProto.initiatedByBehavior = false;
+biProto.enhance = false;
+biProto.partReplacements = null;
+biProto.viewFactory = null;
+biProto.originalAttrName = null;
+biProto.skipContentProcessing = false;
+biProto.contentFactory = null;
+biProto.viewModel = null;
+biProto.anchorIsContainer = false;
+biProto.host = null;
+biProto.attributes = null;
+biProto.type = null;
+biProto.attrName = null;
+biProto.inheritBindingContext = false;
 
 BehaviorInstruction.normal = new BehaviorInstruction();
 
@@ -584,26 +580,34 @@ BehaviorInstruction.normal = new BehaviorInstruction();
 */
 export class TargetInstruction {
 
-  injectorId:number;
-  parentInjectorId:number;
+  injectorId: number;
+  parentInjectorId: number;
 
-  shadowSlot:boolean;
-  slotName:string;
-  slotFallbackFactory:any;
+  shadowSlot: boolean;
+  slotName: string;
+  slotFallbackFactory: any;
 
-  contentExpression:any;
+  /**
+   * Indicates if this instruction is targeting a text node
+   */
+  contentExpression: any;
 
-  expressions:Array<Object>;
-  behaviorInstructions:Array<BehaviorInstruction>;
-  providers:Array<Function>;
+  /**
+   * Indicates if this instruction is a let element instruction
+   */
+  letElement: boolean;
 
-  viewFactory:ViewFactory;
+  expressions: Array<Object>;
+  behaviorInstructions: Array<BehaviorInstruction>;
+  providers: Array<Function>;
 
-  anchorIsContainer:boolean;
-  elementInstruction:BehaviorInstruction;
-  lifting:boolean;
+  viewFactory: ViewFactory;
 
-  values:Object;
+  anchorIsContainer: boolean;
+  elementInstruction: BehaviorInstruction;
+  lifting: boolean;
+
+  values: Object;
 
   /**
   * An empty array used to represent a target with no binding expressions.
@@ -630,6 +634,23 @@ export class TargetInstruction {
   static contentExpression(expression): TargetInstruction {
     let instruction = new TargetInstruction();
     instruction.contentExpression = expression;
+    return instruction;
+  }
+
+  /**
+  * Creates an instruction that represents an element with behaviors and bindings.
+  * @param injectorId The id of the dependency injection container.
+  * @param parentInjectorId The id of the parent dependency injection container.
+  * @param providers The types which will provide behavior for this element.
+  * @param behaviorInstructions The instructions for creating behaviors on this element.
+  * @param expressions Bindings, listeners, triggers, etc.
+  * @param elementInstruction The element behavior for this element.
+  * @return The created instruction.
+  */
+  static letElement(expressions: Array<Object>): TargetInstruction {
+    let instruction = new TargetInstruction();
+    instruction.expressions = expressions;
+    instruction.letElement = true;
     return instruction;
   }
 
@@ -688,33 +709,31 @@ export class TargetInstruction {
     instruction.values = values;
     return instruction;
   }
-
-  /**
-  * Creates an instance of TargetInstruction.
-  */
-  constructor() {
-    this.injectorId = null;
-    this.parentInjectorId = null;
-
-    this.shadowSlot = false;
-    this.slotName = null;
-    this.slotFallbackFactory = null;
-
-    this.contentExpression = null;
-
-    this.expressions = null;
-    this.behaviorInstructions = null;
-    this.providers = null;
-
-    this.viewFactory = null;
-
-    this.anchorIsContainer = false;
-    this.elementInstruction = null;
-    this.lifting = false;
-
-    this.values = null;
-  }
 }
+
+const tiProto = TargetInstruction.prototype;
+
+tiProto.injectorId = null;
+tiProto.parentInjectorId = null;
+
+tiProto.shadowSlot = false;
+tiProto.slotName = null;
+tiProto.slotFallbackFactory = null;
+
+tiProto.contentExpression = null;
+tiProto.letElement = false;
+
+tiProto.expressions = null;
+tiProto.expressions = null;
+tiProto.providers = null;
+
+tiProto.viewFactory = null;
+
+tiProto.anchorIsContainer = false;
+tiProto.elementInstruction = null;
+tiProto.lifting = false;
+
+tiProto.values = null;
 
 /**
 * Implemented by classes that describe how a view factory should be loaded.
@@ -1162,6 +1181,29 @@ function mi(name) {
   throw new Error(`BindingLanguage must implement ${name}().`);
 }
 
+interface LetExpression {
+  createBinding(): LetBinding;
+}
+
+interface LetBinding {
+  /**
+   * The expression to access/assign/connect the binding source property.
+   */
+  sourceExpression: Expression;
+  /**
+   * Assigns a value to the target.
+   */
+  updateTarget(value: any): void;
+  /**
+   * Connects the binding to a scope.
+   */
+  bind(source: Scope): void;
+  /**
+   * Disconnects the binding from a scope.
+   */
+  unbind(): void;
+}
+
 /**
 * An abstract base class for implementations of a binding language.
 */
@@ -1188,6 +1230,17 @@ export class BindingLanguage {
   */
   createAttributeInstruction(resources: ViewResources, element: Element, info: Object, existingInstruction?: Object): BehaviorInstruction {
     mi('createAttributeInstruction');
+  }
+
+  /**
+   * Creates let expressions from a <let/> element
+   * @param resources The ViewResources for the view being compiled
+   * @param element the let element in the view template
+   * @param existingExpressions the array that will hold compiled let expressions from the let element
+   * @return the expression array created from the <let/> element
+   */
+  createLetExpressions(resources: ViewResources, element: Element): LetExpression[] {
+    mi('createLetExpressions');
   }
 
   /**
@@ -3169,6 +3222,17 @@ function makeElementIntoAnchor(element, elementInstruction) {
   return anchor;
 }
 
+/**
+ * @param {Container[]} containers
+ * @param {Element} element
+ * @param {TargetInstruction} instruction
+ * @param {Controller[]} controllers
+ * @param {Binding[]} bindings
+ * @param {ViewNode[]} children
+ * @param {Record<string, ShadowSlot>} shadowSlots
+ * @param {Record<string, ViewFactory>} partReplacements
+ * @param {ViewResources} resources
+ */
 function applyInstructions(containers, element, instruction, controllers, bindings, children, shadowSlots, partReplacements, resources) {
   let behaviorInstructions = instruction.behaviorInstructions;
   let expressions = instruction.expressions;
@@ -3198,6 +3262,14 @@ function applyInstructions(containers, element, instruction, controllers, bindin
     DOM.replaceNode(commentAnchor, element);
     shadowSlots[instruction.slotName] = slot;
     controllers.push(slot);
+    return;
+  }
+
+  if (instruction.letElement) {
+    for (i = 0, ii = expressions.length; i < ii; ++i) {
+      bindings.push(expressions[i].createBinding());
+    }
+    element.parentNode.removeChild(element);
     return;
   }
 
@@ -3561,6 +3633,8 @@ function makeShadowSlot(compiler, resources, node, instructions, parentInjectorI
   return auShadowSlot;
 }
 
+const defaultLetHandler = BindingLanguage.prototype.createLetExpressions;
+
 /**
 * Compiles html templates, dom fragments and strings into ViewFactory instances, capable of instantiating Views.
 */
@@ -3784,7 +3858,7 @@ export class ViewCompiler {
     return null;
   }
 
-  _compileElement(node, resources, instructions, parentNode, parentInjectorId, targetLightDOM) {
+  _compileElement(node: Node, resources: ViewResources, instructions: any, parentNode: Node, parentInjectorId: number, targetLightDOM: boolean) {
     let tagName = node.tagName.toLowerCase();
     let attributes = node.attributes;
     let expressions = [];
@@ -3823,6 +3897,19 @@ export class ViewCompiler {
       viewFactory.part = node.getAttribute('part');
     } else {
       type = resources.getElement(node.getAttribute('as-element') || tagName);
+      // Only attempt to process a <let/> when it's not a custom element,
+      // and the binding language has an implementation for it
+      // This is an backward compat move
+      if (tagName === 'let' && !type && bindingLanguage.createLetExpressions !== defaultLetHandler) {
+        auTargetID = makeIntoInstructionTarget(node);
+        instructions[auTargetID] = TargetInstruction.letElement(
+          bindingLanguage.createLetExpressions(
+            resources,
+            node
+          )
+        );
+        return node.nextSibling;
+      }
       if (type) {
         elementInstruction = BehaviorInstruction.element(node, type);
         type.processAttributes(this, resources, node, attributes, elementInstruction);
@@ -6541,7 +6628,7 @@ export class TemplatingEngine {
       instruction = { element: instruction };
     }
 
-    let compilerInstructions = {};
+    let compilerInstructions = { letExpressions: [] };
     let resources = instruction.resources || this._container.get(ViewResources);
 
     this._viewCompiler._compileNode(instruction.element, resources, compilerInstructions, instruction.element.parentNode, 'root', true);
