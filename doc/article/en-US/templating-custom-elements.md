@@ -222,11 +222,11 @@ In this example, the `secret-message` custom element will check every ten second
 
 Whether a secret message that is only shown to the person who writes the message is very useful is for you to decide.
 
-## Declarative computed value
+## Declarative Computed Values
 
-As your application grows, custom elements get complicated and often values that are computed based on other values start to appear. It can be done either via getter in your custom element view model, or via aurelia `let` element. Think about it like a declaration in a JavaScript expression. For instance, a name tag form example would consist of two input fields with value bound to view model properties `firstName` and `lastName`, like the following example:
+As your application grows, custom elements get complicated and often values that are computed based on other values start to appear. This can be handled either by creating getters in your custom element view model, or by using Aurelia's `let` element. You can think of `let` like a declaration in a JavaScript expression. For instance, a name tag form example might consist of two input fields with values bound to view model properties `firstName` and `lastName`, like the following:
 
-<code-listing heading="declarative-computed${context.language.fileExtension}">
+<code-listing heading="Interpolation">
   <source-code lang="HTML">
     <div>
       First name:
@@ -238,28 +238,29 @@ As your application grows, custom elements get complicated and often values that
   </source-code>
 </code-listing>
 
-Notice the expression `${firstName} ${lastName}`, what if we want to use it somewhere else, or give it a more meaningful name like `fullName`? We have option to go with react on change of either `firstName` or `lastName` and re-compute `fullName` in view model, or declare a getter that return the combination of those values like the following examples:
+Notice the expression `\${firstName} \${lastName}`. What if we want to use it somewhere else, or give it a more meaningful name like `fullName`? We have the option to react on change of either `firstName` or `lastName` and re-compute `fullName` in view model, or declare a getter that returns the combination of those values like the following examples:
 
-<code-listing heading="declarative-computed${context.language.fileExtension}">
+<code-listing heading="Manual Computed">
   <source-code lang="ES 2016">
     export class App {
-      @bindable firstName
-      @bindable lastName
+      @bindable firstName;
+      @bindable lastName;
 
       // Aurelia convention, called after firstName has changed
       firstNameChanged(newFirstName: string) {
-        this.fullName = `${newFirstName} ${this.lastName}`
+        this.fullName = `${newFirstName} ${this.lastName}`;
       }
+
       // Aurelia convention, called after firstName has changed
       lastNameChanged(newLastName: string) {
-        this.fullName = `${this.firstName} ${newLastName}`
+        this.fullName = `${this.firstName} ${newLastName}`;
       }
     }
 
     // Or with getter and `computedFrom` decorator
     export class App {
-      @bindable firstName
-      @bindable lastName
+      @bindable firstName;
+      @bindable lastName;
 
       @computedFrom('firstName', 'lastName')
       get fullName() {
@@ -267,27 +268,28 @@ Notice the expression `${firstName} ${lastName}`, what if we want to use it some
       }
     }
   </source-code>
-  <source-code lang="Typescript">
+  <source-code lang="TypeScript">
     export class App {
-      @bindable firstName: string
-      @bindable lastName: string
+      @bindable firstName: string;
+      @bindable lastName: string;
 
-      fullName: string
+      fullName: string;
 
       // Aurelia convention, called after firstName has changed
       firstNameChanged(newFirstName: string) {
-        this.fullName = `${newFirstName} ${this.lastName}`
+        this.fullName = `${newFirstName} ${this.lastName}`;
       }
+
       // Aurelia convention, called after firstName has changed
       lastNameChanged(newLastName: string) {
-        this.fullName = `${this.firstName} ${newLastName}`
+        this.fullName = `${this.firstName} ${newLastName}`;
       }
     }
 
     // Or with getter and `computedFrom` decorator
     export class App {
-      @bindable firstName: string
-      @bindable lastName: string
+      @bindable firstName: string;
+      @bindable lastName: string;
 
       @computedFrom('firstName', 'lastName')
       get fullName() {
@@ -297,11 +299,11 @@ Notice the expression `${firstName} ${lastName}`, what if we want to use it some
   </source-code>
 </code-listing>
 
-Aurelia provides a simpler way to achieve the above result, with more declarative form via `let` element. Using the `let` element, the above example would be rewritten as:
+Aurelia provides a simpler way to achieve the above result, with the more declarative `let` element. Using the `let` element, the above example would be rewritten as:
 
 Either using interpolation:
 
-<code-listing heading="declarative-computed${context.language.fileExtension}">
+<code-listing heading="Declarative Computed via Interpolation">
   <source-code lang="HTML">
     <let full-name="${firstName} ${lastName}">
     <div>
@@ -316,7 +318,7 @@ Either using interpolation:
 
 Or an expression:
 
-<code-listing heading="declarative-computed${context.language.fileExtension}">
+<code-listing heading="Declarative Computed via Expression">
   <source-code lang="HTML">
     <let full-name.bind="firstName + ' ' + lastName">
     <div>
@@ -329,11 +331,11 @@ Or an expression:
   </source-code>
 </code-listing>
 
-And now after either `firstName` or `lastName` has changed, `fullName` is recomputed automatically and is ready to be used in other part of the view model.
+And now after either `firstName` or `lastName` has changed, `fullName` is recomputed automatically and is ready to be used in other parts of the view.
 
-Additonally, if there is needs to react to changes on both `fullName`, we can specify a special attribute `to-binding-context` on `<let/>` element to notify bindings to assign the value to binding context, which is your view model, instead of override context, which is your view.
+Additionally, if there is a need to react to changes on both `fullName`, we can specify a special attribute `to-binding-context` on the `<let/>` element to notify bindings to assign the value to the binding context, which is your view model, instead of override context, which is your view.
 
-<code-listing heading="declarative-computed${context.language.fileExtension}">
+<code-listing heading="Declarative Computed Context View">
   <source-code lang="HTML">
     <let to-binding-context full-name="${firstName} ${lastName}">
     <div>
@@ -346,13 +348,13 @@ Additonally, if there is needs to react to changes on both `fullName`, we can sp
   </source-code>
 </code-listing>
 
-<code-listing heading="declarative-computed${context.language.fileExtension}">
+<code-listing heading="Declarative Computed Context View Model">
   <source-code lang="ES 2016">
     export class App {
-      @bindable firstName
-      @bindable lastName
+      @bindable firstName;
+      @bindable lastName;
 
-      @observable fullName
+      @observable fullName;
 
       // Aurelia convention, called after fullName has changed
       fullNameNameChanged(fullName) {
@@ -360,12 +362,12 @@ Additonally, if there is needs to react to changes on both `fullName`, we can sp
       }
     }
   </source-code>
-  <source-code lang="Typescript">
+  <source-code lang="TypeScript">
     export class App {
-      @bindable firstName: string
-      @bindable lastName: string
+      @bindable firstName: string;
+      @bindable lastName: string;
 
-      @observable fullName: string
+      @observable fullName: string;
 
       // Aurelia convention, called after fullName has changed
       fullNameNameChanged(fullName: string) {
@@ -375,7 +377,7 @@ Additonally, if there is needs to react to changes on both `fullName`, we can sp
   </source-code>
 </code-listing>
 
-## [Surrogate Behaviors]
+## Surrogate Behaviors
 
 Surrogate behaviors allow you to add attributes, event handlers, and bindings on the template element for a custom element. This can be extremely useful in many cases, but one particular area that it is helpful is with dealing with `aria` attributes to help add accessibility to your custom elements. When using surrogate behaviors, you add attributes to the template element for your custom element. These attributes will be placed on the custom element itself at runtime. For example, consider the view for a `my-button` custom element:
 
