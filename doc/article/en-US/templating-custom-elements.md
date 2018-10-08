@@ -50,7 +50,7 @@ The following example shows an Aurelia view utilizing two-way databinding to an 
       <require from="./yes-or-no.html"></require>
       <require from="./say-goodbye.html"></require>
 
-      <p>What is your name? <input type="text" value.bind="name & debounce" /></p>
+      <p>What is your name? <input type="text" value.bind="name & debounce"></p>
       <yes-or-no question="Are you leaving?" answer.two-way="sayGoodbye"></yes-or-no>
       <say-goodbye if.bind="sayGoodbye" name.bind="name"></say-goodbye>
     </template>
@@ -61,7 +61,7 @@ The following example shows an Aurelia view utilizing two-way databinding to an 
   <source-code lang="HTML">
     <template bindable="question, answer">
       <p>
-        ${question} <input type="checkbox" checked.bind="answer" />
+        ${question} <input type="checkbox" checked.bind="answer">
       </p>
     </template>
   </source-code>
@@ -208,10 +208,10 @@ Any properties or functions of the VM class may be used for binding within the c
       <require from="./secret-message"></require>
 
       <p>
-        Secret Message: <input type="text" value.bind="message" />
+        Secret Message: <input type="text" value.bind="message">
       </p>
       <p>
-        Allow Message to Destruct? <input type="checkbox" checked.bind="allowDestruction" />
+        Allow Message to Destruct? <input type="checkbox" checked.bind="allowDestruction">
       </p>
       <secret-message message.bind="message" allow-destruction.bind="allowDestruction" ></secret-message>
     </template>
@@ -230,9 +230,9 @@ As your application grows, custom elements get complicated and often values that
   <source-code lang="HTML">
     <div>
       First name:
-      <input value.bind="firstName" />
+      <input value.bind="firstName">
       Last name:
-      <input value.bind="lastName" />
+      <input value.bind="lastName">
     </div>
     Full name is: "${firstName} ${lastName}"
   </source-code>
@@ -308,9 +308,9 @@ Either using interpolation:
     <let full-name="${firstName} ${lastName}"></let>
     <div>
       First name:
-      <input value.bind="firstName" />
+      <input value.bind="firstName">
       Last name:
-      <input value.bind="lastName" />
+      <input value.bind="lastName">
     </div>
     Full name is: "${fullName}"
   </source-code>
@@ -323,9 +323,9 @@ Or an expression:
     <let full-name.bind="firstName + ' ' + lastName"></let>
     <div>
       First name:
-      <input value.bind="firstName" />
+      <input value.bind="firstName">
       Last name:
-      <input value.bind="lastName" />
+      <input value.bind="lastName">
     </div>
     Full name is: "${fullName}"
   </source-code>
@@ -340,9 +340,9 @@ Additionally, if there is a need to react to changes on both `fullName`, we can 
     <let to-binding-context full-name="${firstName} ${lastName}"></let>
     <div>
       First name:
-      <input value.bind="firstName" />
+      <input value.bind="firstName">
       Last name:
-      <input value.bind="lastName" />
+      <input value.bind="lastName">
     </div>
     Full name is: "${fullName}"
   </source-code>

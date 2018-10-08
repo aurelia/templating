@@ -145,7 +145,7 @@ We can also use two-way data binding to communicate whether or not an element ha
 <code-listing heading="bind-focus.html">
   <source-code lang="HTML">
     <template>
-      <input focus.bind="hasFocus" />
+      <input focus.bind="hasFocus">
       ${hasFocus}
     </template>
   </source-code>
@@ -161,10 +161,10 @@ We can also declare that certain parts of our markup will be referencing propert
   <source-code lang="HTML">
     <template>
       <p with.bind="first">
-        <input type="text" value.bind="message" />
+        <input type="text" value.bind="message">
       </p>
       <p with.bind="second">
-        <input type="text" value.bind="message" />
+        <input type="text" value.bind="message">
       </p>
     </template>
   </source-code>
@@ -296,7 +296,7 @@ Here's our basic "Hello World" that asks the user if they want to greet the worl
   <source-code lang="HTML">
     <template>
       <label for="greet">Would you like me to greet the world?</label>
-      <input type="checkbox" id="greet" checked.bind="greet" />
+      <input type="checkbox" id="greet" checked.bind="greet">
       <div if.bind="greet">
         Hello, World!
       </div>
@@ -311,7 +311,7 @@ instead of `if`.
   <source-code lang="HTML">
     <template>
       <label for="greet">Would you like me to greet the world?</label>
-      <input type="checkbox" id="greet" checked.bind="greet" />
+      <input type="checkbox" id="greet" checked.bind="greet">
       <div show.bind="greet">
         Hello, World!
       </div>
@@ -429,7 +429,7 @@ Two-way binding with arrays requires a special syntax due to the nature of the `
 
 <code-listing heading="repeater-template-input.html">
   <source-code lang="HTML">
-	<template>		
+	<template>
 		<div repeat.for="i of dataArray.length">
 		<input type="text" value.bind="$parent.dataArray[i]">
 		</div>

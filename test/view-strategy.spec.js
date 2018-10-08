@@ -34,7 +34,7 @@ describe('ViewLocator', () => {
   describe('StaticViewStrategy', () => {
     it('loads', (done) => {
       let strategy = new StaticViewStrategy({
-        template: '<template><input value.bind="value" /></template>',
+        template: '<template><input value.bind="value"></template>',
         dependencies: []
       });
       class El {}
@@ -70,7 +70,7 @@ describe('ViewLocator', () => {
     });
 
     it('sets formal "moduleId"', () => {
-      const strategy = new StaticViewStrategy('<template><input value.bind="value" /></template>');
+      const strategy = new StaticViewStrategy('<template><input value.bind="value"></template>');
       expect(strategy.moduleId).toBeDefined();
     });
   });
@@ -101,7 +101,7 @@ describe('ViewLocator', () => {
       beforeCompile() {}
     }
     let strategy = new StaticViewStrategy({
-      template: '<template><input value.bind="value" /></template>',
+      template: '<template><input value.bind="value"></template>',
       dependencies: [AquaMan, VentureCapital, BabyBoomer, BlitzCrank]
     });
     strategy
@@ -152,7 +152,7 @@ describe('ViewLocator', () => {
       });
     }
     let strategy = new StaticViewStrategy({
-      template: '<template><input value.bind="value" /></template>',
+      template: '<template><input value.bind="value"></template>',
       dependencies: () => [AureliaSol, mockEsmImport()]
     });
     strategy

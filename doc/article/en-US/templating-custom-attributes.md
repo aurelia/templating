@@ -157,7 +157,7 @@ Note that in the above code sample, the color of the square will not be updated,
       <div square="${color}"></div>
       <div square.bind="color"></div>
 
-      <input type="text" value.bind="color" />
+      <input type="text" value.bind="color">
     </template>
   </source-code>
 </code-listing>
