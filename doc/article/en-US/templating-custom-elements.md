@@ -305,7 +305,7 @@ Either using interpolation:
 
 <code-listing heading="Declarative Computed via Interpolation">
   <source-code lang="HTML">
-    <let full-name="${firstName} ${lastName}">
+    <let full-name="${firstName} ${lastName}"></let>
     <div>
       First name:
       <input value.bind="firstName" />
@@ -320,7 +320,7 @@ Or an expression:
 
 <code-listing heading="Declarative Computed via Expression">
   <source-code lang="HTML">
-    <let full-name.bind="firstName + ' ' + lastName">
+    <let full-name.bind="firstName + ' ' + lastName"></let>
     <div>
       First name:
       <input value.bind="firstName" />
@@ -337,7 +337,7 @@ Additionally, if there is a need to react to changes on both `fullName`, we can 
 
 <code-listing heading="Declarative Computed Context View">
   <source-code lang="HTML">
-    <let to-binding-context full-name="${firstName} ${lastName}">
+    <let to-binding-context full-name="${firstName} ${lastName}"></let>
     <div>
       First name:
       <input value.bind="firstName" />
