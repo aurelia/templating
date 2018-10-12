@@ -320,13 +320,13 @@ export class ViewCompiler {
       // and the binding language has an implementation for it
       // This is an backward compat move
       if (tagName === 'let' && !type && bindingLanguage.createLetExpressions !== defaultLetHandler) {
-        auTargetID = makeIntoInstructionTarget(node);
         instructions[auTargetID] = TargetInstruction.letElement(
           bindingLanguage.createLetExpressions(
             resources,
             node
           )
         );
+        auTargetID = makeIntoInstructionTarget(node);
         return node.nextSibling;
       }
       if (type) {
