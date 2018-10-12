@@ -150,6 +150,28 @@ describe('ViewCompiler', () => {
         expect(viewCompiler.bindingLanguage.createLetExpressions).toHaveBeenCalled();
       });
 
+      it('marks as target instruction after creating expressions', () => {
+        const fragment = createFragment('<div><let>');
+        let instructions = { };
+        let count = 0;
+        viewCompiler.bindingLanguage.createLetExpressions = function(resources, letElement) {
+          count++;
+          expect(letElement.tagName).toBe('LET');
+          expect(letElement.classList.contains('au-target')).toBe(false, 'It should not have had .au-target');
+          expect(letElement.hasAttribute('au-target-id')).toBe(false, 'It should not have had [au-target-id]');
+          return {};
+        };
+        spyOn(viewCompiler.bindingLanguage, 'createLetExpressions').and.callThrough();
+        viewCompiler._compileNode(fragment, resources, instructions, null, 'root', true);
+        expect(Object.keys(instructions).length).toBe(1, 'It should have had 1 instruction');
+        expect(viewCompiler.bindingLanguage.createLetExpressions).toHaveBeenCalled();
+        const $letEl =fragment.querySelector('let');
+        expect(count).toBe(1, 'It should have had called the right fn');
+        expect($letEl).not.toBeNull();
+        expect($letEl.classList.contains('au-target')).toBe(true, 'It should have had .au-target');
+        expect($letEl.hasAttribute('au-target-id')).toBe(true, 'It should have had [au-target-id]');
+      });
+
       describe('backward compat', () => {
         it('does nothing if there is custom <let/> element', () => {
           let instructions = { };
