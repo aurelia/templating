@@ -184,6 +184,9 @@ describe('ViewCompiler', () => {
           expect(Object.keys(instructions).length).toBe(1, 'It should have had 1 instruction with let ce');
           let instruction;
           for (let id in instructions) {
+            // ensure instruction ids are valid
+            // there was a bug in compliation that caused id to be undefined
+            expect(parseInt(id, 10)).not.toBeNaN();
             instruction = instructions[id];
             break;
           }
