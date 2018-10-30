@@ -327,9 +327,9 @@ export class StaticViewStrategy {
             let exported = dep[key];
             if (typeof exported === 'function') {
               resource = viewResources.autoRegister(container, exported);
-            }
-            if (resource.elementName !== null) {
-              elDeps.push(resource);
+              if (resource.elementName !== null) {
+                elDeps.push(resource);
+              }
             }
           }
         } else {
