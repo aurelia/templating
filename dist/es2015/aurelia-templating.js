@@ -613,18 +613,21 @@ export let StaticViewStrategy = (_dec6 = viewStrategy(), _dec6(_class7 = class S
       for (let dep of dependencies) {
         if (typeof dep === 'function') {
           resource = viewResources.autoRegister(container, dep);
+          if (resource.elementName !== null) {
+            elDeps.push(resource);
+          }
         } else if (dep && typeof dep === 'object') {
           for (let key in dep) {
             let exported = dep[key];
             if (typeof exported === 'function') {
               resource = viewResources.autoRegister(container, exported);
+              if (resource.elementName !== null) {
+                elDeps.push(resource);
+              }
             }
           }
         } else {
           throw new Error(`dependency neither function nor object. Received: "${typeof dep}"`);
-        }
-        if (resource.elementName !== null) {
-          elDeps.push(resource);
         }
       }
 
@@ -2747,8 +2750,9 @@ export let ViewCompiler = (_dec7 = inject(BindingLanguage, ViewResources), _dec7
       type = resources.getElement(node.getAttribute('as-element') || tagName);
 
       if (tagName === 'let' && !type && bindingLanguage.createLetExpressions !== defaultLetHandler) {
+        expressions = bindingLanguage.createLetExpressions(resources, node);
         auTargetID = makeIntoInstructionTarget(node);
-        instructions[auTargetID] = TargetInstruction.letElement(bindingLanguage.createLetExpressions(resources, node));
+        instructions[auTargetID] = TargetInstruction.letElement(expressions);
         return node.nextSibling;
       }
       if (type) {

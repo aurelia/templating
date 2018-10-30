@@ -1047,19 +1047,22 @@ export class StaticViewStrategy {
         if (typeof dep === 'function') {
           // dependencies: [class1, class2, import('module').then(m => m.class3)]
           resource = viewResources.autoRegister(container, dep);
+          if (resource.elementName !== null) {
+            elDeps.push(resource);
+          }
         } else if (dep && typeof dep === 'object') {
           // dependencies: [import('module1'), import('module2')]
           for (let key in dep) {
             let exported = dep[key];
             if (typeof exported === 'function') {
               resource = viewResources.autoRegister(container, exported);
+              if (resource.elementName !== null) {
+                elDeps.push(resource);
+              }
             }
           }
         } else {
           throw new Error(`dependency neither function nor object. Received: "${typeof dep}"`);
-        }
-        if (resource.elementName !== null) {
-          elDeps.push(resource);
         }
       }
       // only load custom element as first step.
@@ -3901,13 +3904,9 @@ export class ViewCompiler {
       // and the binding language has an implementation for it
       // This is an backward compat move
       if (tagName === 'let' && !type && bindingLanguage.createLetExpressions !== defaultLetHandler) {
+        expressions = bindingLanguage.createLetExpressions(resources, node);
         auTargetID = makeIntoInstructionTarget(node);
-        instructions[auTargetID] = TargetInstruction.letElement(
-          bindingLanguage.createLetExpressions(
-            resources,
-            node
-          )
-        );
+        instructions[auTargetID] = TargetInstruction.letElement(expressions);
         return node.nextSibling;
       }
       if (type) {

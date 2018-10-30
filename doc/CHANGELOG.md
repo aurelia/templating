@@ -1,3 +1,17 @@
+<a name="1.10.1"></a>
+## [1.10.1](https://github.com/aurelia/templating/compare/1.10.0...1.10.1) (2018-10-30)
+
+
+### Bug Fixes
+
+* **doc:** fix html5 syntax ([8452a66](https://github.com/aurelia/templating/commit/8452a66)), closes [/github.com/aurelia/templating/pull/647#issuecomment-427989601](https://github.com//github.com/aurelia/templating/pull/647/issues/issuecomment-427989601)
+* **Let:** mark as target after creating instrutions ([93fa9cc](https://github.com/aurelia/templating/commit/93fa9cc))
+* **Let:** properly create instruction Id ([ac3cb2b](https://github.com/aurelia/templating/commit/ac3cb2b))
+* **static-view-strategy:** correctly handles invalid resources ([4149e73](https://github.com/aurelia/templating/commit/4149e73))
+* **static-view-strategy:** correctly loads multiple custom elements in single file ([c0e6204](https://github.com/aurelia/templating/commit/c0e6204))
+
+
+
 <a name="1.10.0"></a>
 # [1.10.0](https://github.com/aurelia/templating/compare/1.9.0...1.10.0) (2018-09-30)
 

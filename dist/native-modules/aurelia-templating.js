@@ -714,18 +714,21 @@ export var StaticViewStrategy = (_dec6 = viewStrategy(), _dec6(_class7 = functio
 
         if (typeof dep === 'function') {
           resource = viewResources.autoRegister(container, dep);
+          if (resource.elementName !== null) {
+            elDeps.push(resource);
+          }
         } else if (dep && (typeof dep === 'undefined' ? 'undefined' : _typeof(dep)) === 'object') {
           for (var _key2 in dep) {
             var exported = dep[_key2];
             if (typeof exported === 'function') {
               resource = viewResources.autoRegister(container, exported);
+              if (resource.elementName !== null) {
+                elDeps.push(resource);
+              }
             }
           }
         } else {
           throw new Error('dependency neither function nor object. Received: "' + (typeof dep === 'undefined' ? 'undefined' : _typeof(dep)) + '"');
-        }
-        if (resource.elementName !== null) {
-          elDeps.push(resource);
         }
       }
 
@@ -2952,8 +2955,9 @@ export var ViewCompiler = (_dec7 = inject(BindingLanguage, ViewResources), _dec7
       type = resources.getElement(node.getAttribute('as-element') || tagName);
 
       if (tagName === 'let' && !type && bindingLanguage.createLetExpressions !== defaultLetHandler) {
+        expressions = bindingLanguage.createLetExpressions(resources, node);
         auTargetID = makeIntoInstructionTarget(node);
-        instructions[auTargetID] = TargetInstruction.letElement(bindingLanguage.createLetExpressions(resources, node));
+        instructions[auTargetID] = TargetInstruction.letElement(expressions);
         return node.nextSibling;
       }
       if (type) {
