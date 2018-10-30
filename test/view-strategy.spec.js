@@ -7,6 +7,9 @@ import { ViewResources } from '../src/view-resources';
 import { StaticViewStrategy } from '../src/view-strategy';
 import './setup';
 import { ViewEngineHooksResource } from '../src/view-engine-hooks-resource';
+import { metadata } from 'aurelia-metadata';
+import { HtmlBehaviorResource } from '../src/html-behavior';
+import { _hyphenate } from '../src/util';
 
 describe('ViewLocator', () => {
   /**@type {ViewEngine} */
@@ -168,5 +171,119 @@ describe('ViewLocator', () => {
       .catch(ex => {
         expect(ex.message).not.toContain('Cannot determine default view strategy for object.');
       }).then(done);
+  });
+
+  describe('with custom elements', () => {
+    it('loads when mixing multiple custom elements and other resource types', done => {
+      let loadCount = 0;
+      class Ekko {}
+      class AureliaSol1 {
+        static $resource = { type: 'valueConverter' };
+      }
+      class AureliaSol2 {
+        static $resource = { type: 'valueConverter' };
+      }
+      class AureliaSol3 {
+        static $resource = { type: 'valueConverter' };
+      }
+      class Volibear {
+        static $view = null;
+      }
+      class Braum {
+        static $view = null;
+      }
+      class Thresh {
+        static $view = null;
+      }
+
+      [Volibear, Braum, Thresh].forEach(klass => {
+        const r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, klass);
+        r.elementName = _hyphenate(klass.name);
+        r.load = function() {
+          loadCount++;
+        }
+      });
+  
+      function mockEsmImport(path) {
+        // Note: export name was intenionally made one character to demonstrate static dependencies declaration relies on
+        //        the exported value (class), not the export name. This introduces inconsistency with the rest
+        return Promise.resolve({
+          b: Volibear,
+          b1: AureliaSol1,
+          c: Braum,
+          c2: AureliaSol2,
+          d: Thresh,
+          e: AureliaSol3
+        });
+      }
+      let strategy = new StaticViewStrategy({
+        template: '<template></template>',
+        dependencies: () => [mockEsmImport()]
+      });
+      strategy
+        .loadViewFactory(viewEngine, ViewCompileInstruction.normal, new ResourceLoadContext(), Ekko)
+        .then((factory) => {
+          let resources = factory.resources;
+          expect(resources.getElement('ekko').target).toBe(Ekko);
+          expect(resources.getElement('volibear').target).toBe(Volibear);
+          expect(resources.getElement('braum').target).toBe(Braum);
+          expect(resources.getElement('thresh').target).toBe(Thresh);
+          expect(loadCount).toBe(3);
+          done();
+        })
+        .catch(done.fail);
+    });
+
+    it('loads multiple custom element dependencies in same module', (done) => {
+      let loadCount = 0;
+      class Ekko {}
+      class AureliaSol {
+        static $view = null;
+      }
+      class Volibear {
+        static $view = null;
+      }
+      class Braum {
+        static $view = null;
+      }
+      class Thresh {
+        static $view = null;
+      }
+
+      [AureliaSol, Volibear, Braum, Thresh].forEach(klass => {
+        const r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, klass);
+        r.elementName = _hyphenate(klass.name);
+        r.load = function() {
+          loadCount++;
+        }
+      });
+  
+      function mockEsmImport(path) {
+        // Note: export name was intenionally made one character to demonstrate static dependencies declaration relies on
+        //        the exported value (class), not the export name. This introduces inconsistency with the rest
+        return Promise.resolve({
+          b: Volibear,
+          c: Braum,
+          d: Thresh
+        });
+      }
+      let strategy = new StaticViewStrategy({
+        template: '<template></template>',
+        dependencies: () => [AureliaSol, mockEsmImport()]
+      });
+      strategy
+        .loadViewFactory(viewEngine, ViewCompileInstruction.normal, new ResourceLoadContext(), Ekko)
+        .then((factory) => {
+          let resources = factory.resources;
+          expect(resources.getElement('ekko').target).toBe(Ekko);
+          expect(resources.getElement('aurelia-sol').target).toBe(AureliaSol);
+          expect(resources.getElement('volibear').target).toBe(Volibear);
+          expect(resources.getElement('braum').target).toBe(Braum);
+          expect(resources.getElement('thresh').target).toBe(Thresh);
+          expect(loadCount).toBe(4);
+          done();
+        })
+        .catch(done.fail);
+    });
   });
 });

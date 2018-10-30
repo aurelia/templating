@@ -318,6 +318,9 @@ export class StaticViewStrategy {
         if (typeof dep === 'function') {
           // dependencies: [class1, class2, import('module').then(m => m.class3)]
           resource = viewResources.autoRegister(container, dep);
+          if (resource.elementName !== null) {
+            elDeps.push(resource);
+          }
         } else if (dep && typeof dep === 'object') {
           // dependencies: [import('module1'), import('module2')]
           for (let key in dep) {
@@ -325,12 +328,12 @@ export class StaticViewStrategy {
             if (typeof exported === 'function') {
               resource = viewResources.autoRegister(container, exported);
             }
+            if (resource.elementName !== null) {
+              elDeps.push(resource);
+            }
           }
         } else {
           throw new Error(`dependency neither function nor object. Received: "${typeof dep}"`);
-        }
-        if (resource.elementName !== null) {
-          elDeps.push(resource);
         }
       }
       // only load custom element as first step.
