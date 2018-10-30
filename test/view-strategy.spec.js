@@ -76,6 +76,30 @@ describe('ViewLocator', () => {
       const strategy = new StaticViewStrategy('<template><input value.bind="value"></template>');
       expect(strategy.moduleId).toBeDefined();
     });
+
+    describe('Invalid dependencies', () => {
+      const dependencies = [null, undefined, 'a valid dep, NOT', 42, Symbol()];
+      for (const dep of dependencies) {
+        it('throws when one of dependencies is not a function or a module. Actual: "' + String(dep) + '"', done => {
+          class El {}
+          let strategy = new StaticViewStrategy({
+            template: '<template></template>',
+            dependencies: () => [dep]
+          });
+          strategy
+            .loadViewFactory(viewEngine, ViewCompileInstruction.normal, new ResourceLoadContext(), El)
+            .then(
+              () => {
+                done.fail(new Error('It should have failed with dep: ' + String(dep)));
+              },
+              (ex) => {
+                expect(ex.toString()).toContain('dependency neither function nor object');
+                done();
+              }
+            );
+        });
+      }
+    });
   });
 
   it('loads dependencies', (done) => {
@@ -171,6 +195,40 @@ describe('ViewLocator', () => {
       .catch(ex => {
         expect(ex.message).not.toContain('Cannot determine default view strategy for object.');
       }).then(done);
+  });
+
+  it('ignore dependencies that are not function', (done) => {
+    class Ekko {}
+    function mockEsmImport(path) {
+      // Note: export name was intenionally made one character to demonstrate static dependencies declaration relies on
+      //        the exported value (class), not the export name. This introduces inconsistency with the rest
+      return Promise.resolve({
+        b: null,
+        c: undefined,
+        d: 42,
+        e: 'a valid dep, NOT',
+        f: Symbol()
+      });
+    }
+    let strategy = new StaticViewStrategy({
+      template: '<template></template>',
+      dependencies: () => [mockEsmImport()]
+    });
+    let spy = spyOn(ViewResources.prototype, 'autoRegister').and.callThrough();
+    strategy
+      .loadViewFactory(viewEngine, ViewCompileInstruction.normal, new ResourceLoadContext(), Ekko)
+      .then(
+        (factory) => {
+          let resources = factory.resources;
+          expect(resources.getElement('ekko').target).toBe(Ekko);
+          expect(spy).toHaveBeenCalledTimes(1);
+          done();
+        },
+        ex => {
+          expect(false).toBe(true, 'It should not have failled');
+          done.fail(ex);
+        }
+      );
   });
 
   describe('with custom elements', () => {
