@@ -22,6 +22,14 @@
     "type": "git",
     "url": "http://github.com/aurelia/templating"
   },
+  "files": [
+    "dist",
+    "doc",
+    "src",
+    "typings.json",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "test": "karma start"
   },
