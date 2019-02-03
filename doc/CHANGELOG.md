@@ -1,3 +1,13 @@
+<a name="1.10.2"></a>
+## [1.10.2](https://github.com/aurelia/templating/compare/1.10.1...1.10.2) (2019-02-03)
+
+
+### Bug Fixes
+
+* **all:** change es2015 back to native-modules ([ea50719](https://github.com/aurelia/templating/commit/ea50719))
+
+
+
 <a name="1.10.1"></a>
 ## [1.10.1](https://github.com/aurelia/templating/compare/1.10.0...1.10.1) (2018-10-30)
 
