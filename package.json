@@ -31,7 +31,10 @@
     "LICENSE"
   ],
   "scripts": {
-    "test": "karma start"
+    "test": "karma start --single-run",
+    "build": "gulp build",
+    "cut-release": "gulp prepare-release",
+    "ci": "gulp ci"
   },
   "jspm": {
     "registry": "npm",
