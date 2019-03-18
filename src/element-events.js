@@ -55,7 +55,7 @@ export class ElementEvents {
    */
   subscribe(eventName: string, handler: Function, captureOrOptions?: boolean | AddEventListenerOptions): EventHandler {
     if (typeof handler === 'function') {
-      if (typeof captureOrOptions === 'undefined') {
+      if (captureOrOptions === undefined) {
         captureOrOptions = ElementEvents.defaultListenerOptions;
       }
       const eventHandler = new EventHandlerImpl(this, eventName, handler, captureOrOptions, false);
@@ -71,7 +71,7 @@ export class ElementEvents {
    */
   subscribeOnce(eventName: string, handler: Function, captureOrOptions?: boolean | AddEventListenerOptions): EventHandler {
     if (typeof handler === 'function') {
-      if (typeof captureOrOptions === 'undefined') {
+      if (captureOrOptions === undefined) {
         captureOrOptions = ElementEvents.defaultListenerOptions;
       }
       const eventHandler = new EventHandlerImpl(this, eventName, handler, captureOrOptions, true);
