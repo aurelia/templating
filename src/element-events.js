@@ -13,7 +13,7 @@ interface EventHandler {
  * @param element
  */
 export class ElementEvents {
-  static defaultListenerOptions: boolean | AddEventListenerOptions = { capture: true };
+  static defaultListenerOptions: boolean | AddEventListenerOptions = true;
 
   constructor(element: EventTarget) {
     this.element = element;
