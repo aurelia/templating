@@ -1,10 +1,11 @@
 <a name="1.10.2"></a>
-## [1.10.2](https://github.com/aurelia/templating/compare/1.10.1...1.10.2) (2019-02-04)
+## [1.10.2](https://github.com/aurelia/templating/compare/1.10.1...1.10.2) (2019-03-19)
 
 
 ### Bug Fixes
 
 * **all:** change es2015 back to native-modules ([ea50719](https://github.com/aurelia/templating/commit/ea50719))
+* **ElementEvents:** ElementEvents.defaultListenerOptions allows to set default options when subscribing to events ([f7e8e32](https://github.com/aurelia/templating/commit/f7e8e32)), closes [#657](https://github.com/aurelia/templating/issues/657)
 
 
 

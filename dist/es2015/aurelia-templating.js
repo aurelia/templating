@@ -1,4 +1,4 @@
-var _class, _temp, _dec, _class2, _dec2, _class3, _dec3, _class4, _dec4, _class5, _dec5, _class6, _dec6, _class7, _class8, _temp2, _class9, _temp3, _class11, _dec7, _class13, _dec8, _class14, _class15, _temp4, _dec9, _class16, _dec10, _class17, _dec11, _class18;
+var _class, _temp, _class2, _temp2, _dec, _class3, _dec2, _class4, _dec3, _class5, _dec4, _class6, _dec5, _class7, _dec6, _class8, _class9, _temp3, _class10, _temp4, _class12, _dec7, _class14, _dec8, _class15, _class16, _temp5, _dec9, _class17, _dec10, _class18, _dec11, _class19;
 
 import * as LogManager from 'aurelia-logging';
 import { metadata, Origin, protocol } from 'aurelia-metadata';
@@ -175,7 +175,8 @@ export function viewEngineHooks(target) {
   return target ? deco(target) : deco;
 }
 
-export let ElementEvents = class ElementEvents {
+export let ElementEvents = (_temp = _class = class ElementEvents {
+
   constructor(element) {
     this.element = element;
     this.subscriptions = {};
@@ -203,8 +204,11 @@ export let ElementEvents = class ElementEvents {
     this.element.dispatchEvent(event);
   }
 
-  subscribe(eventName, handler, captureOrOptions = true) {
+  subscribe(eventName, handler, captureOrOptions) {
     if (typeof handler === 'function') {
+      if (captureOrOptions === undefined) {
+        captureOrOptions = ElementEvents.defaultListenerOptions;
+      }
       const eventHandler = new EventHandlerImpl(this, eventName, handler, captureOrOptions, false);
       return eventHandler;
     }
@@ -212,8 +216,11 @@ export let ElementEvents = class ElementEvents {
     return undefined;
   }
 
-  subscribeOnce(eventName, handler, captureOrOptions = true) {
+  subscribeOnce(eventName, handler, captureOrOptions) {
     if (typeof handler === 'function') {
+      if (captureOrOptions === undefined) {
+        captureOrOptions = ElementEvents.defaultListenerOptions;
+      }
       const eventHandler = new EventHandlerImpl(this, eventName, handler, captureOrOptions, true);
       return eventHandler;
     }
@@ -242,7 +249,7 @@ export let ElementEvents = class ElementEvents {
       this.dispose(key);
     }
   }
-};
+}, _class.defaultListenerOptions = true, _temp);
 
 let EventHandlerImpl = class EventHandlerImpl {
   constructor(owner, eventName, handler, captureOrOptions, once) {
@@ -356,7 +363,7 @@ biProto.inheritBindingContext = false;
 
 BehaviorInstruction.normal = new BehaviorInstruction();
 
-export let TargetInstruction = (_temp = _class = class TargetInstruction {
+export let TargetInstruction = (_temp2 = _class2 = class TargetInstruction {
   static shadowSlot(parentInjectorId) {
     let instruction = new TargetInstruction();
     instruction.parentInjectorId = parentInjectorId;
@@ -408,7 +415,7 @@ export let TargetInstruction = (_temp = _class = class TargetInstruction {
     instruction.values = values;
     return instruction;
   }
-}, _class.noExpressions = Object.freeze([]), _temp);
+}, _class2.noExpressions = Object.freeze([]), _temp2);
 
 const tiProto = TargetInstruction.prototype;
 
@@ -449,7 +456,7 @@ export const viewStrategy = protocol.create('aurelia:view-strategy', {
   }
 });
 
-export let RelativeViewStrategy = (_dec = viewStrategy(), _dec(_class2 = class RelativeViewStrategy {
+export let RelativeViewStrategy = (_dec = viewStrategy(), _dec(_class3 = class RelativeViewStrategy {
   constructor(path) {
     this.path = path;
     this.absolutePath = null;
@@ -469,9 +476,9 @@ export let RelativeViewStrategy = (_dec = viewStrategy(), _dec(_class2 = class R
       this.absolutePath = relativeToFile(this.path, file);
     }
   }
-}) || _class2);
+}) || _class3);
 
-export let ConventionalViewStrategy = (_dec2 = viewStrategy(), _dec2(_class3 = class ConventionalViewStrategy {
+export let ConventionalViewStrategy = (_dec2 = viewStrategy(), _dec2(_class4 = class ConventionalViewStrategy {
   constructor(viewLocator, origin) {
     this.moduleId = origin.moduleId;
     this.viewUrl = viewLocator.convertOriginToViewUrl(origin);
@@ -481,9 +488,9 @@ export let ConventionalViewStrategy = (_dec2 = viewStrategy(), _dec2(_class3 = c
     compileInstruction.associatedModuleId = this.moduleId;
     return viewEngine.loadViewFactory(this.viewUrl, compileInstruction, loadContext, target);
   }
-}) || _class3);
+}) || _class4);
 
-export let NoViewStrategy = (_dec3 = viewStrategy(), _dec3(_class4 = class NoViewStrategy {
+export let NoViewStrategy = (_dec3 = viewStrategy(), _dec3(_class5 = class NoViewStrategy {
   constructor(dependencies, dependencyBaseUrl) {
     this.dependencies = dependencies || null;
     this.dependencyBaseUrl = dependencyBaseUrl || '';
@@ -518,9 +525,9 @@ export let NoViewStrategy = (_dec3 = viewStrategy(), _dec3(_class4 = class NoVie
 
     return viewEngine.loadViewFactory(entry, compileInstruction, loadContext, target);
   }
-}) || _class4);
+}) || _class5);
 
-export let TemplateRegistryViewStrategy = (_dec4 = viewStrategy(), _dec4(_class5 = class TemplateRegistryViewStrategy {
+export let TemplateRegistryViewStrategy = (_dec4 = viewStrategy(), _dec4(_class6 = class TemplateRegistryViewStrategy {
   constructor(moduleId, entry) {
     this.moduleId = moduleId;
     this.entry = entry;
@@ -536,9 +543,9 @@ export let TemplateRegistryViewStrategy = (_dec4 = viewStrategy(), _dec4(_class5
     compileInstruction.associatedModuleId = this.moduleId;
     return viewEngine.loadViewFactory(entry, compileInstruction, loadContext, target);
   }
-}) || _class5);
+}) || _class6);
 
-export let InlineViewStrategy = (_dec5 = viewStrategy(), _dec5(_class6 = class InlineViewStrategy {
+export let InlineViewStrategy = (_dec5 = viewStrategy(), _dec5(_class7 = class InlineViewStrategy {
   constructor(markup, dependencies, dependencyBaseUrl) {
     this.markup = markup;
     this.dependencies = dependencies || null;
@@ -571,9 +578,9 @@ export let InlineViewStrategy = (_dec5 = viewStrategy(), _dec5(_class6 = class I
     compileInstruction.associatedModuleId = this.moduleId;
     return viewEngine.loadViewFactory(entry, compileInstruction, loadContext, target);
   }
-}) || _class6);
+}) || _class7);
 
-export let StaticViewStrategy = (_dec6 = viewStrategy(), _dec6(_class7 = class StaticViewStrategy {
+export let StaticViewStrategy = (_dec6 = viewStrategy(), _dec6(_class8 = class StaticViewStrategy {
 
   constructor(config) {
     if (typeof config === 'string' || config instanceof DOM.Element && config.tagName === 'TEMPLATE') {
@@ -639,9 +646,9 @@ export let StaticViewStrategy = (_dec6 = viewStrategy(), _dec6(_class7 = class S
       });
     });
   }
-}) || _class7);
+}) || _class8);
 
-export let ViewLocator = (_temp2 = _class8 = class ViewLocator {
+export let ViewLocator = (_temp3 = _class9 = class ViewLocator {
   getViewStrategy(value) {
     if (!value) {
       return null;
@@ -715,7 +722,7 @@ export let ViewLocator = (_temp2 = _class8 = class ViewLocator {
     let id = moduleId.endsWith('.js') || moduleId.endsWith('.ts') ? moduleId.substring(0, moduleId.length - 3) : moduleId;
     return id + '.html';
   }
-}, _class8.viewStrategyMetadataKey = 'aurelia:view-strategy', _temp2);
+}, _class9.viewStrategyMetadataKey = 'aurelia:view-strategy', _temp3);
 
 function mi(name) {
   throw new Error(`BindingLanguage must implement ${name}().`);
@@ -1065,7 +1072,7 @@ export let ShadowSlot = class ShadowSlot {
   }
 };
 
-export let ShadowDOM = (_temp3 = _class9 = class ShadowDOM {
+export let ShadowDOM = (_temp4 = _class10 = class ShadowDOM {
 
   static getSlotName(node) {
     if (node.auSlotAttribute === undefined) {
@@ -1146,7 +1153,7 @@ export let ShadowDOM = (_temp3 = _class9 = class ShadowDOM {
       }
     }
   }
-}, _class9.defaultSlotKey = '__au-default-slot-key__', _temp3);
+}, _class10.defaultSlotKey = '__au-default-slot-key__', _temp4);
 
 function register(lookup, name, resource, type) {
   if (!name) {
@@ -2067,12 +2074,12 @@ export let ViewSlot = class ViewSlot {
   }
 };
 
-let ProviderResolver = resolver(_class11 = class ProviderResolver {
+let ProviderResolver = resolver(_class12 = class ProviderResolver {
   get(container, key) {
     let id = key.__providerId__;
     return id in container ? container[id] : container[id] = container.invoke(key);
   }
-}) || _class11;
+}) || _class12;
 
 let providerResolverInstance = new ProviderResolver();
 
@@ -2508,7 +2515,7 @@ function makeShadowSlot(compiler, resources, node, instructions, parentInjectorI
 
 const defaultLetHandler = BindingLanguage.prototype.createLetExpressions;
 
-export let ViewCompiler = (_dec7 = inject(BindingLanguage, ViewResources), _dec7(_class13 = class ViewCompiler {
+export let ViewCompiler = (_dec7 = inject(BindingLanguage, ViewResources), _dec7(_class14 = class ViewCompiler {
   constructor(bindingLanguage, resources) {
     this.bindingLanguage = bindingLanguage;
     this.resources = resources;
@@ -2921,7 +2928,7 @@ export let ViewCompiler = (_dec7 = inject(BindingLanguage, ViewResources), _dec7
       }
     }
   }
-}) || _class13);
+}) || _class14);
 
 export let ResourceModule = class ResourceModule {
   constructor(moduleId) {
@@ -3188,7 +3195,7 @@ let ProxyViewFactory = class ProxyViewFactory {
 
 let auSlotBehavior = null;
 
-export let ViewEngine = (_dec8 = inject(Loader, Container, ViewCompiler, ModuleAnalyzer, ViewResources), _dec8(_class14 = (_temp4 = _class15 = class ViewEngine {
+export let ViewEngine = (_dec8 = inject(Loader, Container, ViewCompiler, ModuleAnalyzer, ViewResources), _dec8(_class15 = (_temp5 = _class16 = class ViewEngine {
   constructor(loader, container, viewCompiler, moduleAnalyzer, appResources) {
     this.loader = loader;
     this.container = container;
@@ -3359,7 +3366,7 @@ export let ViewEngine = (_dec8 = inject(Loader, Container, ViewCompiler, ModuleA
 
     return id;
   }
-}, _class15.viewModelRequireMetadataKey = 'aurelia:view-model-require', _temp4)) || _class14);
+}, _class16.viewModelRequireMetadataKey = 'aurelia:view-model-require', _temp5)) || _class15);
 
 export let Controller = class Controller {
   constructor(behavior, instruction, viewModel, container) {
@@ -3528,7 +3535,7 @@ export let Controller = class Controller {
   }
 };
 
-export let BehaviorPropertyObserver = (_dec9 = subscriberCollection(), _dec9(_class16 = class BehaviorPropertyObserver {
+export let BehaviorPropertyObserver = (_dec9 = subscriberCollection(), _dec9(_class17 = class BehaviorPropertyObserver {
   constructor(taskQueue, obj, propertyName, selfSubscriber, initialValue) {
     this.taskQueue = taskQueue;
     this.obj = obj;
@@ -3586,7 +3593,7 @@ export let BehaviorPropertyObserver = (_dec9 = subscriberCollection(), _dec9(_cl
   unsubscribe(context, callable) {
     this.removeSubscriber(context, callable);
   }
-}) || _class16);
+}) || _class17);
 
 function getObserver(instance, name) {
   let lookup = instance.__observers__;
@@ -4479,7 +4486,7 @@ function tryActivateViewModel(context) {
   return context.viewModel.activate(context.model) || Promise.resolve();
 }
 
-export let CompositionEngine = (_dec10 = inject(ViewEngine, ViewLocator), _dec10(_class17 = class CompositionEngine {
+export let CompositionEngine = (_dec10 = inject(ViewEngine, ViewLocator), _dec10(_class18 = class CompositionEngine {
   constructor(viewEngine, viewLocator) {
     this.viewEngine = viewEngine;
     this.viewLocator = viewLocator;
@@ -4623,7 +4630,7 @@ export let CompositionEngine = (_dec10 = inject(ViewEngine, ViewLocator), _dec10
 
     return Promise.resolve(null);
   }
-}) || _class17);
+}) || _class18);
 
 export let ElementConfigResource = class ElementConfigResource {
   initialize(container, target) {}
@@ -4826,7 +4833,7 @@ export function viewResources(...resources) {
   };
 }
 
-export let TemplatingEngine = (_dec11 = inject(Container, ModuleAnalyzer, ViewCompiler, CompositionEngine), _dec11(_class18 = class TemplatingEngine {
+export let TemplatingEngine = (_dec11 = inject(Container, ModuleAnalyzer, ViewCompiler, CompositionEngine), _dec11(_class19 = class TemplatingEngine {
   constructor(container, moduleAnalyzer, viewCompiler, compositionEngine) {
     this._container = container;
     this._moduleAnalyzer = moduleAnalyzer;
@@ -4866,4 +4873,4 @@ export let TemplatingEngine = (_dec11 = inject(Container, ModuleAnalyzer, ViewCo
 
     return view;
   }
-}) || _class18);
+}) || _class19);

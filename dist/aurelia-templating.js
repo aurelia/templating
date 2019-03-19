@@ -272,6 +272,8 @@ interface EventHandler {
  * @param element
  */
 export class ElementEvents {
+  static defaultListenerOptions: boolean | AddEventListenerOptions = true;
+
   constructor(element: EventTarget) {
     this.element = element;
     this.subscriptions = {};
@@ -310,8 +312,11 @@ export class ElementEvents {
    * Adds and Event Listener on the context element.
    * @return Returns the eventHandler containing a dispose method
    */
-  subscribe(eventName: string, handler: Function, captureOrOptions?: boolean = true): EventHandler {
+  subscribe(eventName: string, handler: Function, captureOrOptions?: boolean | AddEventListenerOptions): EventHandler {
     if (typeof handler === 'function') {
+      if (captureOrOptions === undefined) {
+        captureOrOptions = ElementEvents.defaultListenerOptions;
+      }
       const eventHandler = new EventHandlerImpl(this, eventName, handler, captureOrOptions, false);
       return eventHandler;
     }
@@ -323,8 +328,11 @@ export class ElementEvents {
    * Adds an Event Listener on the context element, that will be disposed on the first trigger.
    * @return Returns the eventHandler containing a dispose method
    */
-  subscribeOnce(eventName: string, handler: Function, captureOrOptions?: boolean = true): EventHandler {
+  subscribeOnce(eventName: string, handler: Function, captureOrOptions?: boolean | AddEventListenerOptions): EventHandler {
     if (typeof handler === 'function') {
+      if (captureOrOptions === undefined) {
+        captureOrOptions = ElementEvents.defaultListenerOptions;
+      }
       const eventHandler = new EventHandlerImpl(this, eventName, handler, captureOrOptions, true);
       return eventHandler;
     }

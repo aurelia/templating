@@ -9,7 +9,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-var _class, _temp, _dec, _class2, _dec2, _class3, _dec3, _class4, _dec4, _class5, _dec5, _class6, _dec6, _class7, _class8, _temp2, _class9, _temp3, _class11, _dec7, _class13, _dec8, _class14, _class15, _temp4, _dec9, _class16, _dec10, _class17, _dec11, _class18;
+var _class, _temp, _class2, _temp2, _dec, _class3, _dec2, _class4, _dec3, _class5, _dec4, _class6, _dec5, _class7, _dec6, _class8, _class9, _temp3, _class10, _temp4, _class12, _dec7, _class14, _dec8, _class15, _class16, _temp5, _dec9, _class17, _dec10, _class18, _dec11, _class19;
 
 exports._hyphenate = _hyphenate;
 exports._isAllWhitespace = _isAllWhitespace;
@@ -248,7 +248,7 @@ function viewEngineHooks(target) {
   return target ? deco(target) : deco;
 }
 
-var ElementEvents = exports.ElementEvents = function () {
+var ElementEvents = exports.ElementEvents = (_temp = _class = function () {
   function ElementEvents(element) {
     
 
@@ -282,10 +282,11 @@ var ElementEvents = exports.ElementEvents = function () {
     this.element.dispatchEvent(event);
   };
 
-  ElementEvents.prototype.subscribe = function subscribe(eventName, handler) {
-    var captureOrOptions = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
-
+  ElementEvents.prototype.subscribe = function subscribe(eventName, handler, captureOrOptions) {
     if (typeof handler === 'function') {
+      if (captureOrOptions === undefined) {
+        captureOrOptions = ElementEvents.defaultListenerOptions;
+      }
       var eventHandler = new EventHandlerImpl(this, eventName, handler, captureOrOptions, false);
       return eventHandler;
     }
@@ -293,10 +294,11 @@ var ElementEvents = exports.ElementEvents = function () {
     return undefined;
   };
 
-  ElementEvents.prototype.subscribeOnce = function subscribeOnce(eventName, handler) {
-    var captureOrOptions = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
-
+  ElementEvents.prototype.subscribeOnce = function subscribeOnce(eventName, handler, captureOrOptions) {
     if (typeof handler === 'function') {
+      if (captureOrOptions === undefined) {
+        captureOrOptions = ElementEvents.defaultListenerOptions;
+      }
       var eventHandler = new EventHandlerImpl(this, eventName, handler, captureOrOptions, true);
       return eventHandler;
     }
@@ -327,7 +329,7 @@ var ElementEvents = exports.ElementEvents = function () {
   };
 
   return ElementEvents;
-}();
+}(), _class.defaultListenerOptions = true, _temp);
 
 var EventHandlerImpl = function () {
   function EventHandlerImpl(owner, eventName, handler, captureOrOptions, once) {
@@ -458,7 +460,7 @@ biProto.inheritBindingContext = false;
 
 BehaviorInstruction.normal = new BehaviorInstruction();
 
-var TargetInstruction = exports.TargetInstruction = (_temp = _class = function () {
+var TargetInstruction = exports.TargetInstruction = (_temp2 = _class2 = function () {
   function TargetInstruction() {
     
   }
@@ -516,7 +518,7 @@ var TargetInstruction = exports.TargetInstruction = (_temp = _class = function (
   };
 
   return TargetInstruction;
-}(), _class.noExpressions = Object.freeze([]), _temp);
+}(), _class2.noExpressions = Object.freeze([]), _temp2);
 
 
 var tiProto = TargetInstruction.prototype;
@@ -558,7 +560,7 @@ var viewStrategy = exports.viewStrategy = _aureliaMetadata.protocol.create('aure
   }
 });
 
-var RelativeViewStrategy = exports.RelativeViewStrategy = (_dec = viewStrategy(), _dec(_class2 = function () {
+var RelativeViewStrategy = exports.RelativeViewStrategy = (_dec = viewStrategy(), _dec(_class3 = function () {
   function RelativeViewStrategy(path) {
     
 
@@ -582,8 +584,8 @@ var RelativeViewStrategy = exports.RelativeViewStrategy = (_dec = viewStrategy()
   };
 
   return RelativeViewStrategy;
-}()) || _class2);
-var ConventionalViewStrategy = exports.ConventionalViewStrategy = (_dec2 = viewStrategy(), _dec2(_class3 = function () {
+}()) || _class3);
+var ConventionalViewStrategy = exports.ConventionalViewStrategy = (_dec2 = viewStrategy(), _dec2(_class4 = function () {
   function ConventionalViewStrategy(viewLocator, origin) {
     
 
@@ -597,8 +599,8 @@ var ConventionalViewStrategy = exports.ConventionalViewStrategy = (_dec2 = viewS
   };
 
   return ConventionalViewStrategy;
-}()) || _class3);
-var NoViewStrategy = exports.NoViewStrategy = (_dec3 = viewStrategy(), _dec3(_class4 = function () {
+}()) || _class4);
+var NoViewStrategy = exports.NoViewStrategy = (_dec3 = viewStrategy(), _dec3(_class5 = function () {
   function NoViewStrategy(dependencies, dependencyBaseUrl) {
     
 
@@ -637,8 +639,8 @@ var NoViewStrategy = exports.NoViewStrategy = (_dec3 = viewStrategy(), _dec3(_cl
   };
 
   return NoViewStrategy;
-}()) || _class4);
-var TemplateRegistryViewStrategy = exports.TemplateRegistryViewStrategy = (_dec4 = viewStrategy(), _dec4(_class5 = function () {
+}()) || _class5);
+var TemplateRegistryViewStrategy = exports.TemplateRegistryViewStrategy = (_dec4 = viewStrategy(), _dec4(_class6 = function () {
   function TemplateRegistryViewStrategy(moduleId, entry) {
     
 
@@ -658,8 +660,8 @@ var TemplateRegistryViewStrategy = exports.TemplateRegistryViewStrategy = (_dec4
   };
 
   return TemplateRegistryViewStrategy;
-}()) || _class5);
-var InlineViewStrategy = exports.InlineViewStrategy = (_dec5 = viewStrategy(), _dec5(_class6 = function () {
+}()) || _class6);
+var InlineViewStrategy = exports.InlineViewStrategy = (_dec5 = viewStrategy(), _dec5(_class7 = function () {
   function InlineViewStrategy(markup, dependencies, dependencyBaseUrl) {
     
 
@@ -696,8 +698,8 @@ var InlineViewStrategy = exports.InlineViewStrategy = (_dec5 = viewStrategy(), _
   };
 
   return InlineViewStrategy;
-}()) || _class6);
-var StaticViewStrategy = exports.StaticViewStrategy = (_dec6 = viewStrategy(), _dec6(_class7 = function () {
+}()) || _class7);
+var StaticViewStrategy = exports.StaticViewStrategy = (_dec6 = viewStrategy(), _dec6(_class8 = function () {
   function StaticViewStrategy(config) {
     
 
@@ -783,8 +785,8 @@ var StaticViewStrategy = exports.StaticViewStrategy = (_dec6 = viewStrategy(), _
   };
 
   return StaticViewStrategy;
-}()) || _class7);
-var ViewLocator = exports.ViewLocator = (_temp2 = _class8 = function () {
+}()) || _class8);
+var ViewLocator = exports.ViewLocator = (_temp3 = _class9 = function () {
   function ViewLocator() {
     
   }
@@ -864,7 +866,7 @@ var ViewLocator = exports.ViewLocator = (_temp2 = _class8 = function () {
   };
 
   return ViewLocator;
-}(), _class8.viewStrategyMetadataKey = 'aurelia:view-strategy', _temp2);
+}(), _class9.viewStrategyMetadataKey = 'aurelia:view-strategy', _temp3);
 
 
 function mi(name) {
@@ -1245,7 +1247,7 @@ var ShadowSlot = exports.ShadowSlot = function () {
   return ShadowSlot;
 }();
 
-var ShadowDOM = exports.ShadowDOM = (_temp3 = _class9 = function () {
+var ShadowDOM = exports.ShadowDOM = (_temp4 = _class10 = function () {
   function ShadowDOM() {
     
   }
@@ -1331,7 +1333,7 @@ var ShadowDOM = exports.ShadowDOM = (_temp3 = _class9 = function () {
   };
 
   return ShadowDOM;
-}(), _class9.defaultSlotKey = '__au-default-slot-key__', _temp3);
+}(), _class10.defaultSlotKey = '__au-default-slot-key__', _temp4);
 
 
 function register(lookup, name, resource, type) {
@@ -2293,7 +2295,7 @@ var ViewSlot = exports.ViewSlot = function () {
   return ViewSlot;
 }();
 
-var ProviderResolver = (0, _aureliaDependencyInjection.resolver)(_class11 = function () {
+var ProviderResolver = (0, _aureliaDependencyInjection.resolver)(_class12 = function () {
   function ProviderResolver() {
     
   }
@@ -2304,7 +2306,7 @@ var ProviderResolver = (0, _aureliaDependencyInjection.resolver)(_class11 = func
   };
 
   return ProviderResolver;
-}()) || _class11;
+}()) || _class12;
 
 var providerResolverInstance = new ProviderResolver();
 
@@ -2751,7 +2753,7 @@ function makeShadowSlot(compiler, resources, node, instructions, parentInjectorI
 
 var defaultLetHandler = BindingLanguage.prototype.createLetExpressions;
 
-var ViewCompiler = exports.ViewCompiler = (_dec7 = (0, _aureliaDependencyInjection.inject)(BindingLanguage, ViewResources), _dec7(_class13 = function () {
+var ViewCompiler = exports.ViewCompiler = (_dec7 = (0, _aureliaDependencyInjection.inject)(BindingLanguage, ViewResources), _dec7(_class14 = function () {
   function ViewCompiler(bindingLanguage, resources) {
     
 
@@ -3168,7 +3170,7 @@ var ViewCompiler = exports.ViewCompiler = (_dec7 = (0, _aureliaDependencyInjecti
   };
 
   return ViewCompiler;
-}()) || _class13);
+}()) || _class14);
 
 var ResourceModule = exports.ResourceModule = function () {
   function ResourceModule(moduleId) {
@@ -3457,7 +3459,7 @@ var ProxyViewFactory = function () {
 
 var auSlotBehavior = null;
 
-var ViewEngine = exports.ViewEngine = (_dec8 = (0, _aureliaDependencyInjection.inject)(_aureliaLoader.Loader, _aureliaDependencyInjection.Container, ViewCompiler, ModuleAnalyzer, ViewResources), _dec8(_class14 = (_temp4 = _class15 = function () {
+var ViewEngine = exports.ViewEngine = (_dec8 = (0, _aureliaDependencyInjection.inject)(_aureliaLoader.Loader, _aureliaDependencyInjection.Container, ViewCompiler, ModuleAnalyzer, ViewResources), _dec8(_class15 = (_temp5 = _class16 = function () {
   function ViewEngine(loader, container, viewCompiler, moduleAnalyzer, appResources) {
     
 
@@ -3646,7 +3648,7 @@ var ViewEngine = exports.ViewEngine = (_dec8 = (0, _aureliaDependencyInjection.i
   };
 
   return ViewEngine;
-}(), _class15.viewModelRequireMetadataKey = 'aurelia:view-model-require', _temp4)) || _class14);
+}(), _class16.viewModelRequireMetadataKey = 'aurelia:view-model-require', _temp5)) || _class15);
 
 var Controller = exports.Controller = function () {
   function Controller(behavior, instruction, viewModel, container) {
@@ -3819,7 +3821,7 @@ var Controller = exports.Controller = function () {
   return Controller;
 }();
 
-var BehaviorPropertyObserver = exports.BehaviorPropertyObserver = (_dec9 = (0, _aureliaBinding.subscriberCollection)(), _dec9(_class16 = function () {
+var BehaviorPropertyObserver = exports.BehaviorPropertyObserver = (_dec9 = (0, _aureliaBinding.subscriberCollection)(), _dec9(_class17 = function () {
   function BehaviorPropertyObserver(taskQueue, obj, propertyName, selfSubscriber, initialValue) {
     
 
@@ -3881,7 +3883,7 @@ var BehaviorPropertyObserver = exports.BehaviorPropertyObserver = (_dec9 = (0, _
   };
 
   return BehaviorPropertyObserver;
-}()) || _class16);
+}()) || _class17);
 
 
 function getObserver(instance, name) {
@@ -4812,7 +4814,7 @@ function tryActivateViewModel(context) {
   return context.viewModel.activate(context.model) || Promise.resolve();
 }
 
-var CompositionEngine = exports.CompositionEngine = (_dec10 = (0, _aureliaDependencyInjection.inject)(ViewEngine, ViewLocator), _dec10(_class17 = function () {
+var CompositionEngine = exports.CompositionEngine = (_dec10 = (0, _aureliaDependencyInjection.inject)(ViewEngine, ViewLocator), _dec10(_class18 = function () {
   function CompositionEngine(viewEngine, viewLocator) {
     
 
@@ -4978,7 +4980,7 @@ var CompositionEngine = exports.CompositionEngine = (_dec10 = (0, _aureliaDepend
   };
 
   return CompositionEngine;
-}()) || _class17);
+}()) || _class18);
 
 var ElementConfigResource = exports.ElementConfigResource = function () {
   function ElementConfigResource() {
@@ -5190,7 +5192,7 @@ function viewResources() {
   };
 }
 
-var TemplatingEngine = exports.TemplatingEngine = (_dec11 = (0, _aureliaDependencyInjection.inject)(_aureliaDependencyInjection.Container, ModuleAnalyzer, ViewCompiler, CompositionEngine), _dec11(_class18 = function () {
+var TemplatingEngine = exports.TemplatingEngine = (_dec11 = (0, _aureliaDependencyInjection.inject)(_aureliaDependencyInjection.Container, ModuleAnalyzer, ViewCompiler, CompositionEngine), _dec11(_class19 = function () {
   function TemplatingEngine(container, moduleAnalyzer, viewCompiler, compositionEngine) {
     
 
@@ -5234,4 +5236,4 @@ var TemplatingEngine = exports.TemplatingEngine = (_dec11 = (0, _aureliaDependen
   };
 
   return TemplatingEngine;
-}()) || _class18);
+}()) || _class19);

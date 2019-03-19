@@ -610,6 +610,7 @@ export declare function viewEngineHooks(target?: any): any;
  * @param element
  */
 export declare class ElementEvents {
+  static defaultListenerOptions: boolean | AddEventListenerOptions;
   constructor(element: EventTarget);
   
   /**
@@ -625,13 +626,13 @@ export declare class ElementEvents {
      * Adds and Event Listener on the context element.
      * @return Returns the eventHandler containing a dispose method
      */
-  subscribe(eventName: string, handler: Function, captureOrOptions?: boolean): EventHandler;
+  subscribe(eventName: string, handler: Function, captureOrOptions?: boolean | AddEventListenerOptions): EventHandler;
   
   /**
      * Adds an Event Listener on the context element, that will be disposed on the first trigger.
      * @return Returns the eventHandler containing a dispose method
      */
-  subscribeOnce(eventName: string, handler: Function, captureOrOptions?: boolean): EventHandler;
+  subscribeOnce(eventName: string, handler: Function, captureOrOptions?: boolean | AddEventListenerOptions): EventHandler;
   
   /**
      * Removes all events that are listening to the specified eventName.
