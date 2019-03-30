@@ -144,7 +144,7 @@ interface IStaticResourceConfig {
   /**
    * List of bindable properties of this custom element / custom attribute, by name or full config object
    */
-  bindables?: (string | IBindablePropertyConfig)[];
+  bindables?: Array<string | IBindablePropertyConfig>;
 }
 
 export function validateBehaviorName(name: string, type: string) {
