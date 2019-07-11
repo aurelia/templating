@@ -36,6 +36,7 @@ module.exports = function(config) {
     'babelPreprocessor': {
       options: {
         sourceMap: 'inline',
+        retainLines: true,
         presets: [ 'es2015-loose', 'stage-1'],
         plugins: [
           'syntax-flow',
