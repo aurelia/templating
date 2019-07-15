@@ -1,10 +1,12 @@
 import { Container } from 'aurelia-dependency-injection';
 import { BindingLanguage } from '../src/binding-language';
+import { inlineView } from '../src/decorators';
 import { ResourceLoadContext, ViewCompileInstruction } from '../src/instructions';
 import { ViewCompiler } from '../src/view-compiler';
 import { ViewEngine } from '../src/view-engine';
+import { ViewLocator } from '../src/view-locator';
 import { ViewResources } from '../src/view-resources';
-import { StaticViewStrategy } from '../src/view-strategy';
+import { InlineViewStrategy, StaticViewStrategy } from '../src/view-strategy';
 import './setup';
 import { ViewEngineHooksResource } from '../src/view-engine-hooks-resource';
 import { metadata } from 'aurelia-metadata';
@@ -14,11 +16,13 @@ import { _hyphenate } from '../src/util';
 describe('ViewLocator', () => {
   /**@type {ViewEngine} */
   let viewEngine;
-  let container = new Container();
-  let appResources = new ViewResources();
+  /**@type {Container} */
+  let container;
+  /**@type {ViewResources} */
+  let appResources;
 
   beforeEach(() => {
-    let bindingLanguage = new class extends BindingLanguage {
+    const bindingLanguage = new class extends BindingLanguage {
       createAttributeInstruction () {}
       inspectAttribute (resources, tagName, attrName, attrValue) {
         return { attrName, attrValue};
@@ -27,11 +31,13 @@ describe('ViewLocator', () => {
     };
     container = new Container();
     appResources = new ViewResources();
-    viewEngine = {
-      container: container,
-      appResources: appResources,
-      viewCompiler: new ViewCompiler(bindingLanguage, appResources)
-    };
+    viewEngine = new ViewEngine(
+      null, // no loader
+      container,
+      new ViewCompiler(bindingLanguage, appResources),
+      null, // no moduleAnalyzer
+      appResources
+    );
   });
 
   describe('StaticViewStrategy', () => {
@@ -342,6 +348,38 @@ describe('ViewLocator', () => {
           done();
         })
         .catch(done.fail);
+    });
+  });
+
+  describe('InlineViewStrategy', () => {
+    it('loads', (done) => {
+      class El {}
+      inlineView('<template><input value.bind="value"></template>')(El);
+      const viewLocator = new ViewLocator();
+      const strategy = viewLocator.getViewStrategy(El);
+      expect(strategy instanceof InlineViewStrategy).toBe(true);
+      strategy
+        .loadViewFactory(viewEngine, ViewCompileInstruction.normal, new ResourceLoadContext(), El)
+        .then((factory) => {
+          // TODO: Remove Console
+          // eslint-disable-next-line no-console
+          // TODO: Remove Console
+          // eslint-disable-next-line no-console
+          console.log(`factory`, factory);
+          // TODO: Remove Console
+          // eslint-disable-next-line no-console
+          console.log(`factory.resources`, factory.resources);
+
+          console.log(`factory.resources.elements=${JSON.stringify(factory.resources.elements, null, 2)}`);
+
+          expect(factory.resources.getElement('el').target).toBe(El);
+        }).catch(ex => {
+          // TODO: Remove Console
+          // eslint-disable-next-line no-console
+          console.log('ex', ex.message);
+
+          expect(ex.message).not.toContain('Cannot determine default view strategy for object.');
+        }).then(done);
     });
   });
 });
