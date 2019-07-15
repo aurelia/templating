@@ -1,8 +1,10 @@
 import { Container } from 'aurelia-dependency-injection';
 import { BindingLanguage } from '../src/binding-language';
+import { inlineView } from '../src/decorators';
 import { ResourceLoadContext, ViewCompileInstruction } from '../src/instructions';
 import { ViewCompiler } from '../src/view-compiler';
 import { ViewEngine } from '../src/view-engine';
+import { ViewLocator } from '../src/view-locator';
 import { ViewResources } from '../src/view-resources';
 import { InlineViewStrategy, StaticViewStrategy } from '../src/view-strategy';
 import './setup';
@@ -351,15 +353,23 @@ describe('ViewLocator', () => {
 
   describe('InlineViewStrategy', () => {
     it('loads', (done) => {
-      let strategy = new InlineViewStrategy(
-        '<template><input value.bind="value"></template>'
-      );
       class El {}
+      inlineView('<template><input value.bind="value"></template>')(El);
+      const viewLocator = new ViewLocator();
+      const strategy = viewLocator.getViewStrategy(El);
+      expect(strategy instanceof InlineViewStrategy).toBe(true);
       strategy
         .loadViewFactory(viewEngine, ViewCompileInstruction.normal, new ResourceLoadContext(), El)
         .then((factory) => {
           // TODO: Remove Console
           // eslint-disable-next-line no-console
+          // TODO: Remove Console
+          // eslint-disable-next-line no-console
+          console.log(`factory`, factory);
+          // TODO: Remove Console
+          // eslint-disable-next-line no-console
+          console.log(`factory.resources`, factory.resources);
+
           console.log(`factory.resources.elements=${JSON.stringify(factory.resources.elements, null, 2)}`);
 
           expect(factory.resources.getElement('el').target).toBe(El);
