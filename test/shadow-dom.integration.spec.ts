@@ -5,7 +5,7 @@ import 'aurelia-loader-webpack';
 // the test in this file is done in integration testing style,
 // instead of unit testing style to the rest as it requires higher level of setup complexity
 // to ensure correctness at runtime
-fdescribe('shadow-dom.integration.spec.js', () => {
+describe('shadow-dom.integration.spec.js', () => {
   describe('default slot', () => {
     it('works in basic default slot scenario', async () => {
       const Template_App  =
@@ -18,15 +18,19 @@ fdescribe('shadow-dom.integration.spec.js', () => {
       const Template_Child = '<template><span>${value}</span></template>';
 
       @inlineView(Template_App)
+      // @ts-ignore
       class App {
         itemCount = 10;
       }
 
       @inlineView(Template_Parent)
+      // @ts-ignore
       class Parent {}
 
       @inlineView(Template_Child)
+      // @ts-ignore
       class Child {
+        // @ts-ignore
         @bindable() value
       }
 
@@ -48,7 +52,7 @@ fdescribe('shadow-dom.integration.spec.js', () => {
       const slot: ShadowSlot = atParentViewSlot.projectToSlots[ShadowDOM.defaultSlotKey];
       expect(slot.children.length).toBe(/* anchor */1 + /* projection */10);
       expect(slot.children.every((projectedNode: Node, idx) => {
-        return projectedNode.nodeType === idx === 0 ? Node.COMMENT_NODE : Node.ELEMENT_NODE;
+        return projectedNode.nodeType === (idx === 0 ? Node.COMMENT_NODE : Node.ELEMENT_NODE);
       }));
 
       // unrender all content of <parent/>
@@ -61,10 +65,17 @@ fdescribe('shadow-dom.integration.spec.js', () => {
       // thanks to Thomas Darling https://github.com/thomas-darling
       expect(slot.children.length).toBe(/* anchor */1 + /* projection */0);
 
-      aurelia.root.detached();
-      aurelia.root.unbind();
+      root.detached();
+      root.unbind();
     });
 
+    // in this test, we test 4 varition of default slot usages + default fallback content
+    // also ensure that when value is changed dynamically (repeat collection empty/if value turned to false)
+    // it will trigger the rendering/un-rendering correctly
+    // 1. with repeat
+    // 2. with if
+    // 3. with empty space (should render default)
+    // 4. nothing (should render default content)
     it('works in slot with fallback content scenario', async () => {
       const Template_App  =
         `<template>
@@ -79,16 +90,20 @@ fdescribe('shadow-dom.integration.spec.js', () => {
       const Template_Child = '<template><span>${value}</span></template>';
 
       @inlineView(Template_App)
+      // @ts-ignore
       class App {
         itemCount = 10;
         showChild2 = false;
       }
 
       @inlineView(Template_Parent)
+      // @ts-ignore
       class Parent {}
 
       @inlineView(Template_Child)
+      // @ts-ignore
       class Child {
+        // @ts-ignore
         @bindable() value
       }
 
@@ -117,7 +132,7 @@ fdescribe('shadow-dom.integration.spec.js', () => {
       const parent1Default_ShadowSlot: ShadowSlot = atParent1ViewSlot.projectToSlots[ShadowDOM.defaultSlotKey];
       expect(parent1Default_ShadowSlot.children.length).toBe(/* anchor */1 + /* projection */10);
       expect(parent1Default_ShadowSlot.children.every((projectedNode: Node, idx) => {
-        return projectedNode.nodeType === idx === 0 ? Node.COMMENT_NODE : Node.ELEMENT_NODE;
+        return projectedNode.nodeType === (idx === 0 ? Node.COMMENT_NODE : Node.ELEMENT_NODE);
       }));
 
       // unrender all content of #parent1
@@ -140,7 +155,7 @@ fdescribe('shadow-dom.integration.spec.js', () => {
       expect(atParent1ViewSlot.children.length).toBe(/* 10 views for 10 repeated <child/> */10);
       expect(parent1Default_ShadowSlot.children.length).toBe(/* anchor */1 + /* projection */10);
       expect(parent1Default_ShadowSlot.children.every((projectedNode: Node, idx) => {
-        return projectedNode.nodeType === idx === 0 ? Node.COMMENT_NODE : Node.ELEMENT_NODE;
+        return projectedNode.nodeType === (idx === 0 ? Node.COMMENT_NODE : Node.ELEMENT_NODE);
       }));
 
       // ===================================================================================
@@ -152,7 +167,7 @@ fdescribe('shadow-dom.integration.spec.js', () => {
       const parent2Default_ShadowSlot: ShadowSlot = atParent2ViewSlot.projectToSlots[ShadowDOM.defaultSlotKey];
       expect(parent2Default_ShadowSlot.children.length).toBe(/* anchor */1 + /* projection */0);
       expect(parent2Default_ShadowSlot.children.every((projectedNode: Node, idx) => {
-        return projectedNode.nodeType === idx === 0 ? Node.COMMENT_NODE : Node.ELEMENT_NODE;
+        return projectedNode.nodeType === (idx === 0 ? Node.COMMENT_NODE : Node.ELEMENT_NODE);
       }));
 
       // unrender #parent2 <child/>
@@ -171,8 +186,8 @@ fdescribe('shadow-dom.integration.spec.js', () => {
       expect(parent2.textContent.trim()).toBe('This is parentEmpty parent content');
       expect(parent2Default_ShadowSlot.children.length).toBe(/* anchor */1 + /* projection node */0);
 
-      aurelia.root.detached();
-      aurelia.root.unbind();
+      root.detached();
+      root.unbind();
     });
   });
 
@@ -188,15 +203,19 @@ fdescribe('shadow-dom.integration.spec.js', () => {
       const Template_Child = '<template><span>${value}</span></template>';
 
       @inlineView(Template_App)
+      // @ts-ignore
       class App {
         itemCount = 10;
       }
 
       @inlineView(Template_Parent)
+      // @ts-ignore
       class Parent {}
 
       @inlineView(Template_Child)
+      // @ts-ignore
       class Child {
+        // @ts-ignore
         @bindable() value
       }
 
@@ -218,7 +237,7 @@ fdescribe('shadow-dom.integration.spec.js', () => {
       const slot: ShadowSlot = atParentViewSlot.projectToSlots['child-value-display'];
       expect(slot.children.length).toBe(/* anchor */1 + /* projection */10);
       expect(slot.children.every((projectedNode: Node, idx) => {
-        return projectedNode.nodeType === idx === 0 ? Node.COMMENT_NODE : Node.ELEMENT_NODE;
+        return projectedNode.nodeType === (idx === 0 ? Node.COMMENT_NODE : Node.ELEMENT_NODE);
       }));
 
       // unrender all content of <parent/>
@@ -231,8 +250,8 @@ fdescribe('shadow-dom.integration.spec.js', () => {
       // thanks to Thomas Darling https://github.com/thomas-darling
       expect(slot.children.length).toBe(/* anchor */1 + /* projection */0);
 
-      aurelia.root.detached();
-      aurelia.root.unbind();
+      root.detached();
+      root.unbind();
     });
   });
 
@@ -248,14 +267,14 @@ fdescribe('shadow-dom.integration.spec.js', () => {
 
     await aurelia.start();
     await aurelia.setRoot(root, host);
+
+    const rootController = aurelia['root'] as Controller;
     
     return {
       aurelia,
       host,
-      /**@type {Controller} */
-      root: aurelia.root,
-      /**@type {T} */
-      rootVm: aurelia.root.viewModel
+      root: rootController,
+      rootVm: rootController.viewModel as T
     }
   }
 
