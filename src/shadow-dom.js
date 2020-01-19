@@ -444,7 +444,7 @@ export class ShadowDOM {
 
   /**
    * @param {View} view
-   * @param {Record<string, any>} slots
+   * @param {Record<string, PassThroughSlot | ShadowSlot>} slots
    * @param {ViewSlot} projectionSource
    * @param {number} index
    * @param {string} destinationOverride
