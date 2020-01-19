@@ -124,7 +124,7 @@
     "gulp-rename": "^1.2.2",
     "gulp-typedoc": "^2.0.0",
     "gulp-typedoc-extractor": "^0.0.8",
-    "gulp-typescript": "^2.13.6",
+    "gulp-typescript": "^3.2.4",
     "gulp-util": "^3.0.7",
     "jasmine-core": "^3.5.0",
     "karma": "^4.4.1",
