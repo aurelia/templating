@@ -434,6 +434,7 @@ export class HtmlBehaviorResource {
     let behavior;
     let derived = target;
 
+    // eslint-disable-next-line no-constant-condition
     while (true) {
       let proto = Object.getPrototypeOf(target.prototype);
       target = proto && proto.constructor;
