@@ -1,4 +1,3 @@
-import './setup';
 import {metadata} from 'aurelia-metadata';
 import { Logger } from 'aurelia-logging';
 import {bindingMode, valueConverter, bindingBehavior, ValueConverterResource, BindingBehaviorResource} from 'aurelia-binding';

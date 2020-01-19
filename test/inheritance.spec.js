@@ -1,4 +1,3 @@
-import './setup';
 import {ObserverLocator} from 'aurelia-binding';
 import {Container} from 'aurelia-dependency-injection';
 import {metadata} from 'aurelia-metadata';
