@@ -15,7 +15,8 @@ gulp.task('doc-generate', function(){
       mode: 'modules',
       excludeExternals: true,
       ignoreCompilerErrors: false,
-      version: true
+      version: true,
+      exclude: 'jasmine'
     }));
 });
 
