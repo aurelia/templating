@@ -4,7 +4,8 @@ import {ViewEngine} from './view-engine';
 import {validateBehaviorName} from './view-resources';
 import {BindableProperty} from './bindable-property';
 import {ElementConfigResource} from './element-config';
-import {ViewLocator, RelativeViewStrategy, NoViewStrategy, InlineViewStrategy} from './view-strategy';
+import {RelativeViewStrategy, NoViewStrategy, InlineViewStrategy} from './view-strategy';
+import {ViewLocator} from './view-locator';
 import {HtmlBehaviorResource} from './html-behavior';
 
 /**
