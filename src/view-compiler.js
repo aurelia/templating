@@ -2,7 +2,6 @@ import {ViewResources} from './view-resources';
 import {ViewFactory} from './view-factory';
 import {BindingLanguage} from './binding-language';
 import {ViewCompileInstruction, BehaviorInstruction, TargetInstruction} from './instructions';
-import {inject} from 'aurelia-dependency-injection';
 import {DOM, FEATURE} from 'aurelia-pal';
 import {ShadowDOM} from './shadow-dom';
 
@@ -57,8 +56,12 @@ const defaultLetHandler = BindingLanguage.prototype.createLetExpressions;
 /**
 * Compiles html templates, dom fragments and strings into ViewFactory instances, capable of instantiating Views.
 */
-@inject(BindingLanguage, ViewResources)
 export class ViewCompiler {
+
+  static inject() {
+    return [BindingLanguage, ViewResources];
+  }
+
   /**
   * Creates an instance of ViewCompiler.
   * @param bindingLanguage The default data binding language and syntax used during view compilation.
