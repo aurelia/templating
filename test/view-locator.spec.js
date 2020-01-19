@@ -1,7 +1,6 @@
 import { Container } from 'aurelia-dependency-injection';
 import { ViewLocator } from '../src/view-locator';
 import { StaticViewStrategy } from '../src/view-strategy';
-import './setup';
 
 describe('ViewLocator', () => {
   /**@type {Container} */

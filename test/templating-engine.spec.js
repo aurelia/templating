@@ -1,5 +1,4 @@
-﻿import './setup';
-import {Container} from 'aurelia-dependency-injection';
+﻿import {Container} from 'aurelia-dependency-injection';
 import {createOverrideContext} from 'aurelia-binding';
 import {TemplatingEngine} from '../src/templating-engine';
 import {ViewResources} from '../src/view-resources';

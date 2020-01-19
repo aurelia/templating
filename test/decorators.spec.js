@@ -1,5 +1,4 @@
-﻿import './setup';
-import { metadata } from 'aurelia-metadata';
+﻿import { metadata } from 'aurelia-metadata';
 import { bindingMode } from 'aurelia-binding';
 import { customAttribute, customElement, resource, view } from '../src/decorators';
 

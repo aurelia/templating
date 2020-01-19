@@ -1,4 +1,3 @@
-import './setup';
 import {ViewCompiler} from '../src/view-compiler';
 import {ViewResources} from '../src/view-resources';
 import { HtmlBehaviorResource } from '../src/html-behavior';
