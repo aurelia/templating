@@ -169,6 +169,10 @@ export class ShadowSlot {
     this.fallbackFactory = fallbackFactory;
     this.contentView = null;
     this.projections = 0;
+    /**
+     * A list of nodes that keeps track of projected nodes through this shadow slot
+     * @type {Node[]}
+     */
     this.children = [];
     this.projectFromAnchors = null;
     this.destinationSlots = null;
@@ -183,7 +187,7 @@ export class ShadowSlot {
    * @param {Node} node
    * @param {ViewSlot} projectionSource
    * @param {number} index
-   * @param {*} destination
+   * @param {string} destination
    */
   addNode(view, node, projectionSource, index, destination) {
     if (this.contentView !== null) {
@@ -224,9 +228,11 @@ export class ShadowSlot {
     } else if (this.contentView && this.contentView.hasSlots) {
       ShadowDOM.undistributeView(view, this.contentView.slots, projectionSource);
     } else {
+      // find the anchor associated with the viewslot of this shadow slot
       let found = this.children.find(x => x.auSlotProjectFrom === projectionSource);
       if (found) {
         let children = found.auProjectionChildren;
+        let ownChildren = this.children;
 
         for (let i = 0, ii = children.length; i < ii; ++i) {
           let child = children[i];
@@ -235,7 +241,14 @@ export class ShadowSlot {
             children.splice(i, 1);
             view.fragment.appendChild(child);
             i--; ii--;
+
+          // remove track of "unprojected" child
+          // thanks to Thomas Darling https://github.com/aurelia/templating-resources/issues/392
             this.projections--;
+            let idx = ownChildren.indexOf(child);
+            if (idx > -1) {
+              ownChildren.splice(idx, 1);
+            }
           }
         }
 
@@ -258,11 +271,21 @@ export class ShadowSlot {
       let found = this.children.find(x => x.auSlotProjectFrom === projectionSource);
 
       if (found) {
+        /**@type {Node} */
         let children = found.auProjectionChildren;
+        let ownChildren = this.children;
+
         for (let i = 0, ii = children.length; i < ii; ++i) {
           let child = children[i];
           child.auOwnerView.fragment.appendChild(child);
+
+          // remove track of "unprojected" child
+          // thanks to Thomas Darling https://github.com/aurelia/templating-resources/issues/392
           this.projections--;
+          let idx = ownChildren.indexOf(child);
+          if (idx > -1) {
+            ownChildren.splice(idx, 1);
+          }
         }
 
         found.auProjectionChildren = [];
@@ -282,7 +305,7 @@ export class ShadowSlot {
    */
   _findAnchor(view, node, projectionSource, index) {
     if (projectionSource) {
-      //find the anchor associated with the projected view slot
+      // find the anchor associated with the projected view slot
       let found = this.children.find(x => x.auSlotProjectFrom === projectionSource);
       if (found) {
         if (index !== undefined) {
