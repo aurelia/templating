@@ -103,6 +103,11 @@ fdescribe('shadow-dom.integration.spec.js', () => {
       const [atParent1ViewSlot, atParent2ViewSlot] = root.view.children as ViewSlot[];
       const [parent1, parent2, parent3, parent4] = host.querySelectorAll<HTMLElement>('parent');
 
+      // #parent3 and #parent4 are considered equal
+      // content comprising of all empty space nodes === no content
+      expect(parent3.textContent.trim()).toBe('This is parentEmpty parent content');
+      expect(parent4.textContent.trim()).toBe('This is parentEmpty parent content');
+
       // assert usage with content
       expect(host.querySelectorAll('#parent1 child').length).toBe(10);
       expect(host.querySelectorAll('#parent1 div child').length).toBe(10);
@@ -138,13 +143,21 @@ fdescribe('shadow-dom.integration.spec.js', () => {
         return projectedNode.nodeType === idx === 0 ? Node.COMMENT_NODE : Node.ELEMENT_NODE;
       }));
 
-      // unrender all content of <parent/>
+      // unrender #parent2 <child/>
       rootVm.showChild2 = true;
       await new Promise(r => aurelia.container.get(TaskQueue).queueMicroTask(r));
       expect(host.querySelectorAll('#parent2 child').length).toBe(1);
       expect(host.querySelectorAll('#parent2 div child').length).toBe(1);
       expect(parent2.textContent.trim()).toBe('This is parenttrue');
       expect(slot2.children.length).toBe(/* anchor */1 + /* projection node */1);
+
+      // unrender #parent2 child
+      rootVm.showChild2 = false;
+      await new Promise(r => aurelia.container.get(TaskQueue).queueMicroTask(r));
+      expect(host.querySelectorAll('#parent2 child').length).toBe(0);
+      expect(host.querySelectorAll('#parent2 div child').length).toBe(0);
+      expect(parent2.textContent.trim()).toBe('This is parentEmpty parent content');
+      expect(slot2.children.length).toBe(/* anchor */1 + /* projection node */0);
 
       aurelia.root.detached();
       aurelia.root.unbind();
