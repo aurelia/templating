@@ -113,15 +113,14 @@ fdescribe('shadow-dom.integration.spec.js', () => {
       expect(host.querySelectorAll('#parent1 div child').length).toBe(10);
       expect(parent1.textContent.trim()).toBe('This is parent0123456789');
 
-
       expect(atParent1ViewSlot.children.length).toBe(/* 10 views for 10 repeated <child/> */10);
-      const slot: ShadowSlot = atParent1ViewSlot.projectToSlots[ShadowDOM.defaultSlotKey];
-      expect(slot.children.length).toBe(/* anchor */1 + /* projection */10);
-      expect(slot.children.every((projectedNode: Node, idx) => {
+      const parent1Default_ShadowSlot: ShadowSlot = atParent1ViewSlot.projectToSlots[ShadowDOM.defaultSlotKey];
+      expect(parent1Default_ShadowSlot.children.length).toBe(/* anchor */1 + /* projection */10);
+      expect(parent1Default_ShadowSlot.children.every((projectedNode: Node, idx) => {
         return projectedNode.nodeType === idx === 0 ? Node.COMMENT_NODE : Node.ELEMENT_NODE;
       }));
 
-      // unrender all content of <parent/>
+      // unrender all content of #parent1
       rootVm.itemCount = 0;
       await new Promise(r => aurelia.container.get(TaskQueue).queueMicroTask(r));
       expect(host.querySelectorAll('#parent1 child').length).toBe(0);
@@ -129,7 +128,20 @@ fdescribe('shadow-dom.integration.spec.js', () => {
       expect(parent1.textContent.trim()).toBe('This is parentEmpty parent content', 'it should have had default fallback when setting itemCount to 0 (#parent1)');
       // assertion for issue https://github.com/aurelia/templating-resources/issues/392
       // thanks to Thomas Darling https://github.com/thomas-darling
-      expect(slot.children.length).toBe(/* anchor */1 + /* projection */0);
+      expect(parent1Default_ShadowSlot.children.length).toBe(/* anchor */1 + /* projection */0);
+
+      // rerender content of #parent1
+      rootVm.itemCount = 10;
+      await new Promise(r => aurelia.container.get(TaskQueue).queueMicroTask(r));
+      expect(host.querySelectorAll('#parent1 child').length).toBe(10);
+      expect(host.querySelectorAll('#parent1 div child').length).toBe(10);
+      expect(parent1.textContent.trim()).toBe('This is parent0123456789');
+
+      expect(atParent1ViewSlot.children.length).toBe(/* 10 views for 10 repeated <child/> */10);
+      expect(parent1Default_ShadowSlot.children.length).toBe(/* anchor */1 + /* projection */10);
+      expect(parent1Default_ShadowSlot.children.every((projectedNode: Node, idx) => {
+        return projectedNode.nodeType === idx === 0 ? Node.COMMENT_NODE : Node.ELEMENT_NODE;
+      }));
 
       // ===================================================================================
       // assert usage WITHOUT content
@@ -137,9 +149,9 @@ fdescribe('shadow-dom.integration.spec.js', () => {
       expect(parent2.textContent.trim()).toBe('This is parentEmpty parent content');
 
       expect(atParent2ViewSlot.children.length).toBe(/* 10 views for 10 repeated <child/> */0);
-      const slot2: ShadowSlot = atParent2ViewSlot.projectToSlots[ShadowDOM.defaultSlotKey];
-      expect(slot2.children.length).toBe(/* anchor */1 + /* projection */0);
-      expect(slot2.children.every((projectedNode: Node, idx) => {
+      const parent2Default_ShadowSlot: ShadowSlot = atParent2ViewSlot.projectToSlots[ShadowDOM.defaultSlotKey];
+      expect(parent2Default_ShadowSlot.children.length).toBe(/* anchor */1 + /* projection */0);
+      expect(parent2Default_ShadowSlot.children.every((projectedNode: Node, idx) => {
         return projectedNode.nodeType === idx === 0 ? Node.COMMENT_NODE : Node.ELEMENT_NODE;
       }));
 
@@ -149,7 +161,7 @@ fdescribe('shadow-dom.integration.spec.js', () => {
       expect(host.querySelectorAll('#parent2 child').length).toBe(1);
       expect(host.querySelectorAll('#parent2 div child').length).toBe(1);
       expect(parent2.textContent.trim()).toBe('This is parenttrue');
-      expect(slot2.children.length).toBe(/* anchor */1 + /* projection node */1);
+      expect(parent2Default_ShadowSlot.children.length).toBe(/* anchor */1 + /* projection node */1);
 
       // unrender #parent2 child
       rootVm.showChild2 = false;
@@ -157,7 +169,7 @@ fdescribe('shadow-dom.integration.spec.js', () => {
       expect(host.querySelectorAll('#parent2 child').length).toBe(0);
       expect(host.querySelectorAll('#parent2 div child').length).toBe(0);
       expect(parent2.textContent.trim()).toBe('This is parentEmpty parent content');
-      expect(slot2.children.length).toBe(/* anchor */1 + /* projection node */0);
+      expect(parent2Default_ShadowSlot.children.length).toBe(/* anchor */1 + /* projection node */0);
 
       aurelia.root.detached();
       aurelia.root.unbind();
