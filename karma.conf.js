@@ -22,7 +22,7 @@ function(config) {
     // preprocess matching files before serving them to the browser
     // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
     preprocessors: {
-      'test/setup.js': ['webpack']
+      'test/setup.js': ['webpack', 'sourcemap']
     },
     webpack: {
       mode: 'development',
@@ -32,6 +32,8 @@ function(config) {
         modules: ["node_modules"],
         alias: {
           src: path.resolve(__dirname, 'src'),
+          // aliasing to this in test folder, instead of src folder
+          // to avoid colliding with the legacy build script
           'aurelia-templating': path.resolve(__dirname, 'test/aurelia-templating'),
           test: path.resolve(__dirname, 'test')
         }

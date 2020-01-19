@@ -41,19 +41,17 @@ To build the code, follow these steps.
 
 To run the unit tests, first ensure that you have followed the steps above in order to install all dependencies and successfully build the library. Once you have done that, proceed with these additional steps:
 
-1. Ensure that [jspm](http://jspm.io/) is installed. If you need to install it, use the following commnand:
-
-  ```shell
-  npm install -g jspm
-  ```
-2. Install the client-side dependencies with jspm:
-
-  ```shell
-  jspm install
-  ```
-
-3. You can now run the tests with this command:
+1. You can now run the tests with this command:
 
   ```shell
   npm run test
   ```
+
+  You can optionally run either of the following:
+  ```shell
+  npm run test:watch
+  # OR
+  npm run test:debugger
+  ```
+
+  to have better development experience, with watch/debuging capabilities
