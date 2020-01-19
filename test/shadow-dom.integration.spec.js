@@ -6,18 +6,17 @@ import 'aurelia-loader-webpack';
 // instead of unit testing style to the rest as it requires higher level of setup complexity
 // to ensure correctness at runtime
 fdescribe('shadow-dom.integration.spec.js', () => {
-  describe('slot emulation', () => {
-
-    const Template_App  =
-      `<template>
-        <parent>
-          <child repeat.for="i of itemCount" value.bind="i"></child>
-        </parent>
-      </template>`;
-    const Template_Parent = '<template>This is parent<div><slot></slot></div></template>';
-    const Template_Child = '<template><span>${value}</span></template>';
-
+  describe('default slot', () => {
     it('works in basic default slot scenario', async () => {
+      const Template_App  =
+        `<template>
+          <parent>
+            <child repeat.for="i of itemCount" value.bind="i"></child>
+          </parent>
+        </template>`;
+      const Template_Parent = '<template>This is parent<div><slot></slot></div></template>';
+      const Template_Child = '<template><span>${value}</span></template>';
+
       @inlineView(Template_App)
       class App {
         itemCount = 10;
@@ -65,6 +64,151 @@ fdescribe('shadow-dom.integration.spec.js', () => {
       aurelia.root.detached();
       aurelia.root.unbind();
     });
+
+    it('works in slot with fallback content scenario', async () => {
+      const Template_App  =
+        `<template>
+          <parent id="parent1">
+            <child repeat.for="i of itemCount" value.bind="i"></child>
+          </parent>
+          <parent id="parent2"><child if.bind="showChild2" value.bind="showChild2"></child></parent>
+          <parent id="parent3"> </parent>
+          <parent id="parent4"></parent>
+        </template>`;
+      const Template_Parent = '<template>This is parent<div><slot>Empty parent content</slot></div></template>';
+      const Template_Child = '<template><span>${value}</span></template>';
+
+      @inlineView(Template_App)
+      class App {
+        itemCount = 10;
+        showChild2 = false;
+      }
+
+      @inlineView(Template_Parent)
+      class Parent {}
+
+      @inlineView(Template_Child)
+      class Child {
+        @bindable() value
+      }
+
+      const {
+        aurelia,
+        host,
+        root,
+        rootVm,
+      } = await createFixture(App, [Parent, Child]);
+
+      expect(root.view.children.length).toBe(/* 2 child views slot created for (4) <parent/>, last 2 do not have content */2, 'root view should have had 2 child viewslots');
+      const [atParent1ViewSlot, atParent2ViewSlot] = root.view.children as ViewSlot[];
+      const [parent1, parent2, parent3, parent4] = host.querySelectorAll<HTMLElement>('parent');
+
+      // assert usage with content
+      expect(host.querySelectorAll('#parent1 child').length).toBe(10);
+      expect(host.querySelectorAll('#parent1 div child').length).toBe(10);
+      expect(parent1.textContent.trim()).toBe('This is parent0123456789');
+
+
+      expect(atParent1ViewSlot.children.length).toBe(/* 10 views for 10 repeated <child/> */10);
+      const slot: ShadowSlot = atParent1ViewSlot.projectToSlots[ShadowDOM.defaultSlotKey];
+      expect(slot.children.length).toBe(/* anchor */1 + /* projection */10);
+      expect(slot.children.every((projectedNode: Node, idx) => {
+        return projectedNode.nodeType === idx === 0 ? Node.COMMENT_NODE : Node.ELEMENT_NODE;
+      }));
+
+      // unrender all content of <parent/>
+      rootVm.itemCount = 0;
+      await new Promise(r => aurelia.container.get(TaskQueue).queueMicroTask(r));
+      expect(host.querySelectorAll('#parent1 child').length).toBe(0);
+      expect(host.querySelectorAll('#parent1 div child').length).toBe(0);
+      expect(parent1.textContent.trim()).toBe('This is parentEmpty parent content', 'it should have had default fallback when setting itemCount to 0 (#parent1)');
+      // assertion for issue https://github.com/aurelia/templating-resources/issues/392
+      // thanks to Thomas Darling https://github.com/thomas-darling
+      expect(slot.children.length).toBe(/* anchor */1 + /* projection */0);
+
+      // ===================================================================================
+      // assert usage WITHOUT content
+      expect(host.querySelectorAll('#parent2 child').length).toBe(0);
+      expect(parent2.textContent.trim()).toBe('This is parentEmpty parent content');
+
+      expect(atParent2ViewSlot.children.length).toBe(/* 10 views for 10 repeated <child/> */0);
+      const slot2: ShadowSlot = atParent2ViewSlot.projectToSlots[ShadowDOM.defaultSlotKey];
+      expect(slot2.children.length).toBe(/* anchor */1 + /* projection */0);
+      expect(slot2.children.every((projectedNode: Node, idx) => {
+        return projectedNode.nodeType === idx === 0 ? Node.COMMENT_NODE : Node.ELEMENT_NODE;
+      }));
+
+      // unrender all content of <parent/>
+      rootVm.showChild2 = true;
+      await new Promise(r => aurelia.container.get(TaskQueue).queueMicroTask(r));
+      expect(host.querySelectorAll('#parent2 child').length).toBe(1);
+      expect(host.querySelectorAll('#parent2 div child').length).toBe(1);
+      expect(parent2.textContent.trim()).toBe('This is parenttrue');
+      expect(slot2.children.length).toBe(/* anchor */1 + /* projection node */1);
+
+      aurelia.root.detached();
+      aurelia.root.unbind();
+    });
+  });
+
+  describe('named slot', () => {
+    it('works in basic named slot scenario', async () => {
+      const Template_App  =
+        `<template>
+          <parent>
+            <child repeat.for="i of itemCount" value.bind="i" slot="child-value-display"></child>
+          </parent>
+        </template>`;
+      const Template_Parent = '<template>This is parent<div><slot name="child-value-display"></slot></div></template>';
+      const Template_Child = '<template><span>${value}</span></template>';
+
+      @inlineView(Template_App)
+      class App {
+        itemCount = 10;
+      }
+
+      @inlineView(Template_Parent)
+      class Parent {}
+
+      @inlineView(Template_Child)
+      class Child {
+        @bindable() value
+      }
+
+      const {
+        aurelia,
+        host,
+        root,
+        rootVm,
+      } = await createFixture(App, [Parent, Child]);
+
+      expect(host.querySelectorAll('parent child').length).toBe(10);
+      expect(host.querySelectorAll('parent div child').length).toBe(10);
+      expect(host.textContent.trim()).toBe('This is parent0123456789');
+      expect(root.view.children.length).toBe(/* 1 child view slot created for <parent/> */1);
+
+      const atParentViewSlot: ViewSlot = root.view.children[0];
+      expect(atParentViewSlot.children.length).toBe(/* 10 views for 10 repeated <child/> */10);
+
+      const slot: ShadowSlot = atParentViewSlot.projectToSlots['child-value-display'];
+      expect(slot.children.length).toBe(/* anchor */1 + /* projection */10);
+      expect(slot.children.every((projectedNode: Node, idx) => {
+        return projectedNode.nodeType === idx === 0 ? Node.COMMENT_NODE : Node.ELEMENT_NODE;
+      }));
+
+      // unrender all content of <parent/>
+      rootVm.itemCount = 0;
+      await new Promise(r => aurelia.container.get(TaskQueue).queueMicroTask(r));
+      expect(host.querySelectorAll('parent child').length).toBe(0);
+      expect(host.querySelectorAll('parent div child').length).toBe(0);
+      expect(host.textContent.trim()).toBe('This is parent');
+      // assertion for issue https://github.com/aurelia/templating-resources/issues/392
+      // thanks to Thomas Darling https://github.com/thomas-darling
+      expect(slot.children.length).toBe(/* anchor */1 + /* projection */0);
+
+      aurelia.root.detached();
+      aurelia.root.unbind();
+    });
   });
 
   async function createFixture<T>(root: Constructable<T>, resources: any[] = []) {
@@ -89,7 +233,6 @@ fdescribe('shadow-dom.integration.spec.js', () => {
       rootVm: aurelia.root.viewModel
     }
   }
-
 
   interface Constructable<T> {
     new(...args: any[]): T;
