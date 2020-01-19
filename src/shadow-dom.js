@@ -486,9 +486,8 @@ export class ShadowDOM {
   }
 
   /**
-   * 
-   * @param {Record<string, ShadowSlot | PassThroughSlot>} slots 
-   * @param {ViewSlot} projectionSource 
+   * @param {Record<string, ShadowSlot | PassThroughSlot>} slots
+   * @param {ViewSlot} projectionSource
    */
   static undistributeAll(slots, projectionSource) {
     for (let slotName in slots) {
@@ -497,7 +496,7 @@ export class ShadowDOM {
   }
 
   /**
-   * Distrbiute nodes of a projected view based on 
+   * Distrbiute nodes of a projected view based on
    * @param {View} view
    * @param {Node[]} nodes
    * @param {Record<string, PassThroughSlot | ShadowSlot>} slots
