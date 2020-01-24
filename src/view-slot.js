@@ -409,6 +409,9 @@ export class ViewSlot {
     this.children.forEach(view => ShadowDOM.distributeView(view, slots, this));
   }
 
+  /**
+   * @param {View} view
+   */
   _projectionAdd(view) {
     ShadowDOM.distributeView(view, this.projectToSlots, this);
 
@@ -419,6 +422,10 @@ export class ViewSlot {
     }
   }
 
+  /**
+   * @param {number} index
+   * @param {View} view
+   */
   _projectionInsert(index, view) {
     if ((index === 0 && !this.children.length) || index >= this.children.length) {
       this.add(view);
@@ -433,6 +440,10 @@ export class ViewSlot {
     }
   }
 
+  /**
+   * @param {number} sourceIndex
+   * @param {number} targetIndex
+   */
   _projectionMove(sourceIndex, targetIndex) {
     if (sourceIndex === targetIndex) {
       return;
@@ -448,6 +459,10 @@ export class ViewSlot {
     children.splice(targetIndex, 0, view);
   }
 
+  /**
+   * @param {View} view
+   * @param {boolean} returnToCache
+   */
   _projectionRemove(view, returnToCache) {
     ShadowDOM.undistributeView(view, this.projectToSlots, this);
     this.children.splice(this.children.indexOf(view), 1);
@@ -460,6 +475,10 @@ export class ViewSlot {
     }
   }
 
+  /**
+   * @param {number} index
+   * @param {boolean} returnToCache
+   */
   _projectionRemoveAt(index, returnToCache) {
     let view = this.children[index];
 
@@ -474,10 +493,17 @@ export class ViewSlot {
     }
   }
 
+  /**
+   * @param {View[]} viewsToRemove
+   * @param {boolean} returnToCache
+   */
   _projectionRemoveMany(viewsToRemove, returnToCache?) {
     viewsToRemove.forEach(view => this.remove(view, returnToCache));
   }
 
+  /**
+   * @param {boolean} returnToCache
+   */
   _projectionRemoveAll(returnToCache) {
     ShadowDOM.undistributeAll(this.projectToSlots, this);
 

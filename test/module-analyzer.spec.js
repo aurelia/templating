@@ -1,7 +1,6 @@
 import { Container } from 'aurelia-dependency-injection';
 import { bindable, customElement, processContent } from '../src/decorators';
 import { ModuleAnalyzer } from '../src/module-analyzer';
-import './setup';
 import { ViewResources } from '../src/view-resources';
 
 describe('ModuleAnalyzer', () => {

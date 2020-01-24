@@ -1,7 +1,7 @@
 import * as LogManager from 'aurelia-logging';
 import {Origin, metadata} from 'aurelia-metadata';
 import {Loader, TemplateRegistryEntry} from 'aurelia-loader';
-import {Container, inject} from 'aurelia-dependency-injection';
+import {Container} from 'aurelia-dependency-injection';
 import {ViewCompiler} from './view-compiler';
 import {ViewResources} from './view-resources';
 import {ModuleAnalyzer, ResourceDescription} from './module-analyzer';
@@ -52,8 +52,12 @@ let auSlotBehavior = null;
 /**
 * Controls the view resource loading pipeline.
 */
-@inject(Loader, Container, ViewCompiler, ModuleAnalyzer, ViewResources)
 export class ViewEngine {
+
+  static inject() {
+    return [Loader, Container, ViewCompiler, ModuleAnalyzer, ViewResources];
+  }
+
   /**
   * The metadata key for storing requires declared in a ViewModel.
   */

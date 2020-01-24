@@ -99,7 +99,13 @@ compileToModules.forEach(function(moduleType){
 
 gulp.task('build-dts', function() {
   var tsProject = ts.createProject(
-    compilerTsOptions({ removeComments: false, target: "es2015", module: "es2015" }), ts.reporter.defaultReporter());
+    compilerTsOptions({
+      removeComments: false,
+      target: "es2015",
+      module: "es2015",
+      emitDeclarationOnly: true
+    }),
+    ts.reporter.defaultReporter());
   var tsResult = srcForTypeScript().pipe(ts(tsProject));
   return tsResult.dts
     .pipe(gulp.dest(paths.output));

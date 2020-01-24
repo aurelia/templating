@@ -1,4 +1,3 @@
-import './setup';
 import {Container} from 'aurelia-dependency-injection';
 import {HtmlBehaviorResource} from '../src/html-behavior';
 import {CompositionEngine} from '../src/composition-engine';
