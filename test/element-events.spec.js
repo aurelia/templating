@@ -1,4 +1,3 @@
-import './setup';
 import { ElementEvents } from '../src/element-events';
 
 describe('ElementEvents', () => {

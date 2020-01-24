@@ -1,11 +1,11 @@
+// @ts-check
 import { Container } from 'aurelia-dependency-injection';
 import { BindingLanguage } from '../src/binding-language';
 import { ResourceLoadContext, ViewCompileInstruction } from '../src/instructions';
 import { ViewCompiler } from '../src/view-compiler';
 import { ViewEngine } from '../src/view-engine';
 import { ViewResources } from '../src/view-resources';
-import { StaticViewStrategy } from '../src/view-strategy';
-import './setup';
+import { StaticViewStrategy, InlineViewStrategy } from '../src/view-strategy';
 import { ViewEngineHooksResource } from '../src/view-engine-hooks-resource';
 import { metadata } from 'aurelia-metadata';
 import { HtmlBehaviorResource } from '../src/html-behavior';
@@ -27,10 +27,14 @@ describe('ViewLocator', () => {
     };
     container = new Container();
     appResources = new ViewResources();
+    // @ts-ignore
     viewEngine = {
       container: container,
       appResources: appResources,
-      viewCompiler: new ViewCompiler(bindingLanguage, appResources)
+      viewCompiler: new ViewCompiler(bindingLanguage, appResources),
+      loadViewFactory: (urlOrRegistryEntry, compileInstruction, loadCotnext, target) => {
+        return Promise.resolve(null);
+      }
     };
   });
 

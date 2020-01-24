@@ -1,5 +1,4 @@
-﻿import './setup';
-import {Container} from 'aurelia-dependency-injection';
+﻿import {Container} from 'aurelia-dependency-injection';
 import {ViewSlot} from '../src/view-slot';
 import {TemplatingEngine} from '../src/templating-engine';
 import {View} from '../src/view';
