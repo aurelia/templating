@@ -1290,17 +1290,30 @@ export class PassThroughSlot {
     this.destinationName = destinationName;
     this.fallbackFactory = fallbackFactory;
     this.destinationSlot = null;
+    /**
+     * The number of Node that has been projected by this slot
+     */
     this.projections = 0;
+    /**@type {View} */
     this.contentView = null;
 
     let attr = new SlotCustomAttribute(this.anchor);
     attr.value = this.destinationName;
   }
 
+  /**
+   * Indicate whether this slot should render fallback default slot content
+   */
   get needsFallbackRendering() {
     return this.fallbackFactory && this.projections === 0;
   }
 
+  /**
+   * @param {View} view
+   * @param {Node[]} nodes
+   * @param {ViewSlot} projectionSource
+   * @param {number} index
+   */
   renderFallbackContent(view, nodes, projectionSource, index) {
     if (this.contentView === null) {
       this.contentView = this.fallbackFactory.create(this.ownerView.container);
@@ -1313,10 +1326,19 @@ export class PassThroughSlot {
     }
   }
 
+  /**
+   * @param {PassThroughSlot | ShadowSlot} destinationSlot
+   */
   passThroughTo(destinationSlot) {
     this.destinationSlot = destinationSlot;
   }
 
+  /**
+   * @param {View} view
+   * @param {Node} node
+   * @param {ViewSlot} projectionSource
+   * @param {number} index
+   */
   addNode(view, node, projectionSource, index) {
     if (this.contentView !== null) {
       this.contentView.removeNodes();
@@ -1334,6 +1356,10 @@ export class PassThroughSlot {
     this.destinationSlot.addNode(view, node, projectionSource, index);
   }
 
+  /**
+   * @param {View} view
+   * @param {ViewSlot} projectionSource
+   */
   removeView(view, projectionSource) {
     this.projections--;
     this.destinationSlot.removeView(view, projectionSource);
@@ -1343,6 +1369,9 @@ export class PassThroughSlot {
     }
   }
 
+  /**
+   * @param {ViewSlot} projectionSource
+   */
   removeAll(projectionSource) {
     this.projections = 0;
     this.destinationSlot.removeAll(projectionSource);
@@ -1352,14 +1381,24 @@ export class PassThroughSlot {
     }
   }
 
+  /**
+   * @param {View} view
+   * @param {ViewSlot} projectionSource
+   */
   projectFrom(view, projectionSource) {
     this.destinationSlot.projectFrom(view, projectionSource);
   }
 
+  /**
+   * @param {View} ownerView
+   */
   created(ownerView) {
     this.ownerView = ownerView;
   }
 
+  /**
+   * @param {View} view
+   */
   bind(view) {
     if (this.contentView) {
       this.contentView.bind(view.bindingContext, view.overrideContext);
@@ -1394,6 +1433,10 @@ export class ShadowSlot {
     this.fallbackFactory = fallbackFactory;
     this.contentView = null;
     this.projections = 0;
+    /**
+     * A list of nodes that keeps track of projected nodes through this shadow slot
+     * @type {Node[]}
+     */
     this.children = [];
     this.projectFromAnchors = null;
     this.destinationSlots = null;
@@ -1403,6 +1446,13 @@ export class ShadowSlot {
     return this.fallbackFactory && this.projections === 0;
   }
 
+  /**
+   * @param {View} view
+   * @param {Node} node
+   * @param {ViewSlot} projectionSource
+   * @param {number} index
+   * @param {string} destination
+   */
   addNode(view, node, projectionSource, index, destination) {
     if (this.contentView !== null) {
       this.contentView.removeNodes();
@@ -1432,15 +1482,21 @@ export class ShadowSlot {
     }
   }
 
+  /**
+   * @param {View} view
+   * @param {ViewSlot} projectionSource
+   */
   removeView(view, projectionSource) {
     if (this.destinationSlots !== null) {
       ShadowDOM.undistributeView(view, this.destinationSlots, this);
     } else if (this.contentView && this.contentView.hasSlots) {
       ShadowDOM.undistributeView(view, this.contentView.slots, projectionSource);
     } else {
+      // find the anchor associated with the viewslot of this shadow slot
       let found = this.children.find(x => x.auSlotProjectFrom === projectionSource);
       if (found) {
         let children = found.auProjectionChildren;
+        let ownChildren = this.children;
 
         for (let i = 0, ii = children.length; i < ii; ++i) {
           let child = children[i];
@@ -1449,7 +1505,14 @@ export class ShadowSlot {
             children.splice(i, 1);
             view.fragment.appendChild(child);
             i--; ii--;
+
+          // remove track of "unprojected" child
+          // thanks to Thomas Darling https://github.com/aurelia/templating-resources/issues/392
             this.projections--;
+            let idx = ownChildren.indexOf(child);
+            if (idx > -1) {
+              ownChildren.splice(idx, 1);
+            }
           }
         }
 
@@ -1460,6 +1523,9 @@ export class ShadowSlot {
     }
   }
 
+  /**
+   * @param {ViewSlot} projectionSource
+   */
   removeAll(projectionSource) {
     if (this.destinationSlots !== null) {
       ShadowDOM.undistributeAll(this.destinationSlots, this);
@@ -1469,11 +1535,21 @@ export class ShadowSlot {
       let found = this.children.find(x => x.auSlotProjectFrom === projectionSource);
 
       if (found) {
+        /**@type {Node} */
         let children = found.auProjectionChildren;
+        let ownChildren = this.children;
+
         for (let i = 0, ii = children.length; i < ii; ++i) {
           let child = children[i];
           child.auOwnerView.fragment.appendChild(child);
+
+          // remove track of "unprojected" child
+          // thanks to Thomas Darling https://github.com/aurelia/templating-resources/issues/392
           this.projections--;
+          let idx = ownChildren.indexOf(child);
+          if (idx > -1) {
+            ownChildren.splice(idx, 1);
+          }
         }
 
         found.auProjectionChildren = [];
@@ -1485,9 +1561,15 @@ export class ShadowSlot {
     }
   }
 
+  /**
+   * @param {View} view
+   * @param {Node} node
+   * @param {ViewSlot} projectionSource
+   * @param {number} index
+   */
   _findAnchor(view, node, projectionSource, index) {
     if (projectionSource) {
-      //find the anchor associated with the projected view slot
+      // find the anchor associated with the projected view slot
       let found = this.children.find(x => x.auSlotProjectFrom === projectionSource);
       if (found) {
         if (index !== undefined) {
@@ -1518,10 +1600,17 @@ export class ShadowSlot {
     return this.anchor;
   }
 
+  /**
+   * @param {Record<string, ShadowSlot | PassThroughSlot>} slots
+   */
   projectTo(slots) {
     this.destinationSlots = slots;
   }
 
+  /**
+   * @param {View} view
+   * @param {ViewSlot} projectionSource
+   */
   projectFrom(view, projectionSource) {
     let anchor = DOM.createComment('anchor');
     let parent = this.anchor.parentNode;
@@ -1538,6 +1627,12 @@ export class ShadowSlot {
     this.projectFromAnchors.push(anchor);
   }
 
+  /**
+   * @param {View} view
+   * @param {Node[]} nodes
+   * @param {ViewSlot} projectionSource
+   * @param {number} index
+   */
   renderFallbackContent(view, nodes, projectionSource, index) {
     if (this.contentView === null) {
       this.contentView = this.fallbackFactory.create(this.ownerView.container);
@@ -1565,10 +1660,16 @@ export class ShadowSlot {
     }
   }
 
+  /**
+   * @param {View} ownerView
+   */
   created(ownerView) {
     this.ownerView = ownerView;
   }
 
+  /**
+   * @param {View} view
+   */
   bind(view) {
     if (this.contentView) {
       this.contentView.bind(view.bindingContext, view.overrideContext);
@@ -1605,6 +1706,13 @@ export class ShadowDOM {
     return node.auSlotAttribute.value;
   }
 
+  /**
+   * @param {View} view
+   * @param {Record<string, PassThroughSlot | ShadowSlot>} slots
+   * @param {ViewSlot} projectionSource
+   * @param {number} index
+   * @param {string} destinationOverride
+   */
   static distributeView(view, slots, projectionSource, index, destinationOverride) {
     let nodes;
 
@@ -1630,18 +1738,36 @@ export class ShadowDOM {
     );
   }
 
+  /**
+   * @param {View} view
+   * @param {Record<string, PassThroughSlot | ShadowSlot>} slots
+   * @param {ViewSlot} projectionSource
+   */
   static undistributeView(view, slots, projectionSource) {
     for (let slotName in slots) {
       slots[slotName].removeView(view, projectionSource);
     }
   }
 
+  /**
+   * @param {Record<string, ShadowSlot | PassThroughSlot>} slots
+   * @param {ViewSlot} projectionSource
+   */
   static undistributeAll(slots, projectionSource) {
     for (let slotName in slots) {
       slots[slotName].removeAll(projectionSource);
     }
   }
 
+  /**
+   * Distrbiute nodes of a projected view based on
+   * @param {View} view
+   * @param {Node[]} nodes
+   * @param {Record<string, PassThroughSlot | ShadowSlot>} slots
+   * @param {ViewSlot} projectionSource
+   * @param {number} index
+   * @param {string} destinationOverride
+   */
   static distributeNodes(view, nodes, slots, projectionSource, index, destinationOverride) {
     for (let i = 0, ii = nodes.length; i < ii; ++i) {
       let currentNode = nodes[i];
@@ -1819,7 +1945,7 @@ interface IStaticResourceConfig {
   /**
    * List of bindable properties of this custom element / custom attribute, by name or full config object
    */
-  bindables?: (string | IBindablePropertyConfig)[];
+  bindables?: Array<string | IBindablePropertyConfig>;
 }
 
 export function validateBehaviorName(name: string, type: string) {
@@ -3028,6 +3154,9 @@ export class ViewSlot {
     this.children.forEach(view => ShadowDOM.distributeView(view, slots, this));
   }
 
+  /**
+   * @param {View} view
+   */
   _projectionAdd(view) {
     ShadowDOM.distributeView(view, this.projectToSlots, this);
 
@@ -3038,6 +3167,10 @@ export class ViewSlot {
     }
   }
 
+  /**
+   * @param {number} index
+   * @param {View} view
+   */
   _projectionInsert(index, view) {
     if ((index === 0 && !this.children.length) || index >= this.children.length) {
       this.add(view);
@@ -3052,6 +3185,10 @@ export class ViewSlot {
     }
   }
 
+  /**
+   * @param {number} sourceIndex
+   * @param {number} targetIndex
+   */
   _projectionMove(sourceIndex, targetIndex) {
     if (sourceIndex === targetIndex) {
       return;
@@ -3067,6 +3204,10 @@ export class ViewSlot {
     children.splice(targetIndex, 0, view);
   }
 
+  /**
+   * @param {View} view
+   * @param {boolean} returnToCache
+   */
   _projectionRemove(view, returnToCache) {
     ShadowDOM.undistributeView(view, this.projectToSlots, this);
     this.children.splice(this.children.indexOf(view), 1);
@@ -3079,6 +3220,10 @@ export class ViewSlot {
     }
   }
 
+  /**
+   * @param {number} index
+   * @param {boolean} returnToCache
+   */
   _projectionRemoveAt(index, returnToCache) {
     let view = this.children[index];
 
@@ -3093,10 +3238,17 @@ export class ViewSlot {
     }
   }
 
+  /**
+   * @param {View[]} viewsToRemove
+   * @param {boolean} returnToCache
+   */
   _projectionRemoveMany(viewsToRemove, returnToCache?) {
     viewsToRemove.forEach(view => this.remove(view, returnToCache));
   }
 
+  /**
+   * @param {boolean} returnToCache
+   */
   _projectionRemoveAll(returnToCache) {
     ShadowDOM.undistributeAll(this.projectToSlots, this);
 
@@ -3649,8 +3801,12 @@ const defaultLetHandler = BindingLanguage.prototype.createLetExpressions;
 /**
 * Compiles html templates, dom fragments and strings into ViewFactory instances, capable of instantiating Views.
 */
-@inject(BindingLanguage, ViewResources)
 export class ViewCompiler {
+
+  static inject() {
+    return [BindingLanguage, ViewResources];
+  }
+
   /**
   * Creates an instance of ViewCompiler.
   * @param bindingLanguage The default data binding language and syntax used during view compilation.
@@ -4440,8 +4596,12 @@ let auSlotBehavior = null;
 /**
 * Controls the view resource loading pipeline.
 */
-@inject(Loader, Container, ViewCompiler, ModuleAnalyzer, ViewResources)
 export class ViewEngine {
+
+  static inject() {
+    return [Loader, Container, ViewCompiler, ModuleAnalyzer, ViewResources];
+  }
+
   /**
   * The metadata key for storing requires declared in a ViewModel.
   */
@@ -5659,6 +5819,7 @@ export class HtmlBehaviorResource {
     let behavior;
     let derived = target;
 
+    // eslint-disable-next-line no-constant-condition
     while (true) {
       let proto = Object.getPrototypeOf(target.prototype);
       target = proto && proto.constructor;

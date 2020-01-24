@@ -1,4 +1,4 @@
-var _class, _temp, _class2, _temp2, _dec, _class3, _dec2, _class4, _dec3, _class5, _dec4, _class6, _dec5, _class7, _dec6, _class8, _class9, _temp3, _class10, _temp4, _class12, _dec7, _class14, _dec8, _class15, _class16, _temp5, _dec9, _class17, _dec10, _class18, _dec11, _class19;
+var _class, _temp, _class2, _temp2, _dec, _class3, _dec2, _class4, _dec3, _class5, _dec4, _class6, _dec5, _class7, _dec6, _class8, _class9, _temp3, _class10, _temp4, _class12, _class14, _temp5, _dec7, _class15, _dec8, _class16, _dec9, _class17;
 
 import * as LogManager from 'aurelia-logging';
 import { metadata, Origin, protocol } from 'aurelia-metadata';
@@ -769,7 +769,9 @@ export let PassThroughSlot = class PassThroughSlot {
     this.destinationName = destinationName;
     this.fallbackFactory = fallbackFactory;
     this.destinationSlot = null;
+
     this.projections = 0;
+
     this.contentView = null;
 
     let attr = new SlotCustomAttribute(this.anchor);
@@ -873,6 +875,7 @@ export let ShadowSlot = class ShadowSlot {
     this.fallbackFactory = fallbackFactory;
     this.contentView = null;
     this.projections = 0;
+
     this.children = [];
     this.projectFromAnchors = null;
     this.destinationSlots = null;
@@ -920,6 +923,7 @@ export let ShadowSlot = class ShadowSlot {
       let found = this.children.find(x => x.auSlotProjectFrom === projectionSource);
       if (found) {
         let children = found.auProjectionChildren;
+        let ownChildren = this.children;
 
         for (let i = 0, ii = children.length; i < ii; ++i) {
           let child = children[i];
@@ -928,7 +932,12 @@ export let ShadowSlot = class ShadowSlot {
             children.splice(i, 1);
             view.fragment.appendChild(child);
             i--;ii--;
+
             this.projections--;
+            let idx = ownChildren.indexOf(child);
+            if (idx > -1) {
+              ownChildren.splice(idx, 1);
+            }
           }
         }
 
@@ -949,10 +958,17 @@ export let ShadowSlot = class ShadowSlot {
 
       if (found) {
         let children = found.auProjectionChildren;
+        let ownChildren = this.children;
+
         for (let i = 0, ii = children.length; i < ii; ++i) {
           let child = children[i];
           child.auOwnerView.fragment.appendChild(child);
+
           this.projections--;
+          let idx = ownChildren.indexOf(child);
+          if (idx > -1) {
+            ownChildren.splice(idx, 1);
+          }
         }
 
         found.auProjectionChildren = [];
@@ -2515,7 +2531,12 @@ function makeShadowSlot(compiler, resources, node, instructions, parentInjectorI
 
 const defaultLetHandler = BindingLanguage.prototype.createLetExpressions;
 
-export let ViewCompiler = (_dec7 = inject(BindingLanguage, ViewResources), _dec7(_class14 = class ViewCompiler {
+export let ViewCompiler = class ViewCompiler {
+
+  static inject() {
+    return [BindingLanguage, ViewResources];
+  }
+
   constructor(bindingLanguage, resources) {
     this.bindingLanguage = bindingLanguage;
     this.resources = resources;
@@ -2928,7 +2949,7 @@ export let ViewCompiler = (_dec7 = inject(BindingLanguage, ViewResources), _dec7
       }
     }
   }
-}) || _class14);
+};
 
 export let ResourceModule = class ResourceModule {
   constructor(moduleId) {
@@ -3195,7 +3216,12 @@ let ProxyViewFactory = class ProxyViewFactory {
 
 let auSlotBehavior = null;
 
-export let ViewEngine = (_dec8 = inject(Loader, Container, ViewCompiler, ModuleAnalyzer, ViewResources), _dec8(_class15 = (_temp5 = _class16 = class ViewEngine {
+export let ViewEngine = (_temp5 = _class14 = class ViewEngine {
+
+  static inject() {
+    return [Loader, Container, ViewCompiler, ModuleAnalyzer, ViewResources];
+  }
+
   constructor(loader, container, viewCompiler, moduleAnalyzer, appResources) {
     this.loader = loader;
     this.container = container;
@@ -3366,7 +3392,7 @@ export let ViewEngine = (_dec8 = inject(Loader, Container, ViewCompiler, ModuleA
 
     return id;
   }
-}, _class16.viewModelRequireMetadataKey = 'aurelia:view-model-require', _temp5)) || _class15);
+}, _class14.viewModelRequireMetadataKey = 'aurelia:view-model-require', _temp5);
 
 export let Controller = class Controller {
   constructor(behavior, instruction, viewModel, container) {
@@ -3535,7 +3561,7 @@ export let Controller = class Controller {
   }
 };
 
-export let BehaviorPropertyObserver = (_dec9 = subscriberCollection(), _dec9(_class17 = class BehaviorPropertyObserver {
+export let BehaviorPropertyObserver = (_dec7 = subscriberCollection(), _dec7(_class15 = class BehaviorPropertyObserver {
   constructor(taskQueue, obj, propertyName, selfSubscriber, initialValue) {
     this.taskQueue = taskQueue;
     this.obj = obj;
@@ -3593,7 +3619,7 @@ export let BehaviorPropertyObserver = (_dec9 = subscriberCollection(), _dec9(_cl
   unsubscribe(context, callable) {
     this.removeSubscriber(context, callable);
   }
-}) || _class17);
+}) || _class15);
 
 function getObserver(instance, name) {
   let lookup = instance.__observers__;
@@ -4486,7 +4512,7 @@ function tryActivateViewModel(context) {
   return context.viewModel.activate(context.model) || Promise.resolve();
 }
 
-export let CompositionEngine = (_dec10 = inject(ViewEngine, ViewLocator), _dec10(_class18 = class CompositionEngine {
+export let CompositionEngine = (_dec8 = inject(ViewEngine, ViewLocator), _dec8(_class16 = class CompositionEngine {
   constructor(viewEngine, viewLocator) {
     this.viewEngine = viewEngine;
     this.viewLocator = viewLocator;
@@ -4630,7 +4656,7 @@ export let CompositionEngine = (_dec10 = inject(ViewEngine, ViewLocator), _dec10
 
     return Promise.resolve(null);
   }
-}) || _class18);
+}) || _class16);
 
 export let ElementConfigResource = class ElementConfigResource {
   initialize(container, target) {}
@@ -4833,7 +4859,7 @@ export function viewResources(...resources) {
   };
 }
 
-export let TemplatingEngine = (_dec11 = inject(Container, ModuleAnalyzer, ViewCompiler, CompositionEngine), _dec11(_class19 = class TemplatingEngine {
+export let TemplatingEngine = (_dec9 = inject(Container, ModuleAnalyzer, ViewCompiler, CompositionEngine), _dec9(_class17 = class TemplatingEngine {
   constructor(container, moduleAnalyzer, viewCompiler, compositionEngine) {
     this._container = container;
     this._moduleAnalyzer = moduleAnalyzer;
@@ -4873,4 +4899,4 @@ export let TemplatingEngine = (_dec11 = inject(Container, ModuleAnalyzer, ViewCo
 
     return view;
   }
-}) || _class19);
+}) || _class17);

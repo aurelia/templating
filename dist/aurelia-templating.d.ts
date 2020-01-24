@@ -242,7 +242,7 @@ export declare interface IStaticResourceConfig {
   /**
      * List of bindable properties of this custom element / custom attribute, by name or full config object
      */
-  bindables?: string | IBindablePropertyConfig[];
+  bindables?: Array<string | IBindablePropertyConfig>;
 }
 
 /* eslint no-unused-vars: 0, no-constant-condition: 0 */
@@ -1085,14 +1085,58 @@ export declare class SlotCustomAttribute {
 }
 export declare class PassThroughSlot {
   constructor(anchor?: any, name?: any, destinationName?: any, fallbackFactory?: any);
+  
+  /**
+     * Indicate whether this slot should render fallback default slot content
+     */
   needsFallbackRendering: any;
+  
+  /**
+     * @param {View} view
+     * @param {Node[]} nodes
+     * @param {ViewSlot} projectionSource
+     * @param {number} index
+     */
   renderFallbackContent(view?: any, nodes?: any, projectionSource?: any, index?: any): any;
+  
+  /**
+     * @param {PassThroughSlot | ShadowSlot} destinationSlot
+     */
   passThroughTo(destinationSlot?: any): any;
+  
+  /**
+     * @param {View} view
+     * @param {Node} node
+     * @param {ViewSlot} projectionSource
+     * @param {number} index
+     */
   addNode(view?: any, node?: any, projectionSource?: any, index?: any): any;
+  
+  /**
+     * @param {View} view
+     * @param {ViewSlot} projectionSource
+     */
   removeView(view?: any, projectionSource?: any): any;
+  
+  /**
+     * @param {ViewSlot} projectionSource
+     */
   removeAll(projectionSource?: any): any;
+  
+  /**
+     * @param {View} view
+     * @param {ViewSlot} projectionSource
+     */
   projectFrom(view?: any, projectionSource?: any): any;
+  
+  /**
+     * @param {View} ownerView
+     */
   created(ownerView?: any): any;
+  
+  /**
+     * @param {View} view
+     */
   bind(view?: any): any;
   attached(): any;
   detached(): any;
@@ -1101,13 +1145,54 @@ export declare class PassThroughSlot {
 export declare class ShadowSlot {
   constructor(anchor?: any, name?: any, fallbackFactory?: any);
   needsFallbackRendering: any;
+  
+  /**
+     * @param {View} view
+     * @param {Node} node
+     * @param {ViewSlot} projectionSource
+     * @param {number} index
+     * @param {string} destination
+     */
   addNode(view?: any, node?: any, projectionSource?: any, index?: any, destination?: any): any;
+  
+  /**
+     * @param {View} view
+     * @param {ViewSlot} projectionSource
+     */
   removeView(view?: any, projectionSource?: any): any;
+  
+  /**
+     * @param {ViewSlot} projectionSource
+     */
   removeAll(projectionSource?: any): any;
+  
+  /**
+     * @param {Record<string, ShadowSlot | PassThroughSlot>} slots
+     */
   projectTo(slots?: any): any;
+  
+  /**
+     * @param {View} view
+     * @param {ViewSlot} projectionSource
+     */
   projectFrom(view?: any, projectionSource?: any): any;
+  
+  /**
+     * @param {View} view
+     * @param {Node[]} nodes
+     * @param {ViewSlot} projectionSource
+     * @param {number} index
+     */
   renderFallbackContent(view?: any, nodes?: any, projectionSource?: any, index?: any): any;
+  
+  /**
+     * @param {View} ownerView
+     */
   created(ownerView?: any): any;
+  
+  /**
+     * @param {View} view
+     */
   bind(view?: any): any;
   attached(): any;
   detached(): any;
@@ -1116,9 +1201,38 @@ export declare class ShadowSlot {
 export declare class ShadowDOM {
   static defaultSlotKey: any;
   static getSlotName(node?: any): any;
+  
+  /**
+     * @param {View} view
+     * @param {Record<string, PassThroughSlot | ShadowSlot>} slots
+     * @param {ViewSlot} projectionSource
+     * @param {number} index
+     * @param {string} destinationOverride
+     */
   static distributeView(view?: any, slots?: any, projectionSource?: any, index?: any, destinationOverride?: any): any;
+  
+  /**
+     * @param {View} view
+     * @param {Record<string, PassThroughSlot | ShadowSlot>} slots
+     * @param {ViewSlot} projectionSource
+     */
   static undistributeView(view?: any, slots?: any, projectionSource?: any): any;
+  
+  /**
+     * @param {Record<string, ShadowSlot | PassThroughSlot>} slots
+     * @param {ViewSlot} projectionSource
+     */
   static undistributeAll(slots?: any, projectionSource?: any): any;
+  
+  /**
+     * Distrbiute nodes of a projected view based on
+     * @param {View} view
+     * @param {Node[]} nodes
+     * @param {Record<string, PassThroughSlot | ShadowSlot>} slots
+     * @param {ViewSlot} projectionSource
+     * @param {number} index
+     * @param {string} destinationOverride
+     */
   static distributeNodes(view?: any, nodes?: any, slots?: any, projectionSource?: any, index?: any, destinationOverride?: any): any;
 }
 export declare function validateBehaviorName(name: string, type: string): any;
@@ -1567,6 +1681,7 @@ export declare class ViewFactory {
 * Compiles html templates, dom fragments and strings into ViewFactory instances, capable of instantiating Views.
 */
 export declare class ViewCompiler {
+  static inject(): any;
   
   /**
     * Creates an instance of ViewCompiler.
@@ -1684,6 +1799,7 @@ export declare class ModuleAnalyzer {
 * Controls the view resource loading pipeline.
 */
 export declare class ViewEngine {
+  static inject(): any;
   
   /**
     * The metadata key for storing requires declared in a ViewModel.

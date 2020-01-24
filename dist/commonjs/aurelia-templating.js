@@ -9,7 +9,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-var _class, _temp, _class2, _temp2, _dec, _class3, _dec2, _class4, _dec3, _class5, _dec4, _class6, _dec5, _class7, _dec6, _class8, _class9, _temp3, _class10, _temp4, _class12, _dec7, _class14, _dec8, _class15, _class16, _temp5, _dec9, _class17, _dec10, _class18, _dec11, _class19;
+var _class, _temp, _class2, _temp2, _dec, _class3, _dec2, _class4, _dec3, _class5, _dec4, _class6, _dec5, _class7, _dec6, _class8, _class9, _temp3, _class10, _temp4, _class12, _class14, _temp5, _dec7, _class15, _dec8, _class16, _dec9, _class17;
 
 exports._hyphenate = _hyphenate;
 exports._isAllWhitespace = _isAllWhitespace;
@@ -926,7 +926,9 @@ var PassThroughSlot = exports.PassThroughSlot = function () {
     this.destinationName = destinationName;
     this.fallbackFactory = fallbackFactory;
     this.destinationSlot = null;
+
     this.projections = 0;
+
     this.contentView = null;
 
     var attr = new SlotCustomAttribute(this.anchor);
@@ -1037,6 +1039,7 @@ var ShadowSlot = exports.ShadowSlot = function () {
     this.fallbackFactory = fallbackFactory;
     this.contentView = null;
     this.projections = 0;
+
     this.children = [];
     this.projectFromAnchors = null;
     this.destinationSlots = null;
@@ -1082,6 +1085,7 @@ var ShadowSlot = exports.ShadowSlot = function () {
       });
       if (found) {
         var _children = found.auProjectionChildren;
+        var ownChildren = this.children;
 
         for (var i = 0, ii = _children.length; i < ii; ++i) {
           var _child = _children[i];
@@ -1090,7 +1094,12 @@ var ShadowSlot = exports.ShadowSlot = function () {
             _children.splice(i, 1);
             view.fragment.appendChild(_child);
             i--;ii--;
+
             this.projections--;
+            var idx = ownChildren.indexOf(_child);
+            if (idx > -1) {
+              ownChildren.splice(idx, 1);
+            }
           }
         }
 
@@ -1113,10 +1122,17 @@ var ShadowSlot = exports.ShadowSlot = function () {
 
       if (found) {
         var _children2 = found.auProjectionChildren;
+        var ownChildren = this.children;
+
         for (var i = 0, ii = _children2.length; i < ii; ++i) {
           var _child2 = _children2[i];
           _child2.auOwnerView.fragment.appendChild(_child2);
+
           this.projections--;
+          var idx = ownChildren.indexOf(_child2);
+          if (idx > -1) {
+            ownChildren.splice(idx, 1);
+          }
         }
 
         found.auProjectionChildren = [];
@@ -2753,7 +2769,11 @@ function makeShadowSlot(compiler, resources, node, instructions, parentInjectorI
 
 var defaultLetHandler = BindingLanguage.prototype.createLetExpressions;
 
-var ViewCompiler = exports.ViewCompiler = (_dec7 = (0, _aureliaDependencyInjection.inject)(BindingLanguage, ViewResources), _dec7(_class14 = function () {
+var ViewCompiler = exports.ViewCompiler = function () {
+  ViewCompiler.inject = function inject() {
+    return [BindingLanguage, ViewResources];
+  };
+
   function ViewCompiler(bindingLanguage, resources) {
     
 
@@ -3170,7 +3190,7 @@ var ViewCompiler = exports.ViewCompiler = (_dec7 = (0, _aureliaDependencyInjecti
   };
 
   return ViewCompiler;
-}()) || _class14);
+}();
 
 var ResourceModule = exports.ResourceModule = function () {
   function ResourceModule(moduleId) {
@@ -3459,7 +3479,11 @@ var ProxyViewFactory = function () {
 
 var auSlotBehavior = null;
 
-var ViewEngine = exports.ViewEngine = (_dec8 = (0, _aureliaDependencyInjection.inject)(_aureliaLoader.Loader, _aureliaDependencyInjection.Container, ViewCompiler, ModuleAnalyzer, ViewResources), _dec8(_class15 = (_temp5 = _class16 = function () {
+var ViewEngine = exports.ViewEngine = (_temp5 = _class14 = function () {
+  ViewEngine.inject = function inject() {
+    return [_aureliaLoader.Loader, _aureliaDependencyInjection.Container, ViewCompiler, ModuleAnalyzer, ViewResources];
+  };
+
   function ViewEngine(loader, container, viewCompiler, moduleAnalyzer, appResources) {
     
 
@@ -3648,7 +3672,7 @@ var ViewEngine = exports.ViewEngine = (_dec8 = (0, _aureliaDependencyInjection.i
   };
 
   return ViewEngine;
-}(), _class16.viewModelRequireMetadataKey = 'aurelia:view-model-require', _temp5)) || _class15);
+}(), _class14.viewModelRequireMetadataKey = 'aurelia:view-model-require', _temp5);
 
 var Controller = exports.Controller = function () {
   function Controller(behavior, instruction, viewModel, container) {
@@ -3821,7 +3845,7 @@ var Controller = exports.Controller = function () {
   return Controller;
 }();
 
-var BehaviorPropertyObserver = exports.BehaviorPropertyObserver = (_dec9 = (0, _aureliaBinding.subscriberCollection)(), _dec9(_class17 = function () {
+var BehaviorPropertyObserver = exports.BehaviorPropertyObserver = (_dec7 = (0, _aureliaBinding.subscriberCollection)(), _dec7(_class15 = function () {
   function BehaviorPropertyObserver(taskQueue, obj, propertyName, selfSubscriber, initialValue) {
     
 
@@ -3883,7 +3907,7 @@ var BehaviorPropertyObserver = exports.BehaviorPropertyObserver = (_dec9 = (0, _
   };
 
   return BehaviorPropertyObserver;
-}()) || _class17);
+}()) || _class15);
 
 
 function getObserver(instance, name) {
@@ -4814,7 +4838,7 @@ function tryActivateViewModel(context) {
   return context.viewModel.activate(context.model) || Promise.resolve();
 }
 
-var CompositionEngine = exports.CompositionEngine = (_dec10 = (0, _aureliaDependencyInjection.inject)(ViewEngine, ViewLocator), _dec10(_class18 = function () {
+var CompositionEngine = exports.CompositionEngine = (_dec8 = (0, _aureliaDependencyInjection.inject)(ViewEngine, ViewLocator), _dec8(_class16 = function () {
   function CompositionEngine(viewEngine, viewLocator) {
     
 
@@ -4980,7 +5004,7 @@ var CompositionEngine = exports.CompositionEngine = (_dec10 = (0, _aureliaDepend
   };
 
   return CompositionEngine;
-}()) || _class18);
+}()) || _class16);
 
 var ElementConfigResource = exports.ElementConfigResource = function () {
   function ElementConfigResource() {
@@ -5192,7 +5216,7 @@ function viewResources() {
   };
 }
 
-var TemplatingEngine = exports.TemplatingEngine = (_dec11 = (0, _aureliaDependencyInjection.inject)(_aureliaDependencyInjection.Container, ModuleAnalyzer, ViewCompiler, CompositionEngine), _dec11(_class19 = function () {
+var TemplatingEngine = exports.TemplatingEngine = (_dec9 = (0, _aureliaDependencyInjection.inject)(_aureliaDependencyInjection.Container, ModuleAnalyzer, ViewCompiler, CompositionEngine), _dec9(_class17 = function () {
   function TemplatingEngine(container, moduleAnalyzer, viewCompiler, compositionEngine) {
     
 
@@ -5236,4 +5260,4 @@ var TemplatingEngine = exports.TemplatingEngine = (_dec11 = (0, _aureliaDependen
   };
 
   return TemplatingEngine;
-}()) || _class19);
+}()) || _class17);
