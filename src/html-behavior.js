@@ -27,7 +27,7 @@ function doProcessAttributes() {}
 */
 export class HtmlBehaviorResource {
   viewFactory: ViewFactory;
-  
+
   /**
   * Creates an instance of HtmlBehaviorResource.
   */
