@@ -362,8 +362,8 @@ export class ViewFactory {
   isCaching = false;
 
   /**
-   * The resources used to compile this factory.
-   */
+  * The resources used to compile this factory.
+  */
   resources: ViewResources;
 
   /**
