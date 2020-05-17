@@ -49,7 +49,7 @@ export function child(selectorOrConfig: string | Object): any {
  * @internal
  * @typedef HasChildObserver
  * @property {BindableMutationObserver} __childObserver__
- * 
+ *
  * @internal
  * @typedef {Element & HasChildObserver} BindableMutationObserverHost
  */
@@ -73,7 +73,6 @@ class ChildObserver {
 const noMutations = [];
 
 /**
- * 
  * @param {Map<ChildObserverBinder, MutationRecord[]>} groupedMutations
  * @param {ChildObserverBinder} binder
  * @param {MutationRecord} record
