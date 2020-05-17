@@ -42,7 +42,7 @@ export function child(selectorOrConfig: string | Object): any {
  * @internal
  * @typedef MutationObserverBinder
  * @property {ChildObserverBinder[]} binders
- * 
+ *
  * @internal
  * @typedef {MutationObserverBinder & MutationObserver} BindableMutationObserver
  *
