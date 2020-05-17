@@ -363,6 +363,7 @@ class ChildObserverBinder {
       return;
     }
     this.isBound = false;
+    this.source = null;
     let childObserver = this.viewHost.__childObserver__;
     if (childObserver) {
       let binders = childObserver.binders;
