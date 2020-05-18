@@ -41,7 +41,7 @@ function(config) {
       performance: {
         hints: false,
       },
-      devtool: Array.isArray(browsers) && browsers.includes('ChromeDebugging') ? 'eval-source-map' : 'inline-source-map',
+      devtool: Array.isArray(browsers) && browsers.includes('ChromeDebugging') ? 'inline-source-map' : 'inline-source-map',
       module: {
         rules: [
           {
@@ -52,13 +52,15 @@ function(config) {
                 options: {
                   presets: [
                     '@babel/preset-typescript',
-                    '@babel/preset-env'
+                    ['@babel/preset-env', { targets: { chrome: '70' } }]
                   ],
                   plugins: [
                     ['@babel/plugin-transform-typescript', { allExtensions: true }],
                     ["@babel/plugin-transform-runtime", { regenerator: true }],
                     ["@babel/plugin-proposal-decorators", { legacy: true }],
-                    ["@babel/plugin-proposal-class-properties", { loose: true }]
+                    ["@babel/plugin-proposal-class-properties", { loose: true }],
+                    ["@babel/plugin-proposal-nullish-coalescing-operator", { loose: true }],
+                    ["@babel/plugin-proposal-optional-chaining", { loose: true }]
                   ]
                 },
               }
@@ -70,7 +72,8 @@ function(config) {
       plugins: [
         new AureliaPlugin({
           aureliaApp: undefined,
-          noWebpackLoader: true
+          noWebpackLoader: true,
+          dist: 'es2015'
         })
       ]
     },
