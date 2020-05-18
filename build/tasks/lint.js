@@ -6,5 +6,7 @@ gulp.task('lint', function() {
   return gulp.src(paths.source)
     .pipe(eslint())
     .pipe(eslint.format())
-    .pipe(eslint.failOnError());
+    // failOnError:     bail immediately on any error
+    // failAfterError:  aggregate all errors before bailing
+    .pipe(eslint.failAfterError());
 });

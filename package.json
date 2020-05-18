@@ -36,7 +36,8 @@
     "test:debugger": "karma start --browsers ChromeDebugging",
     "build": "gulp build",
     "cut-release": "gulp prepare-release",
-    "ci": "gulp ci"
+    "ci": "gulp ci",
+    "lint": "gulp lint"
   },
   "jspm": {
     "registry": "npm",
