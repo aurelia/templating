@@ -4616,6 +4616,7 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
   function onChildChange(mutations, observer) {
     var binders = observer.binders;
     var bindersLength = binders.length;
+
     var groupedMutations = new Map();
 
     for (var _i10 = 0, _ii9 = mutations.length; _i10 < _ii9; ++_i10) {
@@ -4628,6 +4629,7 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
         if (_node.nodeType === 1) {
           for (var k = 0; k < bindersLength; ++k) {
             var binder = binders[k];
+
             if (binder.onRemove(_node)) {
               trackMutation(groupedMutations, binder, record);
             }
@@ -4640,6 +4642,7 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
         if (_node2.nodeType === 1) {
           for (var _k = 0; _k < bindersLength; ++_k) {
             var _binder = binders[_k];
+
             if (_binder.onAdd(_node2)) {
               trackMutation(groupedMutations, _binder, record);
             }
@@ -4648,9 +4651,9 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
       }
     }
 
-    groupedMutations.forEach(function (value, key) {
-      if (key.changeHandler !== null) {
-        key.viewModel[key.changeHandler](value);
+    groupedMutations.forEach(function (mutationRecords, binder) {
+      if (binder.isBound && binder.changeHandler !== null) {
+        binder.viewModel[binder.changeHandler](mutationRecords);
       }
     });
   }
@@ -4660,6 +4663,7 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
       
 
       this.selector = selector;
+
       this.viewHost = viewHost;
       this.property = property;
       this.viewModel = viewModel;
@@ -4673,6 +4677,8 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
       } else {
         this.contentView = null;
       }
+      this.source = null;
+      this.isBound = false;
     }
 
     ChildObserverBinder.prototype.matches = function matches(element) {
@@ -4703,6 +4709,14 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
     };
 
     ChildObserverBinder.prototype.bind = function bind(source) {
+      if (this.isBound) {
+        if (this.source === source) {
+          return;
+        }
+        this.source = source;
+      }
+      this.isBound = true;
+
       var viewHost = this.viewHost;
       var viewModel = this.viewModel;
       var observer = viewHost.__childObserver__;
@@ -4777,7 +4791,14 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
           return true;
         }
 
-        return false;
+        var currentValue = this.viewModel[this.property];
+        if (currentValue === _value2) {
+          this.viewModel[this.property] = null;
+
+          if (this.isBound && this.changeHandler !== null) {
+            this.viewModel[this.changeHandler](_value2);
+          }
+        }
       }
 
       return false;
@@ -4812,7 +4833,7 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
 
         this.viewModel[this.property] = _value3;
 
-        if (this.changeHandler !== null) {
+        if (this.isBound && this.changeHandler !== null) {
           this.viewModel[this.changeHandler](_value3);
         }
       }
@@ -4821,10 +4842,28 @@ define(['exports', 'aurelia-logging', 'aurelia-metadata', 'aurelia-pal', 'aureli
     };
 
     ChildObserverBinder.prototype.unbind = function unbind() {
-      if (this.viewHost.__childObserver__) {
-        this.viewHost.__childObserver__.disconnect();
-        this.viewHost.__childObserver__ = null;
-        this.viewModel[this.property] = null;
+      if (!this.isBound) {
+        return;
+      }
+      this.isBound = false;
+      this.source = null;
+      var childObserver = this.viewHost.__childObserver__;
+      if (childObserver) {
+        var binders = childObserver.binders;
+        if (binders && binders.length) {
+          var idx = binders.indexOf(this);
+          if (idx !== -1) {
+            binders.splice(idx, 1);
+          }
+          if (binders.length === 0) {
+            childObserver.disconnect();
+            this.viewHost.__childObserver__ = null;
+          }
+        }
+
+        if (this.usesShadowDOM) {
+          this.viewModel[this.property] = null;
+        }
       }
     };
 

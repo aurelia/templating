@@ -1,5 +1,5 @@
 <a name="1.10.4"></a>
-## [1.10.4](https://github.com/aurelia/templating/compare/1.10.1...1.10.4) (2020-01-28)
+## [1.10.4](https://github.com/aurelia/templating/compare/1.10.1...1.10.4) (2020-05-18)
 
 
 ### Bug Fixes

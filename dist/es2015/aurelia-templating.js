@@ -4274,6 +4274,7 @@ function trackMutation(groupedMutations, binder, record) {
 function onChildChange(mutations, observer) {
   let binders = observer.binders;
   let bindersLength = binders.length;
+
   let groupedMutations = new Map();
 
   for (let i = 0, ii = mutations.length; i < ii; ++i) {
@@ -4286,6 +4287,7 @@ function onChildChange(mutations, observer) {
       if (node.nodeType === 1) {
         for (let k = 0; k < bindersLength; ++k) {
           let binder = binders[k];
+
           if (binder.onRemove(node)) {
             trackMutation(groupedMutations, binder, record);
           }
@@ -4298,6 +4300,7 @@ function onChildChange(mutations, observer) {
       if (node.nodeType === 1) {
         for (let k = 0; k < bindersLength; ++k) {
           let binder = binders[k];
+
           if (binder.onAdd(node)) {
             trackMutation(groupedMutations, binder, record);
           }
@@ -4306,9 +4309,9 @@ function onChildChange(mutations, observer) {
     }
   }
 
-  groupedMutations.forEach((value, key) => {
-    if (key.changeHandler !== null) {
-      key.viewModel[key.changeHandler](value);
+  groupedMutations.forEach((mutationRecords, binder) => {
+    if (binder.isBound && binder.changeHandler !== null) {
+      binder.viewModel[binder.changeHandler](mutationRecords);
     }
   });
 }
@@ -4316,6 +4319,7 @@ function onChildChange(mutations, observer) {
 let ChildObserverBinder = class ChildObserverBinder {
   constructor(selector, viewHost, property, viewModel, controller, changeHandler, all) {
     this.selector = selector;
+
     this.viewHost = viewHost;
     this.property = property;
     this.viewModel = viewModel;
@@ -4329,6 +4333,8 @@ let ChildObserverBinder = class ChildObserverBinder {
     } else {
       this.contentView = null;
     }
+    this.source = null;
+    this.isBound = false;
   }
 
   matches(element) {
@@ -4359,6 +4365,14 @@ let ChildObserverBinder = class ChildObserverBinder {
   }
 
   bind(source) {
+    if (this.isBound) {
+      if (this.source === source) {
+        return;
+      }
+      this.source = source;
+    }
+    this.isBound = true;
+
     let viewHost = this.viewHost;
     let viewModel = this.viewModel;
     let observer = viewHost.__childObserver__;
@@ -4433,7 +4447,14 @@ let ChildObserverBinder = class ChildObserverBinder {
         return true;
       }
 
-      return false;
+      const currentValue = this.viewModel[this.property];
+      if (currentValue === value) {
+        this.viewModel[this.property] = null;
+
+        if (this.isBound && this.changeHandler !== null) {
+          this.viewModel[this.changeHandler](value);
+        }
+      }
     }
 
     return false;
@@ -4468,7 +4489,7 @@ let ChildObserverBinder = class ChildObserverBinder {
 
       this.viewModel[this.property] = value;
 
-      if (this.changeHandler !== null) {
+      if (this.isBound && this.changeHandler !== null) {
         this.viewModel[this.changeHandler](value);
       }
     }
@@ -4477,10 +4498,28 @@ let ChildObserverBinder = class ChildObserverBinder {
   }
 
   unbind() {
-    if (this.viewHost.__childObserver__) {
-      this.viewHost.__childObserver__.disconnect();
-      this.viewHost.__childObserver__ = null;
-      this.viewModel[this.property] = null;
+    if (!this.isBound) {
+      return;
+    }
+    this.isBound = false;
+    this.source = null;
+    let childObserver = this.viewHost.__childObserver__;
+    if (childObserver) {
+      let binders = childObserver.binders;
+      if (binders && binders.length) {
+        let idx = binders.indexOf(this);
+        if (idx !== -1) {
+          binders.splice(idx, 1);
+        }
+        if (binders.length === 0) {
+          childObserver.disconnect();
+          this.viewHost.__childObserver__ = null;
+        }
+      }
+
+      if (this.usesShadowDOM) {
+        this.viewModel[this.property] = null;
+      }
     }
   }
 };
