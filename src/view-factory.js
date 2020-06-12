@@ -362,6 +362,11 @@ export class ViewFactory {
   isCaching = false;
 
   /**
+  * The resources used to compile this factory.
+  */
+  resources: ViewResources;
+
+  /**
   * Creates an instance of ViewFactory.
   * @param template The document fragment that serves as a template for the view to be created.
   * @param instructions The instructions to be applied ot the template during the creation of a view.
