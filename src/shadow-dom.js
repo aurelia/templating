@@ -53,6 +53,7 @@ export class PassThroughSlot {
   renderFallbackContent(view, nodes, projectionSource, index) {
     if (this.contentView === null) {
       this.contentView = this.fallbackFactory.create(this.ownerView.container);
+      this.contentView._isSlotFallback = true;
       this.contentView.bind(this.ownerView.bindingContext, this.ownerView.overrideContext);
 
       let slots = Object.create(null);
@@ -372,6 +373,7 @@ export class ShadowSlot {
   renderFallbackContent(view, nodes, projectionSource, index) {
     if (this.contentView === null) {
       this.contentView = this.fallbackFactory.create(this.ownerView.container);
+      this.contentView._isSlotFallback = true;
       this.contentView.bind(this.ownerView.bindingContext, this.ownerView.overrideContext);
       this.contentView.insertNodesBefore(this.anchor);
     }
