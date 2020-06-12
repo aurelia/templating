@@ -55,7 +55,7 @@ export function customElement(name: string): any {
 * @param defaultBindingMode The default binding mode to use when the attribute is bound with .bind.
 * @param aliases The array of aliases to associate to the custom attribute.
 */
-export function customAttribute(name: string, defaultBindingMode?: number, aliases?: string[]): any {
+export function customAttribute(name: string, defaultBindingMode?: bindingMode, aliases?: string[]): any {
   return function(target) {
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, target);
     r.attributeName = validateBehaviorName(name, 'custom attribute');
@@ -82,7 +82,7 @@ export function templateController(target?): any {
 * Decorator: Specifies that a property is bindable through HTML.
 * @param nameOrConfigOrTarget The name of the property, or a configuration object.
 */
-export function bindable(nameOrConfigOrTarget?: string | Object, key?, descriptor?): any {
+export function bindable(nameOrConfigOrTarget?: string | BindablePropertyConfig, key?, descriptor?): any {
   let deco = function(target, key2, descriptor2) {
     let actualTarget = key2 ? target.constructor : target; //is it on a property or a class?
     let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, actualTarget);
@@ -221,14 +221,14 @@ export function useView(path: string): any {
 * @param dependencies A list of dependencies that the template has.
 * @param dependencyBaseUrl A base url from which the dependencies will be loaded.
 */
-export function inlineView(markup:string, dependencies?:Array<string|Function|Object>, dependencyBaseUrl?:string): any {
+export function inlineView(markup: string, dependencies?: Array<string | Function | Object>, dependencyBaseUrl?: string): any {
   return useViewStrategy(new InlineViewStrategy(markup, dependencies, dependencyBaseUrl));
 }
 
 /**
 * Decorator: Indicates that the component has no view.
 */
-export function noView(targetOrDependencies?:Function|Array<any>, dependencyBaseUrl?:string): any {
+export function noView(targetOrDependencies?: Function | Array<any>, dependencyBaseUrl?: string): any {
   let target;
   let dependencies;
   if (typeof targetOrDependencies === 'function') {

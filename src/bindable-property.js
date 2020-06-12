@@ -33,9 +33,9 @@ function getObserver(instance, name) {
 export class BindableProperty {
   /**
   * Creates an instance of BindableProperty.
-  * @param nameOrConfig The name of the property or a cofiguration object.
+  * @param nameOrConfig The name of the property or a configuration object.
   */
-  constructor(nameOrConfig: string | Object) {
+  constructor(nameOrConfig: string | BindablePropertyConfig) {
     if (typeof nameOrConfig === 'string') {
       this.name = nameOrConfig;
     } else {

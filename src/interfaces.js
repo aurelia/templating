@@ -1,3 +1,4 @@
+import {bindingMode} from 'aurelia-binding';
 import {View} from './view';
 import {ViewStrategy} from './view-strategy';
 
@@ -66,4 +67,30 @@ interface DynamicComponentGetViewStrategy {
     * Implement this hook if you want to provide custom view strategy when this component is used with the compose element or the router.
     */
     getViewStrategy(): string|ViewStrategy;
+}
+
+/**
+* An optional interface describing the configuration object that can be specified to customize bindable properties.
+*/
+interface BindablePropertyConfig {
+  /**
+  * The default binding mode of the property.
+  */
+  defaultBindingMode?: bindingMode;
+  /**
+  * The name of a view model method to invoke when the property is updated.
+  */
+  changeHandler?: string;
+  /**
+  * Designates the property as the default bindable property among all the other bindable properties when used in a custom attribute with multiple bindable properties.
+  */
+  primaryProperty?: boolean;
+  /**
+  * The name of the property.
+  */
+  name?: string;
+  /**
+  * A default value for the property.
+  */
+  defaultValue?: any
 }
