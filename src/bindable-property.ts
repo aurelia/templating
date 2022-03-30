@@ -284,7 +284,7 @@ export class BindableProperty {
   }
 }
 
-interface BoundPropertyInfo {
+export interface BoundPropertyInfo {
   observer: BehaviorPropertyObserver;
   binding: Binding;
 }

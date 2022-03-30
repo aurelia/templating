@@ -91,19 +91,19 @@ export class HtmlBehaviorResource {
   target: Function;
 
   /** @internal */
-  private handlesCreated: boolean;
+  handlesCreated: boolean;
 
   /** @internal */
-  private handlesBind: boolean;
+  handlesBind: boolean;
 
   /** @internal */
-  private handlesUnbind: boolean;
+  handlesUnbind: boolean;
 
   /** @internal */
-  private handlesAttached: boolean;
+  handlesAttached: boolean;
 
   /** @internal */
-  private handlesDetached: boolean;
+  handlesDetached: boolean;
 
   /** @internal */
   private htmlName: any;

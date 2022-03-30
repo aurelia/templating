@@ -1,5 +1,12 @@
-import {createOverrideContext} from 'aurelia-binding';
+import {createOverrideContext, Scope} from 'aurelia-binding';
+import { Container } from 'aurelia-dependency-injection';
+import { BehaviorPropertyObserver } from './behavior-property-observer';
+import { BoundPropertyInfo } from './bindable-property';
+import { ElementEvents } from './element-events';
 import { HtmlBehaviorResource } from './html-behavior';
+import { BehaviorInstruction } from './instructions';
+import { ComponentAttached, ComponentBind, ComponentCreated, ComponentDetached, ComponentUnbind } from './interfaces';
+import { View } from './view';
 
 /**
 * Controls a view model (and optionally its view), according to a particular behavior and by following a set of instructions.
@@ -20,6 +27,28 @@ export class Controller {
   * Note: Not all components will have a view, so the value may be null.
   */
   view: View;
+
+
+  /** @internal */
+  private instruction: BehaviorInstruction;
+
+  /** @internal */
+  private isAttached: boolean;
+
+  /** @internal */
+  private isBound: boolean;
+
+  /** @internal */
+  private scope: any;
+
+  /** @internal */
+  private container: Container;
+
+  /** @internal */
+  private elementEvents: any;
+
+  /** @internal */
+  private boundProperties: any[];
 
   /**
   * Creates an instance of Controller.
@@ -60,7 +89,7 @@ export class Controller {
   */
   created(owningView: View): void {
     if (this.behavior.handlesCreated) {
-      this.viewModel.created(owningView, this.view);
+      (this.viewModel as ComponentCreated).created(owningView, this.view);
     }
   }
 
@@ -76,7 +105,7 @@ export class Controller {
     this.view._isUserControlled = true;
 
     if (this.behavior.handlesCreated) {
-      this.viewModel.created(owningView || null, this.view);
+      (this.viewModel as ComponentCreated).created(owningView || null, this.view);
     }
 
     this.bind(this.view);
@@ -91,8 +120,8 @@ export class Controller {
     let boundProperties = this.boundProperties;
     let i;
     let ii;
-    let x;
-    let observer;
+    let x: BoundPropertyInfo;
+    let observer: BehaviorPropertyObserver;
     let selfSubscriber;
 
     if (this.isBound) {
@@ -116,7 +145,7 @@ export class Controller {
         observer.selfSubscriber = null;
       }
 
-      x.binding.bind(scope);
+      x.binding.bind(scope as Scope);
       observer.call();
 
       observer.publishing = true;
@@ -130,34 +159,34 @@ export class Controller {
       }
       // do we need to create an overrideContext or is the scope's overrideContext
       // valid for this viewModel?
-      if (this.viewModel === scope.overrideContext.bindingContext) {
-        overrideContext = scope.overrideContext;
+      if (this.viewModel === (scope as Scope).overrideContext.bindingContext) {
+        overrideContext = (scope as Scope).overrideContext;
       // should we inherit the parent scope? (eg compose / router)
       } else if (this.instruction.inheritBindingContext) {
-        overrideContext = createOverrideContext(this.viewModel, scope.overrideContext);
+        overrideContext = createOverrideContext(this.viewModel, (scope as Scope).overrideContext);
       // create the overrideContext and capture the parent without making it
       // available to AccessScope. We may need it later for template-part replacements.
       } else {
         overrideContext = createOverrideContext(this.viewModel);
-        overrideContext.__parentOverrideContext = scope.overrideContext;
+        overrideContext.__parentOverrideContext = (scope as Scope).overrideContext;
       }
 
       this.view.bind(this.viewModel, overrideContext);
     } else if (skipSelfSubscriber) {
-      overrideContext = scope.overrideContext;
+      overrideContext = (scope as Scope).overrideContext;
       // the factoryCreateInstruction's partReplacements will either be null or an object
       // containing the replacements. If there are partReplacements we need to preserve the parent
       // context to allow replacement parts to bind to both the custom element scope and the ambient scope.
       // Note that factoryCreateInstruction is a property defined on BoundViewFactory. The code below assumes the
       // behavior stores a the BoundViewFactory on its viewModel under the name of viewFactory. This is implemented
       // by the replaceable custom attribute.
-      if (scope.overrideContext.__parentOverrideContext !== undefined
-        && this.viewModel.viewFactory && this.viewModel.viewFactory.factoryCreateInstruction.partReplacements) {
+      if ((scope as Scope).overrideContext.__parentOverrideContext !== undefined
+        && (this.viewModel as any).viewFactory && (this.viewModel as any).viewFactory.factoryCreateInstruction.partReplacements) {
         // clone the overrideContext and connect the ambient context.
-        overrideContext = Object.assign({}, scope.overrideContext);
-        overrideContext.parentOverrideContext = scope.overrideContext.__parentOverrideContext;
+        overrideContext = Object.assign({}, (scope as Scope).overrideContext);
+        overrideContext.parentOverrideContext = (scope as Scope).overrideContext.__parentOverrideContext;
       }
-      this.viewModel.bind(scope.bindingContext, overrideContext);
+      (this.viewModel as ComponentBind).bind((scope as Scope).bindingContext, overrideContext);
     }
   }
 
@@ -178,7 +207,7 @@ export class Controller {
       }
 
       if (this.behavior.handlesUnbind) {
-        this.viewModel.unbind();
+        (this.viewModel as ComponentUnbind).unbind();
       }
 
       if (this.elementEvents !== null) {
@@ -202,7 +231,7 @@ export class Controller {
     this.isAttached = true;
 
     if (this.behavior.handlesAttached) {
-      this.viewModel.attached();
+      (this.viewModel as ComponentAttached).attached();
     }
 
     if (this.view !== null) {
@@ -222,8 +251,22 @@ export class Controller {
       }
 
       if (this.behavior.handlesDetached) {
-        this.viewModel.detached();
+        (this.viewModel as ComponentDetached).detached();
       }
     }
+  }
+}
+
+/** @internal */
+declare module 'aurelia-dependency-injection' {
+  interface Container {
+    elementEvents: ElementEvents;
+  }
+}
+
+/** @internal */
+declare module 'aurelia-binding' {
+  interface OverrideContext {
+    __parentOverrideContext: OverrideContext;
   }
 }
