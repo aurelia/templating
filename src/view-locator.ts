@@ -1,5 +1,5 @@
 import {metadata, Origin} from 'aurelia-metadata';
-import {RelativeViewStrategy, ConventionalViewStrategy, StaticViewStrategy, viewStrategy, NoViewStrategy, ViewStrategy} from './view-strategy';
+import {RelativeViewStrategy, ConventionalViewStrategy, StaticViewStrategy, viewStrategy, NoViewStrategy, ViewStrategy } from './view-strategy';
 
 /**
 * Locates a view for an object.
@@ -32,7 +32,7 @@ export class ViewLocator {
       viewStrategy.assert(value);
 
       if (origin.moduleId) {
-        value.makeRelativeTo(origin.moduleId);
+        (value as RelativeViewStrategy).makeRelativeTo(origin.moduleId);
       }
 
       return value;

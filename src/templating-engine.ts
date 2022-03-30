@@ -4,15 +4,16 @@ import {Controller} from './controller';
 import {ModuleAnalyzer} from './module-analyzer';
 import {Animator} from './animator';
 import {ViewResources} from './view-resources';
-import {CompositionEngine} from './composition-engine';
+import {CompositionContext, CompositionEngine} from './composition-engine';
 import {ViewFactory} from './view-factory';
 import {ViewCompiler} from './view-compiler';
 import {BehaviorInstruction} from './instructions';
+import { View } from './view';
 
 /**
 * Instructs the framework in how to enhance an existing DOM structure.
 */
-interface EnhanceInstruction {
+export interface EnhanceInstruction {
   /**
   * The DI container to use as the root for UI enhancement.
   */
@@ -40,6 +41,15 @@ interface EnhanceInstruction {
 */
 @inject(Container, ModuleAnalyzer, ViewCompiler, CompositionEngine)
 export class TemplatingEngine {
+  /** @internal */
+  private _container: Container;
+  /** @internal */
+  private _moduleAnalyzer: ModuleAnalyzer;
+  /** @internal */
+  private _viewCompiler: ViewCompiler;
+  /** @internal */
+  private _compositionEngine: CompositionEngine;
+
   /**
   * Creates an instance of TemplatingEngine.
   * @param container The root DI container.
@@ -90,13 +100,14 @@ export class TemplatingEngine {
 
     this._viewCompiler._compileNode(instruction.element, resources, compilerInstructions, instruction.element.parentNode, 'root', true);
 
-    let factory = new ViewFactory(instruction.element, compilerInstructions, resources);
+    // todo(typings): view factory should accept Element beside Document fragment
+    let factory = new ViewFactory(instruction.element as unknown as DocumentFragment, compilerInstructions, resources);
     let container = instruction.container || this._container.createChild();
     let view = factory.create(container, BehaviorInstruction.enhance());
 
     view.bind(instruction.bindingContext || {}, instruction.overrideContext);
 
-    view.firstChild = view.lastChild = view.fragment;
+    view.firstChild = view.lastChild = view.fragment as ChildNode;
     view.fragment = DOM.createDocumentFragment();
     view.attached();
 

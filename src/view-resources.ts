@@ -169,26 +169,37 @@ const conventionMark = '__au_resource__';
  * Will optinally add information to an existing HtmlBehaviorResource if given
  */
 export class ViewResources {
+
   /** @internal */
   private parent: ViewResources;
+
   /** @internal */
   private hasParent: boolean;
+
   /** @internal */
-  private viewUrl: string;
+  viewUrl: string;
+
   /** @internal */
   private lookupFunctions: { valueConverters: any; bindingBehaviors: any; };
+
   /** @internal */
   private attributes: any;
+
   /** @internal */
   private elements: any;
+
   /** @internal */
   private valueConverters: any;
+
   /** @internal */
   private bindingBehaviors: any;
+
   /** @internal */
   private attributeMap: any;
+
   /** @internal */
   private values: any;
+
   /** @internal */
   beforeCompile: boolean;
   /** @internal */

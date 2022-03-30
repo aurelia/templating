@@ -36,15 +36,15 @@ export type ViewStrategyDecorator = Function & {
 */
 // @ts-ignore
 export const viewStrategy: ViewStrategyDecorator = protocol.create('aurelia:view-strategy', {
-  validate(target) {
-    if (!(typeof target.loadViewFactory === 'function')) {
+  validate(target: any) {
+    if (!(typeof (target as ViewStrategy).loadViewFactory === 'function')) {
       return 'View strategies must implement: loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewFactory>';
     }
 
     return true;
   },
-  compose(target) {
-    if (!(typeof target.makeRelativeTo === 'function')) {
+  compose(target: any) {
+    if (!(typeof (target as RelativeViewStrategy).makeRelativeTo === 'function')) {
       target.makeRelativeTo = PLATFORM.noop;
     }
   }

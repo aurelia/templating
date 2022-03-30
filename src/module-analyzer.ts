@@ -142,10 +142,10 @@ export class ResourceModule {
 export class ResourceDescription {
 
   /** @internal */
-  private metadata: ViewResourceType;
+  metadata: ViewResourceType;
 
   /** @internal */
-  private value: any;
+  value: any;
 
   /**
   * Creates an instance of ResourceDescription.

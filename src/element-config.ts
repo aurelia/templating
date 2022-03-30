@@ -1,4 +1,6 @@
 import {EventManager} from 'aurelia-binding';
+import { Container } from 'aurelia-dependency-injection';
+import { ViewResources } from './view-resources';
 
 /**
 * Identifies a class as a resource that configures the EventManager with information
@@ -30,7 +32,7 @@ export class ElementConfigResource {
   * @param target The class to which this resource metadata is attached.
   */
   load(container: Container, target: Function): void {
-    let config = new target();
+    let config = new (target as any)();
     let eventManager = container.get(EventManager);
     eventManager.registerElementConfig(config);
   }

@@ -219,7 +219,7 @@ export class ViewEngine {
   * @param moduleMember The export from the module to generate the resource for.
   * @return A promise for the ResourceDescription.
   */
-  importViewModelResource(moduleImport: string, moduleMember: string): Promise<ResourceDescription> {
+  importViewModelResource(moduleImport: string, moduleMember?: string): Promise<ResourceDescription> {
     return this.loader.loadModule(moduleImport).then(viewModelModule => {
       let normalizedId = Origin.get(viewModelModule).moduleId;
       let resourceModule = this.moduleAnalyzer.analyze(normalizedId, viewModelModule, moduleMember);

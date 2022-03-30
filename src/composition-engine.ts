@@ -3,14 +3,20 @@ import {ViewLocator} from './view-locator';
 import {ViewEngine} from './view-engine';
 import {HtmlBehaviorResource} from './html-behavior';
 import {BehaviorInstruction, ViewCompileInstruction} from './instructions';
-import {CompositionTransaction} from './composition-transaction';
+import {CompositionTransaction, CompositionTransactionNotifier, CompositionTransactionOwnershipToken} from './composition-transaction';
 import {DOM} from 'aurelia-pal';
 import {Container, inject} from 'aurelia-dependency-injection';
 import {metadata} from 'aurelia-metadata';
+import { Controller } from './controller';
+import { View } from './view';
+import { ViewResources } from './view-resources';
+import { ViewSlot } from './view-slot';
+import { RelativeViewStrategy, ViewStrategy } from './view-strategy';
+import { ResourceDescription } from './module-analyzer';
 /**
 * Instructs the composition engine how to dynamically compose a component.
 */
-interface CompositionContext {
+export interface CompositionContext {
   /**
   * The parent Container for the component creation.
   */
@@ -38,7 +44,7 @@ interface CompositionContext {
   /**
   * The HtmlBehaviorResource for the component.
   */
-  viewModelResource?: HtmlBehaviorResource;
+  viewModelResource?: ResourceDescription;
   /**
   * The view resources for the view in which the component should be created.
   */
@@ -64,6 +70,18 @@ interface CompositionContext {
   * It will be registered in the child container of this composition.
   */
   host?: Element;
+
+  /**
+   * Used to declare a notifier when this composition is the owner of the composition chain
+   * @internal
+   */
+  compositionTransactionOwnershipToken?: CompositionTransactionOwnershipToken;
+
+  /**
+   * Used to declare a notifier when this composition is a part of a composition chain
+   * @internal
+   */
+  compositionTransactionNotifier?: CompositionTransactionNotifier;
 }
 
 function tryActivateViewModel(context) {
@@ -79,6 +97,13 @@ function tryActivateViewModel(context) {
 */
 @inject(ViewEngine, ViewLocator)
 export class CompositionEngine {
+
+  /** @internal */
+  private viewEngine: ViewEngine;
+
+  /** @internal */
+  private viewLocator: ViewLocator;
+
   /**
   * Creates an instance of the CompositionEngine.
   * @param viewEngine The ViewEngine used during composition.
@@ -88,6 +113,7 @@ export class CompositionEngine {
     this.viewLocator = viewLocator;
   }
 
+  /** @internal */
   _swap(context, view) {
     let swapStrategy = SwapStrategies[context.swapOrder] || SwapStrategies.after;
     let previousViews = context.viewSlot.children.slice();
@@ -105,7 +131,8 @@ export class CompositionEngine {
     });
   }
 
-  _createControllerAndSwap(context) {
+  /** @internal */
+  _createControllerAndSwap(context: CompositionContext) {
     return this.createController(context).then(controller => {
       if (context.compositionTransactionOwnershipToken) {
         return context.compositionTransactionOwnershipToken
@@ -148,7 +175,7 @@ export class CompositionEngine {
         let viewStrategy = this.viewLocator.getViewStrategy(context.view || viewModel);
 
         if (context.viewResources) {
-          viewStrategy.makeRelativeTo(context.viewResources.viewUrl);
+          (viewStrategy as RelativeViewStrategy).makeRelativeTo(context.viewResources.viewUrl);
         }
 
         return m.load(
@@ -198,7 +225,7 @@ export class CompositionEngine {
       ctor = context.viewModel;
       childContainer.autoRegister(ctor);
     }
-    let m = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, ctor);
+    let m = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, ctor) as HtmlBehaviorResource;
     // We don't call ViewResources.prototype.convention here as it should be called later
     // Just need to prepare the metadata for later usage
     m.elementName = m.elementName || 'dynamic-element';
@@ -207,7 +234,7 @@ export class CompositionEngine {
     m.initialize(isClass ? childContainer : (context.container || childContainer), ctor);
     // simulate the metadata of view model, like it was analyzed by module analyzer
     // Cannot create a ResourceDescription instance here as it does too much
-    context.viewModelResource = { metadata: m, value: ctor };
+    context.viewModelResource = { metadata: m, value: ctor } as ResourceDescription;
     // register the host element in case custom element view model declares it
     if (context.host) {
       childContainer.registerInstance(DOM.Element, context.host);
@@ -225,7 +252,7 @@ export class CompositionEngine {
     context.childContainer = context.childContainer || context.container.createChild();
     context.view = this.viewLocator.getViewStrategy(context.view);
 
-    let transaction = context.childContainer.get(CompositionTransaction);
+    let transaction = context.childContainer.get(CompositionTransaction) as CompositionTransaction;
     let compositionTransactionOwnershipToken = transaction.tryCapture();
 
     if (compositionTransactionOwnershipToken) {
@@ -238,7 +265,7 @@ export class CompositionEngine {
       return this._createControllerAndSwap(context);
     } else if (context.view) {
       if (context.viewResources) {
-        context.view.makeRelativeTo(context.viewResources.viewUrl);
+        (context.view as RelativeViewStrategy).makeRelativeTo(context.viewResources.viewUrl);
       }
 
       return context.view.loadViewFactory(this.viewEngine, new ViewCompileInstruction()).then(viewFactory => {
