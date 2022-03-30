@@ -34,10 +34,10 @@ export class HtmlBehaviorResource {
   properties: any;
 
   /** @internal */
-  attributeName: any;
+  attributeName: string;
 
   /** @internal */
-  elementName: any;
+  elementName: string;
 
   /** @internal */
   attributeDefaultBindingMode: any;
@@ -49,7 +49,7 @@ export class HtmlBehaviorResource {
   targetShadowDOM: boolean;
 
   /** @internal */
-  shadowDOMOptions: any;
+  shadowDOMOptions: ShadowRootInit;
 
   /** @internal */
   processAttributes: ProcessAttributeCallback;
@@ -79,13 +79,13 @@ export class HtmlBehaviorResource {
   isInitialized: boolean;
 
   /** @internal */
-  private primaryProperty: any;
+  private primaryProperty: BindableProperty;
 
   /** @internal */
-  observerLocator: any;
+  observerLocator: ObserverLocator;
 
   /** @internal */
-  private taskQueue: any;
+  private taskQueue: TaskQueue;
 
   /** @internal */
   target: Function;
@@ -106,13 +106,13 @@ export class HtmlBehaviorResource {
   handlesDetached: boolean;
 
   /** @internal */
-  private htmlName: any;
+  private htmlName: string;
 
   /** @internal */
   private viewStrategy: ViewStrategy;
 
   /** @internal */
-  private viewFactory: any;
+  private viewFactory: ViewFactory;
   /**
   * Creates an instance of HtmlBehaviorResource.
   */

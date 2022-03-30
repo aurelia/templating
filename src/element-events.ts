@@ -1,6 +1,6 @@
 import {DOM} from 'aurelia-pal';
 
-interface EventHandler {
+export interface EventHandler {
   eventName: string;
   bubbles: boolean;
   capture: boolean;
@@ -15,16 +15,24 @@ interface EventHandler {
 export class ElementEvents {
   static defaultListenerOptions: boolean | AddEventListenerOptions = true;
 
+  /** @internal */
+  element: EventTarget;
+
+  /** @internal */
+  private subscriptions: Record<string, EventHandler[]>;
+
   constructor(element: EventTarget) {
     this.element = element;
     this.subscriptions = {};
   }
 
+  /** @internal */
   _enqueueHandler(handler: EventHandler): void {
     this.subscriptions[handler.eventName] = this.subscriptions[handler.eventName] || [];
     this.subscriptions[handler.eventName].push(handler);
   }
 
+  /** @internal */
   _dequeueHandler(handler: EventHandler): EventHandler {
     let index;
     let subscriptions = this.subscriptions[handler.eventName];
@@ -44,7 +52,7 @@ export class ElementEvents {
    * @param bubbles
    * @param cancelable
    */
-  publish(eventName: string, detail?: Object = {}, bubbles?: boolean = true, cancelable?: boolean = true) {
+  publish(eventName: string, detail: Object = {}, bubbles: boolean = true, cancelable: boolean = true) {
     let event = DOM.createCustomEvent(eventName, {cancelable, bubbles, detail});
     this.element.dispatchEvent(event);
   }
@@ -112,7 +120,14 @@ export class ElementEvents {
 }
 
 class EventHandlerImpl {
-  constructor(owner: ElementEvents, eventName: string, handler: Function, captureOrOptions: boolean, once: boolean) {
+  owner: ElementEvents;
+  eventName: string;
+  handler: Function;
+  capture: any;
+  bubbles: boolean;
+  captureOrOptions: boolean | EventListenerOptions;
+  once: boolean;
+  constructor(owner: ElementEvents, eventName: string, handler: Function, captureOrOptions: boolean | EventListenerOptions, once: boolean) {
     this.owner = owner;
     this.eventName = eventName;
     this.handler = handler;

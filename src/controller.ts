@@ -48,7 +48,7 @@ export class Controller {
   private elementEvents: any;
 
   /** @internal */
-  private boundProperties: any[];
+  private boundProperties: BoundPropertyInfo[];
 
   /**
   * Creates an instance of Controller.
@@ -73,8 +73,8 @@ export class Controller {
     let attributes = instruction.attributes;
     let boundProperties = this.boundProperties = [];
     let properties = behavior.properties;
-    let i;
-    let ii;
+    let i: number;
+    let ii: number;
 
     behavior._ensurePropertiesDefined(viewModel, observerLookup);
 
@@ -266,6 +266,10 @@ declare module 'aurelia-dependency-injection' {
 
 /** @internal */
 declare module 'aurelia-binding' {
+  interface ObserverLocator {
+    getOrCreateObserversLookup(object: object): Record<string, any>;
+  }
+
   interface OverrideContext {
     __parentOverrideContext: OverrideContext;
   }
