@@ -10,15 +10,28 @@ import { ViewSlot } from "./view-slot";
 
 export type ViewResourceType = HtmlBehaviorResource | ValueConverterResource | BindingBehaviorResource | ViewEngineHooksResource;
 
+/** @internal */
 export type ConstructableResourceTarget = Function & { __providerId__: number; };
 
 export type SlotMarkedNode = Node & {
   viewSlot?: ShadowSlot | PassThroughSlot | ViewSlot;
+
+  /** @internal */
   auOwnerView?: View;
+
+  /** @internal */
   auProjectionSource?: ViewSlot | ShadowSlot;
+
+  /** @internal */
   auAssignedSlot?: ShadowSlot | PassThroughSlot;
+
+  /** @internal */
   auSlotProjectFrom?: ViewSlot | ShadowSlot;
+
+  /** @internal */
   auProjectionChildren?: SlotMarkedNode[];
+
+  /** @internal */
   isContentProjectionSource?: boolean;
 };
 

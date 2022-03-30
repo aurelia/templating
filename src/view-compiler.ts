@@ -59,6 +59,7 @@ const defaultLetHandler = BindingLanguage.prototype.createLetExpressions;
 */
 export class ViewCompiler {
 
+  /** @internal */
   static inject() {
     return [BindingLanguage, ViewResources];
   }

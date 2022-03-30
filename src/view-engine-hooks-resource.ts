@@ -14,14 +14,14 @@ export class ViewEngineHooksResource {
 
   load(container, target) {}
 
-  static convention(name) { // eslint-disable-line
+  static convention(name) {
     if (name.endsWith('ViewEngineHooks')) {
       return new ViewEngineHooksResource();
     }
   }
 }
 
-export function viewEngineHooks(target) { // eslint-disable-line
+export function viewEngineHooks(target) {
   let deco = function(t) {
     metadata.define(metadata.resource, new ViewEngineHooksResource(), t);
   };

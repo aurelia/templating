@@ -10,6 +10,7 @@ export class SlotCustomAttribute {
   element: any;
   value: any;
 
+  /** @internal */
   static inject() {
     return [DOM.Element];
   }

@@ -1,6 +1,7 @@
 import {Animator} from './animator';
 import {View} from './view';
 import {PassThroughSlot, ShadowDOM, ShadowSlot} from './shadow-dom';
+import { SlotMarkedNode } from './type-extension';
 
 function getAnimatableElement(view) {
   if (view.animatableElement !== undefined) {
@@ -18,11 +19,6 @@ function getAnimatableElement(view) {
   }
 
   return (view.animatableElement = null);
-}
-
-export type ViewSlotAnchor = Node & {
-  viewSlot?: ViewSlot | ShadowSlot | PassThroughSlot;
-  isContentProjectionSource?: boolean;
 }
 
 /**
@@ -57,8 +53,8 @@ export class ViewSlot {
     this.isBound = false;
     this.isAttached = false;
     this.contentSelectors = null;
-    (anchor as ViewSlotAnchor).viewSlot = this;
-    (anchor as ViewSlotAnchor).isContentProjectionSource = false;
+    (anchor as SlotMarkedNode).viewSlot = this;
+    (anchor as SlotMarkedNode).isContentProjectionSource = false;
   }
 
   /**

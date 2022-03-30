@@ -7,11 +7,12 @@ import {BehaviorInstruction, TargetInstruction, ViewCreateInstruction} from './i
 import {DOM} from 'aurelia-pal';
 import {ElementEvents} from './element-events';
 import {CompositionTransaction} from './composition-transaction';
+import { ConstructableResourceTarget } from './type-extension';
 
 @resolver
 class ProviderResolver {
   get(container, key) {
-    let id = key.__providerId__;
+    let id = (key as ConstructableResourceTarget).__providerId__;
     return id in container ? container[id] : (container[id] = container.invoke(key));
   }
 }

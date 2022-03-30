@@ -56,6 +56,7 @@ let auSlotBehavior = null;
 */
 export class ViewEngine {
 
+  /** @internal */
   static inject() {
     return [Loader, Container, ViewCompiler, ModuleAnalyzer, ViewResources];
   }

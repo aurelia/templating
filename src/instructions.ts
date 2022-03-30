@@ -96,7 +96,7 @@ export class BehaviorInstruction {
   /**
   * A default behavior used in scenarios where explicit configuration isn't available.
   */
-  static normal: BehaviorInstruction;
+  static normal: BehaviorInstruction = new BehaviorInstruction();
 
   /**
   * Creates an instruction for element enhancement.
@@ -182,8 +182,6 @@ biProto.attributes = null;
 biProto.type = null;
 biProto.attrName = null;
 biProto.inheritBindingContext = false;
-
-BehaviorInstruction.normal = new BehaviorInstruction();
 
 /**
 * Provides all the instructions for how a target element should be enhanced inside of a view.
