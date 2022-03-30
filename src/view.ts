@@ -77,8 +77,11 @@ export class View {
   /** @internal */
   bindings: Binding[];
 
-  /** @internal */
-  children: ViewNode[];
+  /**
+   * Bindings for child observation
+   * @internal
+   */
+  children: Binding[];
 
   /** @internal */
   slots: Record<string, ShadowSlot | PassThroughSlot>;
@@ -114,9 +117,9 @@ export class View {
   * @param fragment The DOM fragement representing the view.
   * @param controllers The controllers inside this view.
   * @param bindings The bindings inside this view.
-  * @param children The children of this view.
+  * @param children The children binding of this view.
   */
-  constructor(container: Container, viewFactory: ViewFactory, fragment: DocumentFragment, controllers: Controller[], bindings: Binding[], children: ViewNode[], slots: Object) {
+  constructor(container: Container, viewFactory: ViewFactory, fragment: DocumentFragment, controllers: Controller[], bindings: Binding[], children: Binding[], slots: Object) {
     this.container = container;
     this.viewFactory = viewFactory;
     this.resources = viewFactory.resources;
