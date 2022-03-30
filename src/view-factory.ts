@@ -3,7 +3,7 @@ import {View} from './view';
 import {ViewSlot} from './view-slot';
 import {ShadowSlot, PassThroughSlot} from './shadow-dom';
 import {ViewResources} from './view-resources';
-import {BehaviorInstruction, TargetInstruction} from './instructions';
+import {BehaviorInstruction, TargetInstruction, ViewCreateInstruction} from './instructions';
 import {DOM} from 'aurelia-pal';
 import {ElementEvents} from './element-events';
 import {CompositionTransaction} from './composition-transaction';
@@ -105,7 +105,7 @@ function setAttribute(name, value) {
 }
 
 function makeElementIntoAnchor(element, elementInstruction) {
-  let anchor = DOM.createComment('anchor');
+  let anchor = DOM.createComment('anchor') as Comment & Pick<Element, 'hasAttribute' | 'getAttribute' | 'setAttribute'> & { contentElement: Node; _element: Element };
 
   if (elementInstruction) {
     let firstChild = element.firstChild;
@@ -204,7 +204,7 @@ function applyInstructions(containers, element, instruction, controllers, bindin
   }
 }
 
-function styleStringToObject(style, target) {
+function styleStringToObject(style, target?) {
   let attributes = style.split(';');
   let firstIndexOfColon;
   let i;
@@ -297,6 +297,15 @@ function applySurrogateInstruction(container, element, instruction, controllers,
 * A factory capable of creating View instances, bound to a location within another view hierarchy.
 */
 export class BoundViewFactory {
+
+  /** @internal */
+  parentContainer: Container;
+
+  viewFactory: ViewFactory;
+
+  /** @internal */
+  factoryCreateInstruction: { partReplacements: Object; };
+
   /**
   * Creates an instance of BoundViewFactory.
   * @param parentContainer The parent DI container.
@@ -360,6 +369,13 @@ export class ViewFactory {
   * Indicates whether this factory is currently using caching.
   */
   isCaching = false;
+  template: DocumentFragment;
+  instructions: Object;
+  resources: ViewResources;
+  cacheSize: number;
+  cache: any;
+  surrogateInstruction: any;
+  part: any;
 
   /**
   * Creates an instance of ViewFactory.
@@ -390,7 +406,7 @@ export class ViewFactory {
     }
 
     if (this.cacheSize === -1 || !doNotOverrideIfAlreadySet) {
-      this.cacheSize = size;
+      this.cacheSize = Number(size);
     }
 
     if (this.cacheSize > 0) {
@@ -444,7 +460,7 @@ export class ViewFactory {
       return cachedView;
     }
 
-    let fragment = createInstruction.enhance ? this.template : this.template.cloneNode(true);
+    let fragment = createInstruction.enhance ? this.template : this.template.cloneNode(true) as DocumentFragment;
     let instructables = fragment.querySelectorAll('.au-target');
     let instructions = this.instructions;
     let resources = this.resources;
@@ -466,7 +482,8 @@ export class ViewFactory {
       applySurrogateInstruction(container, element, this.surrogateInstruction, controllers, bindings, children);
     }
 
-    if (createInstruction.enhance && fragment.hasAttribute('au-target-id')) {
+    // todo: better typings in view & view-factory to remove the cast
+    if (createInstruction.enhance && (fragment as unknown as Element).hasAttribute('au-target-id')) {
       instructable = fragment;
       instruction = instructions[instructable.getAttribute('au-target-id')];
       applyInstructions(containers, instructable, instruction, controllers, bindings, children, shadowSlots, partReplacements, resources);

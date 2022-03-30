@@ -4,12 +4,14 @@ import { DOM, PLATFORM } from 'aurelia-pal';
 import { relativeToFile } from 'aurelia-path';
 import { ResourceLoadContext, ViewCompileInstruction } from './instructions';
 import { ViewEngine } from './view-engine';
+import { ViewFactory } from './view-factory';
+import { ViewLocator } from './view-locator';
 import { ViewResources } from './view-resources';
 
 /**
 * Implemented by classes that describe how a view factory should be loaded.
 */
-interface ViewStrategy {
+export interface ViewStrategy {
   /**
   * Loads a view factory.
   * @param viewEngine The view engine to use during the load process.
@@ -21,10 +23,17 @@ interface ViewStrategy {
   loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext, target?: any): Promise<ViewFactory>;
 }
 
+export type ViewStrategyDecorator = Function & {
+  assert(value: any): value is ViewStrategy;
+  validate(target: any): boolean;
+  compose(target: any): void
+}
+
 /**
 * Decorator: Indicates that the decorated class/object is a view strategy.
 */
-export const viewStrategy: Function = protocol.create('aurelia:view-strategy', {
+// @ts-ignore
+export const viewStrategy: ViewStrategyDecorator = protocol.create('aurelia:view-strategy', {
   validate(target) {
     if (!(typeof target.loadViewFactory === 'function')) {
       return 'View strategies must implement: loadViewFactory(viewEngine: ViewEngine, compileInstruction: ViewCompileInstruction, loadContext?: ResourceLoadContext): Promise<ViewFactory>';
@@ -44,6 +53,16 @@ export const viewStrategy: Function = protocol.create('aurelia:view-strategy', {
 */
 @viewStrategy()
 export class RelativeViewStrategy {
+
+  /** @internal */
+  path: string;
+
+  /** @internal */
+  absolutePath: any;
+
+  /** @internal */
+  moduleId: string;
+
   /**
   * Creates an instance of RelativeViewStrategy.
   * @param path The relative path to the view.
@@ -86,6 +105,8 @@ export class RelativeViewStrategy {
 */
 @viewStrategy()
 export class ConventionalViewStrategy {
+  moduleId: string;
+  viewUrl: any;
   /**
   * Creates an instance of ConventionalViewStrategy.
   * @param viewLocator The view locator service for conventionally locating the view.
@@ -110,18 +131,27 @@ export class ConventionalViewStrategy {
   }
 }
 
+export interface ViewStrategyDependencyConfig {
+  from: string;
+  as: string;
+}
+
 /**
 * A view strategy that indicates that the component has no view that the templating engine needs to manage.
 * Typically used when the component author wishes to take over fine-grained rendering control.
 */
 @viewStrategy()
 export class NoViewStrategy {
+  dependencies: (string | ViewStrategyDependencyConfig | Function)[];
+  dependencyBaseUrl: string;
+  entry: any;
+  moduleId: any;
   /**
   * Creates an instance of NoViewStrategy.
   * @param dependencies A list of view resource dependencies of this view.
   * @param dependencyBaseUrl The base url for the view dependencies.
   */
-  constructor(dependencies?: Array<string | Function | Object>, dependencyBaseUrl?: string) {
+  constructor(dependencies?: Array<string | Function | ViewStrategyDependencyConfig>, dependencyBaseUrl?: string) {
     this.dependencies = dependencies || null;
     this.dependencyBaseUrl = dependencyBaseUrl || '';
   }
@@ -172,6 +202,8 @@ export class NoViewStrategy {
 */
 @viewStrategy()
 export class TemplateRegistryViewStrategy {
+  moduleId: string;
+  entry: TemplateRegistryEntry;
   /**
   * Creates an instance of TemplateRegistryViewStrategy.
   * @param moduleId The associated moduleId of the view to be loaded.
@@ -207,13 +239,18 @@ export class TemplateRegistryViewStrategy {
 */
 @viewStrategy()
 export class InlineViewStrategy {
+  markup: string;
+  dependencies: (string | ViewStrategyDependencyConfig | Function)[];
+  dependencyBaseUrl: string;
+  entry: any;
+  moduleId: any;
   /**
   * Creates an instance of InlineViewStrategy.
   * @param markup The markup for the view. Be sure to include the wrapping template tag.
   * @param dependencies A list of view resource dependencies of this view.
   * @param dependencyBaseUrl The base url for the view dependencies.
   */
-  constructor(markup: string, dependencies?: Array<string | Function | Object>, dependencyBaseUrl?: string) {
+  constructor(markup: string, dependencies?: Array<string | Function | ViewStrategyDependencyConfig>, dependencyBaseUrl?: string) {
     this.markup = markup;
     this.dependencies = dependencies || null;
     this.dependencyBaseUrl = dependencyBaseUrl || '';
@@ -255,7 +292,7 @@ export class InlineViewStrategy {
   }
 }
 
-interface IStaticViewConfig {
+export interface IStaticViewConfig {
   template: string | HTMLTemplateElement;
   dependencies?: Function[] | (() => Array<Function | Promise<Function | Record<string, Function>>>);
 }
@@ -269,6 +306,8 @@ export class StaticViewStrategy {
   dependencies: Function[] | (() => Array<Function | Promise<Function | Record<string, Function>>>);
   factoryIsReady: boolean;
   factory: ViewFactory;
+  onReady: any;
+  moduleId: string;
 
   constructor(config: string | HTMLTemplateElement | IStaticViewConfig) {
     if (typeof config === 'string' || (config instanceof DOM.Element && config.tagName === 'TEMPLATE')) {
@@ -276,8 +315,8 @@ export class StaticViewStrategy {
         template: config
       };
     }
-    this.template = config.template;
-    this.dependencies = config.dependencies || [];
+    this.template = (config as IStaticViewConfig).template;
+    this.dependencies = (config as IStaticViewConfig).dependencies || [];
     this.factoryIsReady = false;
     this.onReady = null;
     this.moduleId = 'undefined';
@@ -296,11 +335,12 @@ export class StaticViewStrategy {
       return Promise.resolve(this.factory);
     }
     let deps = this.dependencies;
+    // @ts-ignore
     deps = typeof deps === 'function' ? deps() : deps;
     deps = deps ? deps : [];
     deps = Array.isArray(deps) ? deps : [deps];
     // Promise.all() to normalize dependencies into an array of either functions, or records that contain function
-    return Promise.all(deps).then((dependencies) => {
+    return Promise.all(deps).then((dependencies: (Function | Record<string, Function>)[]) => {
       const container = viewEngine.container;
       const appResources = viewEngine.appResources;
       const viewCompiler = viewEngine.viewCompiler;

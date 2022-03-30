@@ -1,5 +1,5 @@
 import {metadata, Origin} from 'aurelia-metadata';
-import {RelativeViewStrategy, ConventionalViewStrategy, StaticViewStrategy, viewStrategy, NoViewStrategy} from './view-strategy';
+import {RelativeViewStrategy, ConventionalViewStrategy, StaticViewStrategy, viewStrategy, NoViewStrategy, ViewStrategy} from './view-strategy';
 
 /**
 * Locates a view for an object.
@@ -65,11 +65,11 @@ export class ViewLocator {
     }
 
     let origin = Origin.get(value);
-    let strategy = metadata.get(ViewLocator.viewStrategyMetadataKey, value);
+    let strategy = metadata.get(ViewLocator.viewStrategyMetadataKey, value) as ViewStrategy & { moduleId?: string; };
 
     if (!strategy) {
       if (!origin.moduleId) {
-        throw new Error('Cannot determine default view strategy for object.', value);
+        throw new Error('Cannot determine default view strategy for object.\n' + value);
       }
 
       strategy = this.createFallbackViewStrategy(origin);

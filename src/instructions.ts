@@ -1,8 +1,11 @@
+import { HtmlBehaviorResource } from "./html-behavior";
+import { ViewFactory } from "./view-factory";
+
 /**
 * A context that flows through the view resource load process.
 */
 export class ResourceLoadContext {
-  dependencies: Object;
+  dependencies: Record<string, boolean>;
 
   /**
   * Creates an instance of ResourceLoadContext.
@@ -39,26 +42,24 @@ export class ViewCompileInstruction {
   /**
   * The normal configuration for view compilation.
   */
-  static normal: ViewCompileInstruction;
+  static normal = new ViewCompileInstruction();
 
   /**
   * Creates an instance of ViewCompileInstruction.
   * @param targetShadowDOM Should the compilation target the Shadow DOM.
   * @param compileSurrogate Should the compilation also include surrogate bindings and behaviors.
   */
-  constructor(targetShadowDOM?: boolean = false, compileSurrogate?: boolean = false) {
+  constructor(targetShadowDOM: boolean = false, compileSurrogate: boolean = false) {
     this.targetShadowDOM = targetShadowDOM;
     this.compileSurrogate = compileSurrogate;
     this.associatedModuleId = null;
   }
 }
 
-ViewCompileInstruction.normal = new ViewCompileInstruction();
-
 /**
 * Specifies how a view should be created.
 */
-interface ViewCreateInstruction {
+export interface ViewCreateInstruction {
   /**
   * Indicates that the view is being created by enhancing existing DOM.
   */
@@ -67,6 +68,9 @@ interface ViewCreateInstruction {
   * Specifies a key/value lookup of part replacements for the view being created.
   */
   partReplacements?: Object;
+
+  /** @internal */
+  initiatedByBehavior?: boolean;
 }
 
 /**
@@ -127,7 +131,7 @@ export class BehaviorInstruction {
     let instruction = new BehaviorInstruction();
     instruction.type = type;
     instruction.attributes = {};
-    instruction.anchorIsContainer = !(node.hasAttribute('containerless') || type.containerless);
+    instruction.anchorIsContainer = !((node as Element).hasAttribute('containerless') || type.containerless);
     instruction.initiatedByBehavior = true;
     return instruction;
   }
@@ -203,7 +207,7 @@ export class TargetInstruction {
    */
   letElement: boolean;
 
-  expressions: Array<Object>;
+  expressions: Array<object>;
   behaviorInstructions: Array<BehaviorInstruction>;
   providers: Array<Function>;
 
@@ -218,7 +222,7 @@ export class TargetInstruction {
   /**
   * An empty array used to represent a target with no binding expressions.
   */
-  static noExpressions = Object.freeze([]);
+  static noExpressions = Object.freeze([]) as object[];
 
   /**
   * Creates an instruction that represents a shadow dom slot.

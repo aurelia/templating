@@ -9,6 +9,7 @@ import { Container } from 'aurelia-dependency-injection';
 import { _hyphenate } from './util';
 import { ValueConverterResource, BindingBehaviorResource, camelCase } from 'aurelia-binding';
 import { ViewEngineHooksResource } from './view-engine-hooks-resource';
+import { ViewResourceType } from './type-extension';
 
 function register(lookup, name, resource, type) {
   if (!name) {
@@ -165,6 +166,38 @@ const conventionMark = '__au_resource__';
  * Will optinally add information to an existing HtmlBehaviorResource if given
  */
 export class ViewResources {
+  /** @internal */
+  private parent: ViewResources;
+  /** @internal */
+  private hasParent: boolean;
+  /** @internal */
+  private viewUrl: string;
+  /** @internal */
+  private lookupFunctions: { valueConverters: any; bindingBehaviors: any; };
+  /** @internal */
+  private attributes: any;
+  /** @internal */
+  private elements: any;
+  /** @internal */
+  private valueConverters: any;
+  /** @internal */
+  private bindingBehaviors: any;
+  /** @internal */
+  private attributeMap: any;
+  /** @internal */
+  private values: any;
+  /** @internal */
+  beforeCompile: boolean;
+  /** @internal */
+  afterCompile: boolean;
+  /** @internal */
+  beforeCreate: boolean;
+  /** @internal */
+  afterCreate: boolean;
+  /** @internal */
+  beforeBind: boolean;
+  /** @internal */
+  beforeUnbind: boolean;
 
   /**
    * Checks whether the provided class contains any resource conventions
@@ -343,7 +376,8 @@ export class ViewResources {
     }
   }
 
-  _invokeHook(name, one, two, three, four) {
+  /** @internal */
+  _invokeHook(name: string, one?, two?, three?, four?) {
     if (this.hasParent) {
       this.parent._invokeHook(name, one, two, three, four);
     }
@@ -529,7 +563,7 @@ export class ViewResources {
    * @returns {HtmlBehaviorResource | ValueConverterResource | BindingBehaviorResource | ViewEngineHooksResource}
    */
   autoRegister(container, impl) {
-    let resourceTypeMeta = metadata.getOwn(metadata.resource, impl);
+    let resourceTypeMeta = metadata.getOwn(metadata.resource, impl) as ViewResourceType;
     if (resourceTypeMeta) {
       if (resourceTypeMeta instanceof HtmlBehaviorResource) {
         // first use static resource
@@ -554,12 +588,12 @@ export class ViewResources {
       if (!resourceTypeMeta) {
         // doesn't match any convention, and is an exported value => custom element
         resourceTypeMeta = new HtmlBehaviorResource();
-        resourceTypeMeta.elementName = _hyphenate(impl.name);
+        (resourceTypeMeta as HtmlBehaviorResource).elementName = _hyphenate(impl.name);
       }
       metadata.define(metadata.resource, resourceTypeMeta, impl);
     }
     resourceTypeMeta.initialize(container, impl);
-    resourceTypeMeta.register(this);
+    resourceTypeMeta.register(this, undefined);
     return resourceTypeMeta;
   }
 }

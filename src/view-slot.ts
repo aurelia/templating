@@ -1,6 +1,6 @@
 import {Animator} from './animator';
 import {View} from './view';
-import {ShadowDOM} from './shadow-dom';
+import {PassThroughSlot, ShadowDOM, ShadowSlot} from './shadow-dom';
 
 function getAnimatableElement(view) {
   if (view.animatableElement !== undefined) {
@@ -20,18 +20,34 @@ function getAnimatableElement(view) {
   return (view.animatableElement = null);
 }
 
+export type ViewSlotAnchor = Node & {
+  viewSlot?: ViewSlot;
+  isContentProjectionSource?: boolean;
+}
+
 /**
 * Represents a slot or location within the DOM to which views can be added and removed.
 * Manages the view lifecycle for its children.
 */
 export class ViewSlot {
+  private anchor: Node;
+  private anchorIsContainer: boolean;
+  private bindingContext: any;
+  private overrideContext: any;
+  private animator: Animator;
+  private children: any[];
+  private isBound: boolean;
+  private isAttached: boolean;
+  private contentSelectors: any;
+  private projectToSlots: Record<string, ShadowSlot | PassThroughSlot>;
+
   /**
   * Creates an instance of ViewSlot.
   * @param anchor The DOM node which will server as the anchor or container for insertion.
   * @param anchorIsContainer Indicates whether the node is a container.
   * @param animator The animator that will controll enter/leave transitions for this slot.
   */
-  constructor(anchor: Node, anchorIsContainer: boolean, animator?: Animator = Animator.instance) {
+  constructor(anchor: Node, anchorIsContainer: boolean, animator: Animator = Animator.instance) {
     this.anchor = anchor;
     this.anchorIsContainer = anchorIsContainer;
     this.bindingContext = null;
@@ -41,8 +57,8 @@ export class ViewSlot {
     this.isBound = false;
     this.isAttached = false;
     this.contentSelectors = null;
-    anchor.viewSlot = this;
-    anchor.isContentProjectionSource = false;
+    (anchor as ViewSlotAnchor).viewSlot = this;
+    (anchor as ViewSlotAnchor).isContentProjectionSource = false;
   }
 
   /**
@@ -147,7 +163,7 @@ export class ViewSlot {
   */
   add(view: View): void | Promise<any> {
     if (this.anchorIsContainer) {
-      view.appendNodesTo(this.anchor);
+      view.appendNodesTo(this.anchor as Element);
     } else {
       view.insertNodesBefore(this.anchor);
     }
@@ -398,19 +414,21 @@ export class ViewSlot {
   }
 
   projectTo(slots: Object): void {
-    this.projectToSlots = slots;
+    this.projectToSlots = slots as any;
     this.add = this._projectionAdd;
     this.insert = this._projectionInsert;
     this.move = this._projectionMove;
-    this.remove = this._projectionRemove;
-    this.removeAt = this._projectionRemoveAt;
+    this.remove = this._projectionRemove as any;
+    this.removeAt = this._projectionRemoveAt as any;
     this.removeMany = this._projectionRemoveMany;
     this.removeAll = this._projectionRemoveAll;
-    this.children.forEach(view => ShadowDOM.distributeView(view, slots, this));
+    this.children.forEach(view => ShadowDOM.distributeView(view, slots as Record<string, PassThroughSlot | ShadowSlot>, this));
   }
 
   /**
    * @param {View} view
+   *
+   * @internal
    */
   _projectionAdd(view) {
     ShadowDOM.distributeView(view, this.projectToSlots, this);
@@ -425,6 +443,8 @@ export class ViewSlot {
   /**
    * @param {number} index
    * @param {View} view
+   *
+   * @internal
    */
   _projectionInsert(index, view) {
     if ((index === 0 && !this.children.length) || index >= this.children.length) {
@@ -443,6 +463,8 @@ export class ViewSlot {
   /**
    * @param {number} sourceIndex
    * @param {number} targetIndex
+   *
+   * @internal
    */
   _projectionMove(sourceIndex, targetIndex) {
     if (sourceIndex === targetIndex) {
@@ -462,6 +484,8 @@ export class ViewSlot {
   /**
    * @param {View} view
    * @param {boolean} returnToCache
+   *
+   * @internal
    */
   _projectionRemove(view, returnToCache) {
     ShadowDOM.undistributeView(view, this.projectToSlots, this);
@@ -478,6 +502,8 @@ export class ViewSlot {
   /**
    * @param {number} index
    * @param {boolean} returnToCache
+   *
+   * @internal
    */
   _projectionRemoveAt(index, returnToCache) {
     let view = this.children[index];
@@ -496,6 +522,8 @@ export class ViewSlot {
   /**
    * @param {View[]} viewsToRemove
    * @param {boolean} returnToCache
+   *
+   * @internal
    */
   _projectionRemoveMany(viewsToRemove, returnToCache?) {
     viewsToRemove.forEach(view => this.remove(view, returnToCache));
@@ -503,6 +531,8 @@ export class ViewSlot {
 
   /**
    * @param {boolean} returnToCache
+   *
+   * @internal
    */
   _projectionRemoveAll(returnToCache) {
     ShadowDOM.undistributeAll(this.projectToSlots, this);

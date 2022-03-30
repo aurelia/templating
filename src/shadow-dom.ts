@@ -1,9 +1,13 @@
 import {DOM} from 'aurelia-pal';
 import {_isAllWhitespace} from './util';
+import { View } from './view';
+import { ViewSlot } from './view-slot';
 
-let noNodes = Object.freeze([]);
+let noNodes = Object.freeze([]) as Node[];
 
 export class SlotCustomAttribute {
+  element: any;
+  value: any;
   static inject() {
     return [DOM.Element];
   }
@@ -19,6 +23,14 @@ export class SlotCustomAttribute {
 }
 
 export class PassThroughSlot {
+  anchor: any;
+  name: any;
+  destinationName: any;
+  fallbackFactory: any;
+  destinationSlot: any;
+  projections: number;
+  contentView: any;
+  ownerView: any;
   constructor(anchor, name, destinationName, fallbackFactory) {
     this.anchor = anchor;
     this.anchor.viewSlot = this;
@@ -45,12 +57,12 @@ export class PassThroughSlot {
   }
 
   /**
-   * @param {View} view
-   * @param {Node[]} nodes
-   * @param {ViewSlot} projectionSource
-   * @param {number} index
+   * @param view
+   * @param nodes
+   * @param projectionSource
+   * @param index
    */
-  renderFallbackContent(view, nodes, projectionSource, index) {
+  renderFallbackContent(view: View, nodes: Node[], projectionSource: ViewSlot, index?: number) {
     if (this.contentView === null) {
       this.contentView = this.fallbackFactory.create(this.ownerView.container);
       this.contentView.bind(this.ownerView.bindingContext, this.ownerView.overrideContext);
@@ -161,6 +173,27 @@ export class PassThroughSlot {
 }
 
 export class ShadowSlot {
+  /** @internal */
+  private anchor: any;
+  /** @internal */
+  private name: any;
+  /** @internal */
+  private fallbackFactory: any;
+  /** @internal */
+  private contentView: any;
+  /** @internal */
+  private projections: number;
+  /** @internal */
+  private children: any[];
+  /** @internal */
+  private projectFromAnchors: any;
+  /** @internal */
+  private destinationSlots: any;
+  /** @internal */
+  private ownerView: any;
+  /** @internal */
+  private fallbackSlots: any;
+
   constructor(anchor, name, fallbackFactory) {
     this.anchor = anchor;
     this.anchor.isContentProjectionSource = true;
@@ -183,13 +216,13 @@ export class ShadowSlot {
   }
 
   /**
-   * @param {View} view
-   * @param {Node} node
-   * @param {ViewSlot} projectionSource
-   * @param {number} index
-   * @param {string} destination
+   * @param view
+   * @param node
+   * @param projectionSource
+   * @param index
+   * @param destination
    */
-  addNode(view, node, projectionSource, index, destination) {
+  addNode(view: View, node: Node, projectionSource: ViewSlot, index?: number, destination?: string) {
     if (this.contentView !== null) {
       this.contentView.removeNodes();
       this.contentView.detached();
@@ -303,7 +336,7 @@ export class ShadowSlot {
    * @param {ViewSlot} projectionSource
    * @param {number} index
    */
-  _findAnchor(view, node, projectionSource, index) {
+  _findAnchor(view, node, projectionSource, index?: number) {
     if (projectionSource) {
       // find the anchor associated with the projected view slot
       let found = this.children.find(x => x.auSlotProjectFrom === projectionSource);
@@ -432,7 +465,7 @@ export class ShadowSlot {
 }
 
 export class ShadowDOM {
-  static defaultSlotKey = '__au-default-slot-key__';
+  static defaultSlotKey = '__au-default-slot-key__' as const;
 
   static getSlotName(node) {
     if (node.auSlotAttribute === undefined) {
@@ -443,13 +476,10 @@ export class ShadowDOM {
   }
 
   /**
-   * @param {View} view
-   * @param {Record<string, PassThroughSlot | ShadowSlot>} slots
-   * @param {ViewSlot} projectionSource
-   * @param {number} index
-   * @param {string} destinationOverride
+   * Project the nodes of a view to a record of slots
+   * @param destinationOverride the override name of the slot to distribute to
    */
-  static distributeView(view, slots, projectionSource, index, destinationOverride) {
+  static distributeView(view: View, slots: Record<string, PassThroughSlot | ShadowSlot>, projectionSource: ViewSlot, index?: number, destinationOverride?: string) {
     let nodes;
 
     if (view === null) {
@@ -504,7 +534,14 @@ export class ShadowDOM {
    * @param {number} index
    * @param {string} destinationOverride
    */
-  static distributeNodes(view, nodes, slots, projectionSource, index, destinationOverride) {
+  static distributeNodes(
+    view: View,
+    nodes: Node[],
+    slots: Record<string, PassThroughSlot | ShadowSlot>,
+    projectionSource: ViewSlot,
+    index?: number,
+    destinationOverride?: string
+  ): void {
     for (let i = 0, ii = nodes.length; i < ii; ++i) {
       let currentNode = nodes[i];
       let nodeType = currentNode.nodeType;

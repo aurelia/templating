@@ -3,6 +3,7 @@ import {BehaviorPropertyObserver} from './behavior-property-observer';
 import {bindingMode} from 'aurelia-binding';
 import {Container} from 'aurelia-dependency-injection';
 import {metadata} from 'aurelia-metadata';
+import { HtmlBehaviorResource } from './html-behavior';
 
 function getObserver(instance, name) {
   let lookup = instance.__observers__;
@@ -15,7 +16,7 @@ function getObserver(instance, name) {
     // Note that it's probably for the best, as passing the behavior is an overhead
     // that is only useful in the very first call of the first property of the instance.
     let ctor = Object.getPrototypeOf(instance).constructor; // Playing safe here, user could have written to instance.constructor.
-    let behavior = metadata.get(metadata.resource, ctor);
+    let behavior = metadata.get(metadata.resource, ctor) as HtmlBehaviorResource;
     if (!behavior.isInitialized) {
       behavior.initialize(Container.instance || new Container(), instance.constructor);
     }
@@ -31,6 +32,31 @@ function getObserver(instance, name) {
 * Represents a bindable property on a behavior.
 */
 export class BindableProperty {
+  name: any;
+
+  /** @internal */
+  attribute: any;
+
+  /** @internal */
+  defaultBindingMode: any;
+
+  /** @internal */
+  changeHandler: any;
+
+  /** @internal */
+  owner: any;
+
+  /** @internal */
+  descriptor: any;
+
+  /** @internal */
+  defaultValue: any;
+
+  /** @internal */
+  hasOptions: any;
+
+  /** @internal */
+  isDynamic: any;
   /**
   * Creates an instance of BindableProperty.
   * @param nameOrConfig The name of the property or a cofiguration object.

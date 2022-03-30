@@ -2,6 +2,8 @@
  * An abstract class representing a mechanism for animating the DOM during various DOM state transitions.
  */
 export class Animator {
+  static instance: Animator;
+
   /**
    * Execute an 'enter' animation on an element
    * @param element Element to animate
@@ -59,7 +61,9 @@ export class Animator {
    * @param sequence An array of effectNames or classNames
    * @returns Resolved when all animations are done
    */
-  runSequence(animations:Array<any>): Promise<boolean> {}
+  runSequence(animations:Array<any>): Promise<boolean> {
+    return Promise.resolve(false);
+  }
 
   /**
    * Register an effect (for JS based animators)

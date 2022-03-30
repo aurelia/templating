@@ -11,6 +11,8 @@ import {Controller} from './controller';
 import {ViewResources} from './view-resources';
 import {ResourceLoadContext, ViewCompileInstruction, BehaviorInstruction} from './instructions';
 import {FEATURE, DOM} from 'aurelia-pal';
+import { ViewStrategy } from './view-strategy';
+import { ConstructableResourceTarget } from './type-extension';
 
 let lastProviderId = 0;
 
@@ -26,6 +28,87 @@ function doProcessAttributes() {}
 * attribute functionality.
 */
 export class HtmlBehaviorResource {
+
+  /** @internal */
+  properties: any;
+
+  /** @internal */
+  attributeName: any;
+
+  /** @internal */
+  elementName: any;
+
+  /** @internal */
+  private attributeDefaultBindingMode: any;
+
+  /** @internal */
+  private liftsContent: boolean;
+
+  /** @internal */
+  private targetShadowDOM: boolean;
+
+  /** @internal */
+  private shadowDOMOptions: any;
+
+  /** @internal */
+  private processAttributes: () => void;
+
+  /** @internal */
+  private processContent: () => boolean;
+
+  /** @internal */
+  private usesShadowDOM: boolean;
+
+  /** @internal */
+  private childBindings: any;
+
+  /** @internal */
+  private hasDynamicOptions: boolean;
+
+  /** @internal */
+  private containerless: boolean;
+
+  /** @internal */
+  attributes: Record<string, BindableProperty>;
+
+  /** @internal */
+  isInitialized: boolean;
+
+  /** @internal */
+  private primaryProperty: any;
+
+  /** @internal */
+  observerLocator: any;
+
+  /** @internal */
+  private taskQueue: any;
+
+  /** @internal */
+  private target: Function;
+
+  /** @internal */
+  private handlesCreated: boolean;
+
+  /** @internal */
+  private handlesBind: boolean;
+
+  /** @internal */
+  private handlesUnbind: boolean;
+
+  /** @internal */
+  private handlesAttached: boolean;
+
+  /** @internal */
+  private handlesDetached: boolean;
+
+  /** @internal */
+  private htmlName: any;
+
+  /** @internal */
+  private viewStrategy: ViewStrategy;
+
+  /** @internal */
+  private viewFactory: any;
   /**
   * Creates an instance of HtmlBehaviorResource.
   */
@@ -101,7 +184,7 @@ export class HtmlBehaviorResource {
     }
 
     this.isInitialized = true;
-    target.__providerId__ = nextProviderId();
+    (target as ConstructableResourceTarget).__providerId__ = nextProviderId();
 
     this.observerLocator = container.get(ObserverLocator);
     this.taskQueue = container.get(TaskQueue);
@@ -184,6 +267,9 @@ export class HtmlBehaviorResource {
     if (this.elementName !== null) {
       registry.registerElement(name || this.elementName, this);
     }
+  }
+  aliases(aliases: any) {
+    throw new Error('Method not implemented.');
   }
 
   /**
