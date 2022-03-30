@@ -15,7 +15,7 @@ export type ConstructableResourceTarget = Function & { __providerId__: number; }
 export type SlotMarkedNode = Node & {
   viewSlot?: ShadowSlot | PassThroughSlot | ViewSlot;
   auOwnerView?: View;
-  auProjectionSource?: ViewSlot;
+  auProjectionSource?: ViewSlot | ShadowSlot;
   auAssignedSlot?: ShadowSlot | PassThroughSlot;
   auSlotProjectFrom?: ViewSlot | ShadowSlot;
   auProjectionChildren?: SlotMarkedNode[];
