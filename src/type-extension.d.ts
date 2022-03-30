@@ -18,7 +18,7 @@ export type SlotMarkedNode = Node & {
   auProjectionSource?: ViewSlot;
   auAssignedSlot?: ShadowSlot | PassThroughSlot;
   auSlotProjectFrom?: ViewSlot | ShadowSlot;
-  auProjectionChildren?: Node[];
+  auProjectionChildren?: SlotMarkedNode[];
   isContentProjectionSource?: boolean;
 };
 

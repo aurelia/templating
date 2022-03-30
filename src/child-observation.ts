@@ -1,11 +1,14 @@
 import {DOM} from 'aurelia-pal';
 import {metadata} from 'aurelia-metadata';
 import {HtmlBehaviorResource} from './html-behavior';
+import { Controller } from './controller';
+import { SlotMarkedNode } from './type-extension';
+import { ShadowSlot } from './shadow-dom';
 
-function createChildObserverDecorator(selectorOrConfig, all) {
+function createChildObserverDecorator(selectorOrConfig, all?: boolean) {
   return function(target, key, descriptor) {
     let actualTarget = typeof key === 'string' ? target.constructor : target; //is it on a property or a class?
-    let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, actualTarget);
+    let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, actualTarget) as HtmlBehaviorResource;
 
     if (typeof selectorOrConfig === 'string') {
       selectorOrConfig = {
@@ -38,26 +41,35 @@ export function child(selectorOrConfig: string | Object): any {
   return createChildObserverDecorator(selectorOrConfig, false);
 }
 
-/**
- * @internal
- * @typedef MutationObserverBinder
- * @property {ChildObserverBinder[]} binders
- *
- * @internal
- * @typedef {MutationObserverBinder & MutationObserver} BindableMutationObserver
- *
- * @internal
- * @typedef HasChildObserver
- * @property {BindableMutationObserver} __childObserver__
- *
- * @internal
- * @typedef {Element & HasChildObserver} BindableMutationObserverHost
- */
+interface MutationObserverBinder {
+  binders: ChildObserverBinder[];
+}
+
+interface HasChildObserver {
+  __childObserver__: BindableMutationObserver;
+}
+
+type BindableMutationObserver = MutationObserverBinder & MutationObserver;
+
+type BindableMutationObserverHost = Element & HasChildObserver;
 
 /**
  * Child observer binder factory
  */
 class ChildObserver {
+
+  /** @internal */
+  private name: any;
+
+  /** @internal */
+  private changeHandler: any;
+
+  /** @internal */
+  private selector: any;
+
+  /** @internal */
+  private all: any;
+
   constructor(config) {
     this.name = config.name;
     this.changeHandler = config.changeHandler || this.name + 'Changed';
@@ -65,19 +77,14 @@ class ChildObserver {
     this.all = config.all;
   }
 
-  create(viewHost, viewModel, controller) {
+  create(viewHost: Element, viewModel: any, controller: Controller) {
     return new ChildObserverBinder(this.selector, viewHost, this.name, viewModel, controller, this.changeHandler, this.all);
   }
 }
 
 const noMutations = [];
 
-/**
- * @param {Map<ChildObserverBinder, MutationRecord[]>} groupedMutations
- * @param {ChildObserverBinder} binder
- * @param {MutationRecord} record
- */
-function trackMutation(groupedMutations, binder, record) {
+function trackMutation(groupedMutations: Map<ChildObserverBinder, MutationRecord[]>, binder: ChildObserverBinder, record: MutationRecord) {
   let mutations = groupedMutations.get(binder);
 
   if (!mutations) {
@@ -88,15 +95,10 @@ function trackMutation(groupedMutations, binder, record) {
   mutations.push(record);
 }
 
-/**
- * @param {MutationRecord[]} mutations
- * @param {BindableMutationObserver} observer
- */
-function onChildChange(mutations, observer) {
+function onChildChange(mutations: MutationRecord[], observer: BindableMutationObserver) {
   let binders = observer.binders;
   let bindersLength = binders.length;
-  /**@type {Map<ChildObserverBinder, MutationRecord[]>} */
-  let groupedMutations = new Map();
+  let groupedMutations: Map<ChildObserverBinder, MutationRecord[]> = new Map();
 
   for (let i = 0, ii = mutations.length; i < ii; ++i) {
     let record = mutations[i];
@@ -111,7 +113,7 @@ function onChildChange(mutations, observer) {
           // only track mutation when binder signals so
           // for @children scenarios where it should only call change handler
           // after retrieving all value of the children
-          if (binder.onRemove(node)) {
+          if (binder.onRemove(node as Element)) {
             trackMutation(groupedMutations, binder, record);
           }
         }
@@ -126,7 +128,7 @@ function onChildChange(mutations, observer) {
           // only track mutation when binder signals so
           // for @children scenarios where it should only call change handler
           // after retrieving all value of the children
-          if (binder.onAdd(node)) {
+          if (binder.onAdd(node as Element)) {
             trackMutation(groupedMutations, binder, record);
           }
         }
@@ -146,21 +148,52 @@ function onChildChange(mutations, observer) {
 }
 
 class ChildObserverBinder {
+
+  /** @internal */
+  private selector: string;
+
+  /** @internal */
+  private viewHost: BindableMutationObserverHost;
+
+  /** @internal */
+  private property: string;
+
+  /** @internal */
+  viewModel: any;
+
+  /** @internal */
+  private controller: Controller;
+
+  /** @internal */
+  changeHandler: string | null;
+
+  /** @internal */
+  private usesShadowDOM: boolean;
+
+  /** @internal */
+  private all: any;
+
+  /** @internal */
+  private contentView: any;
+
+  /** @internal */
+  private source: any;
+
+  /** @internal */
+  isBound: boolean;
+
   /**
-   * @param {string} selector the CSS selector used to filter the content of a host
-   * @param {Element} viewHost the host where this observer belongs to
-   * @param {string} property the property name of the view model where the aggregated result of this observer should assign to
-   * @param {object} viewModel the view model that this observer is associated with
-   * @param {Controller} controller the corresponding Controller of the view model
-   * @param {string} changeHandler the name of the change handler to invoke when the content of the view host change
-   * @param {boolean} all indicates whether it should try to match all children of the view host or not
+   * @param selector the CSS selector used to filter the content of a host
+   * @param viewHost the host where this observer belongs to
+   * @param property the property name of the view model where the aggregated result of this observer should assign to
+   * @param viewModel the view model that this observer is associated with
+   * @param controller the corresponding Controller of the view model
+   * @param changeHandler the name of the change handler to invoke when the content of the view host change
+   * @param all indicates whether it should try to match all children of the view host or not
    */
-  constructor(selector, viewHost, property, viewModel, controller, changeHandler, all) {
+  constructor(selector: string, viewHost: Element, property: string, viewModel: object, controller: Controller, changeHandler: string, all: boolean) {
     this.selector = selector;
-    /**
-     * @type {Element & HasChildObserver}
-     */
-    this.viewHost = viewHost;
+    this.viewHost = viewHost as BindableMutationObserverHost;
     this.property = property;
     this.viewModel = viewModel;
     this.controller = controller;
@@ -177,17 +210,17 @@ class ChildObserverBinder {
     this.isBound = false;
   }
 
-  matches(element) {
+  matches(element: Element) {
     if (element.matches(this.selector)) {
       if (this.contentView === null) {
         return true;
       }
 
       let contentView = this.contentView;
-      let assignedSlot = element.auAssignedSlot;
+      let assignedSlot = (element as SlotMarkedNode).auAssignedSlot;
 
-      if (assignedSlot && assignedSlot.projectFromAnchors) {
-        let anchors = assignedSlot.projectFromAnchors;
+      if (assignedSlot && (assignedSlot as ShadowSlot).projectFromAnchors) {
+        let anchors = (assignedSlot as ShadowSlot).projectFromAnchors;
 
         for (let i = 0, ii = anchors.length; i < ii; ++i) {
           if (anchors[i].auOwnerView === contentView) {
@@ -198,7 +231,7 @@ class ChildObserverBinder {
         return false;
       }
 
-      return element.auOwnerView === contentView;
+      return (element as SlotMarkedNode).auOwnerView === contentView;
     }
 
     return false;
@@ -218,7 +251,7 @@ class ChildObserverBinder {
     let observer = viewHost.__childObserver__;
 
     if (!observer) {
-      observer = viewHost.__childObserver__ = DOM.createMutationObserver(onChildChange);
+      observer = viewHost.__childObserver__ = DOM.createMutationObserver(onChildChange) as BindableMutationObserver;
 
       let options = {
         childList: true,
@@ -274,7 +307,7 @@ class ChildObserverBinder {
     }
   }
 
-  onRemove(element) {
+  onRemove(element: Element) {
     if (this.matches(element)) {
       let value = element.au && element.au.controller ? element.au.controller.viewModel : element;
 
@@ -283,7 +316,7 @@ class ChildObserverBinder {
       // the callback needs to happen AFTER mapping all of the child value
       // so returning true as a mean to register a value to be added later
       if (this.all) {
-        let items = (this.viewModel[this.property] || (this.viewModel[this.property] = []));
+        let items: any[] = (this.viewModel[this.property] || (this.viewModel[this.property] = []));
         let index = items.indexOf(value);
 
         if (index !== -1) {
@@ -309,7 +342,7 @@ class ChildObserverBinder {
     return false;
   }
 
-  onAdd(element) {
+  onAdd(element: Element) {
     if (this.matches(element)) {
       let value = element.au && element.au.controller ? element.au.controller.viewModel : element;
 
@@ -318,7 +351,7 @@ class ChildObserverBinder {
       // the callback needs to happen AFTER mapping all of the child value
       // so returning true as a mean to register a value to be added later
       if (this.all) {
-        let items = (this.viewModel[this.property] || (this.viewModel[this.property] = []));
+        let items: any[] = (this.viewModel[this.property] || (this.viewModel[this.property] = []));
 
         if (this.selector === '*') {
           items.push(value);

@@ -197,8 +197,8 @@ export class BindableProperty {
 
   /** @internal */
   _initialize(viewModel: object, observerLookup: Record<string, any>, attributes: Record<string, string | BindingExpression>, behaviorHandlesBind?: boolean, boundProperties?: BoundPropertyInfo[]): void {
-    let selfSubscriber;
-    let observer;
+    let selfSubscriber: Function;
+    let observer: BehaviorPropertyObserver;
     let attribute: string | BindingExpression;
     let defaultValue = this.defaultValue;
 
@@ -234,11 +234,11 @@ export class BindableProperty {
   }
 
   /** @internal */
-  _createDynamicProperty(viewModel, observerLookup, behaviorHandlesBind, name, attribute: string | BindingExpression, boundProperties: BoundPropertyInfo[]) {
+  _createDynamicProperty(viewModel, observerLookup, behaviorHandlesBind: boolean, name: string, attribute: string | BindingExpression, boundProperties: BoundPropertyInfo[]) {
     let changeHandlerName = name + 'Changed';
     let selfSubscriber = null;
-    let observer;
-    let info;
+    let observer: BehaviorPropertyObserver;
+    let info: BoundPropertyInfo;
 
     if (changeHandlerName in viewModel) {
       if ('propertyChanged' in viewModel) {

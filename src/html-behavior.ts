@@ -58,9 +58,12 @@ export class HtmlBehaviorResource {
   private processContent: ProcessContentCallback;
 
   /** @internal */
-  private usesShadowDOM: boolean;
+  usesShadowDOM: boolean;
 
-  /** @internal */
+  /**
+   * Child binding *expressions* associated with this behavior
+   * @internal
+   */
   private childBindings: any;
 
   /** @internal */

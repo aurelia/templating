@@ -185,9 +185,9 @@ export class ShadowSlot {
   /** @internal */
   private projections: number;
   /** @internal */
-  private children: any[];
+  private children: SlotMarkedNode[];
   /** @internal */
-  private projectFromAnchors: any;
+  projectFromAnchors: any;
   /** @internal */
   private destinationSlots: any;
   /** @internal */

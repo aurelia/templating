@@ -1,4 +1,5 @@
 import {createOverrideContext} from 'aurelia-binding';
+import { HtmlBehaviorResource } from './html-behavior';
 
 /**
 * Controls a view model (and optionally its view), according to a particular behavior and by following a set of instructions.
