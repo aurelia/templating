@@ -2,6 +2,9 @@
 * A mechanism by which an enlisted async render operation can notify the owning transaction when its work is done.
 */
 export class CompositionTransactionNotifier {
+  /** @internal */
+  private owner: CompositionTransaction;
+
   constructor(owner) {
     this.owner = owner;
     this.owner._compositionCount++;
@@ -20,6 +23,12 @@ export class CompositionTransactionNotifier {
 * Referenced by the subsytem which wishes to control a composition transaction.
 */
 export class CompositionTransactionOwnershipToken {
+
+  /** @internal */
+  owner: CompositionTransaction;
+  /** @internal */
+  thenable: Promise<void>;
+
   constructor(owner) {
     this.owner = owner;
     this.owner._ownershipToken = this;
@@ -42,8 +51,14 @@ export class CompositionTransactionOwnershipToken {
     this._resolveCallback();
   }
 
+  /** @internal */
+  _resolveCallback() {
+    throw new Error("Method not implemented.");
+  }
+
+  /** @internal */
   _createThenable() {
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve) => {
       this._resolveCallback = resolve;
     });
   }
@@ -53,6 +68,10 @@ export class CompositionTransactionOwnershipToken {
 * Enables an initiator of a view composition to track any internal async rendering processes for completion.
 */
 export class CompositionTransaction {
+  /** @internal */
+  _ownershipToken: any;
+  /** @internal */
+  _compositionCount: number;
   /**
   * Creates an instance of CompositionTransaction.
   */
@@ -79,6 +98,7 @@ export class CompositionTransaction {
     return new CompositionTransactionNotifier(this);
   }
 
+  /** @internal */
   _tryCompleteTransaction() {
     if (this._compositionCount <= 0) {
       this._compositionCount = 0;
