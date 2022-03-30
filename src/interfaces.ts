@@ -75,6 +75,7 @@ export interface ComponentPropertyChanged {
   propertyChanged(name: string, newValue: any, oldValue: any): void;
 }
 
+/** @internal */
 export type ObservableGetterFunction = Function & {
   getObserver?(...args: unknown[]): any;
 }

@@ -4,7 +4,7 @@ import {TemplateRegistryEntry} from 'aurelia-loader';
 import {ValueConverterResource, BindingBehaviorResource} from 'aurelia-binding';
 import {ViewEngineHooksResource} from './view-engine-hooks-resource';
 import {HtmlBehaviorResource} from './html-behavior';
-import {viewStrategy, TemplateRegistryViewStrategy} from './view-strategy';
+import {viewStrategy, TemplateRegistryViewStrategy, ViewStrategy} from './view-strategy';
 import {ViewResources} from './view-resources';
 import {ResourceLoadContext} from './instructions';
 import {_hyphenate} from './util';
@@ -19,16 +19,16 @@ export class ResourceModule {
   private id: string;
 
   /** @internal */
-  private moduleInstance: any;
+  moduleInstance: any;
 
   /** @internal */
   mainResource: any;
 
   /** @internal */
-  private resources: any;
+  resources: any;
 
   /** @internal */
-  private viewStrategy: any;
+  viewStrategy: ViewStrategy;
 
   /** @internal */
   private isInitialized: boolean;
@@ -216,7 +216,7 @@ export class ResourceDescription {
 */
 export class ModuleAnalyzer {
   /** @internal */
-  private cache: any;
+  private cache: Record<string, ResourceModule>;
   /**
   * Creates an instance of ModuleAnalyzer.
   */
@@ -241,16 +241,16 @@ export class ModuleAnalyzer {
   * @return The ResouceModule representing the analysis.
   */
   analyze(moduleId: string, moduleInstance: any, mainResourceKey?: string): ResourceModule {
-    let mainResource;
+    let mainResource: ResourceDescription;
     let fallbackValue;
     let fallbackKey;
-    let resourceTypeMeta;
-    let key;
+    let resourceTypeMeta: ViewResourceType;
+    let key: string;
     let exportedValue;
-    let resources = [];
-    let conventional;
-    let vs;
-    let resourceModule;
+    let resources: ResourceDescription[] = [];
+    let conventional: ViewResourceType;
+    let vs: ViewStrategy;
+    let resourceModule: ResourceModule;
 
     resourceModule = this.cache[moduleId];
     if (resourceModule) {
@@ -277,7 +277,7 @@ export class ModuleAnalyzer {
 
       // This is an unexpected behavior for inheritance as it will walk through the whole prototype chain
       // to look for metadata. Should be `getOwn` instead. Though it's subjected to a breaking changes change
-      resourceTypeMeta = metadata.get(metadata.resource, exportedValue);
+      resourceTypeMeta = metadata.get(metadata.resource, exportedValue) as ViewResourceType;
 
       if (resourceTypeMeta) {
         if (resourceTypeMeta instanceof HtmlBehaviorResource) {
@@ -306,14 +306,14 @@ export class ModuleAnalyzer {
         vs = new TemplateRegistryViewStrategy(moduleId, exportedValue);
       } else {
         if (conventional = ViewResources.convention(exportedValue)) {
-          if (conventional.elementName !== null && !mainResource) {
+          if ((conventional as HtmlBehaviorResource).elementName !== null && !mainResource) {
             mainResource = new ResourceDescription(key, exportedValue, conventional);
           } else {
             resources.push(new ResourceDescription(key, exportedValue, conventional));
           }
           metadata.define(metadata.resource, conventional, exportedValue);
         } else if (conventional = HtmlBehaviorResource.convention(key)) {
-          if (conventional.elementName !== null && !mainResource) {
+          if ((conventional as HtmlBehaviorResource).elementName !== null && !mainResource) {
             mainResource = new ResourceDescription(key, exportedValue, conventional);
           } else {
             resources.push(new ResourceDescription(key, exportedValue, conventional));
