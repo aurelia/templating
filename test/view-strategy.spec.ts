@@ -1,29 +1,30 @@
-// @ts-check
 import { Container } from 'aurelia-dependency-injection';
-import { BindingLanguage } from '../src/binding-language';
-import { ResourceLoadContext, ViewCompileInstruction } from '../src/instructions';
-import { ViewCompiler } from '../src/view-compiler';
-import { ViewEngine } from '../src/view-engine';
-import { ViewResources } from '../src/view-resources';
-import { StaticViewStrategy, InlineViewStrategy } from '../src/view-strategy';
-import { ViewEngineHooksResource } from '../src/view-engine-hooks-resource';
 import { metadata } from 'aurelia-metadata';
-import { HtmlBehaviorResource } from '../src/html-behavior';
-import { _hyphenate } from '../src/util';
+import {
+  BindingLanguage,
+  HtmlBehaviorResource,
+  ResourceLoadContext,
+  StaticViewStrategy,
+  ViewCompileInstruction,
+  ViewCompiler,
+  ViewEngine,
+  ViewEngineHooksResource,
+  ViewResources,
+  _hyphenate
+} from '../src/aurelia-templating';
 
 describe('ViewLocator', () => {
-  /**@type {ViewEngine} */
-  let viewEngine;
+  let viewEngine: ViewEngine;
   let container = new Container();
   let appResources = new ViewResources();
 
   beforeEach(() => {
     let bindingLanguage = new class extends BindingLanguage {
-      createAttributeInstruction () {}
+      createAttributeInstruction(): any {}
       inspectAttribute (resources, tagName, attrName, attrValue) {
         return { attrName, attrValue};
       }
-      inspectTextContent () {}
+      inspectTextContent(): any {}
     };
     container = new Container();
     appResources = new ViewResources();
@@ -88,7 +89,7 @@ describe('ViewLocator', () => {
           class El {}
           let strategy = new StaticViewStrategy({
             template: '<template></template>',
-            dependencies: () => [dep]
+            dependencies: () => [dep as any /* invalid value type, so a cast */]
           });
           strategy
             .loadViewFactory(viewEngine, ViewCompileInstruction.normal, new ResourceLoadContext(), El)
@@ -173,7 +174,7 @@ describe('ViewLocator', () => {
       beforeCompile() {}
     }
 
-    function mockEsmImport(path) {
+    function mockEsmImport() {
       // Note: export name was intenionally made one character to demonstrate static dependencies declaration relies on
       //        the exported value (class), not the export name. This introduces inconsistency with the rest
       return Promise.resolve({
@@ -203,7 +204,7 @@ describe('ViewLocator', () => {
 
   it('ignore dependencies that are not function', (done) => {
     class Ekko {}
-    function mockEsmImport(path) {
+    function mockEsmImport() {
       // Note: export name was intenionally made one character to demonstrate static dependencies declaration relies on
       //        the exported value (class), not the export name. This introduces inconsistency with the rest
       return Promise.resolve({
@@ -216,7 +217,7 @@ describe('ViewLocator', () => {
     }
     let strategy = new StaticViewStrategy({
       template: '<template></template>',
-      dependencies: () => [mockEsmImport()]
+      dependencies: () => [mockEsmImport() as any /* some props of the mocked module aren't valid, though maybe leave it for now */]
     });
     let spy = spyOn(ViewResources.prototype, 'autoRegister').and.callThrough();
     strategy
@@ -259,14 +260,14 @@ describe('ViewLocator', () => {
       }
 
       [Volibear, Braum, Thresh].forEach(klass => {
-        const r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, klass);
+        const r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, klass) as HtmlBehaviorResource;
         r.elementName = _hyphenate(klass.name);
-        r.load = function() {
+        r.load = function(): any {
           loadCount++;
         }
       });
   
-      function mockEsmImport(path) {
+      function mockEsmImport() {
         // Note: export name was intenionally made one character to demonstrate static dependencies declaration relies on
         //        the exported value (class), not the export name. This introduces inconsistency with the rest
         return Promise.resolve({
@@ -313,14 +314,14 @@ describe('ViewLocator', () => {
       }
 
       [AureliaSol, Volibear, Braum, Thresh].forEach(klass => {
-        const r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, klass);
+        const r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, klass) as HtmlBehaviorResource;
         r.elementName = _hyphenate(klass.name);
-        r.load = function() {
+        r.load = function(): any {
           loadCount++;
         }
       });
   
-      function mockEsmImport(path) {
+      function mockEsmImport() {
         // Note: export name was intenionally made one character to demonstrate static dependencies declaration relies on
         //        the exported value (class), not the export name. This introduces inconsistency with the rest
         return Promise.resolve({

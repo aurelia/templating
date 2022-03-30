@@ -21,7 +21,7 @@ export class ViewEngineHooksResource {
   }
 }
 
-export function viewEngineHooks(target) {
+export function viewEngineHooks(target?): any {
   let deco = function(t) {
     metadata.define(metadata.resource, new ViewEngineHooksResource(), t);
   };

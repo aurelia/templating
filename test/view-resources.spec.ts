@@ -1,17 +1,12 @@
-import {metadata} from 'aurelia-metadata';
+import { bindingBehavior, BindingBehaviorResource, bindingMode, valueConverter, ValueConverterResource } from 'aurelia-binding';
+import { Container } from 'aurelia-dependency-injection';
 import { Logger } from 'aurelia-logging';
-import {bindingMode, valueConverter, bindingBehavior, ValueConverterResource, BindingBehaviorResource} from 'aurelia-binding';
-import {Container} from 'aurelia-dependency-injection';
-import { customElement, customAttribute, bindable } from '../src/decorators';
-import {ViewResources} from '../src/view-resources';
-import { HtmlBehaviorResource } from '../src/html-behavior';
-import { viewEngineHooks } from '../src/view-engine-hooks-resource';
+import { metadata } from 'aurelia-metadata';
+import { bindable, customAttribute, customElement, HtmlBehaviorResource, viewEngineHooks, ViewResources } from '../src/aurelia-templating';
 
 describe('ViewResources', () => {
-  /**@type {Container} */
-  let container;
-  /**@type {ViewResources} */
-  let resources;
+  let container: Container;
+  let resources: ViewResources;
 
   beforeEach(() => {
     container = new Container();
@@ -26,7 +21,7 @@ describe('ViewResources', () => {
         }
       }
   
-      let meta = ViewResources.convention(El);
+      let meta = ViewResources.convention(El) as HtmlBehaviorResource;
       expect(meta.elementName).toBe('el1');
   
       class A {
@@ -35,7 +30,7 @@ describe('ViewResources', () => {
         }
       }
   
-      meta = ViewResources.convention(A);
+      meta = ViewResources.convention(A) as HtmlBehaviorResource;
       expect(meta.attributeName).toBe('a');
   
       class ElOrA {
@@ -44,7 +39,7 @@ describe('ViewResources', () => {
           bindables: ['b', 'c', { name: 'd', defaultBindingMode: 'twoWay' }]
         }
       }
-      meta = ViewResources.convention(ElOrA);
+      meta = ViewResources.convention(ElOrA) as HtmlBehaviorResource;
       expect(meta.properties.length).toBe(3);
       expect(meta.attributes.d.defaultBindingMode).toBe(bindingMode.twoWay);
 
@@ -53,18 +48,18 @@ describe('ViewResources', () => {
           type: 'valueConverter'
         }
       }
-      meta = ViewResources.convention(Vc);
-      expect(meta instanceof ValueConverterResource).toBe(true);
-      expect(meta.name).toBe('vc');
+      const vcMeta = ViewResources.convention(Vc) as ValueConverterResource;
+      expect(vcMeta instanceof ValueConverterResource).toBe(true);
+      expect(vcMeta.name).toBe('vc');
 
       class Bb {
         static $resource = {
           type: 'bindingBehavior'
         }
       }
-      meta = ViewResources.convention(Bb);
-      expect(meta instanceof BindingBehaviorResource).toBe(true);
-      expect(meta.name).toBe('bb');
+      const bbMeta = ViewResources.convention(Bb) as BindingBehaviorResource;
+      expect(bbMeta instanceof BindingBehaviorResource).toBe(true);
+      expect(bbMeta.name).toBe('bb');
     });
 
     it('warns when using uppercase letters in custom element / attribute name', () => {
@@ -75,7 +70,7 @@ describe('ViewResources', () => {
         }
       }
   
-      let meta = ViewResources.convention(ElEl);
+      let meta = ViewResources.convention(ElEl) as HtmlBehaviorResource;
       expect(meta.elementName).toBe('el-el');
       expect(spy).toHaveBeenCalledWith(`'ElEl' is not a valid custom element name and has been converted to 'el-el'. Upper-case letters are not allowed because the DOM is not case-sensitive.`);
     });
@@ -93,7 +88,7 @@ describe('ViewResources', () => {
       class El extends Base {
 
       }
-      let meta = ViewResources.convention(El);
+      let meta = ViewResources.convention(El) as HtmlBehaviorResource;
       expect(meta.elementName).toBe('base');
 
       class El1 extends Base {
@@ -101,7 +96,7 @@ describe('ViewResources', () => {
           return 'el';
         }
       }
-      meta = ViewResources.convention(El1);
+      meta = ViewResources.convention(El1) as HtmlBehaviorResource;
       expect(meta.elementName).toBe('el');
     });
 
@@ -111,11 +106,11 @@ describe('ViewResources', () => {
           bindables: ['value']
         }
       }
-      let meta = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, El);
+      let meta = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, El) as HtmlBehaviorResource;
       ViewResources.convention(El, meta);
       expect(meta.elementName).toBe('el');
       expect(meta.properties.length).toBe(1);
-      expect(meta.__au_resource__).toBe(true);
+      expect(meta['__au_resource__']).toBe(true);
 
       El.$resource.bindables.push('name', 'label', 'type');
       ViewResources.convention(El, meta);
@@ -145,7 +140,7 @@ describe('ViewResources', () => {
 
     class ACustomAttribute {}
 
-    let aMeta = resources.autoRegister(container, ACustomAttribute);
+    let aMeta = resources.autoRegister(container, ACustomAttribute) as HtmlBehaviorResource;
     resourceMetaType = metadata.get(metadata.resource, ACustomAttribute);
 
     expect(aMeta).toBe(resourceMetaType);
@@ -201,8 +196,8 @@ describe('ViewResources', () => {
     resources.autoRegister(container, H);
 
     expect(resources.afterCompile).toBe(true);
-    expect(resources.beforeCompile1).toBeDefined();
-    expect(resources.beforeCompile2).toBeDefined();
+    expect((resources as any).beforeCompile1).toBeDefined();
+    expect((resources as any).beforeCompile2).toBeDefined();
 
   });
 
@@ -292,3 +287,13 @@ describe('ViewResources', () => {
     });
   });
 });
+
+declare module 'aurelia-binding' {
+  interface ValueConverterResource {
+    name: string;
+  }
+
+  interface BindingBehaviorResource {
+    name: string;
+  }
+}

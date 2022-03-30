@@ -1,12 +1,9 @@
 import { Container } from 'aurelia-dependency-injection';
-import { ViewLocator } from '../src/view-locator';
-import { StaticViewStrategy } from '../src/view-strategy';
+import { StaticViewStrategy, ViewLocator } from '../src/aurelia-templating';
 
 describe('ViewLocator', () => {
-  /**@type {Container} */
-  let container;
-  /**@type {ViewLocator} */
-  let viewLocator;
+  let container: Container;
+  let viewLocator: ViewLocator;
 
   beforeEach(() => {
     container = new Container();
@@ -18,7 +15,7 @@ describe('ViewLocator', () => {
       class El {
         static $view = '<template></template>';
       }
-      let strategy = viewLocator.getViewStrategy(El);
+      let strategy = viewLocator.getViewStrategy(El) as StaticViewStrategy;
       expect(strategy instanceof StaticViewStrategy).toBe(true);
       expect(strategy.template).toBe(El.$view);
     });
@@ -29,7 +26,7 @@ describe('ViewLocator', () => {
           template: '<template></template>'
         }
       }
-      let strategy = viewLocator.getViewStrategy(El);
+      let strategy = viewLocator.getViewStrategy(El) as StaticViewStrategy;
       expect(strategy instanceof StaticViewStrategy).toBe(true);
       expect(strategy.template).toBe(El.$view.template);
     });
@@ -42,7 +39,7 @@ describe('ViewLocator', () => {
           };
         }
       }
-      let strategy = viewLocator.getViewStrategy(El);
+      let strategy = viewLocator.getViewStrategy(El) as StaticViewStrategy;
       expect(strategy instanceof StaticViewStrategy).toBe(true);
       expect(strategy.template).toBe('<template></template>');
     });
@@ -53,7 +50,7 @@ describe('ViewLocator', () => {
           return '<template></template>';
         }
       }
-      let strategy = viewLocator.getViewStrategy(El);
+      let strategy = viewLocator.getViewStrategy(El) as StaticViewStrategy;
       expect(strategy instanceof StaticViewStrategy).toBe(true);
       expect(strategy.template).toBe('<template></template>');
     });
@@ -67,14 +64,14 @@ describe('ViewLocator', () => {
       }
       class El extends Base{
       }
-      let strategy = viewLocator.getViewStrategy(El);
+      let strategy = viewLocator.getViewStrategy(El) as StaticViewStrategy;
       expect(strategy instanceof StaticViewStrategy).toBe(true);
       expect(strategy.template).toBe(Base.template);
 
       class El1 extends Base {
         static template = '<template>11</template>';
       }
-      strategy = viewLocator.getViewStrategy(El1);
+      strategy = viewLocator.getViewStrategy(El1) as StaticViewStrategy;
       expect(strategy.template).toBe(El1.template);
     });
   });

@@ -1,25 +1,19 @@
-import { ViewFactory } from "../src/view-factory";
+import { Binding } from "aurelia-binding";
 import { Container } from "aurelia-dependency-injection";
-import { ViewCompiler } from "../src/view-compiler";
-import { ViewResources } from "../src/view-resources";
+import { TargetInstruction, ViewFactory, ViewResources } from "../src/aurelia-templating";
 import { createFragment } from './util';
-import { TargetInstruction } from "../src/instructions";
 
 describe('ViewFactory', () => {
 
   it('constructs', () => {
-    [null, undefined, 'string', {}, 1].forEach(v => {
-      expect(() => new ViewFactory(v, v, v, v)).not.toThrow();
+    [null, undefined, 'string', {}, 1].forEach((v: any) => {
+      expect(() => new ViewFactory(v, v, v)).not.toThrow();
     });
   });
 
   describe('create()', () => {
-    /**@type {Container} */
-    let container;
-    // /**@type {ViewCompiler} */
-    // let compiler;
-    /**@type {ViewFactory} */
-    let viewFactory;
+    let container: Container;
+    let viewFactory: ViewFactory;
 
     beforeEach(() => {
       container = new Container();
@@ -37,7 +31,7 @@ describe('ViewFactory', () => {
     });
 
     it('creates', () => {
-      const binding = {};
+      const binding = {} as Binding & { target: any };
       viewFactory = new ViewFactory(
         createFragment('<div class="au-target" au-target-id="1"></div>'),
         {
@@ -66,7 +60,7 @@ describe('ViewFactory', () => {
     describe('<let/>', () => {
 
       it('creates with <let/>', () => {
-        const binding = {};
+        const binding = {} as Binding & { target: any; };
         const unset = {};
         viewFactory = new ViewFactory(
           createFragment(`<let class="au-target" au-target-id="1"></let>`),

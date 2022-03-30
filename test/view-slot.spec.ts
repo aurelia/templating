@@ -1,11 +1,6 @@
-﻿import {Container} from 'aurelia-dependency-injection';
-import {ViewSlot} from '../src/view-slot';
-import {TemplatingEngine} from '../src/templating-engine';
-import {View} from '../src/view';
-import {ViewResources} from '../src/view-resources';
-import {ViewFactory} from '../src/view-factory';
-import {ShadowDOM} from '../src/shadow-dom'
-import {DOM} from 'aurelia-pal';
+﻿import { Container } from 'aurelia-dependency-injection';
+import { DOM } from 'aurelia-pal';
+import { ShadowDOM, TemplatingEngine, ViewFactory, ViewResources, ViewSlot } from '../src/aurelia-templating';
 
 describe('view-slot', () => {
   let container;

@@ -1,13 +1,12 @@
-﻿import {Container} from 'aurelia-dependency-injection';
-import {createOverrideContext} from 'aurelia-binding';
-import {TemplatingEngine} from '../src/templating-engine';
-import {ViewResources} from '../src/view-resources';
-import {DOM} from 'aurelia-pal';
+﻿import { createOverrideContext } from 'aurelia-binding';
+import { Container } from 'aurelia-dependency-injection';
+import { DOM } from 'aurelia-pal';
+import { TemplatingEngine, ViewResources } from '../src/aurelia-templating';
 
 describe('enhance', () => {
   let container;
   let element;
-  let templatingEngine;
+  let templatingEngine: TemplatingEngine;
 
   beforeEach(() => {
     container = new Container();
@@ -18,7 +17,7 @@ describe('enhance', () => {
   it('passes bindingContext and overrideContext to .bind()', () => {
     let bindingContext = { some: 'var' };
     let overrideContext = createOverrideContext(bindingContext);
-    overrideContext.foo = 'bar';
+    overrideContext['foo'] = 'bar';
 
     let view = templatingEngine.enhance({
       element: element,
@@ -28,12 +27,12 @@ describe('enhance', () => {
 
     expect(view.bindingContext).toBe(bindingContext);
     expect(view.overrideContext).toBe(overrideContext);
-    expect(view.bindingContext.some).toBe('var');
-    expect(view.overrideContext.foo).toBe('bar');
+    expect(view.bindingContext['some']).toBe('var');
+    expect(view.overrideContext['foo']).toBe('bar');
   });
 
   it('supports passing of ViewResources to the view-compiler', () => {
-    let compileNodeSpy = spyOn(templatingEngine._viewCompiler, '_compileNode');
+    let compileNodeSpy = spyOn(templatingEngine['_viewCompiler'], '_compileNode');
     let resources = new ViewResources();
 
     templatingEngine.enhance({

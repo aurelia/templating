@@ -1,7 +1,4 @@
-import {ViewCompiler} from '../src/view-compiler';
-import {ViewResources} from '../src/view-resources';
-import { HtmlBehaviorResource } from '../src/html-behavior';
-import { BindingLanguage } from '../src/binding-language';
+import { BindingLanguage, HtmlBehaviorResource, ViewCompiler, ViewResources } from '../src/aurelia-templating';
 
 class MockBindingLanguage {
   inspectAttribute(resources, elementName, attrName, attrValue) {
@@ -25,8 +22,8 @@ describe('ViewCompiler', () => {
   var viewCompiler, language, resources;
   beforeEach(() => {
     language = new MockBindingLanguage();
-    viewCompiler = new ViewCompiler(language);
     resources = new ViewResources(new ViewResources(), 'app.html');
+    viewCompiler = new ViewCompiler(language, undefined);
   });
 
   describe('compile', () => {
@@ -211,10 +208,10 @@ describe('ViewCompiler', () => {
 
   });
 
-  function createFragment(html) {
+  function createFragment(html): DocumentFragment {
     const parser = document.createElement('div');
     parser.innerHTML = `<template>${html}</template>`;
-    return parser.firstElementChild.content;
+    return (parser.firstElementChild as any).content;
   }
 
 });

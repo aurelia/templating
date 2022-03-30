@@ -1,5 +1,5 @@
 import { Aurelia, TaskQueue } from 'aurelia-framework';
-import { inlineView, Controller, bindable, ShadowDOM, ViewSlot, ShadowSlot } from './aurelia-templating';
+import { inlineView, Controller, bindable, ShadowDOM, ViewSlot, ShadowSlot } from '../src/aurelia-templating';
 import 'aurelia-loader-webpack';
 
 // the test in this file is done in integration testing style,
