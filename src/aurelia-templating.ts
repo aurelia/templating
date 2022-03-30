@@ -1,4 +1,4 @@
-export * from './element-events';
+export { ElementEvents, EventHandler } from './element-events';
 export { ViewCreateInstruction, ViewCompileInstruction, TargetInstruction, BehaviorInstruction, ResourceLoadContext } from './instructions';
 export {
   ConventionalViewStrategy,
@@ -15,8 +15,16 @@ export {
 } from './view-strategy';
 export { ViewLocator } from './view-locator';
 export { BindingLanguage, LetBinding, LetExpression } from './binding-language';
-export * from './view-engine-hooks-resource';
-export * from './interfaces';
+export { ViewEngineHooksResource, viewEngineHooks } from './view-engine-hooks-resource';
+export {
+  ComponentAttached,
+  ComponentBind,
+  ComponentCreated,
+  ComponentDetached,
+  ComponentPropertyChanged,
+  ComponentUnbind,
+  DynamicComponentGetViewStrategy
+} from './interfaces';
 export { BindableProperty } from './bindable-property';
 export { BehaviorPropertyObserver } from './behavior-property-observer';
 export { CompositionContext, CompositionEngine } from './composition-engine';
