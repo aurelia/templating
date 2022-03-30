@@ -1,9 +1,10 @@
 import {_hyphenate} from './util';
 import {BehaviorPropertyObserver} from './behavior-property-observer';
-import {bindingMode} from 'aurelia-binding';
+import {Binding, BindingExpression, bindingMode} from 'aurelia-binding';
 import {Container} from 'aurelia-dependency-injection';
 import {metadata} from 'aurelia-metadata';
 import { HtmlBehaviorResource } from './html-behavior';
+import { ComponentPropertyChanged, ObservableGetterFunction } from './interfaces';
 
 function getObserver(instance, name) {
   let lookup = instance.__observers__;
@@ -127,7 +128,7 @@ export class BindableProperty {
       getObserver(this, name).setValue(value);
     };
 
-    descriptor.get.getObserver = function(obj) {
+    (descriptor.get as ObservableGetterFunction).getObserver = function(obj) {
       return getObserver(obj, name);
     };
 
@@ -151,6 +152,7 @@ export class BindableProperty {
     }
 
     if (this.descriptor === null) {
+      // @ts-ignore todo: weird code here
       Object.defineProperty(target.prototype, name, this._configureDescriptor(behavior, {}));
     }
   }
@@ -175,13 +177,13 @@ export class BindableProperty {
       if ('propertyChanged' in viewModel) {
         selfSubscriber = (newValue, oldValue) => {
           viewModel[changeHandlerName](newValue, oldValue);
-          viewModel.propertyChanged(name, newValue, oldValue);
+          (viewModel as ComponentPropertyChanged).propertyChanged(name, newValue, oldValue);
         };
       } else {
         selfSubscriber = (newValue, oldValue) => viewModel[changeHandlerName](newValue, oldValue);
       }
     } else if ('propertyChanged' in viewModel) {
-      selfSubscriber = (newValue, oldValue) => viewModel.propertyChanged(name, newValue, oldValue);
+      selfSubscriber = (newValue, oldValue) => (viewModel as ComponentPropertyChanged).propertyChanged(name, newValue, oldValue);
     } else if (changeHandlerName !== null) {
       throw new Error(`Change handler ${changeHandlerName} was specified but not declared on the class.`);
     }
@@ -193,10 +195,11 @@ export class BindableProperty {
     return new BehaviorPropertyObserver(this.owner.taskQueue, viewModel, this.name, selfSubscriber, initialValue);
   }
 
-  _initialize(viewModel, observerLookup, attributes, behaviorHandlesBind, boundProperties): void {
+  /** @internal */
+  _initialize(viewModel: object, observerLookup: Record<string, any>, attributes: Record<string, string | BindingExpression>, behaviorHandlesBind?: boolean, boundProperties?: BoundPropertyInfo[]): void {
     let selfSubscriber;
     let observer;
-    let attribute;
+    let attribute: string | BindingExpression;
     let defaultValue = this.defaultValue;
 
     if (this.isDynamic) {
@@ -230,7 +233,8 @@ export class BindableProperty {
     }
   }
 
-  _createDynamicProperty(viewModel, observerLookup, behaviorHandlesBind, name, attribute, boundProperties) {
+  /** @internal */
+  _createDynamicProperty(viewModel, observerLookup, behaviorHandlesBind, name, attribute: string | BindingExpression, boundProperties: BoundPropertyInfo[]) {
     let changeHandlerName = name + 'Changed';
     let selfSubscriber = null;
     let observer;
@@ -278,4 +282,9 @@ export class BindableProperty {
     observer.publishing = true;
     observer.selfSubscriber = selfSubscriber;
   }
+}
+
+interface BoundPropertyInfo {
+  observer: BehaviorPropertyObserver;
+  binding: Binding;
 }

@@ -12,7 +12,7 @@ import {ViewResources} from './view-resources';
 import {ResourceLoadContext, ViewCompileInstruction, BehaviorInstruction} from './instructions';
 import {FEATURE, DOM} from 'aurelia-pal';
 import { ViewStrategy } from './view-strategy';
-import { ConstructableResourceTarget } from './type-extension';
+import { ConstructableResourceTarget, ProcessContentCallback } from './type-extension';
 import { ViewFactory } from './view-factory';
 
 let lastProviderId = 0;
@@ -55,7 +55,7 @@ export class HtmlBehaviorResource {
   private processAttributes: () => void;
 
   /** @internal */
-  private processContent: () => boolean;
+  private processContent: ProcessContentCallback;
 
   /** @internal */
   private usesShadowDOM: boolean;
@@ -320,7 +320,7 @@ export class HtmlBehaviorResource {
   * @param parentNode The parent node of the current node.
   * @return The current node.
   */
-  compile(compiler: ViewCompiler, resources: ViewResources, node: Node, instruction: BehaviorInstruction, parentNode?: Node): Node {
+  compile(compiler: ViewCompiler, resources: ViewResources, node: Element, instruction: BehaviorInstruction, parentNode?: Node): Element {
     if (this.liftsContent) {
       if (!instruction.viewFactory) {
         let template = DOM.createElement('template');
@@ -349,7 +349,7 @@ export class HtmlBehaviorResource {
       let partReplacements = {};
 
       if (this.processContent(compiler, resources, node, instruction) && node.hasChildNodes()) {
-        let currentChild = node.firstChild;
+        let currentChild = node.firstChild as Element;
         let contentElement = this.usesShadowDOM ? null : DOM.createElement('au-content');
         let nextSibling;
         let toReplace;
@@ -495,6 +495,7 @@ export class HtmlBehaviorResource {
     return controller;
   }
 
+  /** @internal */
   _ensurePropertiesDefined(instance: Object, lookup: Object) {
     let properties;
     let i;
@@ -505,7 +506,7 @@ export class HtmlBehaviorResource {
       return;
     }
 
-    lookup.__propertiesDefined__ = true;
+    (lookup as any).__propertiesDefined__ = true;
     properties = this.properties;
 
     for (i = 0, ii = properties.length; i < ii; ++i) {
@@ -549,5 +550,23 @@ export class HtmlBehaviorResource {
       // on the parent prototype during initialization.
       new BindableProperty(prop).registerWith(derived, this);
     }
+  }
+}
+
+declare global {
+  /** @internal */
+  interface Element {
+    au?: Record<string, Controller>;
+    /**
+     * a special property for containerless element
+     */
+    contentElement?: Element;
+  }
+}
+
+/** @internal */
+declare module 'aurelia-dependency-injection' {
+  interface Container {
+    viewModel: any;
   }
 }

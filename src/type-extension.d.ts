@@ -1,8 +1,11 @@
 import { BindingBehaviorResource, ValueConverterResource } from "aurelia-binding";
 import { HtmlBehaviorResource } from "./html-behavior";
+import { BehaviorInstruction } from "./instructions";
 import { PassThroughSlot, ShadowSlot } from "./shadow-dom";
 import { View } from "./view";
+import { ViewCompiler } from "./view-compiler";
 import { ViewEngineHooksResource } from "./view-engine-hooks-resource";
+import { ViewResources } from "./view-resources";
 import { ViewSlot } from "./view-slot";
 
 export type ViewResourceType = HtmlBehaviorResource | ValueConverterResource | BindingBehaviorResource | ViewEngineHooksResource;
@@ -18,3 +21,5 @@ export type SlotMarkedNode = Node & {
   auProjectionChildren?: Node[];
   isContentProjectionSource?: boolean;
 };
+
+export type ProcessContentCallback = (viewCompiler: ViewCompiler, resources: ViewResources, node: Element, instruction: BehaviorInstruction) => boolean;

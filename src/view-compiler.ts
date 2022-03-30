@@ -62,6 +62,12 @@ export class ViewCompiler {
     return [BindingLanguage, ViewResources];
   }
 
+  /** @internal */
+  private bindingLanguage: BindingLanguage;
+
+  /** @internal */
+  private resources: ViewResources;
+
   /**
   * Creates an instance of ViewCompiler.
   * @param bindingLanguage The default data binding language and syntax used during view compilation.
@@ -88,10 +94,10 @@ export class ViewCompiler {
     let part;
     let cacheSize;
 
-    if (source.content) {
-      part = source.getAttribute('part');
-      cacheSize = source.getAttribute('view-cache');
-      content = DOM.adoptNode(source.content);
+    if ((source as HTMLTemplateElement).content) {
+      part = (source as Element).getAttribute('part');
+      cacheSize = (source as Element).getAttribute('view-cache');
+      content = DOM.adoptNode((source as HTMLTemplateElement).content);
     } else {
       content = source;
     }
@@ -128,6 +134,7 @@ export class ViewCompiler {
     return factory;
   }
 
+  /** @internal */
   _compileNode(node, resources, instructions, parentNode, parentInjectorId, targetLightDOM) {
     switch (node.nodeType) {
     case 1: //element node
@@ -280,7 +287,8 @@ export class ViewCompiler {
     return null;
   }
 
-  _compileElement(node: Node, resources: ViewResources, instructions: any, parentNode: Node, parentInjectorId: number, targetLightDOM: boolean) {
+  /** @internal */
+  _compileElement(node: Element, resources: ViewResources, instructions: any, parentNode: Node, parentInjectorId: number, targetLightDOM: boolean) {
     let tagName = node.tagName.toLowerCase();
     let attributes = node.attributes;
     let expressions = [];
@@ -288,7 +296,7 @@ export class ViewCompiler {
     let behaviorInstructions = [];
     let providers = [];
     let bindingLanguage = resources.getBindingLanguage(this.bindingLanguage);
-    let liftingInstruction;
+    let liftingInstruction: BehaviorInstruction;
     let viewFactory;
     let type;
     let elementInstruction;

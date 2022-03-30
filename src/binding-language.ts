@@ -1,14 +1,17 @@
 import { Scope, Expression } from 'aurelia-binding';
+import { HtmlBehaviorResource } from './html-behavior';
+import { BehaviorInstruction } from './instructions';
+import { ViewResources } from './view-resources';
 
-function mi(name) {
+function mi(name): never {
   throw new Error(`BindingLanguage must implement ${name}().`);
 }
 
-interface LetExpression {
+export interface LetExpression {
   createBinding(): LetBinding;
 }
 
-interface LetBinding {
+export interface LetBinding {
   /**
    * The expression to access/assign/connect the binding source property.
    */
@@ -49,9 +52,10 @@ export class BindingLanguage {
   * @param element The element that the attribute is defined on.
   * @param info The info object previously returned from inspectAttribute.
   * @param existingInstruction A previously created instruction for this attribute.
+  * @param context HtmlBehaviorResource
   * @return The instruction instance.
   */
-  createAttributeInstruction(resources: ViewResources, element: Element, info: Object, existingInstruction?: Object): BehaviorInstruction {
+  createAttributeInstruction(resources: ViewResources, element: Element, info: Object, existingInstruction?: Object, context?: HtmlBehaviorResource): BehaviorInstruction {
     mi('createAttributeInstruction');
   }
 

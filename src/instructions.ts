@@ -223,6 +223,7 @@ export class TargetInstruction {
   * An empty array used to represent a target with no binding expressions.
   */
   static noExpressions = Object.freeze([]) as object[];
+  slotDestination: any;
 
   /**
   * Creates an instruction that represents a shadow dom slot.

@@ -396,7 +396,7 @@ export class ViewFactory {
   * @param size The number of views to cache or "*" to cache all.
   * @param doNotOverrideIfAlreadySet Indicates that setting the cache should not override the setting if previously set.
   */
-  setCacheSize(size: number | string, doNotOverrideIfAlreadySet: boolean): void {
+  setCacheSize(size: number | string, doNotOverrideIfAlreadySet?: boolean): void {
     if (size) {
       if (size === '*') {
         size = Number.MAX_VALUE;
