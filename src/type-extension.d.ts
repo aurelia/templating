@@ -23,3 +23,5 @@ export type SlotMarkedNode = Node & {
 };
 
 export type ProcessContentCallback = (viewCompiler: ViewCompiler, resources: ViewResources, node: Element, instruction: BehaviorInstruction) => boolean;
+
+export type ProcessAttributeCallback = (compiler: ViewCompiler, resources: ViewResources, node: Element, attributes: Element['attributes'], elementInstruction: BehaviorInstruction) => void;

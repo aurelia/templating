@@ -12,7 +12,7 @@ import {ViewResources} from './view-resources';
 import {ResourceLoadContext, ViewCompileInstruction, BehaviorInstruction} from './instructions';
 import {FEATURE, DOM} from 'aurelia-pal';
 import { ViewStrategy } from './view-strategy';
-import { ConstructableResourceTarget, ProcessContentCallback } from './type-extension';
+import { ConstructableResourceTarget, ProcessAttributeCallback, ProcessContentCallback } from './type-extension';
 import { ViewFactory } from './view-factory';
 
 let lastProviderId = 0;
@@ -40,22 +40,22 @@ export class HtmlBehaviorResource {
   elementName: any;
 
   /** @internal */
-  private attributeDefaultBindingMode: any;
+  attributeDefaultBindingMode: any;
 
   /** @internal */
-  private liftsContent: boolean;
+  liftsContent: boolean;
 
   /** @internal */
-  private targetShadowDOM: boolean;
+  targetShadowDOM: boolean;
 
   /** @internal */
-  private shadowDOMOptions: any;
+  shadowDOMOptions: any;
 
   /** @internal */
-  private processAttributes: () => void;
+  processAttributes: ProcessAttributeCallback;
 
   /** @internal */
-  private processContent: ProcessContentCallback;
+  processContent: ProcessContentCallback;
 
   /** @internal */
   usesShadowDOM: boolean;
@@ -67,7 +67,7 @@ export class HtmlBehaviorResource {
   private childBindings: any;
 
   /** @internal */
-  private hasDynamicOptions: boolean;
+  hasDynamicOptions: boolean;
 
   /** @internal */
   containerless: boolean;

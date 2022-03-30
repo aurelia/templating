@@ -4,9 +4,10 @@ import {ViewEngine} from './view-engine';
 import {validateBehaviorName} from './view-resources';
 import {BindableProperty} from './bindable-property';
 import {ElementConfigResource} from './element-config';
-import {RelativeViewStrategy, NoViewStrategy, InlineViewStrategy} from './view-strategy';
+import {RelativeViewStrategy, NoViewStrategy, InlineViewStrategy, ViewStrategyDependencyConfig} from './view-strategy';
 import {ViewLocator} from './view-locator';
 import {HtmlBehaviorResource} from './html-behavior';
+import { ProcessContentCallback } from './type-extension';
 
 /**
 * Decorator: Specifies a resource instance that describes the decorated class.
@@ -44,7 +45,7 @@ export function behavior(override: HtmlBehaviorResource | Object): any {
 */
 export function customElement(name: string): any {
   return function(target) {
-    let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, target);
+    let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, target) as HtmlBehaviorResource;
     r.elementName = validateBehaviorName(name, 'custom element');
   };
 }
@@ -57,10 +58,10 @@ export function customElement(name: string): any {
 */
 export function customAttribute(name: string, defaultBindingMode?: number, aliases?: string[]): any {
   return function(target) {
-    let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, target);
+    let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, target) as HtmlBehaviorResource;
     r.attributeName = validateBehaviorName(name, 'custom attribute');
     r.attributeDefaultBindingMode = defaultBindingMode;
-    r.aliases = aliases;
+    r.aliases = aliases as any;
   };
 }
 
@@ -71,7 +72,7 @@ export function customAttribute(name: string, defaultBindingMode?: number, alias
 */
 export function templateController(target?): any {
   let deco = function(t) {
-    let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
+    let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t) as HtmlBehaviorResource;
     r.liftsContent = true;
   };
 
@@ -90,7 +91,7 @@ export function bindable(nameOrConfigOrTarget?: string | Object, key?, descripto
 
     if (key2) { //is it on a property or a class?
       nameOrConfigOrTarget = nameOrConfigOrTarget || {};
-      nameOrConfigOrTarget.name = key2;
+      (nameOrConfigOrTarget as any).name = key2;
     }
 
     prop = new BindableProperty(nameOrConfigOrTarget);
@@ -116,7 +117,7 @@ export function bindable(nameOrConfigOrTarget?: string | Object, key?, descripto
 */
 export function dynamicOptions(target?): any {
   let deco = function(t) {
-    let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
+    let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t) as HtmlBehaviorResource;
     r.hasDynamicOptions = true;
   };
 
@@ -134,7 +135,7 @@ export function useShadowDOM(targetOrOptions?): any {
     : targetOrOptions;
 
   let deco = function(t) {
-    let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
+    let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t) as HtmlBehaviorResource;
     r.targetShadowDOM = true;
     r.shadowDOMOptions = options;
   };
@@ -148,7 +149,7 @@ export function useShadowDOM(targetOrOptions?): any {
 */
 export function processAttributes(processor: Function): any {
   return function(t) {
-    let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
+    let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t) as HtmlBehaviorResource;
     r.processAttributes = function(compiler, resources, node, attributes, elementInstruction) {
       try {
         processor(compiler, resources, node, attributes, elementInstruction);
@@ -171,10 +172,10 @@ function doNotProcessContent() { return false; }
 */
 export function processContent(processor: boolean | Function): any {
   return function(t) {
-    let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
+    let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t) as HtmlBehaviorResource;
     r.processContent = processor ? function(compiler, resources, node, instruction) {
       try {
-        return processor(compiler, resources, node, instruction);
+        return (processor as ProcessContentCallback)(compiler, resources, node, instruction);
       } catch (error) {
         LogManager.getLogger('templating').error(error);
         return false;
@@ -189,7 +190,7 @@ export function processContent(processor: boolean | Function): any {
 */
 export function containerless(target?): any {
   let deco = function(t) {
-    let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t);
+    let r = metadata.getOrCreateOwn(metadata.resource, HtmlBehaviorResource, t) as HtmlBehaviorResource;
     r.containerless = true;
   };
 
@@ -221,7 +222,7 @@ export function useView(path: string): any {
 * @param dependencies A list of dependencies that the template has.
 * @param dependencyBaseUrl A base url from which the dependencies will be loaded.
 */
-export function inlineView(markup:string, dependencies?:Array<string|Function|Object>, dependencyBaseUrl?:string): any {
+export function inlineView(markup:string, dependencies?:Array<string|Function|ViewStrategyDependencyConfig>, dependencyBaseUrl?:string): any {
   return useViewStrategy(new InlineViewStrategy(markup, dependencies, dependencyBaseUrl));
 }
 
