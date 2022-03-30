@@ -5,3 +5,5 @@ bower_components
 .DS_STORE
 build/reports
 dist
+coverage
+.npmrc

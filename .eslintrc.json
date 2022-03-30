@@ -1,5 +1,14 @@
 {
   "extends": "./node_modules/aurelia-tools/.eslintrc.json",
+  "ignorePatterns": [
+    "node_modules",
+    "dist",
+    ".vscode",
+    "*.config.js",
+    ".webpack",
+    "_warmup",
+    "**/*.js"
+  ],
   "rules": {
     "no-cond-assign": 0,
     "new-cap": 0,
