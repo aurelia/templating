@@ -1,12 +1,16 @@
 /* eslint no-unused-vars: 0, no-constant-condition: 0 */
-import {Binding, createOverrideContext} from 'aurelia-binding';
+import {Binding, createOverrideContext, Scope} from 'aurelia-binding';
 import {Container} from 'aurelia-dependency-injection';
-import {ShadowDOM} from './shadow-dom';
+import { Controller } from './controller';
+import { ComponentBind } from './interfaces';
+import {PassThroughSlot, ShadowDOM, ShadowSlot} from './shadow-dom';
+import { ViewFactory } from './view-factory';
+import { ViewResources } from './view-resources';
 
 /**
 * Represents a node in the view hierarchy.
 */
-interface ViewNode {
+export interface ViewNode {
   /**
   * Binds the node and it's children.
   * @param bindingContext The binding context to bind to.
@@ -58,6 +62,51 @@ export class View {
   */
   controller: Controller;
 
+  /** @internal */
+  resources: ViewResources;
+
+  /** @internal */
+  firstChild: ChildNode;
+
+  /** @internal */
+  lastChild: ChildNode;
+
+  /** @internal */
+  controllers: Controller[];
+
+  /** @internal */
+  bindings: Binding[];
+
+  /** @internal */
+  children: ViewNode[];
+
+  /** @internal */
+  slots: Record<string, ShadowSlot | PassThroughSlot>;
+
+  /** @internal */
+  hasSlots: boolean;
+
+  /** @internal */
+  fromCache: boolean;
+
+  /** @internal */
+  isBound: boolean;
+
+  /** @internal */
+  isAttached: boolean;
+
+  /** @internal */
+  viewModelScope: any;
+
+  /** @internal */
+  animatableElement: any;
+
+  /** @internal */
+  _isUserControlled: boolean;
+
+  /** @internal */
+  contentView: any;
+
   /**
   * Creates a View instance.
   * @param container The container from which the view was created.
@@ -77,7 +126,7 @@ export class View {
     this.controllers = controllers;
     this.bindings = bindings;
     this.children = children;
-    this.slots = slots;
+    this.slots = slots as typeof this['slots'];
     this.hasSlots = false;
     this.fromCache = false;
     this.isBound = false;
@@ -90,7 +139,7 @@ export class View {
     this._isUserControlled = false;
     this.contentView = null;
 
-    for (let key in slots) {
+    for (let _ in slots) {
       this.hasSlots = true;
       break;
     }
@@ -152,7 +201,7 @@ export class View {
     }
 
     if (this.viewModelScope !== null) {
-      bindingContext.bind(this.viewModelScope.bindingContext, this.viewModelScope.overrideContext);
+      (bindingContext as ComponentBind).bind(this.viewModelScope.bindingContext, this.viewModelScope.overrideContext);
       this.viewModelScope = null;
     }
 
@@ -176,10 +225,10 @@ export class View {
   * @param binding The binding instance.
   */
   addBinding(binding: Object): void {
-    this.bindings.push(binding);
+    this.bindings.push(binding as Binding);
 
     if (this.isBound) {
-      binding.bind(this);
+      (binding as Binding).bind(this as unknown as Scope);
     }
   }
 

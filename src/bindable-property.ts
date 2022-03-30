@@ -94,13 +94,14 @@ export class BindableProperty {
 
     if (descriptor) {
       this.descriptor = descriptor;
-      return this._configureDescriptor(descriptor);
+      return this._configureDescriptor(descriptor as any) as unknown as void;
     }
 
     return undefined;
   }
 
-  _configureDescriptor(descriptor: Object): Object {
+  /** @internal */
+  _configureDescriptor(descriptor: PropertyDescriptor & { initializer: any }): Object {
     let name = this.name;
 
     descriptor.configurable = true;
@@ -249,11 +250,11 @@ export class BindableProperty {
     }
 
     observer = observerLookup[name] = new BehaviorPropertyObserver(
-        this.owner.taskQueue,
-        viewModel,
-        name,
-        selfSubscriber
-        );
+      this.owner.taskQueue,
+      viewModel,
+      name,
+      selfSubscriber
+    );
 
     Object.defineProperty(viewModel, name, {
       configurable: true,

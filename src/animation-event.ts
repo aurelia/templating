@@ -31,4 +31,4 @@ export const animationEvent = {
 
   sequenceBegin: 'animation:sequence:begin',
   sequenceDone: 'animation:sequence:done'
-};
+} as const;

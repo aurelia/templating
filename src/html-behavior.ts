@@ -13,6 +13,7 @@ import {ResourceLoadContext, ViewCompileInstruction, BehaviorInstruction} from '
 import {FEATURE, DOM} from 'aurelia-pal';
 import { ViewStrategy } from './view-strategy';
 import { ConstructableResourceTarget } from './type-extension';
+import { ViewFactory } from './view-factory';
 
 let lastProviderId = 0;
 
@@ -66,7 +67,7 @@ export class HtmlBehaviorResource {
   private hasDynamicOptions: boolean;
 
   /** @internal */
-  private containerless: boolean;
+  containerless: boolean;
 
   /** @internal */
   attributes: Record<string, BindableProperty>;
@@ -84,7 +85,7 @@ export class HtmlBehaviorResource {
   private taskQueue: any;
 
   /** @internal */
-  private target: Function;
+  target: Function;
 
   /** @internal */
   private handlesCreated: boolean;
@@ -258,6 +259,8 @@ export class HtmlBehaviorResource {
 
       if (Array.isArray(this.aliases)) {
         this.aliases
+          // todo: this is pretty weird
+          // @ts-ignore
           .forEach( (alias) => {
             registry.registerAttribute(alias, this, this.attributeName);
           });
@@ -268,6 +271,7 @@ export class HtmlBehaviorResource {
       registry.registerElement(name || this.elementName, this);
     }
   }
+
   aliases(aliases: any) {
     throw new Error('Method not implemented.');
   }
@@ -282,7 +286,7 @@ export class HtmlBehaviorResource {
   * @param transientView Indicated whether the view strategy is transient or
   * permanently tied to this component.
   */
-  load(container: Container, target: Function, loadContext?: ResourceLoadContext, viewStrategy?: ViewStrategy, transientView?: boolean): Promise<HtmlBehaviorResource> {
+  load(container: Container, target: Function, loadContext?: ResourceLoadContext, viewStrategy?: ViewStrategy, transientView?: boolean): Promise<HtmlBehaviorResource | ViewFactory> {
     let options;
 
     if (this.elementName !== null) {
@@ -293,13 +297,15 @@ export class HtmlBehaviorResource {
         viewStrategy.moduleId = Origin.get(target).moduleId;
       }
 
-      return viewStrategy.loadViewFactory(container.get(ViewEngine), options, loadContext, target).then(viewFactory => {
-        if (!transientView || !this.viewFactory) {
-          this.viewFactory = viewFactory;
-        }
+      return viewStrategy
+        .loadViewFactory(container.get(ViewEngine), options, loadContext, target)
+        .then(viewFactory => {
+          if (!transientView || !this.viewFactory) {
+            this.viewFactory = viewFactory;
+          }
 
-        return viewFactory;
-      });
+          return viewFactory;
+        });
     }
 
     return Promise.resolve(this);

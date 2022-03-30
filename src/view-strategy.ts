@@ -12,6 +12,7 @@ import { ViewResources } from './view-resources';
 * Implemented by classes that describe how a view factory should be loaded.
 */
 export interface ViewStrategy {
+  moduleId?: string;
   /**
   * Loads a view factory.
   * @param viewEngine The view engine to use during the load process.
@@ -26,7 +27,8 @@ export interface ViewStrategy {
 export type ViewStrategyDecorator = Function & {
   assert(value: any): value is ViewStrategy;
   validate(target: any): boolean;
-  compose(target: any): void
+  compose(target: any): void;
+  decorates(target: any): any;
 }
 
 /**

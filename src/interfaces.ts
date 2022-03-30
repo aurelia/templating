@@ -4,7 +4,7 @@ import {ViewStrategy} from './view-strategy';
 /**
 * An optional interface describing the created convention.
 */
-interface ComponentCreated {
+export interface ComponentCreated {
     /**
     * Implement this hook if you want to perform custom logic after the constructor has been called.
     * At this point in time, the view has also been created and both the view-model and the view
@@ -18,7 +18,7 @@ interface ComponentCreated {
 /**
 * An optional interface describing the bind convention.
 */
-interface ComponentBind {
+export interface ComponentBind {
     /**
     * Implement this hook if you want to perform custom logic when databinding is activated on the view and view-model.
     * The "binding context" to which the component is being bound will be passed first.
@@ -31,7 +31,7 @@ interface ComponentBind {
 /**
 * An optional interface describing the attached convention.
 */
-interface ComponentAttached {
+export interface ComponentAttached {
     /**
     * Implement this hook if you want to perform custom logic when the component is attached to the DOM (in document).
     */
@@ -41,7 +41,7 @@ interface ComponentAttached {
 /**
 * An optional interface describing the detached convention.
 */
-interface ComponentDetached {
+export interface ComponentDetached {
     /**
     * Implement this hook if you want to perform custom logic if/when the component is removed from the the DOM.
     */
@@ -51,7 +51,7 @@ interface ComponentDetached {
 /**
 * An optional interface describing the unbind convention.
 */
-interface ComponentUnbind {
+export interface ComponentUnbind {
     /**
     * Implement this hook if you want to perform custom logic after the component is detached and unbound.
     */
@@ -61,7 +61,7 @@ interface ComponentUnbind {
 /**
 * An optional interface describing the getViewStrategy convention for dynamic components (used with the compose element or the router).
 */
-interface DynamicComponentGetViewStrategy {
+export interface DynamicComponentGetViewStrategy {
     /**
     * Implement this hook if you want to provide custom view strategy when this component is used with the compose element or the router.
     */

@@ -1,7 +1,8 @@
 import {metadata} from 'aurelia-metadata';
 
 export class ViewEngineHooksResource {
-  constructor() {}
+  /** @internal */
+  private instance: any;
 
   initialize(container, target) {
     this.instance = container.get(target);

@@ -21,7 +21,7 @@ function getAnimatableElement(view) {
 }
 
 export type ViewSlotAnchor = Node & {
-  viewSlot?: ViewSlot;
+  viewSlot?: ViewSlot | ShadowSlot | PassThroughSlot;
   isContentProjectionSource?: boolean;
 }
 

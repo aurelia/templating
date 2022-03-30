@@ -6,6 +6,31 @@ import {TaskQueue} from 'aurelia-task-queue';
 */
 @subscriberCollection()
 export class BehaviorPropertyObserver {
+
+  /** @internal */
+  taskQueue: TaskQueue;
+
+  /** @internal */
+  obj: Object;
+
+  /** @internal */
+  propertyName: string;
+
+  /** @internal */
+  notqueued: boolean;
+
+  /** @internal */
+  publishing: boolean;
+
+  /** @internal */
+  selfSubscriber: Function;
+
+  /** @internal */
+  private currentValue: any;
+
+  /** @internal */
+  private oldValue: any;
+
   /**
   * Creates an instance of BehaviorPropertyObserver.
   * @param taskQueue The task queue used to schedule change notifications.
@@ -14,7 +39,7 @@ export class BehaviorPropertyObserver {
   * @param selfSubscriber The callback function that notifies the object which defines the properties, if present.
   * @param initialValue The initial value of the property.
   */
-  constructor(taskQueue: TaskQueue, obj: Object, propertyName: string, selfSubscriber: Function, initialValue: any) {
+  constructor(taskQueue: TaskQueue, obj: Object, propertyName: string, selfSubscriber: Function, initialValue?: any) {
     this.taskQueue = taskQueue;
     this.obj = obj;
     this.propertyName = propertyName;
@@ -73,6 +98,9 @@ export class BehaviorPropertyObserver {
     this.callSubscribers(newValue, oldValue);
     this.oldValue = newValue;
   }
+  callSubscribers(newValue: any, oldValue: any) {
+    throw new Error('Method not implemented.');
+  }
 
   /**
   * Subscribes to the observerable.
@@ -82,6 +110,9 @@ export class BehaviorPropertyObserver {
   subscribe(context: any, callable: Function): void {
     this.addSubscriber(context, callable);
   }
+  addSubscriber(context: any, callable: Function) {
+    throw new Error('Method not implemented.');
+  }
 
   /**
   * Unsubscribes from the observerable.
@@ -90,5 +121,8 @@ export class BehaviorPropertyObserver {
   */
   unsubscribe(context: any, callable: Function): void {
     this.removeSubscriber(context, callable);
+  }
+  removeSubscriber(context: any, callable: Function) {
+    throw new Error('Method not implemented.');
   }
 }

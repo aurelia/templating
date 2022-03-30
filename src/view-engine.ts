@@ -1,15 +1,16 @@
 import * as LogManager from 'aurelia-logging';
 import {Origin, metadata} from 'aurelia-metadata';
-import {Loader, TemplateRegistryEntry} from 'aurelia-loader';
+import {Loader, LoaderPlugin, TemplateRegistryEntry} from 'aurelia-loader';
 import {Container} from 'aurelia-dependency-injection';
 import {ViewCompiler} from './view-compiler';
 import {ViewResources} from './view-resources';
 import {ModuleAnalyzer, ResourceDescription} from './module-analyzer';
 import {ViewFactory} from './view-factory';
-import {ResourceLoadContext, ViewCompileInstruction} from './instructions';
+import {ResourceLoadContext, ViewCompileInstruction, ViewCreateInstruction} from './instructions';
 import {SlotCustomAttribute} from './shadow-dom';
 import {HtmlBehaviorResource} from './html-behavior';
 import {relativeToFile} from 'aurelia-path';
+import { View } from './view';
 
 let logger = LogManager.getLogger('templating');
 
@@ -22,6 +23,7 @@ function ensureRegistryEntry(loader, urlOrRegistryEntry) {
 }
 
 class ProxyViewFactory {
+  viewFactory: any;
   constructor(promise) {
     promise.then(x => this.viewFactory = x);
   }
@@ -63,6 +65,24 @@ export class ViewEngine {
   */
   static viewModelRequireMetadataKey = 'aurelia:view-model-require';
 
+  /** @internal */
+  loader: Loader;
+
+  /** @internal */
+  container: Container;
+
+  /** @internal */
+  viewCompiler: ViewCompiler;
+
+  /** @internal */
+  moduleAnalyzer: ModuleAnalyzer;
+
+  /** @internal */
+  appResources: ViewResources;
+
+  /** @internal */
+  private _pluginMap: {};
+
   /**
   * Creates an instance of ViewEngine.
   * @param loader The module loader.
@@ -97,7 +117,7 @@ export class ViewEngine {
   addResourcePlugin(extension: string, implementation: Object): void {
     let name = extension.replace('.', '') + '-resource-plugin';
     this._pluginMap[extension] = name;
-    this.loader.addPlugin(name, implementation);
+    this.loader.addPlugin(name, implementation as LoaderPlugin);
   }
 
   /**
@@ -171,16 +191,19 @@ export class ViewEngine {
     logger.debug(`importing resources for ${registryEntry.address}`, importIds);
 
     if (target) {
-      let viewModelRequires = metadata.get(ViewEngine.viewModelRequireMetadataKey, target);
+      type Req = { src: string; as: string };
+      let viewModelRequires = metadata.get(ViewEngine.viewModelRequireMetadataKey, target) as (string | Function | Req)[];
       if (viewModelRequires) {
         let templateImportCount = importIds.length;
         for (let i = 0, ii = viewModelRequires.length; i < ii; ++i) {
           let req = viewModelRequires[i];
-          let importId = typeof req === 'function' ? Origin.get(req).moduleId : relativeToFile(req.src || req, registryEntry.address);
+          let importId = typeof req === 'function'
+            ? Origin.get(req).moduleId
+            : relativeToFile((req as Req).src || req as string, registryEntry.address);
 
           if (importIds.indexOf(importId) === -1) {
             importIds.push(importId);
-            names.push(req.as);
+            names.push((req as Req).as);
           }
         }
         logger.debug(`importing ViewModel resources for ${compileInstruction.associatedModuleId}`, importIds.slice(templateImportCount));

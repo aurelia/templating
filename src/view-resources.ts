@@ -4,12 +4,15 @@ import * as LogManager from 'aurelia-logging';
 import { BindableProperty } from './bindable-property';
 import { HtmlBehaviorResource } from './html-behavior';
 import { BindingLanguage } from './binding-language';
-import { ViewCompileInstruction, ViewCreateInstruction } from './instructions';
+import { BehaviorInstruction, ViewCompileInstruction, ViewCreateInstruction } from './instructions';
 import { Container } from 'aurelia-dependency-injection';
 import { _hyphenate } from './util';
-import { ValueConverterResource, BindingBehaviorResource, camelCase } from 'aurelia-binding';
+import { ValueConverterResource, BindingBehaviorResource, camelCase, bindingMode } from 'aurelia-binding';
 import { ViewEngineHooksResource } from './view-engine-hooks-resource';
 import { ViewResourceType } from './type-extension';
+import { ViewFactory } from './view-factory';
+import { ViewCompiler } from './view-compiler';
+import { View } from './view';
 
 function register(lookup, name, resource, type) {
   if (!name) {
@@ -31,7 +34,7 @@ function register(lookup, name, resource, type) {
 /**
 * View engine hooks that enable a view resource to provide custom processing during the compilation or creation of a view.
 */
-interface ViewEngineHooks {
+export interface ViewEngineHooks {
   /**
   * Invoked before a template is compiled.
   * @param content The DocumentFragment to compile.
@@ -71,7 +74,7 @@ interface ViewEngineHooks {
   beforeUnbind?: (view: View) => void;
 }
 
-interface IBindablePropertyConfig {
+export interface IBindablePropertyConfig {
   /**
   * The name of the property.
   */
@@ -97,7 +100,7 @@ interface IBindablePropertyConfig {
   [key: string]: any;
 }
 
-interface IStaticResourceConfig {
+export interface IStaticResourceConfig {
   /**
    * Resource type of this class, omit equals to custom element
    */
@@ -204,7 +207,7 @@ export class ViewResources {
    * @param target Target class to extract metadata based on convention
    * @param existing If supplied, all custom element / attribute metadata extracted from convention will be apply to this instance
    */
-  static convention(target: Function, existing?: HtmlBehaviorResource): HtmlBehaviorResource | ValueConverterResource | BindingBehaviorResource | ViewEngineHooksResource {
+  static convention(target: Function, existing?: HtmlBehaviorResource): ViewResourceType {
     let resource;
     // Use a simple string to mark that an HtmlBehaviorResource instance
     // has been applied all resource information from its target view model class
@@ -213,7 +216,7 @@ export class ViewResources {
       return existing;
     }
     if ('$resource' in target) {
-      let config = target.$resource;
+      let config = (target as any).$resource as string | IStaticResourceConfig | (() => IStaticResourceConfig);
       // 1. check if resource config is a string
       if (typeof config === 'string') {
         // it's a custom element, with name is the resource variable
@@ -272,13 +275,13 @@ export class ViewResources {
           }
           if ('templateController' in config) {
             // map templateController to liftsContent
-            config.liftsContent = config.templateController;
+            (config as any).liftsContent = config.templateController;
             delete config.templateController;
           }
           if ('defaultBindingMode' in config && resource.attributeDefaultBindingMode !== undefined) {
             // map defaultBindingMode to attributeDefaultBinding mode
             // custom element doesn't have default binding mode
-            config.attributeDefaultBindingMode = config.defaultBindingMode;
+            (config as any).attributeDefaultBindingMode = config.defaultBindingMode;
             delete config.defaultBindingMode;
           }
           // not bringing over the name.

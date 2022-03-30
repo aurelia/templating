@@ -8,11 +8,37 @@ import {viewStrategy, TemplateRegistryViewStrategy} from './view-strategy';
 import {ViewResources} from './view-resources';
 import {ResourceLoadContext} from './instructions';
 import {_hyphenate} from './util';
+import { ViewResourceType } from './type-extension';
 
 /**
 * Represents a module with view resources.
 */
 export class ResourceModule {
+
+  /** @internal */
+  private id: string;
+
+  /** @internal */
+  private moduleInstance: any;
+
+  /** @internal */
+  mainResource: any;
+
+  /** @internal */
+  private resources: any;
+
+  /** @internal */
+  private viewStrategy: any;
+
+  /** @internal */
+  private isInitialized: boolean;
+
+  /** @internal */
+  private onLoaded: any;
+
+  /** @internal */
+  private loadContext: any;
+
   /**
   * Creates an instance of ResourceModule.
   * @param moduleId The id of the module that contains view resources.
@@ -114,6 +140,13 @@ export class ResourceModule {
 * Represents a single view resource with a ResourceModule.
 */
 export class ResourceDescription {
+
+  /** @internal */
+  private metadata: ViewResourceType;
+
+  /** @internal */
+  private value: any;
+
   /**
   * Creates an instance of ResourceDescription.
   * @param key The key that the resource was exported as.
@@ -126,7 +159,7 @@ export class ResourceDescription {
 
       if (!resourceTypeMeta) {
         resourceTypeMeta = new HtmlBehaviorResource();
-        resourceTypeMeta.elementName = _hyphenate(key);
+        (resourceTypeMeta as HtmlBehaviorResource).elementName = _hyphenate(key);
         metadata.define(metadata.resource, resourceTypeMeta, exportedValue);
       }
     }
@@ -142,11 +175,11 @@ export class ResourceDescription {
         //no customeElement or customAttribute but behavior added by other metadata
         HtmlBehaviorResource.convention(key, resourceTypeMeta);
       }
-    } else if (!resourceTypeMeta.name) {
-      resourceTypeMeta.name = _hyphenate(key);
+    } else if (!(resourceTypeMeta as any).name) {
+      (resourceTypeMeta as any).name = _hyphenate(key);
     }
 
-    this.metadata = resourceTypeMeta;
+    this.metadata = resourceTypeMeta as ViewResourceType;
     this.value = exportedValue;
   }
 
@@ -174,7 +207,7 @@ export class ResourceDescription {
   * @return A promise that resolves when all loading is complete.
   */
   load(container: Container, loadContext?: ResourceLoadContext): Promise<void> | void {
-    return this.metadata.load(container, this.value, loadContext);
+    return (this.metadata as any).load(container, this.value, loadContext);
   }
 }
 
@@ -182,6 +215,8 @@ export class ResourceDescription {
 * Analyzes a module in order to discover the view resources that it exports.
 */
 export class ModuleAnalyzer {
+  /** @internal */
+  private cache: any;
   /**
   * Creates an instance of ModuleAnalyzer.
   */
