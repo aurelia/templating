@@ -31,7 +31,7 @@ function doProcessAttributes() {}
 export class HtmlBehaviorResource {
 
   /** @internal */
-  properties: any;
+  properties: BindableProperty[];
 
   /** @internal */
   attributeName: string;
@@ -79,7 +79,7 @@ export class HtmlBehaviorResource {
   isInitialized: boolean;
 
   /** @internal */
-  private primaryProperty: BindableProperty;
+  primaryProperty: BindableProperty;
 
   /** @internal */
   observerLocator: ObserverLocator;
@@ -181,7 +181,7 @@ export class HtmlBehaviorResource {
     let attributeDefaultBindingMode = this.attributeDefaultBindingMode;
     let i;
     let ii;
-    let current;
+    let current: BindableProperty;
 
     if (this.isInitialized) {
       return;
@@ -355,7 +355,7 @@ export class HtmlBehaviorResource {
         let currentChild = node.firstChild as Element;
         let contentElement = this.usesShadowDOM ? null : DOM.createElement('au-content');
         let nextSibling;
-        let toReplace;
+        let toReplace: string;
 
         while (currentChild) {
           nextSibling = currentChild.nextSibling;
@@ -527,7 +527,7 @@ export class HtmlBehaviorResource {
     // and copy its properties.
     // We don't need to walk further than the first parent with metadata because
     // it had also inherited properties during its own initialization.
-    let behavior;
+    let behavior: HtmlBehaviorResource;
     let derived = target;
 
     // eslint-disable-next-line no-constant-condition
@@ -537,7 +537,7 @@ export class HtmlBehaviorResource {
       if (!target) {
         return;
       }
-      behavior = metadata.getOwn(metadata.resource, target);
+      behavior = metadata.getOwn(metadata.resource, target) as HtmlBehaviorResource;
       if (behavior) {
         break;
       }

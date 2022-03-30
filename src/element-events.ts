@@ -140,7 +140,7 @@ class EventHandlerImpl {
     owner._enqueueHandler(this);
   }
 
-  handleEvent(e) {
+  handleEvent(e: Event) {
     // To keep `undefined` as context, same as the old way
     const fn = this.handler;
     fn(e);

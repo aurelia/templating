@@ -4,6 +4,7 @@ import {BindingLanguage} from './binding-language';
 import {ViewCompileInstruction, BehaviorInstruction, TargetInstruction} from './instructions';
 import {DOM, FEATURE} from 'aurelia-pal';
 import {ShadowDOM} from './shadow-dom';
+import { HtmlBehaviorResource } from './html-behavior';
 
 let nextInjectorId = 0;
 function getNextInjectorId() {
@@ -185,7 +186,7 @@ export class ViewCompiler {
     let attrName;
     let attrValue;
     let info;
-    let type;
+    let type: HtmlBehaviorResource;
     let expressions = [];
     let expression;
     let behaviorInstructions = [];

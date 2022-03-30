@@ -1,4 +1,4 @@
-import {createOverrideContext, Scope} from 'aurelia-binding';
+import {BindingExpression, createOverrideContext, Scope} from 'aurelia-binding';
 import { Container } from 'aurelia-dependency-injection';
 import { BehaviorPropertyObserver } from './behavior-property-observer';
 import { BoundPropertyInfo } from './bindable-property';
@@ -79,7 +79,7 @@ export class Controller {
     behavior._ensurePropertiesDefined(viewModel, observerLookup);
 
     for (i = 0, ii = properties.length; i < ii; ++i) {
-      properties[i]._initialize(viewModel, observerLookup, attributes, handlesBind, boundProperties);
+      properties[i]._initialize(viewModel, observerLookup, attributes as Record<string, string | BindingExpression>, handlesBind, boundProperties);
     }
   }
 

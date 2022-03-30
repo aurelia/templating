@@ -58,6 +58,13 @@ export class BindableProperty {
 
   /** @internal */
   isDynamic: any;
+
+  /**
+   * On a custom attribute, `true` indicates this is the primary bindable prop
+   * @internal
+   */
+  primaryProperty: boolean;
+
   /**
   * Creates an instance of BindableProperty.
   * @param nameOrConfig The name of the property or a cofiguration object.
