@@ -12,7 +12,9 @@ import { View } from './view';
 import { ViewResources } from './view-resources';
 import { ViewSlot } from './view-slot';
 
-@resolver
+const $resolver = resolver as any;
+
+@$resolver
 class ProviderResolver {
   get(container, key) {
     let id = (key as ConstructableResourceTarget).__providerId__;
