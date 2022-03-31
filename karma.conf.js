@@ -8,28 +8,20 @@ module.exports =
  */
 function(config) {
   const browsers = config.browsers;
-
   config.set({
-
-    // base path that will be used to resolve all patterns (eg. files, exclude)
     basePath: '',
-    // frameworks to use
-    // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
     frameworks: ['jasmine'],
     files: [
       'test/setup.ts'
     ],
-    // preprocess matching files before serving them to the browser
-    // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
     preprocessors: {
       'test/setup.ts': ['webpack', 'sourcemap']
     },
     webpack: {
       mode: 'development',
-      entry: '',
       resolve: {
         extensions: ['.ts', '.js'],
-        modules: ['node_modules'],
+        modules: [path.resolve(__dirname, 'node_modules')],
         alias: {
           src: path.resolve(__dirname, 'src'),
           // aliasing to this in test folder, instead of src folder
@@ -41,7 +33,7 @@ function(config) {
       performance: {
         hints: false
       },
-      // devtool: Array.isArray(browsers) && browsers.includes('ChromeDebugging') ? 'inline-source-map' : 'inline-source-map',
+      devtool: Array.isArray(browsers) && browsers.includes('ChromeDebugging') ? 'inline-source-map' : 'inline-source-map',
       module: {
         rules: [
           {
@@ -87,8 +79,6 @@ function(config) {
       ignoreSkipped: true
     },
 
-    // Continuous Integration mode
-    // if true, Karma captures browsers, runs the tests and exits
     singleRun: false
   });
 };
