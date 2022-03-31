@@ -7,8 +7,6 @@
     "moduleResolution": "node",
     "stripInternal": true,
     "sourceMap": true,
-    "preserveConstEnums": true,
-    "declaration": true,
     "lib": ["es2015", "dom"],
     "strictBindCallApply": true
   },
