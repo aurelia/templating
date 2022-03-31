@@ -1,3 +1,12 @@
+# [1.11.0](https://github.com/aurelia/templating/compare/1.10.4...1.11.0) (2022-03-31)
+
+
+### Bug Fixes
+
+* **dep:** resolve vulnerable dep issue ([#705](https://github.com/aurelia/templating/issues/705)) ([825a142](https://github.com/aurelia/templating/commit/825a142356b685bc03e034ec93838528d5e09ef4))
+
+
+
 <a name="1.10.5"></a>
 ## [1.10.5](https://github.com/aurelia/templating/compare/1.10.1...1.10.5) (2020-06-12)
 
