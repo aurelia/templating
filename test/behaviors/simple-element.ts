@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {bindable} from '../../src/decorators';
 
 export class SimpleElement {
