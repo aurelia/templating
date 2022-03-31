@@ -1,3 +1,7 @@
+## [1.11.1](https://github.com/aurelia/templating/compare/1.11.0...1.11.1) (2022-03-31)
+
+
+
 # [1.11.0](https://github.com/aurelia/templating/compare/1.10.4...1.11.0) (2022-03-31)
 
 

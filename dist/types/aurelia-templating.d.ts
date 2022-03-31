@@ -769,6 +769,15 @@ export declare class ViewResources {
 	* @return The value.
 	*/
 	getValue(name: string): any;
+	/**
+	 * Not supported for public use. Can be changed without warning.
+	 *
+	 * Auto register a resources based on its metadata or convention
+	 * Will fallback to custom element if no metadata found and all conventions fail
+	 * @param container
+	 * @param impl
+	 */
+	autoRegister(container: Container, impl: Function): ViewResourceType;
 }
 export interface LetExpression {
 	createBinding(): LetBinding;
