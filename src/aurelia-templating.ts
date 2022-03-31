@@ -81,7 +81,13 @@ export {
   viewResources
 } from './decorators';
 
-export { TemplatingEngine } from './templating-engine';
+export {
+  ViewResourceType,
+  ProcessContentCallback,
+  ProcessAttributeCallback
+} from './type-extension';
+
+export { TemplatingEngine, EnhanceInstruction } from './templating-engine';
 
 export {
   _hyphenate,
