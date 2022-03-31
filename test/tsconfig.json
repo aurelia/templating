@@ -1,8 +1,6 @@
 {
   "extends": "../tsconfig.json",
   "compilerOptions": {
-    "noEmit": true,
-    "downlevelIteration": true,
     "lib": ["DOM", "es2015", "DOM.Iterable"]
   },
   "include": ["."],

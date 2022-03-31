@@ -1,6 +1,6 @@
 import { Aurelia, TaskQueue, useShadowDOM } from 'aurelia-framework';
-import { inlineView, Controller, bindable, ShadowDOM, ViewSlot, ShadowSlot } from './aurelia-templating';
 import 'aurelia-loader-webpack';
+import { Controller, inlineView } from '../src/aurelia-templating';
 import { child, children } from '../src/child-observation';
 
 interface IChildObserver {}
