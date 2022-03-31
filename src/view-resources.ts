@@ -379,6 +379,7 @@ export class ViewResources {
     this.beforeCompile = this.afterCompile = this.beforeCreate = this.afterCreate = this.beforeBind = this.beforeUnbind = false;
   }
 
+  /** @internal */
   _tryAddHook(obj, name) {
     if (typeof obj[name] === 'function') {
       let func = obj[name].bind(obj);

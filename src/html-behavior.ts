@@ -523,6 +523,7 @@ export class HtmlBehaviorResource {
     }
   }
 
+  /** @internal */
   _copyInheritedProperties(container: Container, target: Function) {
     // This methods enables inherited @bindable properties.
     // We look for the first base class with metadata, make sure it's initialized

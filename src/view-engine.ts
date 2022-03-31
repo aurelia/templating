@@ -292,6 +292,7 @@ export class ViewEngine {
     });
   }
 
+  /** @internal */
   _applyLoaderPlugin(id) {
     let index = id.lastIndexOf('.');
     if (index !== -1) {
