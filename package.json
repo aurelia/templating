@@ -42,8 +42,8 @@
     "posttypedoc": "node doc/cleanup.js",
     "changelog": "conventional-changelog -p angular -i doc/CHANGELOG.md -s",
     "precut-release": "npm run test && npm run lint",
-    "cut-release": "npm run build && npm run typedoc && gulp prepare-release",
-    "postcut-release": "npm run doc"
+    "cut-release": "npm run build && npm run typedoc && npm version --git-tag-version false",
+    "postcut-release": "node doc/bower-version.js && npm run changelog"
   },
   "dependencies": {
     "aurelia-binding": "^2.0.0",
