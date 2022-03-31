@@ -34,6 +34,7 @@ export type ViewStrategyDecorator = Function & {
 /**
 * Decorator: Indicates that the decorated class/object is a view strategy.
 */
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 export const viewStrategy: ViewStrategyDecorator = protocol.create('aurelia:view-strategy', {
   validate(target: any) {
@@ -336,17 +337,18 @@ export class StaticViewStrategy {
     if (this.factoryIsReady) {
       return Promise.resolve(this.factory);
     }
-    let deps = this.dependencies;
+    let $deps = this.dependencies;
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    deps = typeof deps === 'function' ? deps() : deps;
+    let deps = typeof $deps === 'function' ? $deps() : $deps;
     deps = deps ? deps : [];
     deps = Array.isArray(deps) ? deps : [deps];
     // Promise.all() to normalize dependencies into an array of either functions, or records that contain function
     return Promise.all(deps).then((dependencies: (Function | Record<string, Function>)[]) => {
-      const container = viewEngine.container;
-      const appResources = viewEngine.appResources;
-      const viewCompiler = viewEngine.viewCompiler;
-      const viewResources = new ViewResources(appResources);
+      let container = viewEngine.container;
+      let appResources = viewEngine.appResources;
+      let viewCompiler = viewEngine.viewCompiler;
+      let viewResources = new ViewResources(appResources);
 
       let resource;
       let elDeps = [];

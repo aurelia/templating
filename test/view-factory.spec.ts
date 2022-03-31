@@ -83,8 +83,6 @@ describe('ViewFactory', () => {
       });
 
       it('creates with multiple <let/>', () => {
-        const binding = {};
-        const unset = {};
         viewFactory = new ViewFactory(
           createFragment(`
             <let class="au-target" au-target-id="1"></let>

@@ -31,17 +31,17 @@ export class ViewSlot {
   /** @internal */
   private anchorIsContainer: boolean;
   /** @internal */
-  private bindingContext: any;
+  bindingContext: any;
   /** @internal */
-  private overrideContext: any;
+  overrideContext: any;
   /** @internal */
   private animator: Animator;
   /** @internal */
   children: View[];
   /** @internal */
-  private isBound: boolean;
+  isBound: boolean;
   /** @internal */
-  private isAttached: boolean;
+  isAttached: boolean;
   /** @internal */
   private contentSelectors: any;
   /** @internal */
@@ -73,7 +73,7 @@ export class ViewSlot {
    *   @param  direction  The animation direction enter|leave.
    *   @returns An animation complete Promise or undefined if no animation was run.
    */
-  animateView(view: View, direction: string = 'enter'): void | Promise<any> {
+  animateView(view: View, direction = 'enter'): void | Promise<any> {
     let animatableElement = getAnimatableElement(view);
 
     if (animatableElement !== null) {

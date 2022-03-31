@@ -1,16 +1,16 @@
-import {Container, resolver} from 'aurelia-dependency-injection';
-import {View, ViewNode} from './view';
-import {ViewSlot} from './view-slot';
-import {ShadowSlot, PassThroughSlot} from './shadow-dom';
-import {ViewResources} from './view-resources';
-import {BehaviorInstruction, TargetInstruction, ViewCreateInstruction} from './instructions';
-import {DOM} from 'aurelia-pal';
-import {ElementEvents} from './element-events';
-import {CompositionTransaction} from './composition-transaction';
-import { ConstructableResourceTarget, InterpolationNode } from './type-extension';
-import { Controller } from './controller';
 import { Binding, BindingExpression } from 'aurelia-binding';
+import { Container, resolver } from 'aurelia-dependency-injection';
+import { DOM } from 'aurelia-pal';
 import { LetExpression } from './binding-language';
+import { CompositionTransaction } from './composition-transaction';
+import { Controller } from './controller';
+import { ElementEvents } from './element-events';
+import { BehaviorInstruction, TargetInstruction, ViewCreateInstruction } from './instructions';
+import { PassThroughSlot, ShadowSlot } from './shadow-dom';
+import { ConstructableResourceTarget, InterpolationNode } from './type-extension';
+import { View } from './view';
+import { ViewResources } from './view-resources';
+import { ViewSlot } from './view-slot';
 
 @resolver
 class ProviderResolver {

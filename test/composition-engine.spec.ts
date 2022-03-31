@@ -3,7 +3,6 @@ import { DOM } from 'aurelia-pal';
 import { CompositionEngine } from '../src/composition-engine';
 import { CompositionTransactionOwnershipToken } from '../src/composition-transaction';
 import { Controller } from '../src/controller';
-import { HtmlBehaviorResource } from '../src/html-behavior';
 import { ResourceDescription } from '../src/module-analyzer';
 import { View } from '../src/view';
 import { ViewResources } from '../src/view-resources';
@@ -145,7 +144,7 @@ describe('CompositionEngine', () => {
 
         compositionEngine
           .compose(createCompositionContext(MyClass))
-          .then(controller => {
+          .then(() => {
             CompositionTransactionOwnershipToken.prototype.waitForCompositionComplete = originalWait;
             expect(track).not.toBe(0);
             done();

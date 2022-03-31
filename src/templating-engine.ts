@@ -1,14 +1,14 @@
-import {Container, inject} from 'aurelia-dependency-injection';
-import {DOM} from 'aurelia-pal';
-import {Controller} from './controller';
-import {ModuleAnalyzer} from './module-analyzer';
-import {Animator} from './animator';
-import {ViewResources} from './view-resources';
-import {CompositionContext, CompositionEngine} from './composition-engine';
-import {ViewFactory} from './view-factory';
-import {ViewCompiler} from './view-compiler';
-import {BehaviorInstruction} from './instructions';
+import { Container } from 'aurelia-dependency-injection';
+import { DOM } from 'aurelia-pal';
+import { Animator } from './animator';
+import { CompositionContext, CompositionEngine } from './composition-engine';
+import { Controller } from './controller';
+import { BehaviorInstruction } from './instructions';
+import { ModuleAnalyzer } from './module-analyzer';
 import { View } from './view';
+import { ViewCompiler } from './view-compiler';
+import { ViewFactory } from './view-factory';
+import { ViewResources } from './view-resources';
 
 /**
 * Instructs the framework in how to enhance an existing DOM structure.
@@ -39,8 +39,11 @@ export interface EnhanceInstruction {
 /**
 * A facade of the templating engine capabilties which provides a more user friendly API for common use cases.
 */
-@inject(Container, ModuleAnalyzer, ViewCompiler, CompositionEngine)
 export class TemplatingEngine {
+
+  /** @internal */
+  static inject = [Container, ModuleAnalyzer, ViewCompiler, CompositionEngine];
+
   /** @internal */
   private _container: Container;
   /** @internal */

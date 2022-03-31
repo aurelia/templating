@@ -28,15 +28,15 @@ describe('ViewLocator', () => {
     };
     container = new Container();
     appResources = new ViewResources();
-    // @ts-ignore
     viewEngine = {
       container: container,
       appResources: appResources,
       viewCompiler: new ViewCompiler(bindingLanguage, appResources),
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       loadViewFactory: (urlOrRegistryEntry, compileInstruction, loadCotnext, target) => {
         return Promise.resolve(null);
       }
-    };
+    } as ViewEngine;
   });
 
   describe('StaticViewStrategy', () => {

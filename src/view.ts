@@ -143,6 +143,7 @@ export class View {
     this._isUserControlled = false;
     this.contentView = null;
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     for (let _ in slots) {
       this.hasSlots = true;
       break;

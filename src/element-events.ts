@@ -52,7 +52,7 @@ export class ElementEvents {
    * @param bubbles
    * @param cancelable
    */
-  publish(eventName: string, detail: Object = {}, bubbles: boolean = true, cancelable: boolean = true) {
+  publish(eventName: string, detail: object = {}, bubbles = true, cancelable = true) {
     let event = DOM.createCustomEvent(eventName, {cancelable, bubbles, detail});
     this.element.dispatchEvent(event);
   }

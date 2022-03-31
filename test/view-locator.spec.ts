@@ -1,12 +1,9 @@
-import { Container } from 'aurelia-dependency-injection';
 import { StaticViewStrategy, ViewLocator } from '../src/aurelia-templating';
 
 describe('ViewLocator', () => {
-  let container: Container;
   let viewLocator: ViewLocator;
 
   beforeEach(() => {
-    container = new Container();
     viewLocator = new ViewLocator();
   });
 

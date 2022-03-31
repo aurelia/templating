@@ -263,6 +263,7 @@ export class HtmlBehaviorResource {
       if (Array.isArray(this.aliases)) {
         this.aliases
           // todo: this is pretty weird
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
           .forEach( (alias) => {
             registry.registerAttribute(alias, this, this.attributeName);
@@ -275,6 +276,7 @@ export class HtmlBehaviorResource {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   aliases(aliases: any) {
     throw new Error('Method not implemented.');
   }

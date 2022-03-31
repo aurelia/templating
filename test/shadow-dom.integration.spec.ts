@@ -18,19 +18,15 @@ describe('shadow-dom.integration.spec.js', () => {
       const Template_Child = '<template><span>${value}</span></template>';
 
       @inlineView(Template_App)
-      // @ts-ignore
       class App {
         itemCount = 10;
       }
 
       @inlineView(Template_Parent)
-      // @ts-ignore
       class Parent {}
 
       @inlineView(Template_Child)
-      // @ts-ignore
       class Child {
-        // @ts-ignore
         @bindable() value
       }
 
@@ -90,20 +86,16 @@ describe('shadow-dom.integration.spec.js', () => {
       const Template_Child = '<template><span>${value}</span></template>';
 
       @inlineView(Template_App)
-      // @ts-ignore
       class App {
         itemCount = 10;
         showChild2 = false;
       }
 
       @inlineView(Template_Parent)
-      // @ts-ignore
       class Parent {}
 
       @inlineView(Template_Child)
-      // @ts-ignore
       class Child {
-        // @ts-ignore
         @bindable() value
       }
 
@@ -206,19 +198,15 @@ describe('shadow-dom.integration.spec.js', () => {
       const Template_Child = '<template><span>${value}</span></template>';
 
       @inlineView(Template_App)
-      // @ts-ignore
       class App {
         itemCount = 10;
       }
 
       @inlineView(Template_Parent)
-      // @ts-ignore
       class Parent {}
 
       @inlineView(Template_Child)
-      // @ts-ignore
       class Child {
-        // @ts-ignore
         @bindable() value
       }
 

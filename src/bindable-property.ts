@@ -147,6 +147,7 @@ export class BindableProperty {
   * @param target The class to define the property on.
   * @param behavior The behavior to define the property on.
   */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   defineOn(target: Function, behavior: HtmlBehaviorResource): void {
     let name = this.name;
     let handlerName;
@@ -159,8 +160,9 @@ export class BindableProperty {
     }
 
     if (this.descriptor === null) {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore todo: weird code here
-      Object.defineProperty(target.prototype, name, this._configureDescriptor(behavior, {}));
+      Object.defineProperty(target.prototype, name, this._configureDescriptor({}));
     }
   }
 

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Scope, Expression } from 'aurelia-binding';
 import { HtmlBehaviorResource } from './html-behavior';
 import { BehaviorInstruction } from './instructions';

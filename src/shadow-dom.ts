@@ -20,6 +20,7 @@ export class SlotCustomAttribute {
     this.element.auSlotAttribute = this;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   valueChanged(newValue, oldValue) {}
 }
 
@@ -212,6 +213,7 @@ export class ShadowSlot {
    * @param index
    * @param destination
    */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   addNode(view: View, node: Node, projectionSource: ViewSlot | ShadowSlot, index?: number, destination?: string) {
     let $node = node as SlotMarkedNode;
     if (this.contentView !== null) {

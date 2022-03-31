@@ -1,11 +1,11 @@
 ﻿import { Container } from 'aurelia-dependency-injection';
 import { DOM } from 'aurelia-pal';
-import { ShadowDOM, TemplatingEngine, ViewFactory, ViewResources, ViewSlot } from '../src/aurelia-templating';
+import { ShadowDOM, TemplatingEngine, View, ViewFactory, ViewResources, ViewSlot } from '../src/aurelia-templating';
 
 describe('view-slot', () => {
-  let container;
-  let templatingEngine;
-  let viewSlot;
+  let container: Container;
+  let templatingEngine: TemplatingEngine;
+  let viewSlot: ViewSlot;
   let parent;
   let element;
   let comment;
@@ -18,40 +18,41 @@ describe('view-slot', () => {
     parent.appendChild(element);
     viewSlot = new ViewSlot(element, false);
     container.registerInstance(DOM.Element, element);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     templatingEngine = container.get(TemplatingEngine);
   });
 
   describe('when binding to a bindingContext', () => {
     let context = { name: 'Test Context' };
-    let view;
+    let view: View;
     let compilerInstructions;
-    let resources;
-    let factory;
+    let resources: ViewResources;
+    let factory: ViewFactory;
 
     beforeEach(() => {
       compilerInstructions = {};
       resources = container.get(ViewResources);
       factory = new ViewFactory(parent, compilerInstructions, resources);
-      view = factory.create();
+      view = factory.create(null);
     });
 
     describe('.bind', () => {
       it('applies bindingContext if unbound', () => {
-        viewSlot.bind(context);
+        viewSlot.bind(context, undefined);
         expect(viewSlot.bindingContext).toEqual(context);
       });
 
       it('applies new bindingContext if not matching old', () => {
         let newContext = { name: 'New Context' };
-        viewSlot.bind(context);
+        viewSlot.bind(context, undefined);
         expect(viewSlot.bindingContext).toEqual(context);
-        viewSlot.bind(newContext);
+        viewSlot.bind(newContext, undefined);
         expect(viewSlot.bindingContext).toEqual(newContext);
       });
 
       it('applies new bindingContext to all children', () => {
         viewSlot.add(view);
-        viewSlot.bind(context);
+        viewSlot.bind(context, undefined);
         expect(view.bindingContext).toEqual(context)
       });
 
@@ -63,7 +64,7 @@ describe('view-slot', () => {
 
     describe('.unbind', () => {
       it('removes bindingContext if already bound', () => {
-        viewSlot.bind(context);
+        viewSlot.bind(context, undefined);
         viewSlot.unbind();
         expect(viewSlot.isBound).toEqual(false);
         expect(viewSlot.bindingContext).toEqual(null);
@@ -71,7 +72,7 @@ describe('view-slot', () => {
 
       it('removes bindingContext from all children', () => {
         viewSlot.add(view);
-        viewSlot.bind(context);
+        viewSlot.bind(context, undefined);
         expect(view.bindingContext).toEqual(context);
         viewSlot.unbind();
         expect(view.bindingContext).toEqual(null);
@@ -114,7 +115,7 @@ describe('view-slot', () => {
       xit('returns a promise if is animatable', () => {
         viewSlot.add(comment)
         let result = viewSlot.add(view);
-        expect(result.constructor.name).toEqual('Promise');
+        expect(result).toBeInstanceOf(Promise);
       });
     });
 
@@ -142,7 +143,7 @@ describe('view-slot', () => {
         viewSlot.add(view);
         view.attached();
         let result = viewSlot.insert(1, view);
-        expect(result.constructor.name).toEqual('Promise');
+        expect(result).toBeInstanceOf(Promise);
       });
     });
 

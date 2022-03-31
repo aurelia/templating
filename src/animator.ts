@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /**
  * An abstract class representing a mechanism for animating the DOM during various DOM state transitions.
  */
@@ -70,7 +71,7 @@ export class Animator {
    * @param effectName identifier of the effect
    * @param properties Object with properties for the effect
    */
-  registerEffect(effectName: string, properties: Object): void {}
+  registerEffect(effectName: string, properties: object): void {}
 
   /**
    * Unregister an effect (for JS based animators)

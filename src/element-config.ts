@@ -14,6 +14,7 @@ export class ElementConfigResource {
   * can aquire needed services.
   * @param target The class to which this resource metadata is attached.
   */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   initialize(container: Container, target: Function): void {}
 
   /**
@@ -23,6 +24,7 @@ export class ElementConfigResource {
   * @param name The name provided by the end user for this resource, within the
   * particular view it's being used.
   */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   register(registry: ViewResources, name?: string): void {}
 
   /**

@@ -1,10 +1,12 @@
-import { BindingLanguage, HtmlBehaviorResource, ViewCompiler, ViewResources } from '../src/aurelia-templating';
+import { BindingExpression, bindingMode } from 'aurelia-binding';
+import { BehaviorInstruction, BindingLanguage, HtmlBehaviorResource, ViewCompiler, ViewResources } from '../src/aurelia-templating';
 
 class MockBindingLanguage {
   inspectAttribute(resources, elementName, attrName, attrValue) {
     return { attrName, attrValue };
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   createAttributeInstruction(resources, element, info, existingInstruction) {
   }
 
@@ -14,21 +16,24 @@ class MockBindingLanguage {
     return existingExpressions;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   inspectTextContent(resources, value) {
   }
 }
 
 describe('ViewCompiler', () => {
-  var viewCompiler, language, resources;
+  let viewCompiler: ViewCompiler;
+  let language: BindingLanguage;
+  let resources: ViewResources;
   beforeEach(() => {
-    language = new MockBindingLanguage();
+    language = new MockBindingLanguage() as unknown as BindingLanguage;
     resources = new ViewResources(new ViewResources(), 'app.html');
     viewCompiler = new ViewCompiler(language, undefined);
   });
 
   describe('compile', () => {
     it('compiles an empty template', () => {
-      var template = document.createElement('template'),
+      let template = document.createElement('template'),
         node = document.createDocumentFragment(),
         factory;
       template.appendChild(node);
@@ -37,11 +42,11 @@ describe('ViewCompiler', () => {
     });
 
     it('throws on compile template within svg namespace', () => {
-      var template = document.createElementNS("http://www.w3.org/2000/svg", 'template'),
+      let template = document.createElementNS("http://www.w3.org/2000/svg", 'template'),
         node = document.createDocumentFragment();
       template.appendChild(node);
 
-      var compileFunc = () => {
+      let compileFunc = () => {
         viewCompiler.compile(template, resources, null)
       };
 
@@ -51,7 +56,7 @@ describe('ViewCompiler', () => {
 
   describe('compileNode', () => {
     it('concatenates adjacent text nodes', () => {
-      var instructions = [], parentInjectorId = 'root', targetLightDOM = true,
+      let instructions = [], parentInjectorId = 'root', targetLightDOM = true,
         node, parentNode;
 
       parentNode = document.createElement('div');
@@ -68,7 +73,7 @@ describe('ViewCompiler', () => {
     });
 
     it('does not concatenate non-adjacent text nodes', () => {
-      var instructions = [], parentInjectorId = 'root', targetLightDOM = true,
+      let instructions = [], parentInjectorId = 'root', targetLightDOM = true,
         node, parentNode, nextNode;
 
       parentNode = document.createElement('div');
@@ -87,7 +92,7 @@ describe('ViewCompiler', () => {
     });
 
     it('clears class attributes containing interpolation expressions', () => {
-      var instructions = [], parentInjectorId = 'root', targetLightDOM = true,
+      let instructions = [], parentInjectorId = 'root', targetLightDOM = true,
         node = document.createElement('div'), parentNode = null;
       node.setAttribute('class', 'foo ${bar} baz');
       spyOn(language, 'inspectAttribute').and.returnValue({
@@ -101,20 +106,21 @@ describe('ViewCompiler', () => {
             discrete: true,
             attrToRemove: 'class'
           }
-        }, attrName: 'class'
-      });
+        },
+        attrName: 'class'
+      } as Partial<BehaviorInstruction> as BehaviorInstruction);
       viewCompiler._compileNode(node, resources, instructions, parentNode, parentInjectorId, targetLightDOM);
       expect(node.className).toBe('au-target');
     });
 
     it('does not clear class attributes with no interpolation expressions', () => {
-      var instructions = [], parentInjectorId = 'root', targetLightDOM = true,
+      let instructions = [], parentInjectorId = 'root', targetLightDOM = true,
         node = document.createElement('div'), parentNode = null;
 
       node.setAttribute('class', 'foo bar baz');
       node.setAttribute('class.bind', 'someProperty');
 
-      spyOn(language, 'inspectAttribute').and.callFake((resources, attrName, attrValue) => {
+      spyOn(language, 'inspectAttribute').and.callFake((resources, attrName) => {
         if (attrName === 'class') {
           return {attrName: 'class', expression: null, command: null}
         } else {
@@ -122,9 +128,9 @@ describe('ViewCompiler', () => {
         }
       });
 
-      spyOn(language, 'createAttributeInstruction').and.callFake((resources, node, info) => {
+      spyOn(language, 'createAttributeInstruction').and.callFake((resources, node, info: AttributeInfo) => {
         if (info.command) {
-          return {attributes: {'class': {discrete: true}}, attrName: 'class'};
+          return {attributes: {'class': {discrete: true}}, attrName: 'class'} as any;
         } else {
           return null;
         }
@@ -155,7 +161,7 @@ describe('ViewCompiler', () => {
           expect(letElement.tagName).toBe('LET');
           expect(letElement.classList.contains('au-target')).toBe(false, 'It should not have had .au-target');
           expect(letElement.hasAttribute('au-target-id')).toBe(false, 'It should not have had [au-target-id]');
-          return {};
+          return {} as any;
         };
         spyOn(viewCompiler.bindingLanguage, 'createLetExpressions').and.callThrough();
         viewCompiler._compileNode(fragment, resources, instructions, null, 'root', true);
@@ -215,3 +221,10 @@ describe('ViewCompiler', () => {
   }
 
 });
+
+interface AttributeInfo {
+  command?: string;
+  expression?: string | BindingExpression;
+  attrName?: string;
+  defaultBindingMode?: bindingMode;
+}

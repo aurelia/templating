@@ -49,7 +49,7 @@ export class ViewCompileInstruction {
   * @param targetShadowDOM Should the compilation target the Shadow DOM.
   * @param compileSurrogate Should the compilation also include surrogate bindings and behaviors.
   */
-  constructor(targetShadowDOM: boolean = false, compileSurrogate: boolean = false) {
+  constructor(targetShadowDOM = false, compileSurrogate = false) {
     this.targetShadowDOM = targetShadowDOM;
     this.compileSurrogate = compileSurrogate;
     this.associatedModuleId = null;
@@ -92,6 +92,18 @@ export class BehaviorInstruction {
   type: HtmlBehaviorResource;
   attrName: string;
   inheritBindingContext: boolean;
+
+  /**
+   * Indicates whether it's an aliased usage
+   * @internal
+   */
+  alteredAttr: boolean;
+
+  /**
+   * ref binding or listener binding
+   * @internal
+   */
+  discrete: boolean;
 
   /**
   * A default behavior used in scenarios where explicit configuration isn't available.

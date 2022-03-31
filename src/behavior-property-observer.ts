@@ -11,7 +11,7 @@ export class BehaviorPropertyObserver {
   taskQueue: TaskQueue;
 
   /** @internal */
-  obj: Object;
+  obj: object;
 
   /** @internal */
   propertyName: string;
@@ -39,7 +39,7 @@ export class BehaviorPropertyObserver {
   * @param selfSubscriber The callback function that notifies the object which defines the properties, if present.
   * @param initialValue The initial value of the property.
   */
-  constructor(taskQueue: TaskQueue, obj: Object, propertyName: string, selfSubscriber: Function, initialValue?: any) {
+  constructor(taskQueue: TaskQueue, obj: object, propertyName: string, selfSubscriber: Function, initialValue?: any) {
     this.taskQueue = taskQueue;
     this.obj = obj;
     this.propertyName = propertyName;
@@ -98,6 +98,8 @@ export class BehaviorPropertyObserver {
     this.callSubscribers(newValue, oldValue);
     this.oldValue = newValue;
   }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   callSubscribers(newValue: any, oldValue: any) {
     throw new Error('Method not implemented.');
   }
@@ -110,6 +112,8 @@ export class BehaviorPropertyObserver {
   subscribe(context: any, callable: Function): void {
     this.addSubscriber(context, callable);
   }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   addSubscriber(context: any, callable: Function) {
     throw new Error('Method not implemented.');
   }
@@ -122,6 +126,7 @@ export class BehaviorPropertyObserver {
   unsubscribe(context: any, callable: Function): void {
     this.removeSubscriber(context, callable);
   }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   removeSubscriber(context: any, callable: Function) {
     throw new Error('Method not implemented.');
   }

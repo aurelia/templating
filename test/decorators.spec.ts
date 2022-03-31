@@ -4,23 +4,23 @@ import { customAttribute, customElement, HtmlBehaviorResource, IStaticResource, 
 
 describe('@customAttribute', () => {
   it('should leave resource attributeDefaultBindingMode as undefined when unspecified', () => {
-    var target: any = {};
+    let target: any = {};
 
-    var decorator = customAttribute('test');
+    let decorator = customAttribute('test');
     decorator(target);
 
-    var resource = metadata.get(metadata.resource, target) as HtmlBehaviorResource;
+    let resource = metadata.get(metadata.resource, target) as HtmlBehaviorResource;
     expect(resource.attributeName).toBe('test');
     expect(resource.attributeDefaultBindingMode).toBeUndefined();
   });
 
   it('should set resource attributeDefaultBindingMode when specified', () => {
-    var target: any = {};
+    let target: any = {};
 
-    var decorator = customAttribute('test', bindingMode.twoWay);
+    let decorator = customAttribute('test', bindingMode.twoWay);
     decorator(target);
 
-    var resource = metadata.get(metadata.resource, target) as HtmlBehaviorResource;
+    let resource = metadata.get(metadata.resource, target) as HtmlBehaviorResource;
     expect(resource.attributeName).toBe('test');
     expect(resource.attributeDefaultBindingMode).toBe(bindingMode.twoWay);
   });

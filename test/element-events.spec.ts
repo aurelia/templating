@@ -34,7 +34,8 @@ describe('ElementEvents', () => {
   it('should subscribe once', () => {
     let value;
     let callCount = 0;
-    const eventHandler = elementEvents.subscribeOnce('input', () => {
+
+    elementEvents.subscribeOnce('input', () => {
       callCount++;
       value = input.value;
     });
@@ -95,7 +96,8 @@ describe('ElementEvents', () => {
   it('should dispose single event', () => {
     let value;
     let callCount = 0;
-    const eventHandler = elementEvents.subscribe('input', () => {
+
+    elementEvents.subscribe('input', () => {
       callCount++;
       value = input.value;
     });
@@ -116,7 +118,8 @@ describe('ElementEvents', () => {
   it('should dispose all events', () => {
     let value;
     let callCount = 0;
-    const eventHandler = elementEvents.subscribe('input', () => {
+
+    elementEvents.subscribe('input', () => {
       callCount++;
       value = input.value;
     });

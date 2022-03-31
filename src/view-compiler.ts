@@ -1,10 +1,12 @@
-import {ViewResources} from './view-resources';
-import {ViewFactory} from './view-factory';
-import {BindingLanguage} from './binding-language';
-import {ViewCompileInstruction, BehaviorInstruction, TargetInstruction} from './instructions';
-import {DOM, FEATURE} from 'aurelia-pal';
-import {ShadowDOM} from './shadow-dom';
+import { BindingExpression, bindingMode } from 'aurelia-binding';
+import { DOM, FEATURE } from 'aurelia-pal';
+import { BindableProperty } from './bindable-property';
+import { BindingLanguage } from './binding-language';
 import { HtmlBehaviorResource } from './html-behavior';
+import { BehaviorInstruction, TargetInstruction, ViewCompileInstruction } from './instructions';
+import { ShadowDOM } from './shadow-dom';
+import { ViewFactory } from './view-factory';
+import { ViewResources } from './view-resources';
 
 let nextInjectorId = 0;
 function getNextInjectorId() {
@@ -65,7 +67,7 @@ export class ViewCompiler {
   }
 
   /** @internal */
-  private bindingLanguage: BindingLanguage;
+  bindingLanguage: BindingLanguage;
 
   /** @internal */
   private resources: ViewResources;
@@ -174,23 +176,24 @@ export class ViewCompiler {
     return node.nextSibling;
   }
 
-  _compileSurrogate(node, resources) {
+  /** @internal */
+  _compileSurrogate(node, resources: ViewResources) {
     let tagName = node.tagName.toLowerCase();
     let attributes = node.attributes;
     let bindingLanguage = resources.getBindingLanguage(this.bindingLanguage);
     let knownAttribute;
-    let property;
-    let instruction;
+    let property: BindableProperty;
+    let instruction: BehaviorInstruction;
     let i;
     let ii;
     let attr;
     let attrName;
     let attrValue;
-    let info;
+    let info: AttributeInfo;
     let type: HtmlBehaviorResource;
-    let expressions = [];
-    let expression;
-    let behaviorInstructions = [];
+    let expressions: (string | BindingExpression | BehaviorInstruction)[] = [];
+    let expression: BindingExpression & { attrToRemove?: string };
+    let behaviorInstructions: BehaviorInstruction[] = [];
     let values = {};
     let hasValues = false;
     let providers = [];
@@ -200,7 +203,7 @@ export class ViewCompiler {
       attrName = attr.name;
       attrValue = attr.value;
 
-      info = bindingLanguage.inspectAttribute(resources, tagName, attrName, attrValue);
+      info = bindingLanguage.inspectAttribute(resources, tagName, attrName, attrValue) as AttributeInfo;
       type = resources.getAttribute(info.attrName);
 
       if (type) { //do we have an attached behavior?
@@ -277,7 +280,7 @@ export class ViewCompiler {
       }
 
       for (i = 0, ii = expressions.length; i < ii; ++i) {
-        expression =  expressions[i];
+        expression =  expressions[i] as BindingExpression;
         if (expression.attrToRemove !== undefined) {
           node.removeAttribute(expression.attrToRemove);
         }
@@ -293,27 +296,27 @@ export class ViewCompiler {
   _compileElement(node: Element, resources: ViewResources, instructions: any, parentNode: Node, parentInjectorId: number, targetLightDOM: boolean) {
     let tagName = node.tagName.toLowerCase();
     let attributes = node.attributes;
-    let expressions = [];
-    let expression;
-    let behaviorInstructions = [];
+    let expressions: (string | BindingExpression | BehaviorInstruction)[] = [];
+    let expression: BindingExpression & { attrToRemove?: string };
+    let behaviorInstructions: BehaviorInstruction[] = [];
     let providers = [];
     let bindingLanguage = resources.getBindingLanguage(this.bindingLanguage);
     let liftingInstruction: BehaviorInstruction;
-    let viewFactory;
-    let type;
-    let elementInstruction;
-    let elementProperty;
-    let i;
-    let ii;
-    let attr;
-    let attrName;
+    let viewFactory: ViewFactory;
+    let type: HtmlBehaviorResource;
+    let elementInstruction: BehaviorInstruction;
+    let elementProperty: BindableProperty;
+    let i: number;
+    let ii: number;
+    let attr: Attr;
+    let attrName: string;
     let attrValue;
     let originalAttrName;
-    let instruction;
-    let info;
-    let property;
+    let instruction: BehaviorInstruction;
+    let info: AttributeInfo;
+    let property: BindableProperty;
     let knownAttribute;
-    let auTargetID;
+    let auTargetID: string;
     let injectorId;
 
     if (tagName === 'slot') {
@@ -349,7 +352,7 @@ export class ViewCompiler {
       attr = attributes[i];
       originalAttrName = attrName = attr.name;
       attrValue = attr.value;
-      info = bindingLanguage.inspectAttribute(resources, tagName, attrName, attrValue);
+      info = bindingLanguage.inspectAttribute(resources, tagName, attrName, attrValue) as AttributeInfo;
 
       if (targetLightDOM && info.attrName === 'slot') {
         info.attrName = attrName = 'au-slot';
@@ -459,7 +462,7 @@ export class ViewCompiler {
         }
 
         for (i = 0, ii = expressions.length; i < ii; ++i) {
-          expression =  expressions[i];
+          expression =  expressions[i] as BindingExpression;
           if (expression.attrToRemove !== undefined) {
             node.removeAttribute(expression.attrToRemove);
           }
@@ -489,6 +492,7 @@ export class ViewCompiler {
     return node.nextSibling;
   }
 
+  /** @internal */
   _configureProperties(instruction, resources) {
     let type = instruction.type;
     let attrName = instruction.attrName;
@@ -517,4 +521,11 @@ export class ViewCompiler {
       }
     }
   }
+}
+
+interface AttributeInfo {
+  command?: string;
+  expression?: string | BindingExpression;
+  attrName?: string;
+  defaultBindingMode?: bindingMode;
 }
