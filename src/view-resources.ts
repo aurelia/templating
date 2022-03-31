@@ -572,7 +572,6 @@ export class ViewResources {
   }
 
   /**
-   * @internal
    * Not supported for public use. Can be changed without warning.
    *
    * Auto register a resources based on its metadata or convention
