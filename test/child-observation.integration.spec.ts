@@ -1,8 +1,9 @@
 import { Aurelia, TaskQueue, useShadowDOM } from 'aurelia-framework';
-import { inlineView, Controller, bindable, ShadowDOM, ViewSlot, ShadowSlot } from './aurelia-templating';
 import 'aurelia-loader-webpack';
+import { Controller, inlineView } from '../src/aurelia-templating';
 import { child, children } from '../src/child-observation';
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface IChildObserver {}
 
 interface IBindableMutationObserver extends MutationObserver {
@@ -56,9 +57,7 @@ describe('child-observation.integration.spec.ts', () => {
         }
 
         const {
-          aurelia,
           host,
-          root,
           rootVm,
           dispose,
         } = await createFixture(App, [ParentEl]);
@@ -138,11 +137,8 @@ describe('child-observation.integration.spec.ts', () => {
           }
 
           const {
-            aurelia,
             host,
-            root,
             rootVm,
-            taskQueue,
             dispose,
           } = await createFixture(App, [ParentEl]);
 
@@ -263,11 +259,8 @@ describe('child-observation.integration.spec.ts', () => {
           }
 
           const {
-            aurelia,
             host,
-            root,
             rootVm,
-            taskQueue,
             dispose,
           } = await createFixture(App, [ParentEl]);
 
@@ -392,11 +385,8 @@ describe('child-observation.integration.spec.ts', () => {
           }
 
           const {
-            aurelia,
             host,
-            root,
             rootVm,
-            taskQueue,
             dispose,
           } = await createFixture(App, [ParentEl]);
 

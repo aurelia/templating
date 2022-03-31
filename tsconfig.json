@@ -6,12 +6,9 @@
     "emitDecoratorMetadata": false,
     "moduleResolution": "node",
     "stripInternal": true,
-    "preserveConstEnums": true,
-    "listFiles": true,
-    "declaration": true,
-    "removeComments": true,
+    "sourceMap": true,
     "lib": ["es2015", "dom"],
-    "allowJs": true
+    "strictBindCallApply": true
   },
   "exclude": [
     "node_modules",
