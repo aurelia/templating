@@ -4,12 +4,9 @@ import { ModuleAnalyzer } from '../src/module-analyzer';
 import { ViewResources } from '../src/view-resources';
 
 describe('ModuleAnalyzer', () => {
-  /**@type {Container} */
-  let container;
-  /**@type {ViewResources} */
-  let resources;
-  /**@type {ModuleAnalyzer} */
-  let moduleAnalyzer;
+  let container: Container;
+  let resources: ViewResources;
+  let moduleAnalyzer: ModuleAnalyzer;
 
   beforeEach(() => {
     container = new Container();

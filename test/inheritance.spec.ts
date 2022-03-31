@@ -1,11 +1,12 @@
-import {ObserverLocator} from 'aurelia-binding';
-import {Container} from 'aurelia-dependency-injection';
-import {metadata} from 'aurelia-metadata';
-import {TaskQueue} from 'aurelia-task-queue';
-import {MoreDerivedCustomElement, OverrideCustomElement} from './behaviors/derived-element';
+import { ObserverLocator } from 'aurelia-binding';
+import { Container } from 'aurelia-dependency-injection';
+import { metadata } from 'aurelia-metadata';
+import { TaskQueue } from 'aurelia-task-queue';
+import { HtmlBehaviorResource } from '../src/aurelia-templating';
+import { MoreDerivedCustomElement, OverrideCustomElement } from './behaviors/derived-element';
 
 describe('Inheritance', () => {
-  let container;
+  let container: Container;
 
   beforeEach(() => {
     container = new Container();
@@ -34,5 +35,5 @@ describe('Inheritance', () => {
 });
 
 function getResource(target) {
-  return metadata.getOwn(metadata.resource, target);
+  return metadata.getOwn(metadata.resource, target) as HtmlBehaviorResource;
 }

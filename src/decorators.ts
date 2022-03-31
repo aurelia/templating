@@ -246,7 +246,11 @@ export function noView(targetOrDependencies?:Function|Array<any>, dependencyBase
   return target ? deco(target) : deco;
 }
 
-interface IStaticViewStrategyConfig {
+export type IStaticViewCustomElement = Function & {
+  $view?: string | IStaticViewStrategyConfig;
+}
+
+export interface IStaticViewStrategyConfig {
   template: string | HTMLTemplateElement;
   dependencies?: Function[] | { (): (Promise<Record<string, Function>> | Function)[] }
 }

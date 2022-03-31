@@ -100,6 +100,10 @@ export interface IBindablePropertyConfig {
   [key: string]: any;
 }
 
+export type IStaticResource = Function & {
+  $resource?: string | IStaticResourceConfig | (() => string | IStaticResourceConfig);
+};
+
 export interface IStaticResourceConfig {
   /**
    * Resource type of this class, omit equals to custom element
@@ -218,7 +222,7 @@ export class ViewResources {
    * @param target Target class to extract metadata based on convention
    * @param existing If supplied, all custom element / attribute metadata extracted from convention will be apply to this instance
    */
-  static convention(target: Function, existing?: HtmlBehaviorResource): ViewResourceType {
+  static convention(target: IStaticResource, existing?: HtmlBehaviorResource): ViewResourceType {
     let resource;
     // Use a simple string to mark that an HtmlBehaviorResource instance
     // has been applied all resource information from its target view model class
@@ -227,7 +231,7 @@ export class ViewResources {
       return existing;
     }
     if ('$resource' in target) {
-      let config = (target as any).$resource as string | IStaticResourceConfig | (() => IStaticResourceConfig);
+      let config = target.$resource;
       // 1. check if resource config is a string
       if (typeof config === 'string') {
         // it's a custom element, with name is the resource variable
@@ -572,11 +576,10 @@ export class ViewResources {
    *
    * Auto register a resources based on its metadata or convention
    * Will fallback to custom element if no metadata found and all conventions fail
-   * @param {Container} container
-   * @param {Function} impl
-   * @returns {HtmlBehaviorResource | ValueConverterResource | BindingBehaviorResource | ViewEngineHooksResource}
+   * @param container
+   * @param impl
    */
-  autoRegister(container, impl) {
+  autoRegister(container: Container, impl: Function): ViewResourceType {
     let resourceTypeMeta = metadata.getOwn(metadata.resource, impl) as ViewResourceType;
     if (resourceTypeMeta) {
       if (resourceTypeMeta instanceof HtmlBehaviorResource) {

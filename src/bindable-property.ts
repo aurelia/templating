@@ -42,7 +42,7 @@ export class BindableProperty {
   defaultBindingMode: any;
 
   /** @internal */
-  changeHandler: any;
+  changeHandler: string;
 
   /** @internal */
   owner: any;

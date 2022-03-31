@@ -1,6 +1,6 @@
 import { Aurelia, TaskQueue } from 'aurelia-framework';
-import { inlineView, Controller, bindable, ShadowDOM, ViewSlot, ShadowSlot } from '../src/aurelia-templating';
 import 'aurelia-loader-webpack';
+import { bindable, Controller, inlineView, ShadowDOM, ShadowSlot, ViewSlot } from '../src/aurelia-templating';
 
 // the test in this file is done in integration testing style,
 // instead of unit testing style to the rest as it requires higher level of setup complexity
@@ -46,10 +46,10 @@ describe('shadow-dom.integration.spec.js', () => {
       expect(host.textContent.trim()).toBe('This is parent0123456789');
       expect(root.view.children.length).toBe(/* 1 child view slot created for <parent/> */1);
 
-      const atParentViewSlot: ViewSlot = root.view.children[0];
+      const atParentViewSlot = root.view.children[0] as unknown as ViewSlot;
       expect(atParentViewSlot.children.length).toBe(/* 10 views for 10 repeated <child/> */10);
 
-      const slot: ShadowSlot = atParentViewSlot.projectToSlots[ShadowDOM.defaultSlotKey];
+      const slot = atParentViewSlot.projectToSlots[ShadowDOM.defaultSlotKey] as ShadowSlot;
       expect(slot.children.length).toBe(/* anchor */1 + /* projection */10);
       expect(slot.children.every((projectedNode: Node, idx) => {
         return projectedNode.nodeType === (idx === 0 ? Node.COMMENT_NODE : Node.ELEMENT_NODE);
@@ -114,7 +114,10 @@ describe('shadow-dom.integration.spec.js', () => {
         rootVm,
       } = await createFixture(App, [Parent, Child]);
 
-      expect(root.view.children.length).toBe(/* 2 child views slot created for (4) <parent/>, last 2 do not have content */2, 'root view should have had 2 child viewslots');
+      expect(root.view.children.length).toBe(
+        /* 2 child views slot created for (4) <parent/>, last 2 do not have content */2,
+        'root view should have had 2 child viewslots'
+      );
       const [atParent1ViewSlot, atParent2ViewSlot] = root.view.children as ViewSlot[];
       const [parent1, parent2, parent3, parent4] = host.querySelectorAll<HTMLElement>('parent');
 
@@ -129,7 +132,7 @@ describe('shadow-dom.integration.spec.js', () => {
       expect(parent1.textContent.trim()).toBe('This is parent0123456789');
 
       expect(atParent1ViewSlot.children.length).toBe(/* 10 views for 10 repeated <child/> */10);
-      const parent1Default_ShadowSlot: ShadowSlot = atParent1ViewSlot.projectToSlots[ShadowDOM.defaultSlotKey];
+      const parent1Default_ShadowSlot = atParent1ViewSlot.projectToSlots[ShadowDOM.defaultSlotKey] as ShadowSlot;
       expect(parent1Default_ShadowSlot.children.length).toBe(/* anchor */1 + /* projection */10);
       expect(parent1Default_ShadowSlot.children.every((projectedNode: Node, idx) => {
         return projectedNode.nodeType === (idx === 0 ? Node.COMMENT_NODE : Node.ELEMENT_NODE);
@@ -164,7 +167,7 @@ describe('shadow-dom.integration.spec.js', () => {
       expect(parent2.textContent.trim()).toBe('This is parentEmpty parent content');
 
       expect(atParent2ViewSlot.children.length).toBe(/* 10 views for 10 repeated <child/> */0);
-      const parent2Default_ShadowSlot: ShadowSlot = atParent2ViewSlot.projectToSlots[ShadowDOM.defaultSlotKey];
+      const parent2Default_ShadowSlot = atParent2ViewSlot.projectToSlots[ShadowDOM.defaultSlotKey] as ShadowSlot;
       expect(parent2Default_ShadowSlot.children.length).toBe(/* anchor */1 + /* projection */0);
       expect(parent2Default_ShadowSlot.children.every((projectedNode: Node, idx) => {
         return projectedNode.nodeType === (idx === 0 ? Node.COMMENT_NODE : Node.ELEMENT_NODE);
@@ -231,10 +234,10 @@ describe('shadow-dom.integration.spec.js', () => {
       expect(host.textContent.trim()).toBe('This is parent0123456789');
       expect(root.view.children.length).toBe(/* 1 child view slot created for <parent/> */1);
 
-      const atParentViewSlot: ViewSlot = root.view.children[0];
+      const atParentViewSlot = root.view.children[0] as ViewSlot;
       expect(atParentViewSlot.children.length).toBe(/* 10 views for 10 repeated <child/> */10);
 
-      const slot: ShadowSlot = atParentViewSlot.projectToSlots['child-value-display'];
+      const slot = atParentViewSlot.projectToSlots['child-value-display'] as ShadowSlot;
       expect(slot.children.length).toBe(/* anchor */1 + /* projection */10);
       expect(slot.children.every((projectedNode: Node, idx) => {
         return projectedNode.nodeType === (idx === 0 ? Node.COMMENT_NODE : Node.ELEMENT_NODE);

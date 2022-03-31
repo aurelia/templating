@@ -2,7 +2,7 @@ import { bindingBehavior, BindingBehaviorResource, bindingMode, valueConverter, 
 import { Container } from 'aurelia-dependency-injection';
 import { Logger } from 'aurelia-logging';
 import { metadata } from 'aurelia-metadata';
-import { bindable, customAttribute, customElement, HtmlBehaviorResource, viewEngineHooks, ViewResources } from '../src/aurelia-templating';
+import { bindable, customAttribute, customElement, HtmlBehaviorResource, IStaticResourceConfig, viewEngineHooks, ViewResources } from '../src/aurelia-templating';
 
 describe('ViewResources', () => {
   let container: Container;
@@ -27,7 +27,7 @@ describe('ViewResources', () => {
       class A {
         static $resource = {
           type: 'attribute',
-        }
+        } as const
       }
   
       meta = ViewResources.convention(A) as HtmlBehaviorResource;
@@ -37,8 +37,9 @@ describe('ViewResources', () => {
         static $resource = {
           type: 'element',
           bindables: ['b', 'c', { name: 'd', defaultBindingMode: 'twoWay' }]
-        }
+        } as IStaticResourceConfig
       }
+
       meta = ViewResources.convention(ElOrA) as HtmlBehaviorResource;
       expect(meta.properties.length).toBe(3);
       expect(meta.attributes.d.defaultBindingMode).toBe(bindingMode.twoWay);
@@ -46,7 +47,7 @@ describe('ViewResources', () => {
       class Vc {
         static $resource = {
           type: 'valueConverter'
-        }
+        } as const
       }
       const vcMeta = ViewResources.convention(Vc) as ValueConverterResource;
       expect(vcMeta instanceof ValueConverterResource).toBe(true);
@@ -55,8 +56,9 @@ describe('ViewResources', () => {
       class Bb {
         static $resource = {
           type: 'bindingBehavior'
-        }
+        } as const
       }
+
       const bbMeta = ViewResources.convention(Bb) as BindingBehaviorResource;
       expect(bbMeta instanceof BindingBehaviorResource).toBe(true);
       expect(bbMeta.name).toBe('bb');

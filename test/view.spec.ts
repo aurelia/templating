@@ -1,6 +1,6 @@
 import { Binding, Scope } from 'aurelia-binding';
 import { Container } from 'aurelia-dependency-injection';
-import {Controller, View, ViewFactory} from '../src/aurelia-templating';
+import { Controller, View, ViewFactory } from '../src/aurelia-templating';
 
 describe('View', () => {
   it('binds and unbinds', () => {
@@ -19,7 +19,7 @@ describe('View', () => {
         expect(view.overrideContext).toBe(overrideContext);
       })
     }] as unknown as Binding[];
-    let children = [{ bind: jasmine.createSpy('bind'), unbind: jasmine.createSpy('unbind') }] as unknown as Binding[];
+    let children = [{ bind: jasmine.createSpy('bind'), unbind: jasmine.createSpy('unbind') }] as unknown as View[];
     let contentSelectors = [];
     view = new View(container, viewFactory, fragment, controllers, bindings, children, contentSelectors);
     view.bind(bindingContext, overrideContext);

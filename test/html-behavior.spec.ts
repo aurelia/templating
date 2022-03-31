@@ -28,7 +28,7 @@ describe('html-behavior', () => {
 
     const resource = new HtmlBehaviorResource();
     resource.attributeName = 'test';
-    resource.aliases = ['foo', 'bar'];
+    resource.aliases = ['foo', 'bar'] as any;
 
     let target = function() {};
 

@@ -178,7 +178,7 @@ export class ShadowSlot {
    * A list of nodes that keeps track of projected nodes through this shadow slot
    * @internal
    */
-  private children: SlotMarkedNode[];
+  children: SlotMarkedNode[];
   /** @internal */
   projectFromAnchors: any;
   /** @internal */

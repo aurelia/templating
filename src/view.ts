@@ -1,9 +1,9 @@
 /* eslint no-unused-vars: 0, no-constant-condition: 0 */
-import {Binding, createOverrideContext, Scope} from 'aurelia-binding';
-import {Container} from 'aurelia-dependency-injection';
+import { Binding, createOverrideContext, Scope } from 'aurelia-binding';
+import { Container } from 'aurelia-dependency-injection';
 import { Controller } from './controller';
 import { ComponentBind } from './interfaces';
-import {PassThroughSlot, ShadowDOM, ShadowSlot} from './shadow-dom';
+import { PassThroughSlot, ShadowDOM, ShadowSlot } from './shadow-dom';
 import { ViewFactory } from './view-factory';
 import { ViewResources } from './view-resources';
 
@@ -11,6 +11,10 @@ import { ViewResources } from './view-resources';
 * Represents a node in the view hierarchy.
 */
 export interface ViewNode {
+  /**
+   * The children of this view node
+   */
+  children: ViewNode[];
   /**
   * Binds the node and it's children.
   * @param bindingContext The binding context to bind to.
@@ -77,11 +81,8 @@ export class View {
   /** @internal */
   bindings: Binding[];
 
-  /**
-   * Bindings for child observation
-   * @internal
-   */
-  children: Binding[];
+  /** @internal */
+  children: ViewNode[];
 
   /** @internal */
   slots: Record<string, ShadowSlot | PassThroughSlot>;
@@ -117,9 +118,9 @@ export class View {
   * @param fragment The DOM fragement representing the view.
   * @param controllers The controllers inside this view.
   * @param bindings The bindings inside this view.
-  * @param children The children binding of this view.
+  * @param children The children view nodes of this view.
   */
-  constructor(container: Container, viewFactory: ViewFactory, fragment: DocumentFragment, controllers: Controller[], bindings: Binding[], children: Binding[], slots: Object) {
+  constructor(container: Container, viewFactory: ViewFactory, fragment: DocumentFragment, controllers: Controller[], bindings: Binding[], children: ViewNode[], slots: Object) {
     this.container = container;
     this.viewFactory = viewFactory;
     this.resources = viewFactory.resources;

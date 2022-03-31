@@ -99,7 +99,7 @@ function tryActivateViewModel(context) {
 export class CompositionEngine {
 
   /** @internal */
-  private viewEngine: ViewEngine;
+  viewEngine: ViewEngine;
 
   /** @internal */
   private viewLocator: ViewLocator;

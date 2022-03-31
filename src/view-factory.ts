@@ -1,5 +1,5 @@
 import {Container, resolver} from 'aurelia-dependency-injection';
-import {View} from './view';
+import {View, ViewNode} from './view';
 import {ViewSlot} from './view-slot';
 import {ShadowSlot, PassThroughSlot} from './shadow-dom';
 import {ViewResources} from './view-resources';
@@ -7,7 +7,10 @@ import {BehaviorInstruction, TargetInstruction, ViewCreateInstruction} from './i
 import {DOM} from 'aurelia-pal';
 import {ElementEvents} from './element-events';
 import {CompositionTransaction} from './composition-transaction';
-import { ConstructableResourceTarget } from './type-extension';
+import { ConstructableResourceTarget, InterpolationNode } from './type-extension';
+import { Controller } from './controller';
+import { Binding, BindingExpression } from 'aurelia-binding';
+import { LetExpression } from './binding-language';
 
 @resolver
 class ProviderResolver {
@@ -138,9 +141,19 @@ function makeElementIntoAnchor(element, elementInstruction) {
  * @param {Record<string, ViewFactory>} partReplacements
  * @param {ViewResources} resources
  */
-function applyInstructions(containers, element, instruction, controllers, bindings, children, shadowSlots, partReplacements, resources) {
+function applyInstructions(
+  containers: Record<string, Container>,
+  element: Element,
+  instruction: TargetInstruction,
+  controllers: Controller[],
+  bindings: Binding[],
+  children: View[],
+  shadowSlots: Record<string, ShadowSlot>,
+  partReplacements: Record<string, ViewFactory>,
+  resources: ViewResources
+): void {
   let behaviorInstructions = instruction.behaviorInstructions;
-  let expressions = instruction.expressions;
+  let expressions = instruction.expressions as BindingExpression[];
   let elementContainer;
   let i;
   let ii;
@@ -149,7 +162,7 @@ function applyInstructions(containers, element, instruction, controllers, bindin
 
   if (instruction.contentExpression) {
     bindings.push(instruction.contentExpression.createBinding(element.nextSibling));
-    element.nextSibling.auInterpolationTarget = true;
+    (element.nextSibling as InterpolationNode).auInterpolationTarget = true;
     element.parentNode.removeChild(element);
     return;
   }
@@ -172,7 +185,7 @@ function applyInstructions(containers, element, instruction, controllers, bindin
 
   if (instruction.letElement) {
     for (i = 0, ii = expressions.length; i < ii; ++i) {
-      bindings.push(expressions[i].createBinding());
+      bindings.push((expressions[i] as LetExpression).createBinding());
     }
     element.parentNode.removeChild(element);
     return;
@@ -180,7 +193,7 @@ function applyInstructions(containers, element, instruction, controllers, bindin
 
   if (behaviorInstructions.length) {
     if (!instruction.anchorIsContainer) {
-      element = makeElementIntoAnchor(element, instruction.elementInstruction);
+      element = makeElementIntoAnchor(element, instruction.elementInstruction) as unknown as Element;
     }
 
     containers[instruction.injectorId] = elementContainer =
@@ -236,7 +249,7 @@ function styleObjectToString(obj) {
   return result;
 }
 
-function applySurrogateInstruction(container, element, instruction, controllers, bindings, children) {
+function applySurrogateInstruction(container, element, instruction, controllers: Controller[], bindings: Binding[], children: View[]) {
   let behaviorInstructions = instruction.behaviorInstructions;
   let expressions = instruction.expressions;
   let providers = instruction.providers;
@@ -465,15 +478,15 @@ export class ViewFactory {
     let instructables = fragment.querySelectorAll('.au-target');
     let instructions = this.instructions;
     let resources = this.resources;
-    let controllers = [];
-    let bindings = [];
-    let children = [];
+    let controllers: Controller[] = [];
+    let bindings: Binding[] = [];
+    let children: View[] = [];
     let shadowSlots = Object.create(null);
     let containers = { root: container };
-    let partReplacements = createInstruction.partReplacements;
+    let partReplacements = createInstruction.partReplacements as Record<string, ViewFactory>;
     let i;
     let ii;
-    let view;
+    let view: View;
     let instructable;
     let instruction;
 

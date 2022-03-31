@@ -1,26 +1,26 @@
-﻿import { metadata } from 'aurelia-metadata';
-import { bindingMode } from 'aurelia-binding';
-import { customAttribute, customElement, resource, view } from '../src/decorators';
+﻿import { bindingMode } from 'aurelia-binding';
+import { metadata } from 'aurelia-metadata';
+import { customAttribute, customElement, HtmlBehaviorResource, IStaticResource, IStaticViewCustomElement, resource, view } from '../src/aurelia-templating';
 
 describe('@customAttribute', () => {
   it('should leave resource attributeDefaultBindingMode as undefined when unspecified', () => {
-    var target = {};
+    var target: any = {};
 
     var decorator = customAttribute('test');
     decorator(target);
 
-    var resource = metadata.get(metadata.resource, target);
+    var resource = metadata.get(metadata.resource, target) as HtmlBehaviorResource;
     expect(resource.attributeName).toBe('test');
     expect(resource.attributeDefaultBindingMode).toBeUndefined();
   });
 
   it('should set resource attributeDefaultBindingMode when specified', () => {
-    var target = {};
+    var target: any = {};
 
     var decorator = customAttribute('test', bindingMode.twoWay);
     decorator(target);
 
-    var resource = metadata.get(metadata.resource, target);
+    var resource = metadata.get(metadata.resource, target) as HtmlBehaviorResource;
     expect(resource.attributeName).toBe('test');
     expect(resource.attributeDefaultBindingMode).toBe(bindingMode.twoWay);
   });
@@ -37,21 +37,24 @@ describe('@resources', () => {
   it('should config when using a string', () => {
     @resource('el')
     class El {}
-    expect(El.$resource).toBe('el');
+
+    expect((El as IStaticResource).$resource).toBe('el');
   });
 
   it('should config using a plain object', () => {
     let config = {};
     @resource(config)
     class El {}
-    expect(El.$resource).toBe(config);
+
+    expect((El as IStaticResource).$resource).toBe(config);
   });
 
   it('should define metadata using something else', () => {
     let behaviorResource = new class FakeResource{}();
     @resource(behaviorResource)
     class El {}
-    expect(El.$resource).toBe(undefined);
+
+    expect((El as IStaticResource).$resource).toBe(undefined);
     expect(metadata.getOwn(metadata.resource, El)).toBe(behaviorResource);
   });
 });
@@ -63,18 +66,19 @@ describe('view strategy decorators', () => {
       @view(baseTemplate)
       class El {}
 
-      expect(El.$view).toBe(baseTemplate);
+      expect((El as IStaticViewCustomElement).$view).toBe(baseTemplate);
 
       class El2 {}
       let config = {template: baseTemplate};
       view(config)(El2);
-      expect(El2.$view).toBe(config);
+
+      expect((El2 as IStaticViewCustomElement).$view).toBe(config);
     });
   })
 });
 
 function getBehaviorMetadata (decorator) {
-  let target = {};
+  let target: any = {};
   decorator(target);
-  return metadata.get(metadata.resource, target);
+  return metadata.get(metadata.resource, target) as HtmlBehaviorResource;
 }

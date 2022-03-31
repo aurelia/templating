@@ -1,17 +1,19 @@
-import {Container} from 'aurelia-dependency-injection';
-import {HtmlBehaviorResource} from '../src/html-behavior';
-import {CompositionEngine} from '../src/composition-engine';
-import {CompositionTransactionOwnershipToken} from '../src/composition-transaction';
-import {ViewResources} from '../src/view-resources';
-import {DOM} from 'aurelia-pal';
+import { Container } from 'aurelia-dependency-injection';
+import { DOM } from 'aurelia-pal';
+import { CompositionEngine } from '../src/composition-engine';
+import { CompositionTransactionOwnershipToken } from '../src/composition-transaction';
+import { Controller } from '../src/controller';
+import { HtmlBehaviorResource } from '../src/html-behavior';
+import { ResourceDescription } from '../src/module-analyzer';
+import { View } from '../src/view';
+import { ViewResources } from '../src/view-resources';
 import { ViewSlot } from '../src/view-slot';
+import { ViewStrategy } from '../src/view-strategy';
 
 describe('CompositionEngine', () => {
-  /**@type {Container} */
-  let container;
-  let mockModule;
-  /**@type {CompositionEngine} */
-  let compositionEngine;
+  let container: Container;
+  let mockModule
+  let compositionEngine: CompositionEngine;
 
   function createCompositionContext(viewModel) {
     let host = document.createElement('div');
@@ -117,7 +119,7 @@ describe('CompositionEngine', () => {
 
         compositionEngine
           .compose(createCompositionContext(MyClass))
-          .then(controller => {
+          .then((controller: Controller) => {
             expect(controller.viewModel instanceof MyClass).toBe(true);
             done();
           })
@@ -128,9 +130,9 @@ describe('CompositionEngine', () => {
         let track = 0;
 
         const originalWait = CompositionTransactionOwnershipToken.prototype.waitForCompositionComplete;
-        CompositionTransactionOwnershipToken.prototype.waitForCompositionComplete = function() {
+        CompositionTransactionOwnershipToken.prototype.waitForCompositionComplete = function(...args: unknown[]) {
           track = 1;
-          return originalWait.apply(this, arguments);
+          return originalWait.apply(this, args);
         }
 
         class MyClass {
@@ -161,10 +163,23 @@ describe('CompositionEngine', () => {
   * Instructs the composition engine how to dynamically compose a component.
   */
   class CompositionContext {
+    host: Element;
+    viewModel: any;
+    container: Container;
+    childContainer: Container;
+    bindingContext: any;
+    overrideContext: any;
+    model: any;
+    viewModelResource: ResourceDescription;
+    viewResources: ViewResources;
+    owningView: View;
+    view: string | ViewStrategy;
+    viewSlot: ViewSlot;
+    skipActivation: boolean;
     /**
      * @param {Partial<CompositionContext>} context
      */
-    constructor(context) {
+    constructor(context: Partial<CompositionContext>) {
       
       /**
         * The parent Container for the component creation.

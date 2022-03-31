@@ -12,6 +12,8 @@ export interface LetExpression {
 }
 
 export interface LetBinding {
+  source: Scope;
+  isBound: boolean;
   /**
    * The expression to access/assign/connect the binding source property.
    */

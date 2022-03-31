@@ -1,7 +1,7 @@
-import {Animator} from './animator';
-import {View} from './view';
-import {PassThroughSlot, ShadowDOM, ShadowSlot} from './shadow-dom';
+import { Animator } from './animator';
+import { PassThroughSlot, ShadowDOM, ShadowSlot } from './shadow-dom';
 import { SlotMarkedNode } from './type-extension';
+import { View } from './view';
 
 function getAnimatableElement(view) {
   if (view.animatableElement !== undefined) {
@@ -26,16 +26,26 @@ function getAnimatableElement(view) {
 * Manages the view lifecycle for its children.
 */
 export class ViewSlot {
+  /** @internal */
   private anchor: Node;
+  /** @internal */
   private anchorIsContainer: boolean;
+  /** @internal */
   private bindingContext: any;
+  /** @internal */
   private overrideContext: any;
+  /** @internal */
   private animator: Animator;
-  private children: any[];
+  /** @internal */
+  children: View[];
+  /** @internal */
   private isBound: boolean;
+  /** @internal */
   private isAttached: boolean;
+  /** @internal */
   private contentSelectors: any;
-  private projectToSlots: Record<string, ShadowSlot | PassThroughSlot>;
+  /** @internal */
+  projectToSlots: Record<string, ShadowSlot | PassThroughSlot>;
 
   /**
   * Creates an instance of ViewSlot.
@@ -102,7 +112,7 @@ export class ViewSlot {
       unbind() {},
       attached() {},
       detached() {}
-    });
+    } as unknown as View);
   }
 
   /**
@@ -186,7 +196,7 @@ export class ViewSlot {
       return this.add(view);
     }
 
-    view.insertNodesBefore(children[index].firstChild);
+    view.insertNodesBefore((children[index] as View).firstChild);
     children.splice(index, 0, view);
 
     if (this.isAttached) {
@@ -209,7 +219,7 @@ export class ViewSlot {
     const view = children[sourceIndex];
 
     view.removeNodes();
-    view.insertNodesBefore(children[targetIndex].firstChild);
+    view.insertNodesBefore((children[targetIndex] as View).firstChild);
     children.splice(sourceIndex, 1);
     children.splice(targetIndex, 0, view);
   }

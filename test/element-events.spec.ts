@@ -1,10 +1,8 @@
 import { ElementEvents } from '../src/element-events';
 
 describe('ElementEvents', () => {
-  /**@type {HTMLInputElement} */
-  let input;
-  /**@type {ElementEvents} */
-  let elementEvents;
+  let input: HTMLInputElement;
+  let elementEvents: ElementEvents;
 
   beforeEach(() => {
     input = document.createElement('input');
@@ -21,7 +19,7 @@ describe('ElementEvents', () => {
     });
 
     const newValue = 1234;
-    input.value = newValue;
+    input.value = newValue + '';
     input.dispatchEvent(new CustomEvent('input'));
 
     expect(value === newValue.toString()).toBe(true);
@@ -42,7 +40,7 @@ describe('ElementEvents', () => {
     });
 
     const newValue = 1234;
-    input.value = newValue;
+    input.value = newValue + '';
     input.dispatchEvent(new CustomEvent('input'));
 
     expect(value === newValue.toString()).toBe(true);
@@ -103,7 +101,7 @@ describe('ElementEvents', () => {
     });
 
     const newValue = 1234;
-    input.value = newValue;
+    input.value = newValue + '';
     input.dispatchEvent(new CustomEvent('input'));
 
     expect(value === newValue.toString()).toBe(true);
@@ -124,7 +122,7 @@ describe('ElementEvents', () => {
     });
 
     const newValue = 1234;
-    input.value = newValue;
+    input.value = newValue + '';
     input.dispatchEvent(new CustomEvent('input'));
 
     expect(value === newValue.toString()).toBe(true);

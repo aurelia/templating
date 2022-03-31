@@ -40,6 +40,7 @@ export {
 } from './shadow-dom';
 export {
   IBindablePropertyConfig,
+  IStaticResource,
   IStaticResourceConfig,
   ViewEngineHooks,
   ViewResources,
@@ -75,6 +76,8 @@ export {
   useView,
   useViewStrategy,
   view,
+  IStaticViewCustomElement,
+  IStaticViewStrategyConfig,
   viewResources
 } from './decorators';
 
