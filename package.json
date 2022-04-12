@@ -64,7 +64,7 @@
     "@typescript-eslint/eslint-plugin": "^5.17.0",
     "@typescript-eslint/parser": "^5.17.0",
     "aurelia-bootstrapper": "^2.3.3",
-    "aurelia-framework": "^1.4.0",
+    "aurelia-framework": "^1.4.1",
     "aurelia-history": "^1.2.1",
     "aurelia-history-browser": "^1.4.0",
     "aurelia-loader-webpack": "^2.2.1",
